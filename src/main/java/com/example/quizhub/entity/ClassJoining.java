@@ -1,0 +1,39 @@
+package com.example.quizhub.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
+@Entity
+@Table(name = "_class_joining")
+public class ClassJoining {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    Long id;
+
+    @Column(name = "_displayed_name", length = 255)
+    String displayedName;
+
+    @Column(name = "_displayed_phone", length = 255)
+    String displayedPhone;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "class_id")
+    Classroom classroom;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "learner_id")
+    UserDtls learner;
+
+    @Column(name = "joined_at")
+    LocalDateTime joinedAt;
+}
