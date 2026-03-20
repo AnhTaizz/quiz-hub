@@ -28,7 +28,7 @@ public class QuizTaking {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "learner_id")
-    UserDtls learner;
+    User learner;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_id")

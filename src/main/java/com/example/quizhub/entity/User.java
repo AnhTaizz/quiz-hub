@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
 @Table(name = "_user")
-public class UserDtls {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

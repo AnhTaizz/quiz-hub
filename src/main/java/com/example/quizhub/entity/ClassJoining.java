@@ -32,7 +32,7 @@ public class ClassJoining {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "learner_id")
-    UserDtls learner;
+    User learner;
 
     @Column(name = "joined_at")
     LocalDateTime joinedAt;

@@ -41,7 +41,7 @@ public class Classroom {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_id", referencedColumnName = "id")
-    UserDtls creator;
+    User creator;
 
     @CreationTimestamp
     @Column(name = "created_at")
