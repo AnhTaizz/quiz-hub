@@ -1,7 +1,5 @@
 package com.example.quizhub.config;
 
-import com.example.quizhub.security.JwtAuthenticationFilter;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -12,6 +10,10 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import com.example.quizhub.security.JwtAuthenticationFilter;
+
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
@@ -31,7 +33,10 @@ public class SecurityConfig {
             // Phân quyền theo HTTP path
             .authorizeHttpRequests(auth -> auth
                 // Public: đăng ký, đăng nhập
-                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/auth/**",
+                                "/api/questions/**",
+                                "/test/**")
+                .permitAll()
 
                 // Chỉ ADMIN
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")

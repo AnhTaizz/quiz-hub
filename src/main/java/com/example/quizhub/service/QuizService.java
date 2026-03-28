@@ -1,5 +1,5 @@
 package com.example.quizhub.service;
 
-public interface UserService {
-    
+public interface QuizService {
+
 }

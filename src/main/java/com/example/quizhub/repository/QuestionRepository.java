@@ -12,7 +12,7 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     List<Question> findByCreatorId(Long creatorId);
 
-    List<Question> findByCategoryId(Integer categoryId);
+    List<Question> findByCategoryId(Long categoryId);
 
     List<Question> findByType(QuestionType type);
 

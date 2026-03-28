@@ -50,7 +50,7 @@ public class Quiz {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_id", nullable = false)
-    UserDtls creator;
+    User creator;
 
     @CreationTimestamp
     @Column(name = "created_at")
