@@ -15,7 +15,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity          // Cho phép dùng @PreAuthorize trên method level
+@EnableMethodSecurity // Cho phép dùng @PreAuthorize trên method level
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -25,37 +25,34 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // Tắt CSRF (REST API stateless không cần)
-            .csrf(AbstractHttpConfigurer::disable)
+                // Tắt CSRF (REST API stateless không cần)
+                .csrf(AbstractHttpConfigurer::disable)
 
-            // Phân quyền theo HTTP path
-            .authorizeHttpRequests(auth -> auth
-                // Public: đăng ký, đăng nhập
-                .requestMatchers("/api/auth/**").permitAll()
+                // Phân quyền theo HTTP path
+                .authorizeHttpRequests(auth -> auth
+                        // Public: đăng ký, đăng nhập
+                        .requestMatchers("/api/auth/**", "/error").permitAll()
 
-                // Chỉ ADMIN
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                        // Chỉ ADMIN
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                // ADMIN hoặc TEACHER
-                .requestMatchers("/api/teacher/**").hasAnyRole("ADMIN", "TEACHER")
+                        // ADMIN hoặc TEACHER
+                        .requestMatchers("/api/teacher/**").hasAnyRole("ADMIN", "TEACHER")
 
-                // ADMIN, TEACHER hoặc STUDENT
-                .requestMatchers("/api/student/**").hasAnyRole("ADMIN", "TEACHER", "STUDENT")
+                        // ADMIN, TEACHER hoặc STUDENT
+                        .requestMatchers("/api/student/**").hasAnyRole("ADMIN", "TEACHER", "STUDENT")
 
-                // Tất cả request còn lại phải authenticated
-                .anyRequest().authenticated()
-            )
+                        // Tất cả request còn lại phải authenticated
+                        .anyRequest().authenticated())
 
-            // Stateless session — không lưu session phía server
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
+                // Stateless session — không lưu session phía server
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-            // Gắn AuthenticationProvider (DaoAuthentication + BCrypt)
-            .authenticationProvider(authenticationProvider)
+                // Gắn AuthenticationProvider (DaoAuthentication + BCrypt)
+                .authenticationProvider(authenticationProvider)
 
-            // Đặt JwtAuthenticationFilter chạy trước UsernamePasswordAuthenticationFilter
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                // Đặt JwtAuthenticationFilter chạy trước UsernamePasswordAuthenticationFilter
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
