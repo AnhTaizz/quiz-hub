@@ -34,7 +34,6 @@ public class JwtService {
     }
 
     // ─── Generate ─────────────────────────────────────────────────────────────
-
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> extraClaims = new HashMap<>();
         // Gắn role vào token (lấy authority đầu tiên, vd: "ROLE_ADMIN")
@@ -45,8 +44,8 @@ public class JwtService {
     }
 
     private String buildToken(Map<String, Object> extraClaims,
-                              UserDetails userDetails,
-                              long expiration) {
+            UserDetails userDetails,
+            long expiration) {
         return Jwts.builder()
                 .claims(extraClaims)
                 .subject(userDetails.getUsername())
