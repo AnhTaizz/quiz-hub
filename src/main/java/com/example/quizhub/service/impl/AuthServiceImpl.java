@@ -3,6 +3,8 @@ package com.example.quizhub.service.impl;
 import java.util.Optional;
 
 import com.example.quizhub.entity.enums.Role;
+import com.example.quizhub.exception.AppException;
+import com.example.quizhub.exception.ErrorCode;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,14 +34,17 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse register(RegisterRequest request) {
+        if (!request.getPassword().equals(request.getConfirmPassword())) {
+            throw new AppException(ErrorCode.PASSWORD_MISMATCH);
+        }
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Email này đã được sử dụng!");
+            throw new AppException(ErrorCode.USER_EXISTED);
         }
         Role assignedRole = Role.STUDENT;
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .fullName(request.getUsername())
+                .fullName(request.getFullName())
                 .role(assignedRole)
                 .isEnable(true)
                 .isVerified(false)

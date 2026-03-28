@@ -14,13 +14,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class RegisterRequest {
     @NotBlank(message = "BLANK_FIELD")
-    private String username;
+    private String fullName;
     @NotBlank(message = "BLANK_FIELD")
     @Email(message = "INVALID_EMAIL")
     private String email;
     @NotBlank(message = "BLANK_FIELD")
     @Size(min = 6, message = "INVALID_PASSWORD")
     private String password;
+    @NotBlank(message = "BLANK_FIELD")
+    private String confirmPassword;
 
     private String role;
 }
