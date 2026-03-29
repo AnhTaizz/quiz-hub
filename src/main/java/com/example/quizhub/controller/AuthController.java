@@ -1,5 +1,7 @@
 package com.example.quizhub.controller;
 
+import java.security.Principal;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -8,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.quizhub.dto.request.AuthRequest;
+import com.example.quizhub.dto.request.ChangePasswordRequest;
 import com.example.quizhub.dto.request.RegisterRequest;
 import com.example.quizhub.dto.response.AuthResponse;
 import com.example.quizhub.service.AuthService;
@@ -30,5 +33,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest authRequest) {
         return ResponseEntity.ok(authService.login(authRequest));
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<String> changePassword(@Valid @RequestBody ChangePasswordRequest request,
+            Principal principal) {
+        authService.changePassword(request, principal.getName());
+        return ResponseEntity.ok("Đổi mật khẩu thành công!");
     }
 }

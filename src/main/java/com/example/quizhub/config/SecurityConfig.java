@@ -1,5 +1,6 @@
 package com.example.quizhub.config;
 
+import com.example.quizhub.security.JwtAuthenticationEntryPoint;
 import com.example.quizhub.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -22,6 +23,10 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final AuthenticationProvider authenticationProvider;
 
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final String[] PUBLIC_ENDPOINT = { "/api/auth/register", "/api/auth/login", "/api/auth/forgot-password",
+            "/api/auth/reset-password", "/error" };
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -31,7 +36,7 @@ public class SecurityConfig {
                 // Phân quyền theo HTTP path
                 .authorizeHttpRequests(auth -> auth
                         // Public: đăng ký, đăng nhập
-                        .requestMatchers("/api/auth/**", "/error").permitAll()
+                        .requestMatchers(PUBLIC_ENDPOINT).permitAll()
 
                         // Chỉ ADMIN
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -50,6 +55,8 @@ public class SecurityConfig {
 
                 // Gắn AuthenticationProvider (DaoAuthentication + BCrypt)
                 .authenticationProvider(authenticationProvider)
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(jwtAuthenticationEntryPoint))
 
                 // Đặt JwtAuthenticationFilter chạy trước UsernamePasswordAuthenticationFilter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

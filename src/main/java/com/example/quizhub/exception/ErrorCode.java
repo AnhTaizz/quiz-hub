@@ -14,7 +14,8 @@ public enum ErrorCode {
     BLANK_FIELD(HttpStatus.BAD_REQUEST, "Dữ liệu không được để trống!"),
     INVALID_EMAIL(HttpStatus.BAD_REQUEST, "Định dạng email không hợp lệ!"),
     INVALID_PASSWORD(HttpStatus.BAD_REQUEST, "Mật khẩu phải có ít nhất 6 ký tự!"),
-    PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "Mật khẩu xác nhận không khớp!");
+    PASSWORD_MISMATCH(HttpStatus.BAD_REQUEST, "Mật khẩu xác nhận không khớp!"),
+    WRONG_PASSWORD(HttpStatus.BAD_REQUEST, "Mật khẩu hiện tại không chính xác!");
 
     private final HttpStatus statusCode;
     private final String message;

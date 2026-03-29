@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.quizhub.dto.request.AuthRequest;
+import com.example.quizhub.dto.request.ChangePasswordRequest;
 import com.example.quizhub.dto.request.RegisterRequest;
 import com.example.quizhub.dto.response.AuthResponse;
 import com.example.quizhub.entity.User;
@@ -79,4 +80,19 @@ public class AuthServiceImpl implements AuthService {
                 .role(user.getRole())
                 .build();
     }
+
+    @Override
+    public void changePassword(ChangePasswordRequest request, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new AppException(ErrorCode.WRONG_PASSWORD);
+        }
+        if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
+            throw new AppException(ErrorCode.PASSWORD_MISMATCH);
+        }
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
+
 }
