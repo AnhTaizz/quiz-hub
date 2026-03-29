@@ -2,7 +2,7 @@ package com.example.quizhub.dto;
 
 import java.util.List;
 
-import com.example.quizhub.dto.request.QuestionCreationRequestDTO;
+import com.example.quizhub.dto.question.request.QuestionRequestDTO;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -21,5 +21,5 @@ public class QuizDTO {
     private String description;
     private String imageUrl;
     private String categoryId;
-    private List<QuestionCreationRequestDTO> questions;
+    private List<QuestionRequestDTO> questions;
 }

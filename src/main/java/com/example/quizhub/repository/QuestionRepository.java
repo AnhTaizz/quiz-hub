@@ -1,11 +1,16 @@
 package com.example.quizhub.repository;
 
-import com.example.quizhub.entity.Question;
-import com.example.quizhub.entity.enums.QuestionType;
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.example.quizhub.entity.Question;
+import com.example.quizhub.entity.enums.QuestionType;
 
 @Repository
 public interface QuestionRepository extends JpaRepository<Question, Long> {
@@ -17,4 +22,14 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     List<Question> findByType(QuestionType type);
 
     List<Question> findByIsPublicTrue();
+
+    //Lấy câu hỏi theo category, type, keyword
+    @Query("SELECT q FROM Question q WHERE q.isActive = true " +
+           "AND (:categoryId IS NULL OR q.category.id = :categoryId) " +
+           "AND (:type IS NULL OR q.type = :type) " +
+           "AND (:keyword IS NULL OR LOWER(q.text) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<Question> searchQuestions(@Param("categoryId") Long categoryId,
+                                   @Param("type") QuestionType type,
+                                   @Param("keyword") String keyword,
+                                   Pageable pageable);
 }

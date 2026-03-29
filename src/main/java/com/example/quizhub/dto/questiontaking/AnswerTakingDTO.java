@@ -1,22 +1,18 @@
-package com.example.quizhub.dto.response;
+package com.example.quizhub.dto.questiontaking;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AnswerResponseDTO {
+public class AnswerTakingDTO {
     Long id;
     String text;
-    Boolean isCorrect;
-    // Không có field `question` -> tránh lặp JSON
 }

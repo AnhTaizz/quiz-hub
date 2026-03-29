@@ -1,4 +1,4 @@
-package com.example.quizhub.dto;
+package com.example.quizhub.dto.category;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,14 +17,15 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class CategoryDTO {
+public class CategoryResponseDTO {
     Long id;
     String name;
     String description;
     Long parentId;
-    List<CategoryDTO> children;
+    List<CategoryResponseDTO> children;
 
-    public CategoryDTO(Category category) {
+    // Constructor từ entity — dùng trong getAllCategories (xây cây thủ công)
+    public CategoryResponseDTO(Category category) {
         this.id = category.getId();
         this.name = category.getName();
         this.description = category.getDescription();

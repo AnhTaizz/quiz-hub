@@ -1,28 +1,24 @@
-package com.example.quizhub.dto.request;
+package com.example.quizhub.dto.questiontaking;
 
 import java.util.List;
 
-import com.example.quizhub.dto.AnswerDTO;
 import com.example.quizhub.entity.enums.QuestionType;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-
-public class QuestionCreationRequestDTO {
-    Long categoryId;
-    String text;
+public class QuestionTakingDTO {
+    Long id;
     QuestionType type;
-    List<AnswerDTO> answers;
+    String text;
+    List<AnswerTakingDTO> answers;
 }

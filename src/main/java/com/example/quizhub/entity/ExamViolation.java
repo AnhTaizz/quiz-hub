@@ -26,7 +26,7 @@ public class ExamViolation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Integer id;
+    Long id;
 
     // Mã vi phạm duy nhất, VD: 'TAB_SWITCH', 'ESC_FULLSCREEN'
     @Column(name = "violation_code", nullable = false, unique = true, length = 50)

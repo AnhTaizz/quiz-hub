@@ -1,4 +1,4 @@
-package com.example.quizhub.dto.response;
+package com.example.quizhub.dto.question.response;
 
 import java.util.List;
 
@@ -30,7 +30,7 @@ public class QuestionResponseDTO {
     String creatorEmail;
 
     // Chỉ lấy thông tin cơ bản của category
-    Integer categoryId;
+    Long categoryId;
     String categoryName;
 
     // Danh sách câu trả lời dạng DTO (không chứa back-reference tới Question)

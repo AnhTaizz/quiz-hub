@@ -1,23 +1,21 @@
-package com.example.quizhub.dto;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
+package com.example.quizhub.dto.question.response;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class ApiResponse<T> {
-    int code;
-    String message;
-    T result;
+public class AnswerResponseDTO {
+    Long id;
+    String text;
+    Boolean isCorrect;
 }
