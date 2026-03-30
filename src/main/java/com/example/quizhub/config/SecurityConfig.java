@@ -1,5 +1,9 @@
 package com.example.quizhub.config;
 
+import com.example.quizhub.security.JwtAuthenticationEntryPoint;
+import com.example.quizhub.security.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -17,51 +21,53 @@ import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity          // Cho phép dùng @PreAuthorize trên method level
+@EnableMethodSecurity // Cho phép dùng @PreAuthorize trên method level
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtAuthenticationFilter jwtAuthFilter;
-    private final AuthenticationProvider authenticationProvider;
+        private final JwtAuthenticationFilter jwtAuthFilter;
+        private final AuthenticationProvider authenticationProvider;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-            // Tắt CSRF (REST API stateless không cần)
-            .csrf(AbstractHttpConfigurer::disable)
+        private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+        private final String[] PUBLIC_ENDPOINT = { "/api/auth/register", "/api/auth/login", "/api/auth/forgot-password",
+                        "/api/auth/reset-password", "/error", "api/questions/**", "/test/**" };
 
-            // Phân quyền theo HTTP path
-            .authorizeHttpRequests(auth -> auth
-                // Public: đăng ký, đăng nhập
-                .requestMatchers("/api/auth/**",
-                                "/api/questions/**",
-                                "/test/**")
-                .permitAll()
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+                http
+                                // Tắt CSRF (REST API stateless không cần)
+                                .csrf(AbstractHttpConfigurer::disable)
 
-                // Chỉ ADMIN
-                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                                // Phân quyền theo HTTP path
+                                .authorizeHttpRequests(auth -> auth
+                                                // Public: đăng ký, đăng nhập
+                                                .requestMatchers(PUBLIC_ENDPOINT).permitAll()
 
-                // ADMIN hoặc TEACHER
-                .requestMatchers("/api/teacher/**").hasAnyRole("ADMIN", "TEACHER")
+                                                // Chỉ ADMIN
+                                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                // ADMIN, TEACHER hoặc STUDENT
-                .requestMatchers("/api/student/**").hasAnyRole("ADMIN", "TEACHER", "STUDENT")
+                                                // ADMIN hoặc TEACHER
+                                                .requestMatchers("/api/teacher/**").hasAnyRole("ADMIN", "TEACHER")
 
-                // Tất cả request còn lại phải authenticated
-                .anyRequest().authenticated()
-            )
+                                                // ADMIN, TEACHER hoặc STUDENT
+                                                .requestMatchers("/api/student/**")
+                                                .hasAnyRole("ADMIN", "TEACHER", "STUDENT")
 
-            // Stateless session — không lưu session phía server
-            .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
+                                                // Tất cả request còn lại phải authenticated
+                                                .anyRequest().authenticated())
 
-            // Gắn AuthenticationProvider (DaoAuthentication + BCrypt)
-            .authenticationProvider(authenticationProvider)
+                                // Stateless session — không lưu session phía server
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-            // Đặt JwtAuthenticationFilter chạy trước UsernamePasswordAuthenticationFilter
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                                // Gắn AuthenticationProvider (DaoAuthentication + BCrypt)
+                                .authenticationProvider(authenticationProvider)
+                                .exceptionHandling(exception -> exception
+                                                .authenticationEntryPoint(jwtAuthenticationEntryPoint))
 
-        return http.build();
-    }
+                                // Đặt JwtAuthenticationFilter chạy trước
+                                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+
+                return http.build();
+        }
 }

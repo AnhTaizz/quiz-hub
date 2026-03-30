@@ -18,9 +18,18 @@ public enum ErrorCode {
     CATEGORY_NOT_FOUND(1003, "Category not found", HttpStatus.NOT_FOUND),
     QUESTION_NOT_FOUND(1004, "Question not found", HttpStatus.NOT_FOUND),
     ANSWER_NOT_FOUND(1005, "Answer not found", HttpStatus.NOT_FOUND),
-    QUIZ_NOT_FOUND(1006, "Quiz not found", HttpStatus.NOT_FOUND);
+    QUIZ_NOT_FOUND(1006, "Quiz not found", HttpStatus.NOT_FOUND),
+
+    BLANK_FIELD(1007, "Field cannot be blank", HttpStatus.BAD_REQUEST),
+    INVALID_EMAIL(1008, "Invalid email format", HttpStatus.BAD_REQUEST),
+    INVALID_PASSWORD(1009, "Password must be at least 6 characters", HttpStatus.BAD_REQUEST),
+    PASSWORD_MISMATCH(1010, "Password confirmation does not match", HttpStatus.BAD_REQUEST),
+    WRONG_PASSWORD(1011, "Current password is incorrect", HttpStatus.BAD_REQUEST),
+    UNAUTHORIZED(1012, "Unauthorized", HttpStatus.UNAUTHORIZED),
+    USER_EXISTED(1013, "Email already exists", HttpStatus.BAD_REQUEST);
 
     final int code;
     final String message;
     final HttpStatusCode statusCode;
+
 }
