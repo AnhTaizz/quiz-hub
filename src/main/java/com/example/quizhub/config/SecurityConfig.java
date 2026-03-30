@@ -29,36 +29,53 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        // http
+        // // Tắt CSRF (REST API stateless không cần)
+        // .csrf(AbstractHttpConfigurer::disable)
+
+        // // Phân quyền theo HTTP path
+        // .authorizeHttpRequests(auth -> auth
+        // // Public: đăng ký, đăng nhập
+        // .requestMatchers(PUBLIC_ENDPOINT).permitAll()
+
+        // // Chỉ ADMIN
+        // .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+        // // ADMIN hoặc TEACHER
+        // .requestMatchers("/api/teacher/**").hasAnyRole("ADMIN", "TEACHER")
+
+        // // ADMIN, TEACHER hoặc STUDENT
+        // .requestMatchers("/api/student/**").hasAnyRole("ADMIN", "TEACHER", "STUDENT")
+
+        // // Tất cả request còn lại phải authenticated
+        // .anyRequest().authenticated())
+
+        // // Stateless session — không lưu session phía server
+        // .sessionManagement(session ->
+        // session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+        // // Gắn AuthenticationProvider (DaoAuthentication + BCrypt)
+        // .authenticationProvider(authenticationProvider)
+        // .exceptionHandling(exception -> exception
+        // .authenticationEntryPoint(jwtAuthenticationEntryPoint))
+
+        // // Đặt JwtAuthenticationFilter chạy trước
+        // UsernamePasswordAuthenticationFilter
+        // .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         http
-                // Tắt CSRF (REST API stateless không cần)
-                .csrf(AbstractHttpConfigurer::disable)
-
-                // Phân quyền theo HTTP path
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // Public: đăng ký, đăng nhập
-                        .requestMatchers(PUBLIC_ENDPOINT).permitAll()
-
-                        // Chỉ ADMIN
-                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
-
-                        // ADMIN hoặc TEACHER
-                        .requestMatchers("/api/teacher/**").hasAnyRole("ADMIN", "TEACHER")
-
-                        // ADMIN, TEACHER hoặc STUDENT
-                        .requestMatchers("/api/student/**").hasAnyRole("ADMIN", "TEACHER", "STUDENT")
-
-                        // Tất cả request còn lại phải authenticated
+                        .requestMatchers("/api/teacher/**", "/api/admin/**", "/api/student/**", "/api/auth/**")
+                        .permitAll()
                         .anyRequest().authenticated())
-
-                // Stateless session — không lưu session phía server
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
-                // Gắn AuthenticationProvider (DaoAuthentication + BCrypt)
+                // 4. Cấu hình Provider và xử lý lỗi EntryPoint
                 .authenticationProvider(authenticationProvider)
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(jwtAuthenticationEntryPoint))
 
-                // Đặt JwtAuthenticationFilter chạy trước UsernamePasswordAuthenticationFilter
+                // 5. QUAN TRỌNG NHẤT: Đặt Filter kiểm tra Token chạy trước
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
