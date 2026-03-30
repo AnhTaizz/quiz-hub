@@ -9,14 +9,14 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 import com.example.quizhub.exception.ErrorCode;
-import com.example.quizhub.exception.ErrorResponse;
+import com.example.quizhub.exception.response.ErrorResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-
+import com.example.quizhub.exception.response.ErrorResponse;
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
@@ -30,7 +30,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .status(errorCode.getStatusCode().value())
-                .message("Unauthorized")
+                .message(errorCode.getMessage())
                 .timestamp(LocalDateTime.now())
                 .build();
         response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
