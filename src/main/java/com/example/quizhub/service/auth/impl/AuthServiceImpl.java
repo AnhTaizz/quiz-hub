@@ -14,14 +14,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.example.quizhub.dto.request.AuthRequest;
-import com.example.quizhub.dto.request.ChangePasswordRequest;
-import com.example.quizhub.dto.request.RegisterRequest;
-import com.example.quizhub.dto.response.AuthResponse;
+import com.example.quizhub.dto.auth.response.AuthResponse;
+import com.example.quizhub.dto.auth.request.AuthRequest;
+import com.example.quizhub.dto.auth.request.ChangePasswordRequest;
+import com.example.quizhub.dto.auth.request.RegisterRequest;
 import com.example.quizhub.entity.User;
 import com.example.quizhub.repository.UserRepository;
 import com.example.quizhub.security.JwtService;
-import com.example.quizhub.service.AuthService;
+import com.example.quizhub.service.auth.AuthService;
 
 import lombok.RequiredArgsConstructor;
 

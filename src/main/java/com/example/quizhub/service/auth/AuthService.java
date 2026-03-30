@@ -2,10 +2,10 @@ package com.example.quizhub.service;
 
 import org.springframework.stereotype.Service;
 
-import com.example.quizhub.dto.request.AuthRequest;
-import com.example.quizhub.dto.request.ChangePasswordRequest;
-import com.example.quizhub.dto.request.RegisterRequest;
-import com.example.quizhub.dto.response.AuthResponse;
+import com.example.quizhub.dto.auth.response.AuthResponse;
+import com.example.quizhub.dto.auth.request.AuthRequest;
+import com.example.quizhub.dto.auth.request.ChangePasswordRequest;
+import com.example.quizhub.dto.auth.request.RegisterRequest;
 
 @Service
 public interface AuthService {

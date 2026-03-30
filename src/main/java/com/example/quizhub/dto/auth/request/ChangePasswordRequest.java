@@ -1,4 +1,4 @@
-package com.example.quizhub.dto.request;
+package com.example.quizhub.dto.auth.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

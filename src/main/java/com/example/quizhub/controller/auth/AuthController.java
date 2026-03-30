@@ -9,10 +9,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.quizhub.dto.request.AuthRequest;
-import com.example.quizhub.dto.request.ChangePasswordRequest;
-import com.example.quizhub.dto.request.RegisterRequest;
-import com.example.quizhub.dto.response.AuthResponse;
+import com.example.quizhub.dto.auth.response.AuthResponse;
+import com.example.quizhub.dto.auth.request.AuthRequest;
+import com.example.quizhub.dto.auth.request.ChangePasswordRequest;
+import com.example.quizhub.dto.auth.request.RegisterRequest;
 import com.example.quizhub.service.AuthService;
 
 import jakarta.validation.Valid;

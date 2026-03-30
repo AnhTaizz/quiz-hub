@@ -1,4 +1,4 @@
-package com.example.quizhub.dto.response;
+package com.example.quizhub.dto.auth.response;
 
 import com.example.quizhub.entity.enums.Role;
 
