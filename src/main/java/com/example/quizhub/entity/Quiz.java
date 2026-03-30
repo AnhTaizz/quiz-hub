@@ -60,6 +60,10 @@ public class Quiz {
     @Column(name = "updated_at")
     LocalDateTime updatedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")  //Cho phép category null
+    Category category;
+
     @ManyToMany
     @JoinTable(
         name = "_question_creating",
