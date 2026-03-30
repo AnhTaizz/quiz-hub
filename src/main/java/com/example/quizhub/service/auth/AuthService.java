@@ -1,4 +1,4 @@
-package com.example.quizhub.service;
+package com.example.quizhub.service.auth;
 
 import org.springframework.stereotype.Service;
 

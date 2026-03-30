@@ -1,4 +1,4 @@
-package com.example.quizhub.exception;
+package com.example.quizhub.dto;
 
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -16,6 +16,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorResponse {
+    private int code;
     private int status;
     private String message;
     private LocalDateTime timestamp;

@@ -1,4 +1,4 @@
-package com.example.quizhub.service.impl;
+package com.example.quizhub.service.auth.impl;
 
 import java.util.Optional;
 
@@ -6,13 +6,11 @@ import com.example.quizhub.entity.enums.Role;
 import com.example.quizhub.exception.AppException;
 import com.example.quizhub.exception.ErrorCode;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import com.example.quizhub.dto.auth.response.AuthResponse;
 import com.example.quizhub.dto.auth.request.AuthRequest;

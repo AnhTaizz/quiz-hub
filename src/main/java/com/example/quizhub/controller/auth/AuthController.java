@@ -1,4 +1,4 @@
-package com.example.quizhub.controller;
+package com.example.quizhub.controller.auth;
 
 import java.security.Principal;
 
@@ -13,7 +13,7 @@ import com.example.quizhub.dto.auth.response.AuthResponse;
 import com.example.quizhub.dto.auth.request.AuthRequest;
 import com.example.quizhub.dto.auth.request.ChangePasswordRequest;
 import com.example.quizhub.dto.auth.request.RegisterRequest;
-import com.example.quizhub.service.AuthService;
+import com.example.quizhub.service.auth.AuthService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -11,7 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.example.quizhub.exception.response.ErrorResponse;
+import com.example.quizhub.dto.ErrorResponse;
 
 @RestControllerAdvice
 public class GlobalExceptionHandle {
@@ -19,6 +19,7 @@ public class GlobalExceptionHandle {
     public ResponseEntity<ErrorResponse> handleAppException(AppException e) {
         ErrorCode errorCode = e.getErrorCode();
         ErrorResponse errorResponse = ErrorResponse.builder()
+                .code(errorCode.getCode())
                 .status(errorCode.getStatusCode().value())
                 .message(errorCode.getMessage())
                 .timestamp(LocalDateTime.now())
@@ -30,6 +31,7 @@ public class GlobalExceptionHandle {
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException e) {
         ErrorCode errorCode = ErrorCode.UNCATEGORIZED_EXCEPTION;
         ErrorResponse errorResponse = ErrorResponse.builder()
+                .code(errorCode.getCode())
                 .status(errorCode.getStatusCode().value())
                 .message(errorCode.getMessage())
                 .timestamp(LocalDateTime.now())
