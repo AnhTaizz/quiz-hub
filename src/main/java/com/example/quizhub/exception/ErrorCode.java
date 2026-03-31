@@ -26,7 +26,9 @@ public enum ErrorCode {
     PASSWORD_MISMATCH(1010, "Password confirmation does not match", HttpStatus.BAD_REQUEST),
     WRONG_PASSWORD(1011, "Current password is incorrect", HttpStatus.BAD_REQUEST),
     UNAUTHORIZED(1012, "Unauthorized", HttpStatus.UNAUTHORIZED),
-    USER_EXISTED(1013, "Email already exists", HttpStatus.BAD_REQUEST);
+    USER_EXISTED(1013, "Email already exists", HttpStatus.BAD_REQUEST),
+    INVALID_OTP(1014, "Invalid OTP", HttpStatus.BAD_REQUEST),
+    PASSWORD_SAME(1015, "New password cannot be the same as the old password", HttpStatus.BAD_REQUEST);
 
     final int code;
     final String message;
