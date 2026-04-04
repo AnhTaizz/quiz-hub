@@ -23,13 +23,20 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     List<Question> findByIsPublicTrue();
 
-    //Lấy câu hỏi theo category, type, keyword
+    //Lấy câu hỏi theo category, type, keyword, hoặc public của user khác
     @Query("SELECT q FROM Question q WHERE q.isActive = true " +
+           "AND (q.creator.id = :userId OR q.isPublic = true)" +
            "AND (:categoryId IS NULL OR q.category.id = :categoryId) " +
            "AND (:type IS NULL OR q.type = :type) " +
            "AND (:keyword IS NULL OR LOWER(q.text) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    Page<Question> searchQuestions(@Param("categoryId") Long categoryId,
-                                   @Param("type") QuestionType type,
-                                   @Param("keyword") String keyword,
-                                   Pageable pageable);
+    Page<Question> searchQuestionsByTeacher(@Param("categoryId") Long categoryId,
+                                          @Param("type") QuestionType type,
+                                          @Param("keyword") String keyword,
+                                          @Param("userId") Long userId,
+                                          Pageable pageable);
+
+    @Query("SELECT CASE WHEN COUNT(q) > 0 THEN true ELSE false END "
+            + "FROM Quiz q JOIN q.questions quest "
+            + "WHERE quest.id = :questionId")
+    boolean isQuestionUsedInQuiz(@Param("questionId") Long questionId);
 }

@@ -7,6 +7,8 @@ import lombok.experimental.FieldDefaults;
 
 import java.util.List;
 
+import org.hibernate.annotations.BatchSize;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -43,5 +45,6 @@ public class Question {
     Category category;
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 20)
     List<Answer> answers;
 }

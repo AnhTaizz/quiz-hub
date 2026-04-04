@@ -9,15 +9,15 @@ import com.example.quizhub.entity.enums.QuestionType;
 public interface QuestionService {
     QuestionResponseDTO createNewQuestion(Long userId, QuestionRequestDTO request);
 
-    QuestionResponseDTO updateQuestion(Long id, QuestionRequestDTO request);
+    QuestionResponseDTO updateQuestion(Long userId, Long id, QuestionRequestDTO request);
 
-    void deleteQuestion(Long id);
+    void deleteQuestion(Long userId, Long id);
 
-    Page<QuestionResponseDTO> getAllQuestions(Long categoryId,
-                                                QuestionType type,
-                                                String keyword,
-                                                int page,
-                                                int size,
-                                                String sortBy,
-                                                String sortDir);
+    Page<QuestionResponseDTO> getQuestionsByTeacher(Long userId, Long categoryId,
+                                                    QuestionType type,
+                                                    String keyword,
+                                                    int page,
+                                                    int size,
+                                                    String sortBy,
+                                                    String sortDir);
 }
