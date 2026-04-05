@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
-@Table(name = "_user_response")
-public class UserResponse {
+@Table(name = "_user_attempt_answer")
+public class UserAttemptAnswer {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
