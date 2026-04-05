@@ -1,4 +1,4 @@
-package com.example.quizhub.dto.questiontaking;
+package com.example.quizhub.dto.quiztaking.response;
 
 import java.util.List;
 
@@ -16,9 +16,9 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class QuestionTakingDTO {
+public class QuestionTakingResponseDTO {
     Long id;
-    QuestionType type;
     String text;
-    List<AnswerTakingDTO> answers;
+    QuestionType type;
+    List<AnswerTakingResponseDTO> answers;
 }

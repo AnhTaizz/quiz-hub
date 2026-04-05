@@ -1,9 +1,5 @@
 package com.example.quizhub.config;
 
-import com.example.quizhub.security.JwtAuthenticationEntryPoint;
-import com.example.quizhub.security.JwtAuthenticationFilter;
-import lombok.RequiredArgsConstructor;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -15,6 +11,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.example.quizhub.security.JwtAuthenticationEntryPoint;
 import com.example.quizhub.security.JwtAuthenticationFilter;
 
 import lombok.RequiredArgsConstructor;
@@ -30,7 +27,8 @@ public class SecurityConfig {
 
         private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
         private final String[] PUBLIC_ENDPOINT = { "/api/auth/register", "/api/auth/login", "/api/auth/forgot-password",
-                        "/api/auth/reset-password", "/error", "api/questions/**", "/test/**" };
+                        "/api/auth/reset-password", "/error", "api/questions/**", "/test/**",
+                        "/api/teacher/categories/**", "/api/student/categories/**" };
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {

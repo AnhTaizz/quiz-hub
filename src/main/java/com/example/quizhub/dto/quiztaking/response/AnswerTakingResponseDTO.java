@@ -1,4 +1,4 @@
-package com.example.quizhub.dto.questiontaking;
+package com.example.quizhub.dto.quiztaking.response;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -12,7 +12,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class AnswerTakingDTO {
+public class AnswerTakingResponseDTO {
     Long id;
     String text;
 }

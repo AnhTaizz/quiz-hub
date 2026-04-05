@@ -19,6 +19,8 @@ import com.example.quizhub.dto.question.request.QuestionRequestDTO;
 import com.example.quizhub.dto.question.response.QuestionResponseDTO;
 import com.example.quizhub.entity.User;
 import com.example.quizhub.entity.enums.QuestionType;
+import com.example.quizhub.exception.AppException;
+import com.example.quizhub.exception.ErrorCode;
 import com.example.quizhub.repository.UserRepository;
 import com.example.quizhub.service.question.QuestionService;
 
@@ -37,7 +39,7 @@ public class TeacherQuestionController {
     private Long getCurrentUserId() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng: " + email));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         return user.getId();
     }
 
@@ -50,7 +52,7 @@ public class TeacherQuestionController {
 
 
     @GetMapping
-    public ResponseEntity<Page<QuestionResponseDTO>> getAllQuestions(
+    public ResponseEntity<Page<QuestionResponseDTO>> getQuestionsByTeacher(
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) QuestionType type,
             @RequestParam(required = false) String keyword,
@@ -59,8 +61,8 @@ public class TeacherQuestionController {
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "asc") String sortDir) {
 
-        Page<QuestionResponseDTO> response = questionService.getAllQuestions(
-                categoryId, type, keyword, page, size, sortBy, sortDir);
+        Page<QuestionResponseDTO> response = questionService.getQuestionsByTeacher(
+                getCurrentUserId(), categoryId, type, keyword, page, size, sortBy, sortDir);
         return ResponseEntity.ok(response);
     }
 
@@ -68,12 +70,12 @@ public class TeacherQuestionController {
     public ResponseEntity<QuestionResponseDTO> updateQuestion(
             @PathVariable Long id,
             @RequestBody @Valid QuestionRequestDTO request) {
-        return ResponseEntity.ok(questionService.updateQuestion(id, request));
+        return ResponseEntity.ok(questionService.updateQuestion(getCurrentUserId(), id, request));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteQuestion(@PathVariable Long id) {
-        questionService.deleteQuestion(id);
+        questionService.deleteQuestion(getCurrentUserId(), id);
         return ResponseEntity.noContent().build();
     }
 }

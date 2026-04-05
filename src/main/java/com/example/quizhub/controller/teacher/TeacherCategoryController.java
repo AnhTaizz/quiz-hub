@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.quizhub.dto.category.CategoryRequestDTO;
 import com.example.quizhub.dto.category.CategoryResponseDTO;
-import com.example.quizhub.service.CategoryService;
+import com.example.quizhub.service.category.CategoryService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +38,11 @@ public class TeacherCategoryController {
     public ResponseEntity<CategoryResponseDTO> createCategory(@RequestBody @Valid CategoryRequestDTO request) {
         CategoryResponseDTO response = categoryService.createCategory(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<CategoryResponseDTO> getCategoryById(@PathVariable Long id) {
+        return ResponseEntity.ok(categoryService.getCategoryById(id));
     }
 
     @PutMapping("/{id}")

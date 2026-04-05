@@ -26,7 +26,14 @@ public enum ErrorCode {
     PASSWORD_MISMATCH(1010, "Password confirmation does not match", HttpStatus.BAD_REQUEST),
     WRONG_PASSWORD(1011, "Current password is incorrect", HttpStatus.BAD_REQUEST),
     UNAUTHORIZED(1012, "Unauthorized", HttpStatus.UNAUTHORIZED),
-    USER_EXISTED(1013, "Email already exists", HttpStatus.BAD_REQUEST);
+    USER_EXISTED(1013, "Email already exists", HttpStatus.BAD_REQUEST),
+    QUESTION_INVALID_LOGIC(1014, "Question invalid logic", HttpStatus.BAD_REQUEST),
+    CATEGORY_HAS_QUESTIONS(1015, "Category has questions", HttpStatus.BAD_REQUEST),
+    CATEGORY_INVALID_LOGIC(1016, "Category invalid logic", HttpStatus.BAD_REQUEST),
+    CLASSROOM_NOT_FOUND(1017, "Classroom not found", HttpStatus.NOT_FOUND),
+    QUIZ_ASSIGNING_NOT_FOUND(1018, "Quiz assigning not found", HttpStatus.NOT_FOUND),
+    ATTEMPT_NOT_FOUND(1019, "Attempt not found", HttpStatus.NOT_FOUND),
+    ATTEMPT_ALREADY_SUBMITTED(1020, "Attempt already submitted", HttpStatus.BAD_REQUEST);
 
     final int code;
     final String message;
