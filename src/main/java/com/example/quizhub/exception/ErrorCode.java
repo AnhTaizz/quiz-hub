@@ -33,7 +33,9 @@ public enum ErrorCode {
     CLASSROOM_NOT_FOUND(1017, "Classroom not found", HttpStatus.NOT_FOUND),
     QUIZ_ASSIGNING_NOT_FOUND(1018, "Quiz assigning not found", HttpStatus.NOT_FOUND),
     ATTEMPT_NOT_FOUND(1019, "Attempt not found", HttpStatus.NOT_FOUND),
-    ATTEMPT_ALREADY_SUBMITTED(1020, "Attempt already submitted", HttpStatus.BAD_REQUEST);
+    ATTEMPT_ALREADY_SUBMITTED(1020, "Attempt already submitted", HttpStatus.BAD_REQUEST),
+    INVALID_OTP(1021, "Invalid OTP", HttpStatus.BAD_REQUEST),
+    PASSWORD_SAME(1022, "New password cannot be the same as the old password", HttpStatus.BAD_REQUEST);
 
     final int code;
     final String message;

@@ -28,7 +28,8 @@ public class SecurityConfig {
         private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
         private final String[] PUBLIC_ENDPOINT = { "/api/auth/register", "/api/auth/login", "/api/auth/forgot-password",
                         "/api/auth/reset-password", "/error", "api/questions/**", "/test/**",
-                        "/api/teacher/categories/**", "/api/student/categories/**" };
+                        "/api/teacher/categories/**", "/api/student/categories/**", "/api/auth/forgot-password",
+                        "/api/auth/reset-password" };
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
