@@ -7,12 +7,14 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.quizhub.dto.auth.response.AuthResponse;
 import com.example.quizhub.dto.auth.request.AuthRequest;
 import com.example.quizhub.dto.auth.request.ChangePasswordRequest;
 import com.example.quizhub.dto.auth.request.RegisterRequest;
+import com.example.quizhub.dto.auth.request.ResetPasswordRequest;
 import com.example.quizhub.service.auth.AuthService;
 
 import jakarta.validation.Valid;
@@ -40,5 +42,17 @@ public class AuthController {
             Principal principal) {
         authService.changePassword(request, principal.getName());
         return ResponseEntity.ok("Đổi mật khẩu thành công!");
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@Valid @RequestParam String email) {
+        authService.forgotPassword(email);
+        return ResponseEntity.ok("Mã OTP đã được gửi đến email của bạn!");
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok("Đặt lại mật khẩu thành công!");
     }
 }

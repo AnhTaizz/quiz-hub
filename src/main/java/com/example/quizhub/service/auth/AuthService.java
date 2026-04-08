@@ -6,6 +6,7 @@ import com.example.quizhub.dto.auth.response.AuthResponse;
 import com.example.quizhub.dto.auth.request.AuthRequest;
 import com.example.quizhub.dto.auth.request.ChangePasswordRequest;
 import com.example.quizhub.dto.auth.request.RegisterRequest;
+import com.example.quizhub.dto.auth.request.ResetPasswordRequest;
 
 @Service
 public interface AuthService {
@@ -14,4 +15,8 @@ public interface AuthService {
     AuthResponse login(AuthRequest request);
 
     void changePassword(ChangePasswordRequest request, String email);
+
+    void forgotPassword(String email);
+
+    void resetPassword(ResetPasswordRequest request);
 }

@@ -1,11 +1,16 @@
 package com.example.quizhub.service.auth.impl;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.example.quizhub.entity.enums.Role;
 import com.example.quizhub.exception.AppException;
 import com.example.quizhub.exception.ErrorCode;
 
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,6 +21,7 @@ import com.example.quizhub.dto.auth.response.AuthResponse;
 import com.example.quizhub.dto.auth.request.AuthRequest;
 import com.example.quizhub.dto.auth.request.ChangePasswordRequest;
 import com.example.quizhub.dto.auth.request.RegisterRequest;
+import com.example.quizhub.dto.auth.request.ResetPasswordRequest;
 import com.example.quizhub.entity.User;
 import com.example.quizhub.repository.UserRepository;
 import com.example.quizhub.security.JwtService;
@@ -30,6 +36,8 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final JavaMailSender mailSender;
+    private final Map<String, String> otpStorage = new ConcurrentHashMap<>();
 
     @Override
     public AuthResponse register(RegisterRequest request) {
@@ -89,8 +97,42 @@ public class AuthServiceImpl implements AuthService {
         if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
             throw new AppException(ErrorCode.PASSWORD_MISMATCH);
         }
+        if (request.getNewPassword().equals(request.getOldPassword())) {
+            throw new AppException(ErrorCode.PASSWORD_SAME);
+        }
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
+    }
+
+    @Override
+    public void forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        String otp = String.format("%06d", new Random().nextInt(999999));
+        otpStorage.put(email, otp);
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setText("Chào " + user.getFullName() + ",\n\n" +
+                "Mã OTP để đặt lại mật khẩu của bạn là: " + otp + "\n\n" +
+                "Vui lòng không chia sẻ mã này cho bất kỳ ai.");
+        message.setSubject("[QuizHub] Mã OTP Khôi phục mật khẩu");
+        mailSender.send(message);
+    }
+
+    @Override
+    public void resetPassword(ResetPasswordRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        String savedOtp = otpStorage.get(request.getEmail());
+        if (savedOtp == null || !savedOtp.equals(request.getOtp())) {
+            throw new AppException(ErrorCode.INVALID_OTP);
+        }
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new AppException(ErrorCode.PASSWORD_MISMATCH);
+        }
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+        otpStorage.remove(request.getEmail());
     }
 
 }
