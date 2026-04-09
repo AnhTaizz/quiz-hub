@@ -28,10 +28,12 @@ public class SecurityConfig {
         private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
         private final String[] PUBLIC_ENDPOINT = { "/",
                         "/index.html",
+                        "/teacher-category.html",
                         "/css/**",
                         "/js/**",
                         "/images/**",
                         "/assets/**",
+                        "/teacher/**",
                         "/api/auth/register", "/api/auth/login", "/api/auth/forgot-password",
                         "/api/auth/reset-password", "/error", "api/questions/**", "/test/**",
                         "/api/teacher/categories/**", "/api/student/categories/**" };

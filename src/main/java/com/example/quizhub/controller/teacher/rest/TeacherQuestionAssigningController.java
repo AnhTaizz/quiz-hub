@@ -1,4 +1,4 @@
-package com.example.quizhub.controller.teacher;
+package com.example.quizhub.controller.teacher.rest;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
