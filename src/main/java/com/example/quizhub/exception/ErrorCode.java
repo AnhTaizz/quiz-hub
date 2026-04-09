@@ -35,7 +35,9 @@ public enum ErrorCode {
     ATTEMPT_NOT_FOUND(1019, "Attempt not found", HttpStatus.NOT_FOUND),
     ATTEMPT_ALREADY_SUBMITTED(1020, "Attempt already submitted", HttpStatus.BAD_REQUEST),
     INVALID_OTP(1021, "Invalid OTP", HttpStatus.BAD_REQUEST),
-    PASSWORD_SAME(1022, "New password cannot be the same as the old password", HttpStatus.BAD_REQUEST);
+    PASSWORD_SAME(1022, "New password cannot be the same as the old password", HttpStatus.BAD_REQUEST),
+    USER_NOT_IN_CLASS(1023, "User is not a member of this class", HttpStatus.BAD_REQUEST),
+    USER_ALREADY_IN_CLASS(1024, "User is already a member of this class", HttpStatus.BAD_REQUEST);
 
     final int code;
     final String message;

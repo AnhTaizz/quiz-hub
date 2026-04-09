@@ -12,6 +12,8 @@ public interface ClassroomRepository extends JpaRepository<Classroom, Long> {
 
     Optional<Classroom> findByCode(String code);
 
+    boolean existsByCode(String code);
+
     List<Classroom> findByCreatorId(Long creatorId);
 
     List<Classroom> findByIsEnableTrue();
