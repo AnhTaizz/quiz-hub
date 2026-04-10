@@ -20,4 +20,10 @@ public interface QuestionService {
                                                     int size,
                                                     String sortBy,
                                                     String sortDir);
+
+    void requestShareQuestion(Long questionId, Long teacherId);
+
+    void approveQuestion(Long questionId);
+
+    void rejectQuestion(Long questionId);
 }

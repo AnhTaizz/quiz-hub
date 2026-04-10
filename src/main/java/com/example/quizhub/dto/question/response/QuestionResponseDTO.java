@@ -2,6 +2,7 @@ package com.example.quizhub.dto.question.response;
 
 import java.util.List;
 
+import com.example.quizhub.entity.enums.QuestionStatus;
 import com.example.quizhub.entity.enums.QuestionType;
 
 import lombok.AccessLevel;
@@ -23,7 +24,7 @@ public class QuestionResponseDTO {
     String text;
     QuestionType type;
     Boolean isActive;
-    Boolean isPublic;
+    QuestionStatus questionStatus;
 
     // Chỉ lấy thông tin cơ bản của creator, không dùng cả entity User
     Long creatorId;

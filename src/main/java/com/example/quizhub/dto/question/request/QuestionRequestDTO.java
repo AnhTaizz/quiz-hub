@@ -2,6 +2,7 @@ package com.example.quizhub.dto.question.request;
 
 import java.util.List;
 
+import com.example.quizhub.entity.enums.QuestionStatus;
 import com.example.quizhub.entity.enums.QuestionType;
 
 import jakarta.validation.Valid;
@@ -34,7 +35,7 @@ public class QuestionRequestDTO {
 
     Boolean isActive;
 
-    Boolean isPublic;
+    QuestionStatus questionStatus;
 
     @NotEmpty(message="Câu hỏi phải có ít nhất 1 đáp án")
     List<@Valid AnswerCreationRequestDTO> answers;

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizHub - Bảng Điều Khiển Quản Trị Viên</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* =================================================================
+           MATERIAL VARIABLES
+        ================================================================== */
+        :root {
+            --mat-header-bg: #3f4d67;     /* Xanh than đậm cho Topbar */
+            --mat-sidebar-bg: #ffffff;    /* Trắng cho Sidebar */
+            --mat-body-bg: #f4f7fa;       /* Xám siêu nhạt cho Body */
+
+            --mat-text-main: #333333;
+            --mat-text-muted: #888888;
+
+            --mat-primary: #04a9f5;       /* Xanh dương nhạt Material */
+            --mat-success: #1de9b6;
+            --mat-warning: #f4c22b;
+            --mat-danger: #f44236;
+
+            --mat-shadow: 0 1px 20px 0 rgba(69, 90, 100, 0.08);
+            --mat-radius: 4px; /* Bo góc nhẹ chuẩn Material */
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; }
+
+        body { background-color: var(--mat-body-bg); color: var(--mat-text-main); display: flex; height: 100vh; overflow: hidden; }
+
+        /* =================================================================
+           SIDEBAR (Trắng sáng, chuyên nghiệp)
+        ================================================================== */
+        .sidebar { width: 264px; background-color: var(--mat-sidebar-bg); display: flex; flex-direction: column; z-index: 10; box-shadow: 1px 0 20px 0 rgba(69, 90, 100, 0.08); }
+        .sidebar-header { height: 70px; display: flex; align-items: center; justify-content: center; background-color: var(--mat-header-bg); border-bottom: 1px solid rgba(0,0,0,0.1); }
+        .sidebar-header h2 { color: #fff; font-size: 22px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+
+        .nav-title { padding: 25px 20px 10px; font-size: 12px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+        .nav-menu { list-style: none; padding: 0; flex: 1; overflow-y: auto; }
+        .nav-item { margin-bottom: 2px; }
+        .nav-link { display: flex; align-items: center; padding: 12px 20px; text-decoration: none; color: #444; font-weight: 500; font-size: 15px; transition: all 0.3s; position: relative; }
+
+        .nav-link i { font-size: 18px; width: 35px; color: #888; transition: color 0.3s; }
+        .nav-link:hover { color: var(--mat-primary); background: #f8f9fa; }
+        .nav-link:hover i { color: var(--mat-primary); }
+
+        .nav-link.active { color: var(--mat-primary); font-weight: 700; background: #f4f7fa; }
+        .nav-link.active i { color: var(--mat-primary); }
+        .nav-link.active::before { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 3px; background-color: var(--mat-primary); }
+
+        /* =================================================================
+           TOPBAR & MAIN CONTENT
+        ================================================================== */
+        .main-wrapper { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+        .topbar { height: 70px; background-color: var(--mat-header-bg); display: flex; justify-content: space-between; align-items: center; padding: 0 30px; box-shadow: var(--mat-shadow); z-index: 5; color: white; }
+
+        .search-box { background: rgba(255,255,255,0.1); padding: 8px 15px; border-radius: 20px; display: flex; align-items: center; width: 300px; }
+        .search-box input { border: none; background: transparent; color: white; outline: none; margin-left: 10px; width: 100%; }
+        .search-box input::placeholder { color: rgba(255,255,255,0.7); }
+
+        .topbar-right { display: flex; align-items: center; gap: 20px; }
+        .admin-profile { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .admin-profile img { width: 40px; height: 40px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); }
+
+        /* MAIN BODY */
+        .content { flex: 1; padding: 30px; overflow-y: auto; }
+        .page-header { margin-bottom: 25px; }
+        .page-header h3 { font-size: 24px; font-weight: 500; color: #111; margin-bottom: 5px; }
+        .breadcrumb { font-size: 13px; color: var(--mat-text-muted); }
+
+        /* =================================================================
+           MATERIAL CARDS & GRADIENT STATS
+        ================================================================== */
+        .grid-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 25px; margin-bottom: 30px; }
+
+        .stat-card { border-radius: var(--mat-radius); padding: 25px; color: white; box-shadow: var(--mat-shadow); position: relative; overflow: hidden; }
+        .stat-card i { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); font-size: 50px; opacity: 0.3; }
+
+        /* Gradients chuẩn Material Able */
+        .bg-c-blue { background: linear-gradient(to right, #04a9f5, #0494d6); }
+        .bg-c-green { background: linear-gradient(to right, #1de9b6, #1dc4e9); }
+        .bg-c-yellow { background: linear-gradient(to right, #f4c22b, #f4a22b); }
+        .bg-c-purple { background: linear-gradient(to right, #a389d4, #899fd4); }
+
+        .stat-card h2 { font-size: 30px; font-weight: 700; margin-bottom: 5px; }
+        .stat-card p { font-size: 15px; font-weight: 500; margin: 0; opacity: 0.9; }
+
+        /* =================================================================
+           CONTENT GRID (Tables & Moderation)
+        ================================================================== */
+        .grid-content { display: grid; grid-template-columns: 2fr 1fr; gap: 25px; }
+
+        .mat-card { background: var(--mat-sidebar-bg); border-radius: var(--mat-radius); box-shadow: var(--mat-shadow); margin-bottom: 25px; }
+        .mat-card-header { padding: 20px 25px; border-bottom: 1px solid #f1f1f1; display: flex; justify-content: space-between; align-items: center; }
+        .mat-card-header h5 { font-size: 16px; font-weight: 500; color: #333; margin: 0; }
+
+        /* BẢNG DỮ LIỆU MATERIAL */
+        .mat-table { width: 100%; border-collapse: collapse; }
+        .mat-table th { background: #f8f9fa; color: #555; font-weight: 500; font-size: 13px; text-transform: uppercase; padding: 15px 25px; text-align: left; border-bottom: 2px solid #e9ecef; }
+        .mat-table td { padding: 15px 25px; font-size: 14px; border-bottom: 1px solid #e9ecef; vertical-align: middle; color: #444; }
+        .mat-table tr:hover td { background-color: #fcfcfc; }
+
+        /* Nút duyệt bài (Moderation Buttons) */
+        .btn-action { border: none; padding: 6px 12px; border-radius: 3px; font-size: 12px; font-weight: 500; cursor: pointer; transition: 0.3s; color: white; display: inline-flex; align-items: center; gap: 5px; }
+        .btn-approve { background: var(--mat-success); }
+        .btn-approve:hover { background: #17c69b; box-shadow: 0 4px 10px rgba(29, 233, 182, 0.4); }
+        .btn-reject { background: var(--mat-danger); }
+        .btn-reject:hover { background: #d6372b; box-shadow: 0 4px 10px rgba(244, 66, 54, 0.4); }
+
+        .badge-role { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; color: white; }
+        .role-teacher { background-color: var(--mat-primary); }
+        .role-student { background-color: #888; }
+
+        /* Danh sách danh mục Public */
+        .cat-list { list-style: none; padding: 0; margin: 0; }
+        .cat-item { padding: 15px 25px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .cat-item:last-child { border-bottom: none; }
+        .cat-info h6 { font-size: 15px; font-weight: 500; color: #333; margin: 0 0 3px 0; }
+        .cat-info p { font-size: 12px; color: #888; margin: 0; }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <a th:href="@{/admin}" style="text-decoration: none; color: inherit;">
+                <h2><i class="fa-solid fa-layer-group" style="color: var(--mat-primary);"></i> <span>Quiz<span style="color: var(--mat-primary);">Hub</span></span></h2>
+            </a>
+        </div>
+
+        <div class="nav-title">Quản trị Hệ thống</div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="/admin/dashboard" class="nav-link active"><i class="fa-solid fa-house"></i> Tổng quan (Dashboard)</a></li>
+            <li class="nav-item"><a href="/admin/users" class="nav-link"><i class="fa-solid fa-users-gear"></i> Quản lý Tài khoản</a></li>
+        </ul>
+
+        <div class="nav-title">Quản lý Nội dung Public</div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="/admin/categories" class="nav-link"><i class="fa-solid fa-sitemap"></i> Danh mục Hệ thống</a></li>
+            <li class="nav-item">
+                <a href="/admin/moderation" class="nav-link">
+                    <i class="fa-solid fa-clipboard-check"></i> Duyệt Đề thi/Câu hỏi
+                    <span style="background: var(--mat-warning); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 10px; margin-left: auto;">5 Mới</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="nav-title">Báo cáo</div>
+        <ul class="nav-menu">
+            <li class="nav-item"><a href="/admin/reports" class="nav-link"><i class="fa-solid fa-chart-line"></i> Thống kê hệ thống</a></li>
+        </ul>
+    </nav>
+
+    <div class="main-wrapper">
+
+        <header class="topbar">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" placeholder="Tìm kiếm người dùng, danh mục...">
+            </div>
+
+            <div class="topbar-right">
+                <i class="fa-regular fa-bell" style="font-size: 20px; cursor: pointer;"></i>
+                <div class="admin-profile">
+                    <img src="https://ui-avatars.com/api/?name=Admin&background=fff&color=3f4d67" alt="Admin">
+                    <span style="font-size: 14px; font-weight: 500;">Administrator <i class="fa-solid fa-caret-down" style="font-size: 12px; margin-left: 5px;"></i></span>
+                </div>
+            </div>
+        </header>
+
+        <main class="content">
+
+            <div class="page-header">
+                <h3>Bảng điều khiển Trung tâm</h3>
+                <div class="breadcrumb">Home / Dashboard / Tổng quan</div>
+            </div>
+
+            <div class="grid-stats">
+                <div class="stat-card bg-c-blue">
+                    <i class="fa-solid fa-users"></i>
+                    <h2>1,250</h2>
+                    <p>Tổng Tài khoản</p>
+                </div>
+                <div class="stat-card bg-c-green">
+                    <i class="fa-solid fa-folder-tree"></i>
+                    <h2>45</h2>
+                    <p>Danh mục Public</p>
+                </div>
+                <div class="stat-card bg-c-yellow">
+                    <i class="fa-solid fa-file-circle-exclamation"></i>
+                    <h2>24</h2>
+                    <p>Yêu cầu chờ duyệt</p>
+                </div>
+                <div class="stat-card bg-c-purple">
+                    <i class="fa-solid fa-cubes"></i>
+                    <h2>5,420</h2>
+                    <p>Câu hỏi trên hệ thống</p>
+                </div>
+            </div>
+
+            <div class="grid-content">
+
+                <div>
+                    <div class="mat-card">
+                        <div class="mat-card-header">
+                            <h5><i class="fa-solid fa-scale-balanced" style="color: var(--mat-primary); margin-right: 8px;"></i> Duyệt Câu hỏi / Đề thi Public (Từ Giáo viên)</h5>
+                            <a href="#" style="font-size: 13px; color: var(--mat-primary); text-decoration: none;">Xem tất cả</a>
+                        </div>
+                        <table class="mat-table">
+                            <thead>
+                                <tr>
+                                    <th>Nội dung yêu cầu</th>
+                                    <th>Giáo viên gửi</th>
+                                    <th>Danh mục đích</th>
+                                    <th style="text-align: right;">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 500; color: #222;">Câu hỏi: "Đâu là đặc điểm của Spring Boot?"</div>
+                                        <div style="font-size: 12px; color: var(--mat-text-muted); margin-top: 3px;"><i class="fa-solid fa-list-check"></i> Loại: Trắc nghiệm (4 đáp án)</div>
+                                    </td>
+                                    <td>Cô Thương</td>
+                                    <td><strong>Lập trình Java</strong></td>
+                                    <td style="text-align: right;">
+                                        <button class="btn-action btn-approve"><i class="fa-solid fa-check"></i> Duyệt</button>
+                                        <button class="btn-action btn-reject"><i class="fa-solid fa-xmark"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 500; color: #222;">Đề thi: "Đề thi thử TOEIC Reading 2026"</div>
+                                        <div style="font-size: 12px; color: var(--mat-text-muted); margin-top: 3px;"><i class="fa-solid fa-file-lines"></i> 100 Câu hỏi - 60 Phút</div>
+                                    </td>
+                                    <td>Thầy Minh</td>
+                                    <td><strong>Ngoại ngữ</strong></td>
+                                    <td style="text-align: right;">
+                                        <button class="btn-action btn-approve"><i class="fa-solid fa-check"></i> Duyệt</button>
+                                        <button class="btn-action btn-reject"><i class="fa-solid fa-xmark"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <div style="font-weight: 500; color: #222;">Câu hỏi: "Giải thuật A* dùng để làm gì?"</div>
+                                        <div style="font-size: 12px; color: var(--mat-text-muted); margin-top: 3px;"><i class="fa-solid fa-list-check"></i> Loại: Trắc nghiệm (4 đáp án)</div>
+                                    </td>
+                                    <td>Thầy Dũng</td>
+                                    <td><strong>Trí tuệ nhân tạo</strong></td>
+                                    <td style="text-align: right;">
+                                        <button class="btn-action btn-approve"><i class="fa-solid fa-check"></i> Duyệt</button>
+                                        <button class="btn-action btn-reject"><i class="fa-solid fa-xmark"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mat-card">
+                        <div class="mat-card-header">
+                            <h5>Tài khoản đăng ký gần đây</h5>
+                        </div>
+                        <table class="mat-table">
+                            <thead>
+                                <tr>
+                                    <th>Họ và Tên</th>
+                                    <th>Email</th>
+                                    <th>Vai trò</th>
+                                    <th>Ngày tham gia</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Nguyễn Hữu Anh Tài</td>
+                                    <td>anhtai.ptit@gmail.com</td>
+                                    <td><span class="badge-role role-student">Học sinh</span></td>
+                                    <td>10/04/2026</td>
+                                </tr>
+                                <tr>
+                                    <td>Trần Thu Trang</td>
+                                    <td>trang.tran@gmail.com</td>
+                                    <td><span class="badge-role role-teacher">Giáo viên</span></td>
+                                    <td>09/04/2026</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="mat-card">
+                        <div class="mat-card-header">
+                            <h5>Cấu trúc Danh mục Hệ thống (Public)</h5>
+                            <button style="background: none; border: none; color: var(--mat-primary); cursor: pointer;"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                        <ul class="cat-list">
+                            <li class="cat-item">
+                                <div class="cat-info">
+                                    <h6>💻 Lập trình cơ sở</h6>
+                                    <p>12 Đề thi | 450 Câu hỏi</p>
+                                </div>
+                                <i class="fa-solid fa-ellipsis-vertical" style="color: #aaa; cursor: pointer;"></i>
+                            </li>
+                            <li class="cat-item">
+                                <div class="cat-info">
+                                    <h6>🌐 Lập trình Web</h6>
+                                    <p>8 Đề thi | 210 Câu hỏi</p>
+                                </div>
+                                <i class="fa-solid fa-ellipsis-vertical" style="color: #aaa; cursor: pointer;"></i>
+                            </li>
+                            <li class="cat-item">
+                                <div class="cat-info">
+                                    <h6>📊 Cơ sở dữ liệu</h6>
+                                    <p>5 Đề thi | 180 Câu hỏi</p>
+                                </div>
+                                <i class="fa-solid fa-ellipsis-vertical" style="color: #aaa; cursor: pointer;"></i>
+                            </li>
+                            <li class="cat-item">
+                                <div class="cat-info">
+                                    <h6>🌍 Ngoại ngữ (TOEIC/IELTS)</h6>
+                                    <p>20 Đề thi | 1,200 Câu hỏi</p>
+                                </div>
+                                <i class="fa-solid fa-ellipsis-vertical" style="color: #aaa; cursor: pointer;"></i>
+                            </li>
+                        </ul>
+                        <div style="padding: 15px 25px; text-align: center; border-top: 1px solid #eee;">
+                            <a href="#" style="font-size: 13px; color: #888; text-decoration: none;">Xem toàn bộ danh mục</a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+</body>
+</html>

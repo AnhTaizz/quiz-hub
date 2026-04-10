@@ -26,7 +26,17 @@ public class SecurityConfig {
         private final AuthenticationProvider authenticationProvider;
 
         private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-        private final String[] PUBLIC_ENDPOINT = { "/api/auth/register", "/api/auth/login", "/api/auth/forgot-password",
+        private final String[] PUBLIC_ENDPOINT = { "/",
+                        "/index.html",
+                        "/teacher-category.html",
+                        "/css/**",
+                        "/js/**",
+                        "/images/**",
+                        "/assets/**",
+                        "/teacher/**",
+                        "/student/**",
+                        "/admin/**",
+                        "/api/auth/register", "/api/auth/login", "/api/auth/forgot-password",
                         "/api/auth/reset-password", "/error", "api/questions/**", "/test/**",
                         "/api/teacher/categories/**", "/api/student/categories/**", "/api/auth/forgot-password",
                         "/api/auth/reset-password" };

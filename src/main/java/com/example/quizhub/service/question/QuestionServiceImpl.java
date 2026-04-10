@@ -17,13 +17,13 @@ import com.example.quizhub.entity.Answer;
 import com.example.quizhub.entity.Category;
 import com.example.quizhub.entity.Question;
 import com.example.quizhub.entity.User;
+import com.example.quizhub.entity.enums.QuestionStatus;
 import com.example.quizhub.entity.enums.QuestionType;
 import com.example.quizhub.exception.AppException;
 import com.example.quizhub.exception.ErrorCode;
 import com.example.quizhub.mapper.QuestionMapper;
 import com.example.quizhub.repository.CategoryRepository;
 import com.example.quizhub.repository.QuestionRepository;
-import com.example.quizhub.repository.QuizRepository;
 import com.example.quizhub.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -36,7 +36,6 @@ public class QuestionServiceImpl implements QuestionService {
     private final QuestionRepository questionRepository;
     private final CategoryRepository categoryRepository;
     private final QuestionMapper questionMapper;
-    private final QuizRepository quizRepository;
 
     @Override
     @Transactional
@@ -57,7 +56,7 @@ public class QuestionServiceImpl implements QuestionService {
                             .type(request.getType())
                             .text(request.getText())
                             .isActive(true)
-                            .isPublic(true)
+                            .questionStatus(request.getQuestionStatus())
                             .creator(creator)
                             .category(category)
                             .build();
@@ -105,7 +104,7 @@ public class QuestionServiceImpl implements QuestionService {
                                         .creator(oldQuestion.getCreator())
                                         .category(category)
                                         .isActive(true)
-                                        .isPublic(request.getIsPublic() != null ? request.getIsPublic() : true)
+                                        .questionStatus(request.getQuestionStatus())
                                         .build();
 
             List<Answer> cloneAnswers = request.getAnswers().stream()
@@ -128,7 +127,7 @@ public class QuestionServiceImpl implements QuestionService {
             oldQuestion.setCategory(category);
 
             if (request.getIsActive() != null) oldQuestion.setIsActive(request.getIsActive());
-            if (request.getIsPublic() != null) oldQuestion.setIsPublic(request.getIsPublic());
+            if (request.getQuestionStatus() != null) oldQuestion.setQuestionStatus(request.getQuestionStatus());
 
             List<Answer> newAnswers = request.getAnswers().stream()
                     .map(ansDto -> Answer.builder()
@@ -202,5 +201,39 @@ public class QuestionServiceImpl implements QuestionService {
                 }
                 break;
         }
+    }
+
+    @Override
+    @Transactional
+    public void requestShareQuestion(Long questionId, Long teacherId) {
+        Question question = questionRepository.findById(questionId).orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
+
+        // Kiểm tra quyền sở hữu
+        if (!question.getCreator().getId().equals(teacherId)) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        // Chuyển trạng thái sang PENDING (chưa public ngay)
+        question.setQuestionStatus(QuestionStatus.PENDING);
+        questionRepository.save(question);
+    }
+    @Override
+    @Transactional
+    public void approveQuestion(Long questionId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
+
+        question.setQuestionStatus(QuestionStatus.PUBLIC);
+        questionRepository.save(question);
+    }
+
+    @Override
+    @Transactional
+    public void rejectQuestion(Long questionId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
+
+        question.setQuestionStatus(QuestionStatus.PRIVATE);
+        questionRepository.save(question);
     }
 }

@@ -1,4 +1,4 @@
-package com.example.quizhub.controller.publicapi;
+package com.example.quizhub.controller;
 
 import java.util.List;
 
@@ -29,5 +29,5 @@ public class CategoryPublicController {
     public ResponseEntity<CategoryResponseDTO> getCategoryById(@PathVariable Long id) {
         return ResponseEntity.ok(categoryService.getCategoryById(id));
     }
-    
+
 }
