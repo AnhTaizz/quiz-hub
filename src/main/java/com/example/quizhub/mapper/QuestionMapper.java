@@ -21,6 +21,7 @@ public interface QuestionMapper {
     @Mapping(source = "creator.email",    target = "creatorEmail")
     @Mapping(source = "category.id",      target = "categoryId")
     @Mapping(source = "category.name",    target = "categoryName")
+    @Mapping(source = "questionStatus",   target = "questionStatus")
     QuestionResponseDTO toResponseDTO(Question question);
 
     // List<Question> -> List<QuestionResponseDTO>

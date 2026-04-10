@@ -44,6 +44,13 @@ public class Category {
     @JoinColumn(name = "parent_id")
     Category parent;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "creator_id")
+    User creator;
+
+    @Column(name = "is_public", columnDefinition = "boolean default false")
+    Boolean isPublic;
+
     @OneToMany(mappedBy = "parent")
     List<Category> children;
 

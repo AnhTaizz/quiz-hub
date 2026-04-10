@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Danh mục (Giáo Viên) - QuizHub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito+Sans:wght@700;800;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* TONE VÀNG NHẠT (Soft / Pastel Yellow) */
+            --tc-main: #facc15; /* Vàng sáng, dịu */
+            --tc-dark: #eab308; /* Vàng đậm hơn chút dùng cho hover/icon */
+            --tc-light: #fef9c3; /* Vàng cực nhạt cho nền highlight */
+            --tc-bg: #fcfbf4; /* Nền trang web (trắng ngà nhẹ) */
+
+            --hero-from: #fde047; /* Gradient vàng pastel */
+            --hero-mid: #fef08a;
+
+            --border: #fef08a;
+            --text-dark: #422006; /* Màu nâu sẫm để dễ đọc trên nền vàng */
+            --text-muted: #854d0e;
+
+            --radius-md: 14px;
+            --radius-xl: 28px;
+            --radius-pill: 100px;
+            --transition: all 0.28s ease;
+        }
+
+        body {
+            background-color: var(--tc-bg);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-dark);
+        }
+
+        /* Nút dành riêng cho Giáo viên */
+        .btn-teacher {
+            background: linear-gradient(135deg, var(--tc-main), var(--tc-dark));
+            color: var(--text-dark); /* Chữ nâu sẫm thay vì trắng để dễ nhìn */
+            border: none;
+            font-weight: 700;
+        }
+        .btn-teacher:hover {
+            background: linear-gradient(135deg, var(--tc-dark), #ca8a04);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
+        }
+
+        .page-header {
+            background: linear-gradient(135deg, var(--hero-from), var(--hero-mid));
+            color: var(--text-dark);
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 2rem 2rem;
+            box-shadow: 0 10px 30px rgba(250, 204, 21, 0.1);
+        }
+
+        .page-title {
+            font-family: 'Nunito Sans', sans-serif;
+            font-weight: 800;
+            color: var(--text-dark);
+        }
+
+        /* Tree Styles */
+        .category-tree {
+            list-style-type: none;
+            padding-left: 24px;
+            position: relative;
+        }
+
+        .category-tree::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            bottom: 20px;
+            left: 8px;
+            width: 2px;
+            background: linear-gradient(to bottom, #fde047, #fef9c3);
+            border-radius: 2px;
+        }
+
+        .category-item {
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .category-item::before {
+            content: '';
+            position: absolute;
+            top: 28px;
+            left: -16px;
+            width: 20px;
+            height: 2px;
+            background: #fde047;
+        }
+
+        /* Card Styles */
+        .category-card {
+            background-color: #ffffff;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 12px 20px;
+            transition: var(--transition);
+            position: relative;
+            z-index: 1;
+            cursor: grab;
+        }
+
+        .category-card:hover {
+            box-shadow: 0 4px 12px rgba(250, 204, 21, 0.15);
+            border-color: var(--tc-main);
+        }
+
+        .category-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .category-icon {
+            color: var(--tc-dark);
+            background: var(--tc-light);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+        }
+
+        /* Action Buttons */
+        .category-actions {
+            opacity: 0;
+            transition: var(--transition);
+        }
+
+        .category-card:hover .category-actions {
+            opacity: 1;
+        }
+
+        .btn-action {
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #fff;
+            transition: var(--transition);
+            color: var(--text-muted);
+        }
+
+        .btn-action.add:hover { background: var(--tc-main); color: var(--text-dark) !important; border-color: var(--tc-main); }
+        .btn-action.edit:hover { background: #3b82f6; color: #fff !important; border-color: #3b82f6; }
+        .btn-action.delete:hover { background: #ef4444; color: #fff !important; border-color: #ef4444; }
+
+        /* --- HIỆU ỨNG KÉO THẢ (DRAG & DROP) --- */
+        .category-card:active { cursor: grabbing; }
+
+        .category-card.dragging {
+            opacity: 0.5;
+            border: 2px dashed var(--tc-dark);
+            background: var(--tc-light);
+            transform: scale(0.98);
+        }
+
+        .category-card.drag-over {
+            background-color: var(--tc-light);
+            border: 2px dashed var(--tc-dark);
+            transform: scale(1.02);
+            box-shadow: 0 10px 25px rgba(234, 179, 8, 0.2);
+        }
+
+        .pointer-events-none { pointer-events: none; }
+        .pointer-events-auto { pointer-events: auto; }
+
+        .toggle-icon { transition: transform 0.3s ease; display: inline-block; color: var(--tc-dark); }
+        .collapsed .toggle-icon { transform: rotate(-90deg); }
+
+        .empty-state {
+            padding: 4rem 2rem;
+            text-align: center;
+            background: white;
+            border-radius: var(--radius-xl);
+            border: 1px dashed var(--border);
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="page-header">
+        <div class="container">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-4">
+                <div>
+                    <h1 class="page-title"><i class="bi bi-diagram-3-fill me-3"></i>Quản lý Danh Mục</h1>
+                    <p class="mt-2 mb-0" style="color: var(--text-muted);">Không gian của Giáo viên - Sắp xếp ngân hàng câu hỏi.</p>
+                </div>
+                <div>
+                    <button class="btn bg-white rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-2"
+                            data-bs-toggle="modal" data-bs-target="#addRootModal" style="color: var(--tc-dark); border: 1px solid var(--tc-light);">
+                        <i class="bi bi-plus-circle-fill"></i> Tạo Danh Mục Gốc
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container pb-5">
+        <ul th:fragment="categoryTree(categories)" class="category-tree">
+            <li th:each="cat : ${categories}" class="category-item">
+
+                <div class="category-card d-flex justify-content-between align-items-center"
+                     draggable="true"
+                     th:data-id="${cat.id}"
+                     th:data-parent-id="${cat.parentId}"
+                     th:data-name="${cat.name}"
+                     th:data-description="${cat.description}">
+
+                    <div class="category-name d-flex align-items-center gap-3 pointer-events-none">
+                        <button th:if="${cat.children != null && !cat.children.isEmpty()}"
+                                class="btn btn-sm p-0 shadow-none pointer-events-auto"
+                                data-bs-toggle="collapse" th:data-bs-target="'#collapse-' + ${cat.id}" aria-expanded="true">
+                            <i class="bi bi-chevron-down toggle-icon"></i>
+                        </button>
+                        <span th:unless="${cat.children != null && !cat.children.isEmpty()}" style="width: 24px;"></span>
+
+                        <i class="bi bi-folder2-open category-icon"></i>
+                        <span th:text="${cat.name}">Tên danh mục</span>
+                    </div>
+
+                    <div class="category-actions d-flex gap-2 pointer-events-auto">
+                        <button class="btn-action add" title="Thêm danh mục con"
+                                data-bs-toggle="modal" data-bs-target="#addChildModal"
+                                th:data-parent-id="${cat.id}" th:data-parent-name="${cat.name}"
+                                onclick="setupAddChildModal(this)">
+                            <i class="bi bi-plus-lg"></i>
+                        </button>
+                        <button class="btn-action edit" title="Sửa tên"
+                                data-bs-toggle="modal" data-bs-target="#editModal"
+                                th:data-id="${cat.id}" th:data-name="${cat.name}"
+                                th:data-parent-id="${cat.parentId}" th:data-description="${cat.description}"
+                                onclick="setupEditModal(this)">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn-action delete" title="Xóa danh mục"
+                                data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                th:data-id="${cat.id}" th:data-name="${cat.name}"
+                                onclick="setupDeleteModal(this)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div th:if="${cat.children != null && !cat.children.isEmpty()}"
+                     th:id="'collapse-' + ${cat.id}" class="collapse show mt-2">
+                    <ul th:replace="~{this :: categoryTree(${cat.children})}"></ul>
+                </div>
+            </li>
+        </ul>
+
+        <div class="row">
+            <div class="col-12">
+                <div th:if="${rootCategories == null || rootCategories.isEmpty()}" class="empty-state border-0 shadow-sm">
+                    <div style="color: var(--tc-light);">
+                        <i class="bi bi-inboxes-fill" style="font-size: 5rem; color: var(--tc-main);"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark mt-3">Chưa có danh mục nào</h3>
+                    <p class="text-muted mb-4">Hệ thống của bạn đang trống. Hãy tạo một danh mục gốc để bắt đầu phân loại.</p>
+                    <button class="btn btn-teacher rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addRootModal">
+                        Tạo Danh Mục Gốc
+                    </button>
+                </div>
+
+                <div th:unless="${rootCategories == null || rootCategories.isEmpty()}" class="bg-white p-4 rounded-4 shadow-sm border border-warning-subtle">
+                    <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+                        <div class="category-icon me-3"><i class="bi bi-diagram-2-fill"></i></div>
+                        <h4 class="mb-0 fw-bold text-dark">Cấu trúc Danh Mục</h4>
+                    </div>
+                    <div th:replace="~{this :: categoryTree(${rootCategories})}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addRootModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold" style="color: var(--tc-dark);"><i class="bi bi-node-plus-fill me-2"></i>Tạo Danh Mục Gốc</h5>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/teacher/categories/save}" method="post">
+                    <div class="modal-body">
+                        <input type="hidden" name="parentId" value="" />
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Tên danh mục gốc <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control shadow-none border-warning-subtle" required placeholder="VD: Công Nghệ Thông Tin">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Mô tả chi tiết</label>
+                            <textarea name="description" class="form-control shadow-none border-warning-subtle" rows="3" placeholder="Nhập mô tả (không bắt buộc)..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top-0 pt-0">
+                        <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-teacher rounded-pill px-4">Tạo mới</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="addChildModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold" style="color: var(--tc-dark);"><i class="bi bi-folder-plus me-2"></i>Thêm Danh Mục Con</h5>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/teacher/categories/save}" method="post">
+                    <div class="modal-body">
+                        <input type="hidden" name="parentId" id="add_parentId" />
+                        <p class="small text-muted mb-3">Thêm con vào: <strong id="add_parentNameDisplay" style="color: var(--tc-dark);"></strong></p>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Tên danh mục con <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control shadow-none border-warning-subtle" required placeholder="Nhập tên...">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Mô tả chi tiết</label>
+                            <textarea name="description" class="form-control shadow-none border-warning-subtle" rows="3" placeholder="Nhập mô tả..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top-0 pt-0">
+                        <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-teacher rounded-pill px-4">Lưu</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold text-primary"><i class="bi bi-pencil-square me-2"></i>Cập nhật Danh Mục</h5>
+                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/teacher/categories/update}" method="post">
+                    <div class="modal-body">
+                        <input type="hidden" name="id" id="edit_id" />
+                        <input type="hidden" name="parentId" id="edit_parentId" />
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Tên danh mục <span class="text-danger">*</span></label>
+                            <input type="text" name="name" id="edit_name" class="form-control shadow-none border-warning-subtle" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold">Mô tả chi tiết</label>
+                            <textarea name="description" id="edit_description" class="form-control shadow-none border-warning-subtle" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top-0 pt-0">
+                        <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4">Cập nhật</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-body text-center p-4">
+                    <div class="text-danger mb-3"><i class="bi bi-exclamation-circle-fill" style="font-size: 3rem;"></i></div>
+                    <h5 class="fw-bold mb-2">Xác nhận xóa?</h5>
+                    <p class="text-muted mb-4">Bạn có chắc chắn muốn xóa danh mục <strong id="delete_nameDisplay" class="text-dark"></strong> không? Hành động này không thể hoàn tác.</p>
+                    <form th:action="@{/teacher/categories/delete}" method="post" class="d-flex justify-content-center gap-2">
+                        <input type="hidden" name="id" id="delete_id" />
+                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-danger rounded-pill px-4">Xóa ngay</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Setup Modal
+        function setupAddChildModal(btn) {
+            document.getElementById('add_parentId').value = btn.getAttribute('data-parent-id');
+            document.getElementById('add_parentNameDisplay').textContent = btn.getAttribute('data-parent-name');
+        }
+
+        function setupEditModal(btn) {
+            document.getElementById('edit_id').value = btn.getAttribute('data-id');
+            document.getElementById('edit_parentId').value = btn.getAttribute('data-parent-id');
+            document.getElementById('edit_name').value = btn.getAttribute('data-name');
+            let desc = btn.getAttribute('data-description');
+            document.getElementById('edit_description').value = (desc !== 'null' && desc !== null) ? desc : '';
+        }
+
+        function setupDeleteModal(btn) {
+            document.getElementById('delete_id').value = btn.getAttribute('data-id');
+            document.getElementById('delete_nameDisplay').textContent = btn.getAttribute('data-name');
+        }
+
+        // --- DRAG & DROP LOGIC ---
+        document.addEventListener('DOMContentLoaded', () => {
+            let draggedElement = null;
+            const cards = document.querySelectorAll('.category-card');
+
+            cards.forEach(card => {
+                card.addEventListener('dragstart', function (e) {
+                    draggedElement = this;
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', this.dataset.id);
+                    this.classList.add('dragging');
+                });
+
+                card.addEventListener('dragover', function (e) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    if (draggedElement !== this) {
+                        this.classList.add('drag-over');
+                    }
+                    return false;
+                });
+
+                card.addEventListener('dragleave', function (e) {
+                    this.classList.remove('drag-over');
+                });
+
+                card.addEventListener('dragend', function (e) {
+                    this.classList.remove('dragging');
+                    cards.forEach(c => c.classList.remove('drag-over'));
+                });
+
+                card.addEventListener('drop', function (e) {
+                    e.stopPropagation();
+                    this.classList.remove('drag-over');
+
+                    if (draggedElement !== this) {
+                        let draggedId = draggedElement.dataset.id;
+                        let targetParentId = this.dataset.id;
+                        let currentParentId = draggedElement.dataset.parentId;
+
+                        // Chặn thả vào chính gốc cũ của nó
+                        if (targetParentId === currentParentId) return false;
+
+                        let name = draggedElement.dataset.name;
+                        let desc = draggedElement.dataset.description;
+
+                        submitMoveForm(draggedId, targetParentId, name, desc);
+                    }
+                    return false;
+                });
+            });
+        });
+
+        // Tự động tạo form ngầm và nộp lên Controller
+        function submitMoveForm(id, newParentId, name, description) {
+            let form = document.createElement('form');
+            form.method = 'POST';
+            form.action = '/teacher/categories/update';
+
+            form.appendChild(createHiddenInput('id', id));
+            form.appendChild(createHiddenInput('parentId', newParentId));
+            form.appendChild(createHiddenInput('name', name));
+
+            let safeDesc = (description && description !== 'null') ? description : '';
+            form.appendChild(createHiddenInput('description', safeDesc));
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+
+        function createHiddenInput(name, value) {
+            let input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = value;
+            return input;
+        }
+    </script>
+</body>
+</html>

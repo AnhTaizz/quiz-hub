@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.example.quizhub.entity.Question;
+import com.example.quizhub.entity.enums.QuestionStatus;
 import com.example.quizhub.entity.enums.QuestionType;
 
 @Repository
@@ -21,11 +22,11 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     List<Question> findByType(QuestionType type);
 
-    List<Question> findByIsPublicTrue();
+    List<Question> findByQuestionStatus(QuestionStatus status);
 
     //Lấy câu hỏi theo category, type, keyword, hoặc public của user khác
     @Query("SELECT q FROM Question q WHERE q.isActive = true " +
-           "AND (q.creator.id = :userId OR q.isPublic = true)" +
+           "AND (q.creator.id = :userId OR q.questionStatus = com.example.quizhub.entity.enums.QuestionStatus.PUBLIC)" +
            "AND (:categoryId IS NULL OR q.category.id = :categoryId) " +
            "AND (:type IS NULL OR q.type = :type) " +
            "AND (:keyword IS NULL OR LOWER(q.text) LIKE LOWER(CONCAT('%', :keyword, '%')))")
@@ -39,4 +40,7 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
             + "FROM Quiz q JOIN q.questions quest "
             + "WHERE quest.id = :questionId")
     boolean isQuestionUsedInQuiz(@Param("questionId") Long questionId);
+
+    // Tìm các câu hỏi đang chờ duyệt để Admin xử lý
+    Page<Question> findByQuestionStatus(QuestionStatus status, Pageable pageable);
 }

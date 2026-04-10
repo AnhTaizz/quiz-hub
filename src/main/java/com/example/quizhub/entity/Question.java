@@ -1,13 +1,32 @@
 package com.example.quizhub.entity;
 
-import com.example.quizhub.entity.enums.QuestionType;
-import jakarta.persistence.*;
-import lombok.*;
-import lombok.experimental.FieldDefaults;
-
 import java.util.List;
 
 import org.hibernate.annotations.BatchSize;
+
+import com.example.quizhub.entity.enums.QuestionStatus;
+import com.example.quizhub.entity.enums.QuestionType;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.experimental.FieldDefaults;
 
 @Getter
 @Setter
@@ -33,9 +52,6 @@ public class Question {
     @Column(name = "is_active")
     Boolean isActive;
 
-    @Column(name = "is_public")
-    Boolean isPublic;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_id")
     User creator;
@@ -43,6 +59,11 @@ public class Question {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     Category category;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "approval_status")
+    @Builder.Default
+    private QuestionStatus questionStatus = QuestionStatus.PRIVATE;
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size = 20)

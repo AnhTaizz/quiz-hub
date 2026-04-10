@@ -1,4 +1,4 @@
-package com.example.quizhub.controller.publicapi;
+package com.example.quizhub.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

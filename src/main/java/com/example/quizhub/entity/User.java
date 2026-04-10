@@ -108,7 +108,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.isEnable != null ? this.isEnable : false;
     }
 
 }
