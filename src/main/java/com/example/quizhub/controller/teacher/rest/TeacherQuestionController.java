@@ -1,3 +1,4 @@
+// src/main/java/com/example/quizhub/controller/teacher/rest/TeacherQuestionController.java
 package com.example.quizhub.controller.teacher.rest;
 
 import org.springframework.data.domain.Page;
@@ -5,15 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.quizhub.dto.question.request.QuestionRequestDTO;
 import com.example.quizhub.dto.question.response.QuestionResponseDTO;
@@ -43,26 +36,34 @@ public class TeacherQuestionController {
         return user.getId();
     }
 
-
     @PostMapping
     public ResponseEntity<QuestionResponseDTO> createQuestion(@RequestBody @Valid QuestionRequestDTO request) {
         QuestionResponseDTO response = questionService.createNewQuestion(getCurrentUserId(), request);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-
+    // ĐÃ SỬA: Thêm isPublicTab và rẽ nhánh gọi Service
     @GetMapping
     public ResponseEntity<Page<QuestionResponseDTO>> getQuestionsByTeacher(
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) QuestionType type,
             @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "false") Boolean isPublicTab, // <-- Nhận cờ từ Front-end
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir) {
+            @RequestParam(defaultValue = "desc") String sortDir) { // Đổi asc thành desc để câu mới lên đầu
 
-        Page<QuestionResponseDTO> response = questionService.getQuestionsByTeacher(
-                getCurrentUserId(), categoryId, type, keyword, page, size, sortBy, sortDir);
+        Page<QuestionResponseDTO> response;
+
+        if (isPublicTab) {
+            // Lấy kho hệ thống
+            response = questionService.searchPublicQuestion(categoryId, type, keyword, page, size, sortBy, sortDir);
+        } else {
+            // Lấy kho cá nhân
+            response = questionService.searchMyQuestion(getCurrentUserId(), categoryId, type, keyword, page, size, sortBy, sortDir);
+        }
+
         return ResponseEntity.ok(response);
     }
 
@@ -77,5 +78,12 @@ public class TeacherQuestionController {
     public ResponseEntity<Void> deleteQuestion(@PathVariable Long id) {
         questionService.deleteQuestion(getCurrentUserId(), id);
         return ResponseEntity.noContent().build();
+    }
+
+    // MỚI THÊM: API xin chia sẻ (Xin Public)
+    @PutMapping("/{id}/share")
+    public ResponseEntity<String> requestShareQuestion(@PathVariable Long id) {
+        questionService.requestShareQuestion(id, getCurrentUserId());
+        return ResponseEntity.ok("Question has been submitted for approval");
     }
 }
