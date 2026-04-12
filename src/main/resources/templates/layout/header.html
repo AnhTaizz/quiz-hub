@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+    <header th:fragment="public-header" id="header" class="fixed-top">
+        <div class="container d-flex align-items-center justify-content-between">
+            <h1 class="logo mb-0">
+                <a th:href="@{/}"><i class="bi bi-layers-fill logo-icon"></i> Quiz<span class="hub">Hub</span></a>
+            </h1>
+            <nav id="navbar" class="navbar">
+                <ul>
+                    <li><a class="nav-link scrollto" href="#about">Về chúng tôi</a></li>
+                    <li><a class="nav-link scrollto" href="#features">Tính năng</a></li>
+                    <li class="ms-lg-3"><a th:href="@{/login}" class="nav-btn-login">Đăng nhập</a></li>
+                    <li><a th:href="@{/register}" class="nav-btn-signup">Dùng miễn phí</a></li>
+                </ul>
+                <i class="bi bi-list mobile-nav-toggle"></i>
+            </nav>
+        </div>
+    </header>
+
+    <header th:fragment="student-header" id="header" class="fixed-top">
+        <div class="container d-flex align-items-center justify-content-between">
+            <h1 class="logo mb-0">
+                <a th:href="@{/student/home}">
+                    <i class="bi bi-layers-fill logo-icon"></i>
+                    Quiz<span class="hub">Hub</span>
+                </a>
+            </h1>
+
+            <nav id="navbar" class="navbar">
+                <ul>
+                    <li><a class="nav-link active" th:href="@{/student/home}">Bảng điều khiển</a></li>
+                    <li><a class="nav-link" th:href="@{/student/classes}">Lớp học của tôi</a></li>
+                    <li><a class="nav-link" th:href="@{/student/history}">Lịch sử làm bài</a></li>
+                    <li><a class="nav-link text-primary" th:href="@{/student/question-bank}">Ngân hàng đề thi</a></li>
+                    <li><a class="nav-link text-primary" th:href="@{/student/my-question-bank}">Đề thi của tôi</a></li>
+                </ul>
+                <i class="bi bi-list mobile-nav-toggle"></i>
+            </nav>
+
+            <div class="d-flex align-items-center gap-3">
+                <button class="btn btn-success rounded-pill fw-bold px-3 py-2 d-none d-lg-block" data-bs-toggle="modal" data-bs-target="#joinClassModal" style="font-size: 14px;">
+                    <i class="bi bi-plus-lg me-1"></i> Nhập mã lớp
+                </button>
+
+                <a href="#" class="position-relative text-secondary mx-2">
+                    <i class="bi bi-bell-fill fs-5"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                </a>
+
+                <div class="dropdown">
+                    <a href="#" class="d-flex align-items-center gap-2 text-decoration-none text-dark user-dropdown-toggle ps-2 ms-1 border-start" data-bs-toggle="dropdown" aria-expanded="false" style="border-color: #e2e8f0 !important;">
+                        <div class="text-end d-none d-md-block">
+                            <h6 class="mb-0 fw-bold fs-6" th:text="${currentUser != null ? currentUser.fullName : 'Học Sinh'}">Học Sinh</h6>
+                            <small class="text-muted" style="font-size: 12px;">Sinh viên</small>
+                        </div>
+                        <img src="https://ui-avatars.com/api/?name=Student&background=10b981&color=fff" class="rounded-circle" style="width: 40px; height: 40px; border: 2px solid #e2e8f0;" alt="Avatar">
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2 rounded-3">
+                        <li><a class="dropdown-item py-2" href="/profile"><i class="bi bi-person me-2"></i> Hồ sơ cá nhân</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item py-2 text-danger" th:href="@{/logout}"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <header th:fragment="teacher-header" id="header-nav">
+        <div class="header-left">
+            <button class="toggle-btn"><i class="bi bi-list"></i></button>
+        </div>
+        <div class="header-right">
+            <div class="notification"><i class="bi bi-bell"></i><span class="badge">2</span></div>
+            <div class="user-profile">
+                <span th:text="${currentUser != null ? currentUser.fullName : 'Giáo Viên'}">Giáo Viên</span>
+                <img src="https://ui-avatars.com/api/?name=Teacher&background=28a745&color=fff" alt="Avatar">
+            </div>
+        </div>
+    </header>
+
+    <header th:fragment="dashboard-student-header" id="header-nav" class="bg-white">
+        <div class="header-left">
+            <button class="toggle-btn"><i class="bi bi-list"></i></button>
+        </div>
+        <div class="header-right">
+            <div class="user-profile dropdown">
+                <a href="#" class="d-flex align-items-center gap-2 text-decoration-none text-dark" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="fw-bold" th:text="${currentUser != null ? currentUser.fullName : 'Học Sinh'}">Học Sinh</span>
+                    <img src="https://ui-avatars.com/api/?name=Student&background=10b981&color=fff" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%;">
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2 rounded-3">
+                    <li><a class="dropdown-item py-2" href="/profile"><i class="bi bi-person me-2"></i> Hồ sơ cá nhân</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item py-2 text-danger" th:href="@{/logout}"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
+                </ul>
+            </div>
+        </div>
+    </header>
+
+</body>
+</html>
