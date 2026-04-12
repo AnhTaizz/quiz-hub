@@ -166,7 +166,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 e.preventDefault();
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
-                window.location.reload();
+                document.cookie = 'jwt=; path=/; max-age=0;';
+                window.location.href = '/login';
             });
 
             // Xử lý toggle dropdown trên mobile (đơn giản)
@@ -208,8 +209,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (response.status === 401 && !resource.includes('/api/auth/login')) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            // Tùy chọn: Chuyển hướng về trang login
-            // window.location.href = '/login';
+            document.cookie = 'jwt=; path=/; max-age=0;';
+            window.location.href = '/login';
         }
         
         return response;

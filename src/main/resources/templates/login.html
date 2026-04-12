@@ -1,144 +1,322 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
     <title>Đăng nhập | QuizHub</title>
-    
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    
+
+    <!-- Bootstrap Grid -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    
+    <style>
+        .login-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding-top: 80px;
+        }
+        .auth-card {
+            background: rgba(16, 12, 40, 0.82);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius-xl);
+            padding: 40px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 50px 100px rgba(0, 0, 0, .6), 0 0 0 1px rgba(255, 255, 255, .07), inset 0 1px 0 rgba(255, 255, 255, .08);
+            position: relative;
+            z-index: 2;
+        }
+        .auth-header h2 {
+            color: #fff;
+            font-family: 'Nunito Sans', sans-serif;
+            font-weight: 800;
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        .auth-header p {
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 24px;
+        }
+        .form-group label {
+            color: rgba(255,255,255,0.9);
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: block;
+        }
+        .input-wrapper {
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .input-wrapper i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255,255,255,0.5);
+            font-size: 18px;
+        }
+        .form-control-auth {
+            width: 100%;
+            padding: 12px 16px 12px 45px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: var(--radius-md);
+            color: #fff;
+            transition: all 0.3s;
+        }
+        .form-control-auth::placeholder {
+            color: rgba(255,255,255,0.3);
+        }
+        .form-control-auth:focus {
+            outline: none;
+            border-color: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.1);
+            box-shadow: 0 0 0 4px rgba(255,255,255,0.05);
+        }
+        .btn-auth {
+            width: 100%;
+            padding: 14px;
+            background: #4ade80;
+            border: none;
+            border-radius: var(--radius-pill);
+            color: #1a1a2e;
+            font-weight: 800;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 14px rgba(74, 222, 128, 0.35);
+        }
+        .btn-auth:hover {
+            background: #22c55e;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(74, 222, 128, 0.45);
+        }
+        .auth-footer {
+            margin-top: 24px;
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+            font-size: 14px;
+        }
+        .auth-footer a {
+            color: #4ade80;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .auth-footer a:hover {
+            color: #22c55e;
+            text-decoration: underline;
+        }
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+        .toast {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 24px;
+            background: #fff;
+            color: #1a1a2e;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        .toast.success i { color: #10b981; }
+        .toast.error i { color: #ef4444; }
+    </style>
 </head>
-<body class="auth-page">
 
-    <div id="toast-container"></div>
+<body id="top">
 
-    <div class="auth-card">
-        <div class="auth-header">
-            <a th:href="@{/}" class="auth-logo">
-                <i class="bi bi-layers-fill" style="color: #6366f1;"></i>
-                <span style="color: #fff;">Quiz</span><span style="color: #6366f1;">Hub</span>
+<!-- HEADER -->
+<header id="header" class="fixed-top">
+    <div class="container d-flex align-items-center justify-content-between">
+        <h1 class="logo mb-0">
+            <a th:href="@{/}">
+                <i class="bi bi-layers-fill logo-icon"></i>
+                Quiz<span class="hub">Hub</span>
             </a>
-            <h2>Chào mừng trở lại</h2>
-            <p>Đăng nhập để tiếp tục hành trình của bạn</p>
-        </div>
+        </h1>
 
-        <form id="loginForm">
-            <div class="form-group">
-                <label for="email">Địa chỉ Email</label>
-                <div class="input-wrapper">
-                    <i class="bi bi-envelope"></i>
-                    <input type="email" id="email" class="form-control-auth" placeholder="name@example.com" required autocomplete="email">
+        <nav id="navbar" class="navbar">
+            <ul id="nav-menu">
+                <li><a class="nav-link scrollto" th:href="@{/#about}">Về chúng tôi</a></li>
+                <li><a class="nav-link scrollto" th:href="@{/#features}">Tính năng</a></li>
+                <li><a class="nav-link scrollto" th:href="@{/#workflow}">Quy trình</a></li>
+                <li class="ms-lg-3"><a th:href="@{/login}" class="nav-btn-login">Đăng nhập</a></li>
+                <li><a th:href="@{/register}" class="nav-btn-signup">Dùng miễn phí</a></li>
+            </ul>
+            <i class="bi bi-list mobile-nav-toggle" id="mobile-nav-toggle"></i>
+        </nav>
+    </div>
+</header>
+
+<!-- BACKGROUND -->
+<section class="hero-section" style="padding: 0; min-height: 100vh;">
+    <div class="hero-blob hero-blob-1"></div>
+    <div class="hero-blob hero-blob-2"></div>
+
+    <div class="container position-relative login-wrapper">
+        <div class="auth-card">
+            <div class="auth-header text-center">
+                <h2>Chào mừng trở lại</h2>
+                <p>Đăng nhập để tiếp tục hành trình của bạn</p>
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Địa chỉ Email</label>
+                    <div class="input-wrapper">
+                        <i class="bi bi-envelope"></i>
+                        <input type="email" id="email" class="form-control-auth" placeholder="name@example.com" required autocomplete="email">
+                    </div>
                 </div>
-            </div>
 
-            <div class="form-group">
-                <label for="password">Mật khẩu</label>
-                <div class="input-wrapper">
-                    <i class="bi bi-lock"></i>
-                    <input type="password" id="password" class="form-control-auth" placeholder="••••••••" required autocomplete="current-password">
+                <div class="form-group">
+                    <label for="password">Mật khẩu</label>
+                    <div class="input-wrapper">
+                        <i class="bi bi-lock"></i>
+                        <input type="password" id="password" class="form-control-auth" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
                 </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: rgba(255,255,255,0.6); cursor: pointer; margin-bottom: 0;">
+                        <input type="checkbox" style="accent-color: #4ade80;"> Ghi nhớ tôi
+                    </label>
+                    <a href="#" style="font-size: 14px; color: #4ade80; text-decoration: none; font-weight: 600;">Quên mật khẩu?</a>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-auth">
+                    <span>Đăng nhập</span>
+                    <i class="bi bi-arrow-right" style="margin-left: 8px;"></i>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                Chưa có tài khoản? <a th:href="@{/register}">Đăng ký miễn phí</a>
             </div>
-
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: rgba(255,255,255,0.6); cursor: pointer;">
-                    <input type="checkbox" style="accent-color: #6366f1;"> Ghi nhớ tôi
-                </label>
-                <a href="#" style="font-size: 14px; color: #818cf8; text-decoration: none;">Quên mật khẩu?</a>
-            </div>
-
-            <button type="submit" id="submitBtn" class="btn-auth">
-                <span>Đăng nhập</span>
-                <i class="bi bi-arrow-right" style="margin-left: 8px;"></i>
-            </button>
-        </form>
-
-        <div class="auth-footer">
-            Chưa có tài khoản? <a th:href="@{/register}">Đăng ký miễn phí</a>
         </div>
     </div>
+</section>
 
-    <script th:src="@{/js/script.js}"></script>
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const submitBtn = document.getElementById('submitBtn');
-            const submitText = submitBtn.querySelector('span');
-            
-            // UI Loading state
-            submitBtn.disabled = true;
-            submitText.textContent = 'Đang xử lý...';
+<div id="toast-container"></div>
 
-            try {
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ email, password })
-                });
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/script.js}"></script>
+<script>
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const submitBtn = document.getElementById('submitBtn');
+        const submitText = submitBtn.querySelector('span');
+        
+        submitBtn.disabled = true;
+        submitText.textContent = 'Đang xử lý...';
 
-                const data = await response.json();
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
 
-                if (response.ok) {
-                    // Lưu vào localStorage
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('user', JSON.stringify({
-                        id: data.id,
-                        email: data.email,
-                        fullName: data.fullName,
-                        role: data.role
-                    }));
+            const data = await response.json();
 
-                    showToast('Đăng nhập thành công!', 'success');
-                    
-                    // Chuyển hướng sau 1 giây
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 1000);
-                } else {
-                    const errorMsg = data.message || 'Email hoặc mật khẩu không chính xác';
-                    showToast(errorMsg, 'error');
+            if (response.ok) {
+                // Save user info and token to local storage
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify({
+                    id: data.id,
+                    email: data.email,
+                    fullName: data.fullName,
+                    role: data.role
+                }));
+                // Tích hợp Cookie cho Thymeleaf (để trình duyệt tự gửi JWT Header)
+                document.cookie = `jwt=${data.token}; path=/; max-age=86400; samesite=strict`;
+
+                showToast('Đăng nhập thành công!', 'success');
+                
+                // Immediately update header navbar to show logged-in state
+                if (typeof checkAuthState === 'function') {
+                    checkAuthState();
                 }
-            } catch (error) {
-                console.error('Login error:', error);
-                showToast('Đã có lỗi xảy ra. Vui lòng thử lại sau.', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitText.textContent = 'Đăng nhập';
-            }
-        });
 
-        function showToast(message, type) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            
-            const icon = type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill';
-            
-            toast.innerHTML = `
-                <i class="bi ${icon}"></i>
-                <span>${message}</span>
-            `;
-            
-            container.appendChild(toast);
-            
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transform = 'translateX(100%)';
-                toast.style.transition = 'all 0.5s ease';
-                setTimeout(() => toast.remove(), 500);
-            }, 3000);
+                setTimeout(() => {
+                    const params = new URLSearchParams(window.location.search);
+                    const returnUrl = params.get('returnUrl');
+                    if (returnUrl) {
+                        window.location.href = decodeURIComponent(returnUrl);
+                    } else {
+                        window.location.href = '/';
+                    }
+                }, 1000);
+            } else {
+                const errorMsg = data.message || 'Email hoặc mật khẩu không chính xác';
+                showToast(errorMsg, 'error');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            showToast('Đã có lỗi xảy ra. Vui lòng thử lại sau.', 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitText.textContent = 'Đăng nhập';
         }
-    </script>
+    });
+
+    function showToast(message, type) {
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            document.body.appendChild(container);
+        }
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        const icon = type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill';
+        
+        toast.innerHTML = `
+            <i class="bi ${icon}"></i>
+            <span>${message}</span>
+        `;
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            toast.style.transition = 'all 0.5s ease';
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
+    }
+</script>
 </body>
 </html>
