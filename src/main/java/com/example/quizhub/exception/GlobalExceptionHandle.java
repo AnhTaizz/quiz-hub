@@ -29,11 +29,12 @@ public class GlobalExceptionHandle {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException e) {
+        e.printStackTrace();
         ErrorCode errorCode = ErrorCode.UNCATEGORIZED_EXCEPTION;
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .code(errorCode.getCode())
                 .status(errorCode.getStatusCode().value())
-                .message(errorCode.getMessage())
+                .message(e.getClass().getSimpleName() + ": " + e.getMessage())
                 .timestamp(LocalDateTime.now())
                 .build();
         return ResponseEntity.status(errorCode.getStatusCode()).body(errorResponse);

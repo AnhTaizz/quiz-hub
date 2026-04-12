@@ -35,7 +35,8 @@ public enum ErrorCode {
     ATTEMPT_NOT_FOUND(1019, "Attempt not found", HttpStatus.NOT_FOUND),
     ATTEMPT_ALREADY_SUBMITTED(1020, "Attempt already submitted", HttpStatus.BAD_REQUEST),
     INVALID_OTP(1021, "Invalid OTP", HttpStatus.BAD_REQUEST),
-    PASSWORD_SAME(1022, "New password cannot be the same as the old password", HttpStatus.BAD_REQUEST);
+    PASSWORD_SAME(1022, "New password cannot be the same as the old password", HttpStatus.BAD_REQUEST),
+    QUESTION_ALREADY_PUBLIC(1023, "Question already public", HttpStatus.BAD_REQUEST);
 
     final int code;
     final String message;

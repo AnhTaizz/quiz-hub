@@ -17,6 +17,8 @@ import lombok.experimental.FieldDefaults;
 public class AnswerCreationRequestDTO {
     @NotBlank(message="Đáp án không được để trống")
     private String text;
-    @NotNull(message="Đáp án phải có đúng/sai")
-    private Boolean isCorrect;
+    
+    @com.fasterxml.jackson.annotation.JsonProperty("isCorrect")
+    @Builder.Default
+    private Boolean correct = false; // Gán mặc định là false nếu FE quên gửi
 }
