@@ -123,7 +123,97 @@ document.addEventListener('DOMContentLoaded', function () {
                 carouselInstance.prev(); // Sang trái
             } else if (event.key === 'ArrowRight') {
                 carouselInstance.next(); // Sang phải
-            }
         });
     }
+
+    // ─── 8. Authentication Management ───────────────────────────
+    const checkAuthState = () => {
+        const userJson = localStorage.getItem('user');
+        const token = localStorage.getItem('token');
+        const navUl = document.querySelector('#navbar ul');
+        
+        if (userJson && token && navUl) {
+            const user = JSON.parse(userJson);
+            
+            // Tìm các nút Login/Signup cũ để thay thế
+            const loginBtn = navUl.querySelector('.nav-btn-login')?.parentElement;
+            const signupBtn = navUl.querySelector('.nav-btn-signup')?.parentElement;
+            
+            if (loginBtn) loginBtn.remove();
+            if (signupBtn) signupBtn.remove();
+            
+            // Thêm dropdown User hoặc nút Logout
+            const userLi = document.createElement('li');
+            userLi.className = 'dropdown ms-lg-3';
+            userLi.innerHTML = `
+                <a href="#" class="nav-btn-user">
+                    <i class="bi bi-person-circle"></i>
+                    <span>${user.fullName}</span>
+                    <i class="bi bi-chevron-down ms-1" style="font-size: 12px;"></i>
+                </a>
+                <ul class="dropdown-menu">
+                    <li><a href="/profile"><i class="bi bi-person"></i> Hồ sơ</a></li>
+                    ${user.role === 'ADMIN' ? '<li><a href="/admin"><i class="bi bi-speedometer2"></i> Quản trị</a></li>' : ''}
+                    ${user.role === 'TEACHER' ? '<li><a href="/teacher"><i class="bi bi-journal-text"></i> Giảng dạy</a></li>' : ''}
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a href="#" id="logoutBtn" class="text-danger"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a></li>
+                </ul>
+            `;
+            navUl.appendChild(userLi);
+
+            // Xử lý sự kiện đăng xuất
+            document.getElementById('logoutBtn')?.addEventListener('click', (e) => {
+                e.preventDefault();
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                document.cookie = "jwtToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                window.location.reload();
+            });
+
+            // Xử lý toggle dropdown trên mobile (đơn giản)
+            userLi.querySelector('.nav-btn-user').addEventListener('click', (e) => {
+                if (window.innerWidth < 992) {
+                    e.preventDefault();
+                    userLi.classList.toggle('active');
+                }
+            });
+        }
+    };
+
+    // Khởi chạy kiểm tra trạng thái ngay lập tức
+    checkAuthState();
+
+    // ─── 9. Global Fetch Wrapper (Tự động đính kèm Token) ──────────
+    // Ghi đè window.fetch để tự động thêm header Authorization nếu có token
+    const originalFetch = window.fetch;
+    window.fetch = async (...args) => {
+        let [resource, config] = args;
+        
+        // Nếu là gọi đến API của chúng ta (bắt đầu bằng /api/)
+        if (typeof resource === 'string' && resource.startsWith('/api/')) {
+            const token = localStorage.getItem('token');
+            if (token) {
+                if (!config) config = {};
+                if (!config.headers) config.headers = {};
+                
+                // Nếu header chưa có Authorization thì mới thêm
+                if (!config.headers['Authorization']) {
+                    config.headers['Authorization'] = `Bearer ${token}`;
+                }
+            }
+        }
+        
+        const response = await originalFetch(resource, config);
+        
+        // Nếu API trả về 401 (Unauthorized) - Token hết hạn hoặc không hợp lệ
+        if (response.status === 401 && !resource.includes('/api/auth/login')) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            document.cookie = "jwtToken=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            // Tùy chọn: Chuyển hướng về trang login
+            // window.location.href = '/login';
+        }
+        
+        return response;
+    };
 });

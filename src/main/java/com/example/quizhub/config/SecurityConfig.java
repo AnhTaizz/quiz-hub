@@ -36,6 +36,7 @@ public class SecurityConfig {
                         "/teacher/**",
                         "/student/**",
                         "/admin/**",
+                        "/login", "/register",
                         "/api/auth/register", "/api/auth/login", "/api/auth/forgot-password",
                         "/api/auth/reset-password", "/error", "api/questions/**", "/test/**",
                         "/api/teacher/categories/**", "/api/student/categories/**", "/api/auth/forgot-password",

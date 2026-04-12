@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @RequestMapping("/student")
 public class StudentHomeController {
 
-    @GetMapping("/home")
+    @GetMapping
     public String home(Model model) {
-        return "home";
+        return "student/student-home";
     }
 }
