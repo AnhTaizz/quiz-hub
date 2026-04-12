@@ -23,7 +23,6 @@ public class QuestionResponseDTO {
     Long id;
     String text;
     QuestionType type;
-    Boolean isActive;
     QuestionStatus questionStatus;
 
     // Chỉ lấy thông tin cơ bản của creator, không dùng cả entity User

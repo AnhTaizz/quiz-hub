@@ -24,18 +24,33 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     List<Question> findByQuestionStatus(QuestionStatus status);
 
-    //Lấy câu hỏi theo category, type, keyword, hoặc public của user khác
-    @Query("SELECT q FROM Question q WHERE q.isActive = true " +
-           "AND (q.creator.id = :userId OR q.questionStatus = com.example.quizhub.entity.enums.QuestionStatus.PUBLIC)" +
+    // 1. Kho Riêng: Lấy câu hỏi của cá nhân (Truyền List chứa PRIVATE và PENDING vào để tránh lỗi Enum)
+    @Query("SELECT q FROM Question q " +
+           "WHERE q.creator.id = :userId " +
+           "AND q.questionStatus IN :statuses " +
            "AND (:categoryId IS NULL OR q.category.id = :categoryId) " +
            "AND (:type IS NULL OR q.type = :type) " +
            "AND (:keyword IS NULL OR LOWER(q.text) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    Page<Question> searchQuestionsByTeacher(@Param("categoryId") Long categoryId,
-                                          @Param("type") QuestionType type,
-                                          @Param("keyword") String keyword,
-                                          @Param("userId") Long userId,
-                                          Pageable pageable);
+    Page<Question> searchMyQuestion(@Param("userId") Long userId,
+                                     @Param("categoryId") Long categoryId,
+                                     @Param("type") QuestionType type,
+                                     @Param("keyword") String keyword,
+                                     @Param("statuses") List<QuestionStatus> statuses,
+                                     Pageable pageable);
 
+    // 2. Kho Chung: Lấy câu hỏi đã được Public của hệ thống
+    @Query("SELECT q FROM Question q " +
+           "WHERE q.questionStatus = :status " +
+           "AND (:categoryId IS NULL OR q.category.id = :categoryId) " +
+           "AND (:type IS NULL OR q.type = :type) " +
+           "AND (:keyword IS NULL OR LOWER(q.text) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    Page<Question> searchPublicQuestion(@Param("categoryId") Long categoryId,
+                                         @Param("type") QuestionType type,
+                                         @Param("keyword") String keyword,
+                                         @Param("status") QuestionStatus status,
+                                         Pageable pageable);
+
+    // Kiểm tra câu hỏi đã nằm trong đề thi nào chưa
     @Query("SELECT CASE WHEN COUNT(q) > 0 THEN true ELSE false END "
             + "FROM Quiz q JOIN q.questions quest "
             + "WHERE quest.id = :questionId")

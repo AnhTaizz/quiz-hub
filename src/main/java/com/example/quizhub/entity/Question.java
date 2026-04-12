@@ -49,9 +49,6 @@ public class Question {
     @Column(nullable = false, length = 255)
     String text;
 
-    @Column(name = "is_active")
-    Boolean isActive;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_id")
     User creator;

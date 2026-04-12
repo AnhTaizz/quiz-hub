@@ -2,490 +2,438 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý Danh mục (Giáo Viên) - QuizHub</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito+Sans:wght@700;800;900&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>QuizHub | Quản lý Kho đề thi</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito+Sans:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 
     <style>
-        :root {
-            /* TONE VÀNG NHẠT (Soft / Pastel Yellow) */
-            --tc-main: #facc15; /* Vàng sáng, dịu */
-            --tc-dark: #eab308; /* Vàng đậm hơn chút dùng cho hover/icon */
-            --tc-light: #fef9c3; /* Vàng cực nhạt cho nền highlight */
-            --tc-bg: #fcfbf4; /* Nền trang web (trắng ngà nhẹ) */
-
-            --hero-from: #fde047; /* Gradient vàng pastel */
-            --hero-mid: #fef08a;
-
-            --border: #fef08a;
-            --text-dark: #422006; /* Màu nâu sẫm để dễ đọc trên nền vàng */
-            --text-muted: #854d0e;
-
-            --radius-md: 14px;
-            --radius-xl: 28px;
-            --radius-pill: 100px;
-            --transition: all 0.28s ease;
-        }
-
         body {
-            background-color: var(--tc-bg);
+            background-color: #f4f7fa;
             font-family: 'Inter', sans-serif;
-            color: var(--text-dark);
+            padding-top: 100px;
+            padding-bottom: 60px;
+            color: #1a1a2e;
         }
 
-        /* Nút dành riêng cho Giáo viên */
-        .btn-teacher {
-            background: linear-gradient(135deg, var(--tc-main), var(--tc-dark));
-            color: var(--text-dark); /* Chữ nâu sẫm thay vì trắng để dễ nhìn */
-            border: none;
-            font-weight: 700;
-        }
-        .btn-teacher:hover {
-            background: linear-gradient(135deg, var(--tc-dark), #ca8a04);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(234, 179, 8, 0.3);
-        }
-
-        .page-header {
-            background: linear-gradient(135deg, var(--hero-from), var(--hero-mid));
-            color: var(--text-dark);
-            padding: 3rem 0;
-            margin-bottom: 2rem;
-            border-radius: 0 0 2rem 2rem;
-            box-shadow: 0 10px 30px rgba(250, 204, 21, 0.1);
-        }
-
+        /* ─── Typography & Headers ─── */
         .page-title {
             font-family: 'Nunito Sans', sans-serif;
+            font-weight: 900;
+            font-size: 2.2rem;
+            color: #1e1b4b;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            font-size: 1rem;
+            color: #64748b;
+            margin-bottom: 32px;
+        }
+
+        .section-label {
+            font-size: 11px;
             font-weight: 800;
-            color: var(--text-dark);
-        }
-
-        /* Tree Styles */
-        .category-tree {
-            list-style-type: none;
-            padding-left: 24px;
-            position: relative;
-        }
-
-        .category-tree::before {
-            content: '';
-            position: absolute;
-            top: 20px;
-            bottom: 20px;
-            left: 8px;
-            width: 2px;
-            background: linear-gradient(to bottom, #fde047, #fef9c3);
-            border-radius: 2px;
-        }
-
-        .category-item {
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 6px 14px;
+            border-radius: 50px;
+            display: inline-block;
             margin-bottom: 12px;
-            position: relative;
         }
 
-        .category-item::before {
-            content: '';
-            position: absolute;
-            top: 28px;
-            left: -16px;
-            width: 20px;
-            height: 2px;
-            background: #fde047;
+        /* ─── File Explorer Layout ─── */
+
+        /* Cột trái: Quản lý Danh mục (Thư mục) */
+        .category-sidebar {
+            background: #ffffff;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+            height: calc(100vh - 160px);
+            position: sticky;
+            top: 100px;
+            display: flex;
+            flex-direction: column;
         }
 
-        /* Card Styles */
-        .category-card {
-            background-color: #ffffff;
-            border: 1px solid var(--border);
-            border-radius: var(--radius-md);
-            padding: 12px 20px;
-            transition: var(--transition);
-            position: relative;
-            z-index: 1;
-            cursor: grab;
+        .btn-create-category {
+            background: #e0e7ff;
+            color: #4338ca;
+            border: 1px dashed #a5b4fc;
+            border-radius: 14px;
+            padding: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            width: 100%;
         }
 
-        .category-card:hover {
-            box-shadow: 0 4px 12px rgba(250, 204, 21, 0.15);
-            border-color: var(--tc-main);
+        .btn-create-category:hover {
+            background: #c7d2fe;
+            color: #312e81;
+            border-style: solid;
         }
 
-        .category-name {
-            font-size: 1.1rem;
+        .folder-list {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        /* Tùy chỉnh thanh cuộn cho folder-list */
+        .folder-list::-webkit-scrollbar { width: 4px; }
+        .folder-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        .folder-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: #475569;
             font-weight: 600;
-            color: var(--text-dark);
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
         }
 
-        .category-icon {
-            color: var(--tc-dark);
-            background: var(--tc-light);
-            padding: 6px 10px;
+        .folder-item i {
+            font-size: 1.25rem;
+            margin-right: 12px;
+            color: #94a3b8;
+            transition: color 0.2s ease;
+        }
+
+        .folder-item .badge {
+            margin-left: auto;
+            background: #f1f5f9;
+            color: #64748b;
+            font-weight: 700;
+            padding: 5px 10px;
             border-radius: 8px;
-            font-size: 1.1rem;
         }
 
-        /* Action Buttons */
-        .category-actions {
-            opacity: 0;
-            transition: var(--transition);
+        .folder-item:hover {
+            background: #f8fafc;
+            border-color: #e2e8f0;
         }
 
-        .category-card:hover .category-actions {
-            opacity: 1;
+        .folder-item:hover i {
+            color: #3b82f6; /* Đổi màu icon khi hover */
+        }
+
+        /* Trạng thái danh mục đang được chọn */
+        .folder-item.active {
+            background: #4338ca;
+            color: #ffffff;
+            box-shadow: 0 8px 20px rgba(67, 56, 202, 0.25);
+        }
+
+        .folder-item.active i {
+            color: #c7d2fe;
+        }
+
+        .folder-item.active .badge {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+        }
+
+        /* Cột phải: Quản lý Đề thi */
+        .quiz-content-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #ffffff;
+            padding: 20px 24px;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        }
+
+        .active-category-title {
+            font-family: 'Nunito Sans', sans-serif;
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: #1e1b4b;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .active-category-title i {
+            color: #f59e0b; /* Màu vàng thư mục */
+        }
+
+        /* Thẻ Đề thi (Quiz Card) */
+        .quiz-card {
+            background: #ffffff;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            padding: 20px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .quiz-card:hover {
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
+            border-color: #cbd5e1;
+            transform: translateY(-2px);
+        }
+
+        .quiz-title {
+            font-family: 'Nunito Sans', sans-serif;
+            font-weight: 800;
+            font-size: 1.15rem;
+            color: #1e1b4b;
+            margin-bottom: 12px;
+        }
+
+        .quiz-meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .info-chip {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 6px 12px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .quiz-actions {
+            margin-top: auto;
+            display: flex;
+            gap: 10px;
+            border-top: 1px dashed #e2e8f0;
+            padding-top: 16px;
         }
 
         .btn-action {
-            width: 34px;
-            height: 34px;
-            display: inline-flex;
+            flex: 1;
+            padding: 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 8px;
-            border: 1px solid var(--border);
-            background: #fff;
-            transition: var(--transition);
-            color: var(--text-muted);
+            gap: 6px;
+            transition: all 0.2s;
+            text-decoration: none;
         }
 
-        .btn-action.add:hover { background: var(--tc-main); color: var(--text-dark) !important; border-color: var(--tc-main); }
-        .btn-action.edit:hover { background: #3b82f6; color: #fff !important; border-color: #3b82f6; }
-        .btn-action.delete:hover { background: #ef4444; color: #fff !important; border-color: #ef4444; }
+        .btn-edit { background: #eff6ff; color: #2563eb; border: 1px solid transparent; }
+        .btn-edit:hover { background: #2563eb; color: #fff; }
 
-        /* --- HIỆU ỨNG KÉO THẢ (DRAG & DROP) --- */
-        .category-card:active { cursor: grabbing; }
+        .btn-preview { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
+        .btn-preview:hover { background: #e2e8f0; color: #1e293b; }
 
-        .category-card.dragging {
-            opacity: 0.5;
-            border: 2px dashed var(--tc-dark);
-            background: var(--tc-light);
-            transform: scale(0.98);
+        .btn-delete { background: #fef2f2; color: #dc2626; border: 1px solid transparent; flex: 0 0 auto; width: 40px; }
+        .btn-delete:hover { background: #dc2626; color: #fff; }
+
+        /* Nút tạo đề thi (Primary) */
+        .btn-primary-custom {
+            background: #4338ca;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            transition: all 0.2s;
         }
-
-        .category-card.drag-over {
-            background-color: var(--tc-light);
-            border: 2px dashed var(--tc-dark);
-            transform: scale(1.02);
-            box-shadow: 0 10px 25px rgba(234, 179, 8, 0.2);
-        }
-
-        .pointer-events-none { pointer-events: none; }
-        .pointer-events-auto { pointer-events: auto; }
-
-        .toggle-icon { transition: transform 0.3s ease; display: inline-block; color: var(--tc-dark); }
-        .collapsed .toggle-icon { transform: rotate(-90deg); }
-
-        .empty-state {
-            padding: 4rem 2rem;
-            text-align: center;
-            background: white;
-            border-radius: var(--radius-xl);
-            border: 1px dashed var(--border);
+        .btn-primary-custom:hover {
+            background: #312e81;
+            transform: translateY(-1px);
         }
     </style>
 </head>
 
 <body>
 
-    <header class="page-header">
-        <div class="container">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-4">
-                <div>
-                    <h1 class="page-title"><i class="bi bi-diagram-3-fill me-3"></i>Quản lý Danh Mục</h1>
-                    <p class="mt-2 mb-0" style="color: var(--text-muted);">Không gian của Giáo viên - Sắp xếp ngân hàng câu hỏi.</p>
-                </div>
-                <div>
-                    <button class="btn bg-white rounded-pill px-4 fw-bold shadow-sm d-flex align-items-center gap-2"
-                            data-bs-toggle="modal" data-bs-target="#addRootModal" style="color: var(--tc-dark); border: 1px solid var(--tc-light);">
-                        <i class="bi bi-plus-circle-fill"></i> Tạo Danh Mục Gốc
+    <header th:replace="layout/header :: teacher-header"></header>
+
+    <main class="container">
+
+        <div class="mb-4">
+            <h1 class="page-title">Kho Đề Thi</h1>
+            <p class="page-subtitle">Quản lý các danh mục môn học và hệ thống đề thi của bạn.</p>
+        </div>
+
+        <div class="row g-4">
+
+            <div class="col-lg-4">
+                <div class="category-sidebar">
+                    <div class="section-label" style="color: #4338ca; background: rgba(67, 56, 202, 0.1);">Danh mục của bạn</div>
+
+                    <button class="btn-create-category" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
+                        <i class="bi bi-folder-plus"></i> Tạo danh mục mới
                     </button>
+
+                    <div class="folder-list">
+                        <a href="#" class="folder-item active">
+                            <i class="bi bi-folder2-open"></i>
+                            <span>Lập trình Java Nâng cao</span>
+                            <span class="badge">12</span>
+                        </a>
+
+                        <a href="#" class="folder-item">
+                            <i class="bi bi-folder"></i>
+                            <span>Cơ sở dữ liệu SQL</span>
+                            <span class="badge">5</span>
+                        </a>
+
+                        <a href="#" class="folder-item">
+                            <i class="bi bi-folder"></i>
+                            <span>Cấu trúc dữ liệu & Giải thuật</span>
+                            <span class="badge">8</span>
+                        </a>
+
+                        <a href="#" class="folder-item">
+                            <i class="bi bi-folder"></i>
+                            <span>Thiết kế Web Frontend</span>
+                            <span class="badge">3</span>
+                        </a>
+
+                        <a href="#" class="folder-item">
+                            <i class="bi bi-folder"></i>
+                            <span>Nhập môn Trí tuệ nhân tạo</span>
+                            <span class="badge">0</span>
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
-    </header>
 
-    <div class="container pb-5">
-        <ul th:fragment="categoryTree(categories)" class="category-tree">
-            <li th:each="cat : ${categories}" class="category-item">
+            <div class="col-lg-8">
+                <div class="quiz-content-area">
 
-                <div class="category-card d-flex justify-content-between align-items-center"
-                     draggable="true"
-                     th:data-id="${cat.id}"
-                     th:data-parent-id="${cat.parentId}"
-                     th:data-name="${cat.name}"
-                     th:data-description="${cat.description}">
-
-                    <div class="category-name d-flex align-items-center gap-3 pointer-events-none">
-                        <button th:if="${cat.children != null && !cat.children.isEmpty()}"
-                                class="btn btn-sm p-0 shadow-none pointer-events-auto"
-                                data-bs-toggle="collapse" th:data-bs-target="'#collapse-' + ${cat.id}" aria-expanded="true">
-                            <i class="bi bi-chevron-down toggle-icon"></i>
-                        </button>
-                        <span th:unless="${cat.children != null && !cat.children.isEmpty()}" style="width: 24px;"></span>
-
-                        <i class="bi bi-folder2-open category-icon"></i>
-                        <span th:text="${cat.name}">Tên danh mục</span>
-                    </div>
-
-                    <div class="category-actions d-flex gap-2 pointer-events-auto">
-                        <button class="btn-action add" title="Thêm danh mục con"
-                                data-bs-toggle="modal" data-bs-target="#addChildModal"
-                                th:data-parent-id="${cat.id}" th:data-parent-name="${cat.name}"
-                                onclick="setupAddChildModal(this)">
-                            <i class="bi bi-plus-lg"></i>
-                        </button>
-                        <button class="btn-action edit" title="Sửa tên"
-                                data-bs-toggle="modal" data-bs-target="#editModal"
-                                th:data-id="${cat.id}" th:data-name="${cat.name}"
-                                th:data-parent-id="${cat.parentId}" th:data-description="${cat.description}"
-                                onclick="setupEditModal(this)">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn-action delete" title="Xóa danh mục"
-                                data-bs-toggle="modal" data-bs-target="#deleteModal"
-                                th:data-id="${cat.id}" th:data-name="${cat.name}"
-                                onclick="setupDeleteModal(this)">
-                            <i class="bi bi-trash"></i>
+                    <div class="content-header">
+                        <h2 class="active-category-title">
+                            <i class="bi bi-folder-fill"></i> Lập trình Java Nâng cao
+                        </h2>
+                        <button class="btn-primary-custom">
+                            <i class="bi bi-plus-lg me-1"></i> Tạo đề thi
                         </button>
                     </div>
-                </div>
 
-                <div th:if="${cat.children != null && !cat.children.isEmpty()}"
-                     th:id="'collapse-' + ${cat.id}" class="collapse show mt-2">
-                    <ul th:replace="~{this :: categoryTree(${cat.children})}"></ul>
-                </div>
-            </li>
-        </ul>
+                    <div class="row g-4">
 
-        <div class="row">
-            <div class="col-12">
-                <div th:if="${rootCategories == null || rootCategories.isEmpty()}" class="empty-state border-0 shadow-sm">
-                    <div style="color: var(--tc-light);">
-                        <i class="bi bi-inboxes-fill" style="font-size: 5rem; color: var(--tc-main);"></i>
+                        <div class="col-md-6">
+                            <div class="quiz-card">
+                                <h3 class="quiz-title">Kiểm tra Giữa kỳ - OOP & Collections</h3>
+                                <div class="quiz-meta">
+                                    <div class="info-chip"><i class="bi bi-clock text-primary"></i> 60 Phút</div>
+                                    <div class="info-chip"><i class="bi bi-list-check text-success"></i> 50 Câu</div>
+                                    <div class="info-chip" style="background: #ecfdf5; color: #059669;"><i class="bi bi-check-circle"></i> Đã xuất bản</div>
+                                </div>
+                                <div class="quiz-actions">
+                                    <a href="#" class="btn-action btn-edit"><i class="bi bi-pencil-square"></i> Sửa</a>
+                                    <a href="#" class="btn-action btn-preview"><i class="bi bi-eye"></i> Xem thử</a>
+                                    <button class="btn-action btn-delete" title="Xóa đề thi"><i class="bi bi-trash3"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="quiz-card">
+                                <h3 class="quiz-title">Bài tập thực hành File I/O và Exception</h3>
+                                <div class="quiz-meta">
+                                    <div class="info-chip"><i class="bi bi-clock text-primary"></i> 30 Phút</div>
+                                    <div class="info-chip"><i class="bi bi-list-check text-success"></i> 20 Câu</div>
+                                    <div class="info-chip" style="background: #fffbeb; color: #d97706;"><i class="bi bi-cone-striped"></i> Bản nháp</div>
+                                </div>
+                                <div class="quiz-actions">
+                                    <a href="#" class="btn-action btn-edit"><i class="bi bi-pencil-square"></i> Sửa</a>
+                                    <a href="#" class="btn-action btn-preview"><i class="bi bi-eye"></i> Xem thử</a>
+                                    <button class="btn-action btn-delete" title="Xóa đề thi"><i class="bi bi-trash3"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="quiz-card">
+                                <h3 class="quiz-title">Quizz Khởi động: Java Basics</h3>
+                                <div class="quiz-meta">
+                                    <div class="info-chip"><i class="bi bi-clock text-primary"></i> 15 Phút</div>
+                                    <div class="info-chip"><i class="bi bi-list-check text-success"></i> 15 Câu</div>
+                                    <div class="info-chip" style="background: #ecfdf5; color: #059669;"><i class="bi bi-check-circle"></i> Đã xuất bản</div>
+                                </div>
+                                <div class="quiz-actions">
+                                    <a href="#" class="btn-action btn-edit"><i class="bi bi-pencil-square"></i> Sửa</a>
+                                    <a href="#" class="btn-action btn-preview"><i class="bi bi-eye"></i> Xem thử</a>
+                                    <button class="btn-action btn-delete" title="Xóa đề thi"><i class="bi bi-trash3"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
-                    <h3 class="fw-bold text-dark mt-3">Chưa có danh mục nào</h3>
-                    <p class="text-muted mb-4">Hệ thống của bạn đang trống. Hãy tạo một danh mục gốc để bắt đầu phân loại.</p>
-                    <button class="btn btn-teacher rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addRootModal">
-                        Tạo Danh Mục Gốc
-                    </button>
-                </div>
-
-                <div th:unless="${rootCategories == null || rootCategories.isEmpty()}" class="bg-white p-4 rounded-4 shadow-sm border border-warning-subtle">
-                    <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
-                        <div class="category-icon me-3"><i class="bi bi-diagram-2-fill"></i></div>
-                        <h4 class="mb-0 fw-bold text-dark">Cấu trúc Danh Mục</h4>
                     </div>
-                    <div th:replace="~{this :: categoryTree(${rootCategories})}"></div>
-                </div>
             </div>
-        </div>
-    </div>
 
-    <div class="modal fade" id="addRootModal" tabindex="-1">
+        </div>
+    </main>
+
+    <div class="modal fade" id="createCategoryModal" tabindex="-1" aria-labelledby="createCategoryModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header border-bottom-0 pb-0">
-                    <h5 class="modal-title fw-bold" style="color: var(--tc-dark);"><i class="bi bi-node-plus-fill me-2"></i>Tạo Danh Mục Gốc</h5>
-                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
+            <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+                <div class="modal-header border-0 pb-0 pt-4 px-4">
+                    <h5 class="modal-title" id="createCategoryModalLabel" style="font-family: 'Nunito Sans', sans-serif; font-weight: 800; color: #1e1b4b;">Tạo danh mục mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form th:action="@{/teacher/categories/save}" method="post">
-                    <div class="modal-body">
-                        <input type="hidden" name="parentId" value="" />
+                <div class="modal-body px-4 py-4">
+                    <form action="#" method="POST">
                         <div class="mb-3">
-                            <label class="form-label text-muted small fw-bold">Tên danh mục gốc <span class="text-danger">*</span></label>
-                            <input type="text" name="name" class="form-control shadow-none border-warning-subtle" required placeholder="VD: Công Nghệ Thông Tin">
+                            <label for="categoryName" class="form-label" style="font-weight: 600; color: #475569;">Tên danh mục (Môn học)</label>
+                            <input type="text" class="form-control form-control-lg" id="categoryName" placeholder="VD: Lập trình Python Cơ bản" style="border-radius: 12px; font-size: 1rem;">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label text-muted small fw-bold">Mô tả chi tiết</label>
-                            <textarea name="description" class="form-control shadow-none border-warning-subtle" rows="3" placeholder="Nhập mô tả (không bắt buộc)..."></textarea>
+                            <label for="categoryDesc" class="form-label" style="font-weight: 600; color: #475569;">Mô tả (Không bắt buộc)</label>
+                            <textarea class="form-control" id="categoryDesc" rows="3" placeholder="Ghi chú ngắn về danh mục này..." style="border-radius: 12px;"></textarea>
                         </div>
-                    </div>
-                    <div class="modal-footer border-top-0 pt-0">
-                        <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="btn btn-teacher rounded-pill px-4">Tạo mới</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="addChildModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header border-bottom-0 pb-0">
-                    <h5 class="modal-title fw-bold" style="color: var(--tc-dark);"><i class="bi bi-folder-plus me-2"></i>Thêm Danh Mục Con</h5>
-                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
-                </div>
-                <form th:action="@{/teacher/categories/save}" method="post">
-                    <div class="modal-body">
-                        <input type="hidden" name="parentId" id="add_parentId" />
-                        <p class="small text-muted mb-3">Thêm con vào: <strong id="add_parentNameDisplay" style="color: var(--tc-dark);"></strong></p>
-                        <div class="mb-3">
-                            <label class="form-label text-muted small fw-bold">Tên danh mục con <span class="text-danger">*</span></label>
-                            <input type="text" name="name" class="form-control shadow-none border-warning-subtle" required placeholder="Nhập tên...">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-muted small fw-bold">Mô tả chi tiết</label>
-                            <textarea name="description" class="form-control shadow-none border-warning-subtle" rows="3" placeholder="Nhập mô tả..."></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer border-top-0 pt-0">
-                        <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="btn btn-teacher rounded-pill px-4">Lưu</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="editModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header border-bottom-0 pb-0">
-                    <h5 class="modal-title fw-bold text-primary"><i class="bi bi-pencil-square me-2"></i>Cập nhật Danh Mục</h5>
-                    <button type="button" class="btn-close shadow-none" data-bs-dismiss="modal"></button>
-                </div>
-                <form th:action="@{/teacher/categories/update}" method="post">
-                    <div class="modal-body">
-                        <input type="hidden" name="id" id="edit_id" />
-                        <input type="hidden" name="parentId" id="edit_parentId" />
-                        <div class="mb-3">
-                            <label class="form-label text-muted small fw-bold">Tên danh mục <span class="text-danger">*</span></label>
-                            <input type="text" name="name" id="edit_name" class="form-control shadow-none border-warning-subtle" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label text-muted small fw-bold">Mô tả chi tiết</label>
-                            <textarea name="description" id="edit_description" class="form-control shadow-none border-warning-subtle" rows="3"></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer border-top-0 pt-0">
-                        <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="btn btn-primary rounded-pill px-4">Cập nhật</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="deleteModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-body text-center p-4">
-                    <div class="text-danger mb-3"><i class="bi bi-exclamation-circle-fill" style="font-size: 3rem;"></i></div>
-                    <h5 class="fw-bold mb-2">Xác nhận xóa?</h5>
-                    <p class="text-muted mb-4">Bạn có chắc chắn muốn xóa danh mục <strong id="delete_nameDisplay" class="text-dark"></strong> không? Hành động này không thể hoàn tác.</p>
-                    <form th:action="@{/teacher/categories/delete}" method="post" class="d-flex justify-content-center gap-2">
-                        <input type="hidden" name="id" id="delete_id" />
-                        <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="btn btn-danger rounded-pill px-4">Xóa ngay</button>
                     </form>
                 </div>
+                <div class="modal-footer border-0 pt-0 pb-4 px-4">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 600;">Hủy bỏ</button>
+                    <button type="button" class="btn btn-primary-custom" style="padding: 8px 24px;">Tạo mới</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Setup Modal
-        function setupAddChildModal(btn) {
-            document.getElementById('add_parentId').value = btn.getAttribute('data-parent-id');
-            document.getElementById('add_parentNameDisplay').textContent = btn.getAttribute('data-parent-name');
-        }
-
-        function setupEditModal(btn) {
-            document.getElementById('edit_id').value = btn.getAttribute('data-id');
-            document.getElementById('edit_parentId').value = btn.getAttribute('data-parent-id');
-            document.getElementById('edit_name').value = btn.getAttribute('data-name');
-            let desc = btn.getAttribute('data-description');
-            document.getElementById('edit_description').value = (desc !== 'null' && desc !== null) ? desc : '';
-        }
-
-        function setupDeleteModal(btn) {
-            document.getElementById('delete_id').value = btn.getAttribute('data-id');
-            document.getElementById('delete_nameDisplay').textContent = btn.getAttribute('data-name');
-        }
-
-        // --- DRAG & DROP LOGIC ---
-        document.addEventListener('DOMContentLoaded', () => {
-            let draggedElement = null;
-            const cards = document.querySelectorAll('.category-card');
-
-            cards.forEach(card => {
-                card.addEventListener('dragstart', function (e) {
-                    draggedElement = this;
-                    e.dataTransfer.effectAllowed = 'move';
-                    e.dataTransfer.setData('text/plain', this.dataset.id);
-                    this.classList.add('dragging');
-                });
-
-                card.addEventListener('dragover', function (e) {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = 'move';
-                    if (draggedElement !== this) {
-                        this.classList.add('drag-over');
-                    }
-                    return false;
-                });
-
-                card.addEventListener('dragleave', function (e) {
-                    this.classList.remove('drag-over');
-                });
-
-                card.addEventListener('dragend', function (e) {
-                    this.classList.remove('dragging');
-                    cards.forEach(c => c.classList.remove('drag-over'));
-                });
-
-                card.addEventListener('drop', function (e) {
-                    e.stopPropagation();
-                    this.classList.remove('drag-over');
-
-                    if (draggedElement !== this) {
-                        let draggedId = draggedElement.dataset.id;
-                        let targetParentId = this.dataset.id;
-                        let currentParentId = draggedElement.dataset.parentId;
-
-                        // Chặn thả vào chính gốc cũ của nó
-                        if (targetParentId === currentParentId) return false;
-
-                        let name = draggedElement.dataset.name;
-                        let desc = draggedElement.dataset.description;
-
-                        submitMoveForm(draggedId, targetParentId, name, desc);
-                    }
-                    return false;
-                });
-            });
-        });
-
-        // Tự động tạo form ngầm và nộp lên Controller
-        function submitMoveForm(id, newParentId, name, description) {
-            let form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/teacher/categories/update';
-
-            form.appendChild(createHiddenInput('id', id));
-            form.appendChild(createHiddenInput('parentId', newParentId));
-            form.appendChild(createHiddenInput('name', name));
-
-            let safeDesc = (description && description !== 'null') ? description : '';
-            form.appendChild(createHiddenInput('description', safeDesc));
-
-            document.body.appendChild(form);
-            form.submit();
-        }
-
-        function createHiddenInput(name, value) {
-            let input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = name;
-            input.value = value;
-            return input;
-        }
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

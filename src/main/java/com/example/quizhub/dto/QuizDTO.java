@@ -20,6 +20,6 @@ public class QuizDTO {
     private String title;
     private String description;
     private String imageUrl;
-    private String categoryId;
+    private Long categoryId;
     private List<QuestionRequestDTO> questions;
 }

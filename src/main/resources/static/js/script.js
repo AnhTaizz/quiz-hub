@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ─── 2. Mobile nav toggle ────────────────────────────────────
     const toggleBtn = document.getElementById('mobile-nav-toggle');
-    const navMenu   = document.getElementById('nav-menu');
+    const navMenu = document.getElementById('nav-menu');
     if (toggleBtn && navMenu) {
         toggleBtn.addEventListener('click', () => {
             navMenu.classList.toggle('nav-open');
@@ -54,13 +54,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ─── 4. Active nav link ─────────────────────────────────────
     const sections = document.querySelectorAll('section[id]');
-    const navLinks  = document.querySelectorAll('.navbar a');
+    const navLinks = document.querySelectorAll('.navbar a');
     window.addEventListener('scroll', () => {
         const scrollY = window.pageYOffset;
         sections.forEach(section => {
-            const top    = section.offsetTop - (header ? header.offsetHeight : 68) - 60;
+            const top = section.offsetTop - (header ? header.offsetHeight : 68) - 60;
             const bottom = top + section.offsetHeight;
-            const id     = section.getAttribute('id');
+            const id = section.getAttribute('id');
             navLinks.forEach(link => {
                 if (link.getAttribute('href') === `#${id}`) {
                     link.classList.toggle('active', scrollY >= top && scrollY < bottom);
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Lắng nghe sự kiện bấm phím Mũi tên Trái/Phải trên toàn bộ trang web
-        document.addEventListener('keydown', function(event) {
+        document.addEventListener('keydown', function (event) {
             // Không trượt slide nếu người dùng đang gõ chữ trong ô input nào đó
             if (event.target.tagName.toLowerCase() === 'input' || event.target.tagName.toLowerCase() === 'textarea') {
                 return;
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 carouselInstance.prev(); // Sang trái
             } else if (event.key === 'ArrowRight') {
                 carouselInstance.next(); // Sang phải
-        });
+            });
     }
 
     // ─── 8. Authentication Management ───────────────────────────
@@ -131,17 +131,17 @@ document.addEventListener('DOMContentLoaded', function () {
         const userJson = localStorage.getItem('user');
         const token = localStorage.getItem('token');
         const navUl = document.querySelector('#navbar ul');
-        
+
         if (userJson && token && navUl) {
             const user = JSON.parse(userJson);
-            
+
             // Tìm các nút Login/Signup cũ để thay thế
             const loginBtn = navUl.querySelector('.nav-btn-login')?.parentElement;
             const signupBtn = navUl.querySelector('.nav-btn-signup')?.parentElement;
-            
+
             if (loginBtn) loginBtn.remove();
             if (signupBtn) signupBtn.remove();
-            
+
             // Thêm dropdown User hoặc nút Logout
             const userLi = document.createElement('li');
             userLi.className = 'dropdown ms-lg-3';
@@ -188,23 +188,23 @@ document.addEventListener('DOMContentLoaded', function () {
     const originalFetch = window.fetch;
     window.fetch = async (...args) => {
         let [resource, config] = args;
-        
+
         // Nếu là gọi đến API của chúng ta (bắt đầu bằng /api/)
         if (typeof resource === 'string' && resource.startsWith('/api/')) {
             const token = localStorage.getItem('token');
             if (token) {
                 if (!config) config = {};
                 if (!config.headers) config.headers = {};
-                
+
                 // Nếu header chưa có Authorization thì mới thêm
                 if (!config.headers['Authorization']) {
                     config.headers['Authorization'] = `Bearer ${token}`;
                 }
             }
         }
-        
+
         const response = await originalFetch(resource, config);
-        
+
         // Nếu API trả về 401 (Unauthorized) - Token hết hạn hoặc không hợp lệ
         if (response.status === 401 && !resource.includes('/api/auth/login')) {
             localStorage.removeItem('token');
@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.cookie = 'jwt=; path=/; max-age=0;';
             window.location.href = '/login';
         }
-        
+
         return response;
     };
 });
