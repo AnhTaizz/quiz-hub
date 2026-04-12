@@ -123,7 +123,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 carouselInstance.prev(); // Sang trái
             } else if (event.key === 'ArrowRight') {
                 carouselInstance.next(); // Sang phải
-            });
+            }
+        });
     }
 
     // ─── 8. Authentication Management ───────────────────────────
