@@ -43,8 +43,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
-        // Không có Bearer token và cookie → bỏ qua, để Security tự xử lý (401 nếu cần
-        // auth)
         if (jwt == null) {
             filterChain.doFilter(request, response);
             return;
@@ -55,12 +53,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             userEmail = jwtService.extractUsername(jwt);
         } catch (Exception e) {
-            // Token malformed hoặc chữ ký sai → để Security trả 401
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Chỉ xử lý nếu chưa có authentication trong context
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 

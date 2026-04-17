@@ -44,8 +44,9 @@ public class AdminUserController {
     @GetMapping
     public ResponseEntity<Page<UserProfileResponse>> getAllUsers(
             @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(required = false) Role role,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(userService.getAllUsers(keyword, page, size));
+        return ResponseEntity.ok(userService.getAllUsers(keyword, role, page, size));
     }
 }

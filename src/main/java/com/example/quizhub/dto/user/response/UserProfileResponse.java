@@ -13,4 +13,5 @@ public class UserProfileResponse {
     private String phone;
     private String avatarUrl;
     private Role role;
-}
+    private Boolean isEnable;
+}

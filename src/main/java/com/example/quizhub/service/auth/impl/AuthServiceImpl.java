@@ -47,7 +47,12 @@ public class AuthServiceImpl implements AuthService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
+
         Role assignedRole = Role.STUDENT;
+        if ("TEACHER".equalsIgnoreCase(request.getRole())) {
+            assignedRole = Role.TEACHER;
+        }
+
         User user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))

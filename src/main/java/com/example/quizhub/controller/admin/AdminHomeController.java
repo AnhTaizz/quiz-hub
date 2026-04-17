@@ -14,4 +14,9 @@ public class AdminHomeController {
         return "admin/admin-home";
     }
 
+    @GetMapping("/users")
+    public String adminUsers(Model model) {
+        return "admin/admin-users";
+    }
+
 }

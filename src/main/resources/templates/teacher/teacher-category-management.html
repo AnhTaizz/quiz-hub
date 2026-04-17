@@ -10,13 +10,57 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito+Sans:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito+Sans:wght@600;700;800;900&display=swap"
+        rel="stylesheet">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <style>
+        /* Header Dropdown */
+        #header-nav .user-profile .dropdown-menu {
+            min-width: 210px;
+            border-radius: 14px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            padding: 8px;
+            margin-top: 12px !important;
+        }
+
+        #header-nav .dropdown-item {
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4a5568;
+            padding: 10px 14px;
+            transition: background 0.2s;
+        }
+
+        #header-nav .dropdown-item i {
+            width: 20px;
+        }
+
+        #header-nav .dropdown-item:hover {
+            background: #f4f7fa;
+            color: #1a1a2e;
+        }
+
+        #header-nav .dropdown-item.text-danger {
+            color: #dc3545 !important;
+        }
+
+        #header-nav .dropdown-item.text-danger:hover {
+            background: #fff5f5;
+        }
+
+        #header-nav .dropdown-divider {
+            margin: 4px 0;
+        }
+    </style>
 
     <style>
         body {
@@ -101,8 +145,14 @@
         }
 
         /* Tùy chỉnh thanh cuộn cho folder-list */
-        .folder-list::-webkit-scrollbar { width: 4px; }
-        .folder-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .folder-list::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .folder-list::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
 
         .folder-item {
             display: flex;
@@ -138,7 +188,8 @@
         }
 
         .folder-item:hover i {
-            color: #3b82f6; /* Đổi màu icon khi hover */
+            color: #3b82f6;
+            /* Đổi màu icon khi hover */
         }
 
         /* Trạng thái danh mục đang được chọn */
@@ -187,7 +238,8 @@
         }
 
         .active-category-title i {
-            color: #f59e0b; /* Màu vàng thư mục */
+            color: #f59e0b;
+            /* Màu vàng thư mục */
         }
 
         /* Thẻ Đề thi (Quiz Card) */
@@ -256,14 +308,40 @@
             text-decoration: none;
         }
 
-        .btn-edit { background: #eff6ff; color: #2563eb; border: 1px solid transparent; }
-        .btn-edit:hover { background: #2563eb; color: #fff; }
+        .btn-edit {
+            background: #eff6ff;
+            color: #2563eb;
+            border: 1px solid transparent;
+        }
 
-        .btn-preview { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
-        .btn-preview:hover { background: #e2e8f0; color: #1e293b; }
+        .btn-edit:hover {
+            background: #2563eb;
+            color: #fff;
+        }
 
-        .btn-delete { background: #fef2f2; color: #dc2626; border: 1px solid transparent; flex: 0 0 auto; width: 40px; }
-        .btn-delete:hover { background: #dc2626; color: #fff; }
+        .btn-preview {
+            background: #f8fafc;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .btn-preview:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .btn-delete {
+            background: #fef2f2;
+            color: #dc2626;
+            border: 1px solid transparent;
+            flex: 0 0 auto;
+            width: 40px;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+            color: #fff;
+        }
 
         /* Nút tạo đề thi (Primary) */
         .btn-primary-custom {
@@ -275,6 +353,7 @@
             font-weight: 700;
             transition: all 0.2s;
         }
+
         .btn-primary-custom:hover {
             background: #312e81;
             transform: translateY(-1px);
@@ -297,7 +376,8 @@
 
             <div class="col-lg-4">
                 <div class="category-sidebar">
-                    <div class="section-label" style="color: #4338ca; background: rgba(67, 56, 202, 0.1);">Danh mục của bạn</div>
+                    <div class="section-label" style="color: #4338ca; background: rgba(67, 56, 202, 0.1);">Danh mục của
+                        bạn</div>
 
                     <button class="btn-create-category" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
                         <i class="bi bi-folder-plus"></i> Tạo danh mục mới
@@ -357,12 +437,14 @@
                                 <div class="quiz-meta">
                                     <div class="info-chip"><i class="bi bi-clock text-primary"></i> 60 Phút</div>
                                     <div class="info-chip"><i class="bi bi-list-check text-success"></i> 50 Câu</div>
-                                    <div class="info-chip" style="background: #ecfdf5; color: #059669;"><i class="bi bi-check-circle"></i> Đã xuất bản</div>
+                                    <div class="info-chip" style="background: #ecfdf5; color: #059669;"><i
+                                            class="bi bi-check-circle"></i> Đã xuất bản</div>
                                 </div>
                                 <div class="quiz-actions">
                                     <a href="#" class="btn-action btn-edit"><i class="bi bi-pencil-square"></i> Sửa</a>
                                     <a href="#" class="btn-action btn-preview"><i class="bi bi-eye"></i> Xem thử</a>
-                                    <button class="btn-action btn-delete" title="Xóa đề thi"><i class="bi bi-trash3"></i></button>
+                                    <button class="btn-action btn-delete" title="Xóa đề thi"><i
+                                            class="bi bi-trash3"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -373,12 +455,14 @@
                                 <div class="quiz-meta">
                                     <div class="info-chip"><i class="bi bi-clock text-primary"></i> 30 Phút</div>
                                     <div class="info-chip"><i class="bi bi-list-check text-success"></i> 20 Câu</div>
-                                    <div class="info-chip" style="background: #fffbeb; color: #d97706;"><i class="bi bi-cone-striped"></i> Bản nháp</div>
+                                    <div class="info-chip" style="background: #fffbeb; color: #d97706;"><i
+                                            class="bi bi-cone-striped"></i> Bản nháp</div>
                                 </div>
                                 <div class="quiz-actions">
                                     <a href="#" class="btn-action btn-edit"><i class="bi bi-pencil-square"></i> Sửa</a>
                                     <a href="#" class="btn-action btn-preview"><i class="bi bi-eye"></i> Xem thử</a>
-                                    <button class="btn-action btn-delete" title="Xóa đề thi"><i class="bi bi-trash3"></i></button>
+                                    <button class="btn-action btn-delete" title="Xóa đề thi"><i
+                                            class="bi bi-trash3"></i></button>
                                 </div>
                             </div>
                         </div>
@@ -389,44 +473,55 @@
                                 <div class="quiz-meta">
                                     <div class="info-chip"><i class="bi bi-clock text-primary"></i> 15 Phút</div>
                                     <div class="info-chip"><i class="bi bi-list-check text-success"></i> 15 Câu</div>
-                                    <div class="info-chip" style="background: #ecfdf5; color: #059669;"><i class="bi bi-check-circle"></i> Đã xuất bản</div>
+                                    <div class="info-chip" style="background: #ecfdf5; color: #059669;"><i
+                                            class="bi bi-check-circle"></i> Đã xuất bản</div>
                                 </div>
                                 <div class="quiz-actions">
                                     <a href="#" class="btn-action btn-edit"><i class="bi bi-pencil-square"></i> Sửa</a>
                                     <a href="#" class="btn-action btn-preview"><i class="bi bi-eye"></i> Xem thử</a>
-                                    <button class="btn-action btn-delete" title="Xóa đề thi"><i class="bi bi-trash3"></i></button>
+                                    <button class="btn-action btn-delete" title="Xóa đề thi"><i
+                                            class="bi bi-trash3"></i></button>
                                 </div>
                             </div>
                         </div>
 
                     </div>
-                    </div>
+                </div>
             </div>
 
         </div>
     </main>
 
-    <div class="modal fade" id="createCategoryModal" tabindex="-1" aria-labelledby="createCategoryModalLabel" aria-hidden="true">
+    <div class="modal fade" id="createCategoryModal" tabindex="-1" aria-labelledby="createCategoryModalLabel"
+        aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
+            <div class="modal-content"
+                style="border-radius: 20px; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
                 <div class="modal-header border-0 pb-0 pt-4 px-4">
-                    <h5 class="modal-title" id="createCategoryModalLabel" style="font-family: 'Nunito Sans', sans-serif; font-weight: 800; color: #1e1b4b;">Tạo danh mục mới</h5>
+                    <h5 class="modal-title" id="createCategoryModalLabel"
+                        style="font-family: 'Nunito Sans', sans-serif; font-weight: 800; color: #1e1b4b;">Tạo danh mục
+                        mới</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body px-4 py-4">
                     <form action="#" method="POST">
                         <div class="mb-3">
-                            <label for="categoryName" class="form-label" style="font-weight: 600; color: #475569;">Tên danh mục (Môn học)</label>
-                            <input type="text" class="form-control form-control-lg" id="categoryName" placeholder="VD: Lập trình Python Cơ bản" style="border-radius: 12px; font-size: 1rem;">
+                            <label for="categoryName" class="form-label" style="font-weight: 600; color: #475569;">Tên
+                                danh mục (Môn học)</label>
+                            <input type="text" class="form-control form-control-lg" id="categoryName"
+                                placeholder="VD: Lập trình Python Cơ bản" style="border-radius: 12px; font-size: 1rem;">
                         </div>
                         <div class="mb-3">
-                            <label for="categoryDesc" class="form-label" style="font-weight: 600; color: #475569;">Mô tả (Không bắt buộc)</label>
-                            <textarea class="form-control" id="categoryDesc" rows="3" placeholder="Ghi chú ngắn về danh mục này..." style="border-radius: 12px;"></textarea>
+                            <label for="categoryDesc" class="form-label" style="font-weight: 600; color: #475569;">Mô tả
+                                (Không bắt buộc)</label>
+                            <textarea class="form-control" id="categoryDesc" rows="3"
+                                placeholder="Ghi chú ngắn về danh mục này..." style="border-radius: 12px;"></textarea>
                         </div>
                     </form>
                 </div>
                 <div class="modal-footer border-0 pt-0 pb-4 px-4">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 600;">Hủy bỏ</button>
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal"
+                        style="border-radius: 10px; font-weight: 600;">Hủy bỏ</button>
                     <button type="button" class="btn btn-primary-custom" style="padding: 8px 24px;">Tạo mới</button>
                 </div>
             </div>

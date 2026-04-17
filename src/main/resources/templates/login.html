@@ -21,6 +21,7 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
     
     <style>
+        /* login-specific: centering with padding-top (khác register dùng auth-wrapper) */
         .login-wrapper {
             display: flex;
             align-items: center;
@@ -28,124 +29,8 @@
             min-height: 100vh;
             padding-top: 80px;
         }
-        .auth-card {
-            background: rgba(16, 12, 40, 0.82);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: var(--radius-xl);
-            padding: 40px;
-            width: 100%;
-            max-width: 440px;
-            box-shadow: 0 50px 100px rgba(0, 0, 0, .6), 0 0 0 1px rgba(255, 255, 255, .07), inset 0 1px 0 rgba(255, 255, 255, .08);
-            position: relative;
-            z-index: 2;
-        }
-        .auth-header h2 {
-            color: #fff;
-            font-family: 'Nunito Sans', sans-serif;
-            font-weight: 800;
-            font-size: 28px;
-            margin-bottom: 8px;
-        }
-        .auth-header p {
-            color: rgba(255,255,255,0.7);
-            margin-bottom: 24px;
-        }
-        .form-group label {
-            color: rgba(255,255,255,0.9);
-            font-size: 14px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            display: block;
-        }
-        .input-wrapper {
-            position: relative;
-            margin-bottom: 20px;
-        }
-        .input-wrapper i {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: rgba(255,255,255,0.5);
-            font-size: 18px;
-        }
-        .form-control-auth {
-            width: 100%;
-            padding: 12px 16px 12px 45px;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: var(--radius-md);
-            color: #fff;
-            transition: all 0.3s;
-        }
-        .form-control-auth::placeholder {
-            color: rgba(255,255,255,0.3);
-        }
-        .form-control-auth:focus {
-            outline: none;
-            border-color: rgba(255,255,255,0.3);
-            background: rgba(255,255,255,0.1);
-            box-shadow: 0 0 0 4px rgba(255,255,255,0.05);
-        }
-        .btn-auth {
-            width: 100%;
-            padding: 14px;
-            background: #4ade80;
-            border: none;
-            border-radius: var(--radius-pill);
-            color: #1a1a2e;
-            font-weight: 800;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 14px rgba(74, 222, 128, 0.35);
-        }
-        .btn-auth:hover {
-            background: #22c55e;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(74, 222, 128, 0.45);
-        }
-        .auth-footer {
-            margin-top: 24px;
-            text-align: center;
-            color: rgba(255,255,255,0.7);
-            font-size: 14px;
-        }
-        .auth-footer a {
-            color: #4ade80;
-            font-weight: 700;
-            text-decoration: none;
-            transition: all 0.3s;
-        }
-        .auth-footer a:hover {
-            color: #22c55e;
-            text-decoration: underline;
-        }
-        #toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-        }
-        .toast {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 16px 24px;
-            background: #fff;
-            color: #1a1a2e;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            margin-bottom: 10px;
-            font-weight: 600;
-        }
-        .toast.success i { color: #10b981; }
-        .toast.error i { color: #ef4444; }
+        /* Override max-width cho login card (hẹp hơn register) */
+        .login-wrapper .auth-card { max-width: 440px; }
     </style>
 </head>
 
@@ -228,6 +113,41 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script th:src="@{/js/script.js}"></script>
 <script>
+    // Kiểm tra token JWT còn hạn không
+    function isTokenValid(token) {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            return payload.exp * 1000 > Date.now();
+        } catch (e) {
+            return false;
+        }
+    }
+
+    // Nếu người dùng đã đăng nhập VÀ token còn hạn, tự động chuyển về dashboard của role
+    (function() {
+        const userJson = localStorage.getItem('user');
+        const token = localStorage.getItem('token');
+        if (userJson && token) {
+            if (!isTokenValid(token)) {
+                // Token hết hạn -> xóa dữ liệu cũ, cho đăng nhập lại
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                document.cookie = 'jwt=; path=/; max-age=0;';
+                return;
+            }
+            const params = new URLSearchParams(window.location.search);
+            const returnUrl = params.get('returnUrl');
+            if (returnUrl) {
+                window.location.replace(decodeURIComponent(returnUrl));
+                return;
+            }
+            const user = JSON.parse(userJson);
+            if (user.role === 'ADMIN') window.location.replace('/admin');
+            else if (user.role === 'TEACHER') window.location.replace('/teacher');
+            else window.location.replace('/student');
+        }
+    })();
+
     document.getElementById('loginForm').addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -275,7 +195,10 @@
                     if (returnUrl) {
                         window.location.href = decodeURIComponent(returnUrl);
                     } else {
-                        window.location.href = '/student';
+                        const role = data.role;
+                        if (role === 'ADMIN') window.location.href = '/admin';
+                        else if (role === 'TEACHER') window.location.href = '/teacher';
+                        else window.location.href = '/student';
                     }
                 }, 1000);
             } else {

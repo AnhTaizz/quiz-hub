@@ -48,6 +48,7 @@ public class UserServiceImpl implements UserService {
                 .phone(user.getPhone())
                 .avatarUrl(user.getAvatarUrl())
                 .role(user.getRole())
+                .isEnable(user.getIsEnable())
                 .build();
     }
 
@@ -66,6 +67,7 @@ public class UserServiceImpl implements UserService {
                 .phone(user.getPhone())
                 .avatarUrl(user.getAvatarUrl())
                 .role(user.getRole())
+                .isEnable(user.getIsEnable())
                 .build();
     }
 
@@ -86,17 +88,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<UserProfileResponse> getAllUsers(String keyword, int page, int size) {
+    public Page<UserProfileResponse> getAllUsers(String keyword, Role role, int page, int size) {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
-        Page<User> userPage;
-
-        if (keyword == null || keyword.trim().isEmpty()) {
-            userPage = userRepository.findAll(pageable);
-        } else {
-            userPage = userRepository.searchUsers(keyword, pageable);
+        if (keyword == null) {
+            keyword = "";
         }
+
+        Page<User> userPage = userRepository.searchUsers(keyword, role, pageable);
 
         return userPage.map(user -> UserProfileResponse.builder()
                 .id(user.getId())
@@ -105,6 +105,7 @@ public class UserServiceImpl implements UserService {
                 .phone(user.getPhone())
                 .avatarUrl(user.getAvatarUrl())
                 .role(user.getRole())
+                .isEnable(user.getIsEnable())
                 .build());
     }
 }

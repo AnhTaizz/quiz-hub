@@ -1,3 +1,11 @@
+// ─── Global: Logout ──────────────────────────────────────────
+function doLogout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    document.cookie = 'jwt=; path=/; max-age=0;';
+    window.location.href = '/login';
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';
 
@@ -139,6 +147,10 @@ document.addEventListener('DOMContentLoaded', function () {
             // Tìm các nút Login/Signup cũ để thay thế
             const loginBtn = navUl.querySelector('.nav-btn-login')?.parentElement;
             const signupBtn = navUl.querySelector('.nav-btn-signup')?.parentElement;
+
+            // Nếu không có nút Login/Signup → đang ở trang dashboard (đã có user UI)
+            // Không thêm dropdown nữa để tránh bị trùng
+            if (!loginBtn && !signupBtn) return;
 
             if (loginBtn) loginBtn.remove();
             if (signupBtn) signupBtn.remove();

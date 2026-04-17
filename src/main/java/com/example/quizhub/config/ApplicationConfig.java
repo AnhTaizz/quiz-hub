@@ -22,20 +22,12 @@ public class ApplicationConfig {
     private final UserRepository userRepository;
 
     /**
-     * Load user bằng email. Trả về UserDetails (ROLE_ADMIN / ROLE_TEACHER / ROLE_STUDENT).
+     * Load user bằng email. Trả về UserDetails (ROLE_ADMIN / ROLE_TEACHER /
+     * ROLE_STUDENT).
      */
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByEmail(username)
-                .map(user -> org.springframework.security.core.userdetails.User.builder()
-                        .username(user.getEmail())
-                        .password(user.getPassword())
-                        .roles(user.getRole().name())   // "ADMIN" → GrantedAuthority "ROLE_ADMIN"
-                        .accountExpired(false)
-                        .accountLocked(false)
-                        .credentialsExpired(false)
-                        .disabled(!Boolean.TRUE.equals(user.getIsEnable()))
-                        .build())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
 
