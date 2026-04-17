@@ -23,8 +23,6 @@ public class JwtService {
     @Value("${app.jwt.expiration}")
     private long jwtExpiration;
 
-    // ─── Extract ──────────────────────────────────────────────────────────────
-
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
@@ -33,11 +31,8 @@ public class JwtService {
         return claimsResolver.apply(extractAllClaims(token));
     }
 
-    // ─── Generate ─────────────────────────────────────────────────────────────
-
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> extraClaims = new HashMap<>();
-        // Gắn role vào token (lấy authority đầu tiên, vd: "ROLE_ADMIN")
         userDetails.getAuthorities().stream()
                 .findFirst()
                 .ifPresent(a -> extraClaims.put("role", a.getAuthority()));
@@ -45,8 +40,8 @@ public class JwtService {
     }
 
     private String buildToken(Map<String, Object> extraClaims,
-                              UserDetails userDetails,
-                              long expiration) {
+            UserDetails userDetails,
+            long expiration) {
         return Jwts.builder()
                 .claims(extraClaims)
                 .subject(userDetails.getUsername())
@@ -55,8 +50,6 @@ public class JwtService {
                 .signWith(getSignInKey())
                 .compact();
     }
-
-    // ─── Validate ─────────────────────────────────────────────────────────────
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
@@ -70,8 +63,6 @@ public class JwtService {
     private Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }
-
-    // ─── Key ──────────────────────────────────────────────────────────────────
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser()

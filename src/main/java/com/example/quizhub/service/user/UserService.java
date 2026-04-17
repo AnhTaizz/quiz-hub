@@ -18,5 +18,5 @@ public interface UserService {
 
     void changeUserRole(Long userId, Role role);
 
-    Page<UserProfileResponse> getAllUsers(String key, int page, int size);
+    Page<UserProfileResponse> getAllUsers(String key, Role role, int page, int size);
 }

@@ -25,16 +25,28 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response,
             AuthenticationException authException) throws IOException, ServletException {
-        ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
-        response.setStatus(errorCode.getStatusCode().value());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        ErrorResponse errorResponse = ErrorResponse.builder()
-                .code(errorCode.getCode())
-                .status(errorCode.getStatusCode().value())
-                .message(errorCode.getMessage())
-                .timestamp(LocalDateTime.now())
-                .build();
-        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+
+        String requestUri = request.getRequestURI();
+
+        if (requestUri.startsWith("/api/")) {
+            ErrorCode errorCode = ErrorCode.UNAUTHORIZED;
+            response.setStatus(errorCode.getStatusCode().value());
+            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+            ErrorResponse errorResponse = ErrorResponse.builder()
+                    .code(errorCode.getCode())
+                    .status(errorCode.getStatusCode().value())
+                    .message(errorCode.getMessage())
+                    .timestamp(LocalDateTime.now())
+                    .build();
+            response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+        } else {
+            String returnUrl = requestUri;
+            String query = request.getQueryString();
+            if (query != null && !query.isEmpty()) {
+                returnUrl += "?" + query;
+            }
+            response.sendRedirect("/login?returnUrl=" + java.net.URLEncoder.encode(returnUrl, "UTF-8"));
+        }
     }
 
 }

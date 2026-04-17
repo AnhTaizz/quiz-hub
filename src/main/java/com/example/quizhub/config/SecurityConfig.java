@@ -13,6 +13,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.example.quizhub.security.JwtAuthenticationEntryPoint;
 import com.example.quizhub.security.JwtAuthenticationFilter;
+import com.example.quizhub.security.CustomAccessDeniedHandler;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,9 +25,17 @@ public class SecurityConfig {
 
         private final JwtAuthenticationFilter jwtAuthFilter;
         private final AuthenticationProvider authenticationProvider;
-
         private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-        private final String[] PUBLIC_ENDPOINT = { "/api/auth/register", "/api/auth/login", "/api/auth/forgot-password",
+        private final CustomAccessDeniedHandler accessDeniedHandler;
+        private final String[] PUBLIC_ENDPOINT = { "/",
+                        "/index.html",
+                        "/teacher-category.html",
+                        "/css/**",
+                        "/js/**",
+                        "/images/**",
+                        "/assets/**",
+                        "/login", "/register",
+                        "/api/auth/register", "/api/auth/login", "/api/auth/forgot-password",
                         "/api/auth/reset-password", "/error", "api/questions/**", "/test/**",
                         "/api/teacher/categories/**", "/api/student/categories/**", "/api/auth/forgot-password",
                         "/api/auth/reset-password" };
@@ -43,14 +52,16 @@ public class SecurityConfig {
                                                 .requestMatchers(PUBLIC_ENDPOINT).permitAll()
 
                                                 // Chỉ ADMIN
+                                                .requestMatchers("/admin/**").hasRole("ADMIN")
                                                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
                                                 // ADMIN hoặc TEACHER
+                                                .requestMatchers("/teacher/**").hasAnyRole("ADMIN", "TEACHER")
                                                 .requestMatchers("/api/teacher/**").hasAnyRole("ADMIN", "TEACHER")
 
                                                 // ADMIN, TEACHER hoặc STUDENT
-                                                .requestMatchers("/api/student/**")
-                                                .hasAnyRole("ADMIN", "TEACHER", "STUDENT")
+                                                .requestMatchers("/student/**").hasAnyRole("ADMIN", "TEACHER", "STUDENT")
+                                                .requestMatchers("/api/student/**").hasAnyRole("ADMIN", "TEACHER", "STUDENT")
 
                                                 // Tất cả request còn lại phải authenticated
                                                 .anyRequest().authenticated())
@@ -62,7 +73,8 @@ public class SecurityConfig {
                                 // Gắn AuthenticationProvider (DaoAuthentication + BCrypt)
                                 .authenticationProvider(authenticationProvider)
                                 .exceptionHandling(exception -> exception
-                                                .authenticationEntryPoint(jwtAuthenticationEntryPoint))
+                                                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                                                .accessDeniedHandler(accessDeniedHandler))
 
                                 // Đặt JwtAuthenticationFilter chạy trước
                                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);

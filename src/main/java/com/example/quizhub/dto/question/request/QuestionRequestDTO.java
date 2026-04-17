@@ -32,10 +32,6 @@ public class QuestionRequestDTO {
     @NotNull(message="Loại câu hỏi không được để trống")
     QuestionType type;
 
-    Boolean isActive;
-
-    Boolean isPublic;
-
     @NotEmpty(message="Câu hỏi phải có ít nhất 1 đáp án")
     List<@Valid AnswerCreationRequestDTO> answers;
 }

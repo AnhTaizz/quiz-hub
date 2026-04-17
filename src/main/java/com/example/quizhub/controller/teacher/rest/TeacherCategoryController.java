@@ -1,4 +1,4 @@
-package com.example.quizhub.controller.teacher;
+package com.example.quizhub.controller.teacher.rest;
 
 import java.util.List;
 

@@ -13,11 +13,29 @@ public interface QuestionService {
 
     void deleteQuestion(Long userId, Long id);
 
-    Page<QuestionResponseDTO> getQuestionsByTeacher(Long userId, Long categoryId,
+    Page<QuestionResponseDTO> searchMyQuestion(Long userId, Long categoryId,
                                                     QuestionType type,
                                                     String keyword,
                                                     int page,
                                                     int size,
                                                     String sortBy,
                                                     String sortDir);
+
+    Page<QuestionResponseDTO> searchPublicQuestion(Long categoryId,
+                                                   QuestionType type,
+                                                   String keyword,
+                                                   int page,
+                                                   int size,
+                                                   String sortBy,
+                                                   String sortDir);
+
+    //Teacher share question
+    void requestShareQuestion(Long questionId, Long teacherId);
+
+    //Admin
+    void approveQuestion(Long questionId);
+
+    void rejectQuestion(Long questionId);
+
+    void deleteQuestionByAdmin(Long questionId);
 }

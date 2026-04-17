@@ -25,45 +25,52 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
-                                    @NonNull HttpServletResponse response,
-                                    @NonNull FilterChain filterChain)
+            @NonNull HttpServletResponse response,
+            @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
+        String jwt = null;
         final String authHeader = request.getHeader("Authorization");
 
-        // Không có Bearer token → bỏ qua, để Security tự xử lý (401 nếu cần auth)
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            jwt = authHeader.substring(7);
+        } else if (request.getCookies() != null) {
+            for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                if ("jwt".equals(cookie.getName())) {
+                    jwt = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        if (jwt == null) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        final String jwt = authHeader.substring(7);
         final String userEmail;
 
         try {
             userEmail = jwtService.extractUsername(jwt);
         } catch (Exception e) {
-            // Token malformed hoặc chữ ký sai → để Security trả 401
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Chỉ xử lý nếu chưa có authentication trong context
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 
             if (jwtService.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                        userDetails,
+                        null,
+                        userDetails.getAuthorities());
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         }
 
         filterChain.doFilter(request, response);
+
     }
 }

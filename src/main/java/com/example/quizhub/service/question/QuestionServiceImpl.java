@@ -17,13 +17,13 @@ import com.example.quizhub.entity.Answer;
 import com.example.quizhub.entity.Category;
 import com.example.quizhub.entity.Question;
 import com.example.quizhub.entity.User;
+import com.example.quizhub.entity.enums.QuestionStatus;
 import com.example.quizhub.entity.enums.QuestionType;
 import com.example.quizhub.exception.AppException;
 import com.example.quizhub.exception.ErrorCode;
 import com.example.quizhub.mapper.QuestionMapper;
 import com.example.quizhub.repository.CategoryRepository;
 import com.example.quizhub.repository.QuestionRepository;
-import com.example.quizhub.repository.QuizRepository;
 import com.example.quizhub.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -36,7 +36,40 @@ public class QuestionServiceImpl implements QuestionService {
     private final QuestionRepository questionRepository;
     private final CategoryRepository categoryRepository;
     private final QuestionMapper questionMapper;
-    private final QuizRepository quizRepository;
+
+    // Business Logic
+    private void validateQuestionLogic(QuestionType type, List<AnswerCreationRequestDTO> answers) {
+        if (answers == null || answers.isEmpty()) {
+            throw new AppException(ErrorCode.QUESTION_INVALID_LOGIC); // Phải có ít nhất 1 đáp án
+        }
+
+        // Khắc phục lỗi NullPointerException bằng Boolean.TRUE.equals()
+        long correctAnswersCount = answers.stream()
+                .filter(ans -> Boolean.TRUE.equals(ans.getCorrect()))
+                .count();
+
+        // Ràng buộc linh hoạt theo từng loại câu hỏi
+        switch (type) {
+            case SINGLE_CHOICE:
+                // Trắc nghiệm 1 đáp án: Bắt buộc >= 2 lựa chọn, và đúng 1 đáp án đúng
+                if (answers.size() < 2 || correctAnswersCount != 1) {
+                    throw new AppException(ErrorCode.QUESTION_INVALID_LOGIC);
+                }
+                break;
+            case MULTIPLE_CHOICE:
+                // Trắc nghiệm nhiều đáp án: Bắt buộc >= 2 lựa chọn, và >= 2 đáp án đúng
+                if (answers.size() < 2 || correctAnswersCount < 2) {
+                    throw new AppException(ErrorCode.QUESTION_INVALID_LOGIC);
+                }
+                break;
+            case FILL_IN_BLANK:
+                // Điền khuyết: Có thể chỉ có 1 lựa chọn, nhưng lựa chọn đó bắt buộc phải đánh dấu là "đúng"
+                if (correctAnswersCount < 1) {
+                    throw new AppException(ErrorCode.QUESTION_INVALID_LOGIC);
+                }
+                break;
+        }
+    }
 
     @Override
     @Transactional
@@ -56,8 +89,7 @@ public class QuestionServiceImpl implements QuestionService {
         Question question = Question.builder()
                             .type(request.getType())
                             .text(request.getText())
-                            .isActive(true)
-                            .isPublic(true)
+                            .questionStatus(QuestionStatus.PRIVATE)
                             .creator(creator)
                             .category(category)
                             .build();
@@ -65,7 +97,7 @@ public class QuestionServiceImpl implements QuestionService {
         List<Answer> answers = request.getAnswers().stream()
                                     .map(ansDto -> Answer.builder()
                                                     .text(ansDto.getText())
-                                                    .isCorrect(ansDto.getIsCorrect())
+                                                    .isCorrect(Boolean.TRUE.equals(ansDto.getCorrect()))
                                                     .question(question)
                                                     .build())
                                     .collect(Collectors.toList());
@@ -97,21 +129,22 @@ public class QuestionServiceImpl implements QuestionService {
         boolean isUsedInQuiz = questionRepository.isQuestionUsedInQuiz(id);
 
         if(isUsedInQuiz){
-            oldQuestion.setIsActive(false);
+            //xóa câu hỏi cũ nếu đã dùng trong quiz rồi
+            oldQuestion.setQuestionStatus(QuestionStatus.DELETED);
             questionRepository.save(oldQuestion);
+            //tạo câu hỏi mới
             Question cloneQuestion = Question.builder()
                                         .type(request.getType())
                                         .text(request.getText())
                                         .creator(oldQuestion.getCreator())
                                         .category(category)
-                                        .isActive(true)
-                                        .isPublic(request.getIsPublic() != null ? request.getIsPublic() : true)
+                                        .questionStatus(QuestionStatus.PRIVATE)
                                         .build();
 
             List<Answer> cloneAnswers = request.getAnswers().stream()
                                         .map(ansDto -> Answer.builder()
                                                 .text(ansDto.getText())
-                                                .isCorrect(ansDto.getIsCorrect())
+                                                .isCorrect(Boolean.TRUE.equals(ansDto.getCorrect()))
                                                 .question(cloneQuestion)
                                                 .build())
                                             .collect(Collectors.toList());
@@ -126,14 +159,12 @@ public class QuestionServiceImpl implements QuestionService {
             oldQuestion.setText(request.getText());
             oldQuestion.setType(request.getType());
             oldQuestion.setCategory(category);
-
-            if (request.getIsActive() != null) oldQuestion.setIsActive(request.getIsActive());
-            if (request.getIsPublic() != null) oldQuestion.setIsPublic(request.getIsPublic());
+            oldQuestion.setQuestionStatus(QuestionStatus.PRIVATE);
 
             List<Answer> newAnswers = request.getAnswers().stream()
                     .map(ansDto -> Answer.builder()
                             .text(ansDto.getText())
-                            .isCorrect(ansDto.getIsCorrect())
+                            .isCorrect(Boolean.TRUE.equals(ansDto.getCorrect()))
                             .question(oldQuestion)
                             .build())
                     .collect(Collectors.toList());
@@ -147,7 +178,7 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
-    public Page<QuestionResponseDTO> getQuestionsByTeacher(Long userId,Long categoryId, QuestionType type,
+    public Page<QuestionResponseDTO> searchMyQuestion(Long userId,Long categoryId, QuestionType type,
                                                     String keyword, int page, int size,
                                                     String sortBy, String sortDir) {
 
@@ -157,7 +188,24 @@ public class QuestionServiceImpl implements QuestionService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<Question> questionPage = questionRepository.searchQuestionsByTeacher(categoryId, type, keyword, userId, pageable);
+        List<QuestionStatus> statuses = List.of(QuestionStatus.PRIVATE, QuestionStatus.PENDING, QuestionStatus.PUBLIC);
+        Page<Question> questionPage = questionRepository.searchMyQuestion(userId, categoryId, type, keyword, statuses, pageable);
+
+        return questionPage.map(questionMapper::toResponseDTO);
+    }
+
+    @Override
+    public Page<QuestionResponseDTO> searchPublicQuestion(Long categoryId, QuestionType type,
+                                                          String keyword, int page, int size,
+                                                          String sortBy, String sortDir) {
+
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Question> questionPage = questionRepository.searchPublicQuestion(categoryId, type, keyword, QuestionStatus.PUBLIC, pageable);
 
         return questionPage.map(questionMapper::toResponseDTO);
     }
@@ -170,37 +218,59 @@ public class QuestionServiceImpl implements QuestionService {
         if(!question.getCreator().getId().equals(userId)){
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
-        question.setIsActive(false);
+        question.setQuestionStatus(QuestionStatus.DELETED);
         questionRepository.save(question);
     }
 
-    // Business Logic
-    private void validateQuestionLogic(QuestionType type, List<AnswerCreationRequestDTO> answers) {
-        if (answers.size() < 2) {
-            throw new AppException(ErrorCode.QUESTION_INVALID_LOGIC);
-        }
-        //Số lượng isCorrect = true
-        long correctAnswersCount = answers.stream()
-                .filter(AnswerCreationRequestDTO::getIsCorrect)
-                .count();
 
-        // Ràng buộc theo từng loại câu hỏi
-        switch (type) {
-            case SINGLE_CHOICE:
-                if (correctAnswersCount != 1) {
-                    throw new AppException(ErrorCode.QUESTION_INVALID_LOGIC);
-                }
-                break;
-            case MULTIPLE_CHOICE:
-                if (correctAnswersCount < 2) {
-                    throw new AppException(ErrorCode.QUESTION_INVALID_LOGIC);
-                }
-                break;
-            case FILL_IN_BLANK:
-                if (correctAnswersCount < 1) {
-                    throw new AppException(ErrorCode.QUESTION_INVALID_LOGIC);
-                }
-                break;
+    @Override
+    @Transactional
+    public void requestShareQuestion(Long questionId, Long teacherId) {
+        Question question = questionRepository.findById(questionId).orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
+
+        // Kiểm tra quyền sở hữu
+        if (!question.getCreator().getId().equals(teacherId)) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
         }
+
+        if(question.getQuestionStatus() == QuestionStatus.PUBLIC){
+            throw new AppException(ErrorCode.QUESTION_ALREADY_PUBLIC);
+        }
+        // Chuyển trạng thái sang PENDING (chưa public ngay)
+        question.setQuestionStatus(QuestionStatus.PENDING);
+        questionRepository.save(question);
+    }
+
+    //Admin duyệt
+    @Override
+    @Transactional
+    public void approveQuestion(Long questionId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
+
+        question.setQuestionStatus(QuestionStatus.PUBLIC);
+        questionRepository.save(question);
+    }
+
+    //Admin từ chối
+    @Override
+    @Transactional
+    public void rejectQuestion(Long questionId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
+
+        question.setQuestionStatus(QuestionStatus.PRIVATE);
+        questionRepository.save(question);
+    }
+
+    //Admin xóa
+    @Override
+    @Transactional
+    public void deleteQuestionByAdmin(Long questionId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
+
+        question.setQuestionStatus(QuestionStatus.DELETED);
+        questionRepository.save(question);
     }
 }

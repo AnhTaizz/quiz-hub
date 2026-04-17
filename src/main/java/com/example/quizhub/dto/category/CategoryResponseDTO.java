@@ -23,13 +23,17 @@ public class CategoryResponseDTO {
     String description;
     Long parentId;
     List<CategoryResponseDTO> children;
+    Boolean isPublic;
+    Boolean isOwner;
 
     // Constructor từ entity — dùng trong getAllCategories (xây cây thủ công)
     public CategoryResponseDTO(Category category) {
         this.id = category.getId();
         this.name = category.getName();
         this.description = category.getDescription();
+        this.isPublic = category.getIsPublic();
         this.parentId = (category.getParent() != null) ? category.getParent().getId() : null;
+        this.isOwner = category.getCreator().getId().equals(category.getCreator().getId());
         this.children = new ArrayList<>();
     }
 }

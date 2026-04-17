@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Đăng nhập | QuizHub</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- Bootstrap Grid -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    
+    <style>
+        /* login-specific: centering with padding-top (khác register dùng auth-wrapper) */
+        .login-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding-top: 80px;
+        }
+        /* Override max-width cho login card (hẹp hơn register) */
+        .login-wrapper .auth-card { max-width: 440px; }
+    </style>
+</head>
+
+<body id="top">
+
+<!-- HEADER -->
+<header id="header" class="fixed-top">
+    <div class="container d-flex align-items-center justify-content-between">
+        <h1 class="logo mb-0">
+            <a th:href="@{/}">
+                <i class="bi bi-layers-fill logo-icon"></i>
+                Quiz<span class="hub">Hub</span>
+            </a>
+        </h1>
+
+        <nav id="navbar" class="navbar">
+            <ul id="nav-menu">
+                <li><a class="nav-link scrollto" th:href="@{/#about}">Về chúng tôi</a></li>
+                <li><a class="nav-link scrollto" th:href="@{/#features}">Tính năng</a></li>
+                <li><a class="nav-link scrollto" th:href="@{/#workflow}">Quy trình</a></li>
+                <li class="ms-lg-3"><a th:href="@{/login}" class="nav-btn-login">Đăng nhập</a></li>
+                <li><a th:href="@{/register}" class="nav-btn-signup">Dùng miễn phí</a></li>
+            </ul>
+            <i class="bi bi-list mobile-nav-toggle" id="mobile-nav-toggle"></i>
+        </nav>
+    </div>
+</header>
+
+<!-- BACKGROUND -->
+<section class="hero-section" style="padding: 0; min-height: 100vh;">
+    <div class="hero-blob hero-blob-1"></div>
+    <div class="hero-blob hero-blob-2"></div>
+
+    <div class="container position-relative login-wrapper">
+        <div class="auth-card">
+            <div class="auth-header text-center">
+                <h2>Chào mừng trở lại</h2>
+                <p>Đăng nhập để tiếp tục hành trình của bạn</p>
+            </div>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Địa chỉ Email</label>
+                    <div class="input-wrapper">
+                        <i class="bi bi-envelope"></i>
+                        <input type="email" id="email" class="form-control-auth" placeholder="name@example.com" required autocomplete="email">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Mật khẩu</label>
+                    <div class="input-wrapper">
+                        <i class="bi bi-lock"></i>
+                        <input type="password" id="password" class="form-control-auth" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: rgba(255,255,255,0.6); cursor: pointer; margin-bottom: 0;">
+                        <input type="checkbox" style="accent-color: #4ade80;"> Ghi nhớ tôi
+                    </label>
+                    <a href="#" style="font-size: 14px; color: #4ade80; text-decoration: none; font-weight: 600;">Quên mật khẩu?</a>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-auth">
+                    <span>Đăng nhập</span>
+                    <i class="bi bi-arrow-right" style="margin-left: 8px;"></i>
+                </button>
+            </form>
+
+            <div class="auth-footer">
+                Chưa có tài khoản? <a th:href="@{/register}">Đăng ký miễn phí</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/script.js}"></script>
+<script>
+    // Kiểm tra token JWT còn hạn không
+    function isTokenValid(token) {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            return payload.exp * 1000 > Date.now();
+        } catch (e) {
+            return false;
+        }
+    }
+
+    // Nếu người dùng đã đăng nhập VÀ token còn hạn, tự động chuyển về dashboard của role
+    (function() {
+        const userJson = localStorage.getItem('user');
+        const token = localStorage.getItem('token');
+        if (userJson && token) {
+            if (!isTokenValid(token)) {
+                // Token hết hạn -> xóa dữ liệu cũ, cho đăng nhập lại
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                document.cookie = 'jwt=; path=/; max-age=0;';
+                return;
+            }
+            const params = new URLSearchParams(window.location.search);
+            const returnUrl = params.get('returnUrl');
+            if (returnUrl) {
+                window.location.replace(decodeURIComponent(returnUrl));
+                return;
+            }
+            const user = JSON.parse(userJson);
+            if (user.role === 'ADMIN') window.location.replace('/admin');
+            else if (user.role === 'TEACHER') window.location.replace('/teacher');
+            else window.location.replace('/student');
+        }
+    })();
+
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const submitBtn = document.getElementById('submitBtn');
+        const submitText = submitBtn.querySelector('span');
+        
+        submitBtn.disabled = true;
+        submitText.textContent = 'Đang xử lý...';
+
+        try {
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Save user info and token to local storage
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify({
+                    id: data.id,
+                    email: data.email,
+                    fullName: data.fullName,
+                    role: data.role
+                }));
+                // Tích hợp Cookie cho Thymeleaf (để trình duyệt tự gửi JWT Header)
+                document.cookie = `jwt=${data.token}; path=/; max-age=86400; samesite=strict`;
+
+                showToast('Đăng nhập thành công!', 'success');
+                
+                // Immediately update header navbar to show logged-in state
+                if (typeof checkAuthState === 'function') {
+                    checkAuthState();
+                }
+
+                setTimeout(() => {
+                    const params = new URLSearchParams(window.location.search);
+                    const returnUrl = params.get('returnUrl');
+                    if (returnUrl) {
+                        window.location.href = decodeURIComponent(returnUrl);
+                    } else {
+                        const role = data.role;
+                        if (role === 'ADMIN') window.location.href = '/admin';
+                        else if (role === 'TEACHER') window.location.href = '/teacher';
+                        else window.location.href = '/student';
+                    }
+                }, 1000);
+            } else {
+                const errorMsg = data.message || 'Email hoặc mật khẩu không chính xác';
+                showToast(errorMsg, 'error');
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            showToast('Đã có lỗi xảy ra. Vui lòng thử lại sau.', 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitText.textContent = 'Đăng nhập';
+        }
+    });
+
+    function showToast(message, type) {
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            document.body.appendChild(container);
+        }
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        const icon = type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill';
+        
+        toast.innerHTML = `
+            <i class="bi ${icon}"></i>
+            <span>${message}</span>
+        `;
+        
+        container.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            toast.style.transition = 'all 0.5s ease';
+            setTimeout(() => toast.remove(), 500);
+        }, 3000);
+    }
+</script>
+</body>
+</html>

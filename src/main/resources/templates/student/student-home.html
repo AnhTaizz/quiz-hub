@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>QuizHub | Bảng điều khiển Học sinh</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito+Sans:wght@600;700;800;900&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+
+    <style>
+        body {
+            background-color: var(--bg-section, #f4f7fa);
+            font-family: 'Inter', sans-serif;
+            padding-top: 100px;
+            padding-bottom: 60px;
+        }
+
+        /* ─── Premium Hero Dashboard ─── */
+        .dashboard-hero {
+            background: linear-gradient(140deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+            border-radius: var(--radius-xl, 24px);
+            padding: 56px 48px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(49, 46, 129, 0.2);
+            color: #fff;
+        }
+
+        .dashboard-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(255, 255, 255, .08) 1px, transparent 1px);
+            background-size: 24px 24px;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .dash-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(60px);
+            z-index: 0;
+        }
+
+        .dash-blob-1 {
+            width: 350px;
+            height: 350px;
+            background: rgba(139, 92, 246, 0.4);
+            top: -100px;
+            right: 5%;
+            animation: blob1 10s infinite alternate;
+        }
+
+        .dash-blob-2 {
+            width: 250px;
+            height: 250px;
+            background: rgba(56, 189, 248, 0.3);
+            bottom: -50px;
+            left: 10%;
+            animation: blob2 12s infinite alternate;
+        }
+
+        @keyframes blob1 {
+            from { transform: translate(0, 0); }
+            to { transform: translate(-30px, 20px); }
+        }
+
+        @keyframes blob2 {
+            from { transform: translate(0, 0); }
+            to { transform: translate(20px, -20px); }
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero-title {
+            font-family: 'Nunito Sans', sans-serif;
+            font-weight: 900;
+            font-size: clamp(2rem, 4vw, 2.8rem);
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+
+        .hero-title span {
+            background: linear-gradient(90deg, #a78bfa, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.8);
+            max-width: 600px;
+            margin-bottom: 32px;
+        }
+
+        .hero-stats-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .hero-stat-glass {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            padding: 10px 20px;
+            border-radius: var(--radius-pill, 50px);
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hero-stat-glass i {
+            opacity: 0.8;
+            font-size: 16px;
+        }
+
+        /* ─── Generic Section Styling ─── */
+        .section-label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--blue, #2563eb);
+            background: rgba(37, 99, 235, 0.1);
+            padding: 6px 14px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-family: 'Nunito Sans', sans-serif;
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: var(--text-dark, #1a1a2e);
+            margin-bottom: 24px;
+        }
+
+        /* ─── Dash Cards ─── */
+        .dash-card {
+            background: #fff;
+            border-radius: var(--radius-lg, 16px);
+            border: 1px solid var(--border, #e2e8f0);
+            padding: 24px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .dash-card:hover {
+            box-shadow: var(--shadow-hover, 0 12px 40px rgba(0, 0, 0, 0.08));
+            transform: translateY(-4px);
+        }
+
+        .task-card { border-left: 4px solid transparent; }
+        .task-warning { border-left-color: #fd7e14; }
+        .task-primary { border-left-color: #0d6efd; }
+
+        .dash-icon-box {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+            background: var(--bg, #f4f7fa);
+        }
+
+        .task-title {
+            font-family: 'Nunito Sans', sans-serif;
+            font-weight: 800;
+            font-size: 18px;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .task-chips {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .info-chip {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-muted);
+            background: var(--bg-section);
+            padding: 6px 12px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .info-chip.urgent { background: rgba(220, 53, 69, 0.1); color: #dc3545; }
+        .info-chip.safe { background: rgba(40, 167, 69, 0.1); color: #28a745; }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn-quick {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            background: var(--bg-body, #f4f7fa);
+            border: 1px solid transparent;
+            border-radius: 14px;
+            color: var(--text-dark, #1a1a2e);
+            font-weight: 600;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            width: 100%;
+        }
+
+        .btn-quick i {
+            font-size: 18px;
+            margin-right: 12px;
+        }
+
+        .btn-quick:hover {
+            background: #ffffff;
+            border-color: var(--border, #e2e8f0);
+            box-shadow: var(--shadow-card, 0 2px 20px rgba(0, 0, 0, 0.07));
+            transform: translateX(4px);
+            color: var(--blue, #2563eb);
+        }
+
+        /* =========================================
+           MINIMAL TYPOGRAPHIC CLOCK
+        ========================================= */
+        .typo-clock-widget {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            z-index: 10;
+            text-align: right;
+            padding-right: 10px;
+        }
+
+        .typo-time {
+            font-family: 'Nunito Sans', sans-serif;
+            color: #ffffff;
+            display: flex;
+            align-items: baseline;
+            line-height: 1;
+            margin-bottom: 8px;
+            text-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .typo-hours-mins {
+            font-size: 4.8rem;
+            font-weight: 800;
+            letter-spacing: -2px;
+        }
+
+        .typo-colon {
+            font-size: 4.8rem;
+            font-weight: 800;
+            margin: 0 2px;
+            opacity: 0.8;
+            transform: translateY(-4px); /* Căn chỉnh cho dấu hai chấm nằm giữa đẹp hơn */
+            animation: typo-blink 2s infinite;
+        }
+
+        .typo-ampm {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #a78bfa;
+            margin-left: 12px;
+            text-transform: uppercase;
+        }
+
+        .typo-date {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.25rem; /* Đã tăng kích thước chữ */
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.85);
+            letter-spacing: 0.5px;
+        }
+
+        @keyframes typo-blink {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header th:replace="layout/header :: student-header"></header>
+
+    <main class="container">
+
+        <section class="dashboard-hero mb-5 reveal">
+            <div class="dash-blob dash-blob-1"></div>
+            <div class="dash-blob dash-blob-2"></div>
+
+            <div class="hero-content d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4">
+                <div>
+                    <h1 class="hero-title">Chào buổi sáng, <span
+                            th:text="${currentUser != null ? currentUser.fullName : 'Quỳnh Trang'}">Quỳnh Trang</span>
+                        👋
+                    </h1>
+                    <p class="hero-subtitle">Mọi thứ đang đi đúng hướng! Bạn có <strong>2 bài kiểm tra</strong> sắp đến
+                        hạn
+                        trong tuần này. Hãy hoàn thành sớm để giữ vững phong độ nhé.</p>
+
+                    <div class="hero-stats-row">
+                        <div class="hero-stat-glass">
+                            <i class="bi bi-check2-circle text-success"></i> Đã làm: 15 Bài thi
+                        </div>
+                        <div class="hero-stat-glass">
+                            <i class="bi bi-star-fill text-warning"></i> Điểm TB: 8.5/10
+                        </div>
+                        <div class="hero-stat-glass">
+                            <i class="bi bi-lightning-charge-fill text-info"></i> Xếp hạng: Top 5%
+                        </div>
+                    </div>
+                </div>
+
+                <div class="typo-clock-widget d-none d-lg-flex">
+                    <div class="typo-time">
+                        <span class="typo-hours-mins" id="t-hour">--</span>
+                        <span class="typo-colon">:</span>
+                        <span class="typo-hours-mins" id="t-minute">--</span>
+                        <span class="typo-ampm" id="t-ampm">AM</span>
+                    </div>
+                    <div class="typo-date" id="t-date">---, --/--/----</div>
+                </div>
+            </div>
+        </section>
+
+        <div class="row g-jc-center g-5">
+            <div class="col-lg-8 reveal" style="transition-delay: 0.1s;">
+                <div class="d-flex justify-content-between align-items-end mb-4">
+                    <div>
+                        <div class="section-label text-orange"
+                            style="color: #fd7e14; background: rgba(253,126,20,0.1);">Nhiệm vụ</div>
+                        <h2 class="section-title mb-0">Bài thi đang chờ</h2>
+                    </div>
+                    <a href="/student/quizzes" class="text-decoration-none fw-bold text-primary">Xem tất cả <i
+                            class="bi bi-arrow-right"></i></a>
+                </div>
+
+                <div class="dash-card task-card task-warning mb-4">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
+                        <div class="d-flex gap-3 align-items-center">
+                            <div class="dash-icon-box bg-warning bg-opacity-10 text-warning">
+                                <i class="bi bi-filetype-java"></i>
+                            </div>
+                            <div>
+                                <h4 class="task-title">Kiểm tra giữa kỳ - Lập trình Java Nâng cao</h4>
+                                <div class="task-chips">
+                                    <div class="info-chip"><i class="bi bi-clock"></i> 45 Phút</div>
+                                    <div class="info-chip"><i class="bi bi-list-check"></i> 40 Câu</div>
+                                    <div class="info-chip urgent"><i class="bi bi-exclamation-triangle-fill"></i> Hết
+                                        hạn: Hôm nay</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn-green rounded-pill px-4 text-nowrap"><i class="bi bi-pencil-square me-1"></i>
+                            Làm bài</button>
+                    </div>
+                </div>
+
+                <div class="dash-card task-card task-primary">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
+                        <div class="d-flex gap-3 align-items-center">
+                            <div class="dash-icon-box bg-primary bg-opacity-10 text-primary">
+                                <i class="bi bi-database"></i>
+                            </div>
+                            <div>
+                                <h4 class="task-title">Bài tập Trắc nghiệm SQL Server</h4>
+                                <div class="task-chips">
+                                    <div class="info-chip"><i class="bi bi-clock"></i> 30 Phút</div>
+                                    <div class="info-chip"><i class="bi bi-list-check"></i> 25 Câu</div>
+                                    <div class="info-chip safe"><i class="bi bi-calendar-event"></i> Còn 3 ngày</div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline-secondary rounded-pill fw-bold px-4 text-nowrap">Chi
+                            tiết</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 reveal" style="transition-delay: 0.2s;">
+                <div class="mb-4">
+                    <div class="section-label" style="color: #0d6efd; background: rgba(13,110,253,0.1);">Cá Nhân</div>
+                    <h2 class="section-title mb-0">Thao tác nhanh</h2>
+                </div>
+                <div class="dash-card mb-5">
+                    <div class="quick-actions">
+                        <a th:href="@{/student/categories}" class="btn-quick">
+                            <i class="bi bi-folder-plus text-warning"></i> Danh mục của tôi
+                        </a>
+                        <a th:href="@{/student/questions}" class="btn-quick">
+                            <i class="bi bi-pencil-square text-success"></i> Soạn Câu hỏi trắc nghiệm
+                        </a>
+                        <a th:href="@{/student/quizzes}" class="btn-quick">
+                            <i class="bi bi-file-earmark-plus text-primary"></i> Lắp ráp Đề thi
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/script.js}"></script>
+    <script>
+        // Cập nhật đồng hồ Minimal Typographic
+        function updateTypoClock() {
+            const now = new Date();
+
+            // Xử lý Giờ
+            let hours = now.getHours();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12; // Định dạng 12 giờ
+
+            const hourStr = String(hours).padStart(2, '0');
+            const minuteStr = String(now.getMinutes()).padStart(2, '0');
+
+            const hEl = document.getElementById('t-hour');
+            const mEl = document.getElementById('t-minute');
+            const ampmEl = document.getElementById('t-ampm');
+
+            if (hEl) hEl.innerText = hourStr;
+            if (mEl) mEl.innerText = minuteStr;
+            if (ampmEl) ampmEl.innerText = ampm;
+
+            // Xử lý Ngày
+            const dateEl = document.getElementById('t-date');
+            if (dateEl) {
+                const dateOptions = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+                dateEl.innerText = now.toLocaleDateString('vi-VN', dateOptions);
+            }
+        }
+
+        setInterval(updateTypoClock, 1000);
+        document.addEventListener('DOMContentLoaded', updateTypoClock);
+    </script>
+</body>
+
+</html>
