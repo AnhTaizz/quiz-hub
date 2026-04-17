@@ -540,6 +540,13 @@
     </style>
 </head>
 <body>
+    <script>
+        (function() {
+            if (localStorage.getItem('sidebar-collapsed') === 'true') {
+                document.body.classList.add('sidebar-collapsed');
+            }
+        })();
+    </script>
 
     <aside id="sidebar">
         <div class="brand-logo">
@@ -700,6 +707,8 @@
                 toggleBtn.addEventListener('click', function(e) {
                     e.preventDefault();
                     body.classList.toggle('sidebar-collapsed');
+                    // Lưu trạng thái vào localStorage
+                    localStorage.setItem('sidebar-collapsed', body.classList.contains('sidebar-collapsed'));
                 });
             }
         });
