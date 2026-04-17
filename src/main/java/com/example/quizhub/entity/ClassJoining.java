@@ -34,6 +34,10 @@ public class ClassJoining {
     @JoinColumn(name = "learner_id")
     User learner;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    JoinStatus status;
+
     @Column(name = "joined_at")
     LocalDateTime joinedAt;
 }

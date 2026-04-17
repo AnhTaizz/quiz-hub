@@ -1,22 +1,32 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-    <aside th:fragment="teacher-sidebar" id="sidebar">
+    <aside th:fragment="teacher-sidebar(activeItem)" id="sidebar">
         <div class="brand-logo">
             <i class="bi bi-layers-fill"></i> <span>Quiz<span class="hub">Hub</span></span>
         </div>
 
         <div class="menu-title">Bảng điều khiển</div>
         <ul class="nav-menu">
-            <li><a href="/teacher" class="active" data-title="Tổng quan"><i class="bi bi-grid-1x2-fill"></i> <span>Tổng quan</span></a></li>
-            <li><a href="/teacher/classrooms" data-title="Lớp học"><i class="bi bi-people-fill"></i> <span>Lớp học</span></a></li>
-            <li><a href="/teacher/quizzes" data-title="Đề thi"><i class="bi bi-file-earmark-text-fill"></i> <span>Đề thi</span></a></li>
+            <li><a href="/teacher" th:classappend="${activeItem == 'dashboard' ? 'active' : ''}" data-title="Tổng quan">
+                <i class="bi bi-grid-1x2-fill"></i> <span>Tổng quan</span>
+            </a></li>
+            <li><a href="/teacher/classrooms" th:classappend="${activeItem == 'classrooms' ? 'active' : ''}" data-title="Lớp học">
+                <i class="bi bi-people-fill"></i> <span>Lớp học</span>
+            </a></li>
+            <li><a href="/teacher/quizzes" th:classappend="${activeItem == 'quizzes' ? 'active' : ''}" data-title="Đề thi">
+                <i class="bi bi-file-earmark-text-fill"></i> <span>Đề thi</span>
+            </a></li>
         </ul>
 
         <div class="menu-title">Thư viện dữ liệu</div>
         <ul class="nav-menu">
-            <li><a href="/teacher/categories" data-title="Danh mục"><i class="bi bi-folder-fill"></i> <span>Danh mục</span></a></li>
-            <li><a href="/teacher/questions" data-title="Ngân hàng câu hỏi"><i class="bi bi-pencil-square"></i> <span>Ngân hàng câu hỏi</span></a></li>
+            <li><a href="/teacher/categories" th:classappend="${activeItem == 'categories' ? 'active' : ''}" data-title="Danh mục">
+                <i class="bi bi-folder-fill"></i> <span>Danh mục</span>
+            </a></li>
+            <li><a href="/teacher/questions" th:classappend="${activeItem == 'questions' ? 'active' : ''}" data-title="Ngân hàng câu hỏi">
+                <i class="bi bi-pencil-square"></i> <span>Ngân hàng câu hỏi</span>
+            </a></li>
         </ul>
     </aside>
     <aside th:fragment="student-sidebar" id="sidebar">

@@ -11,6 +11,7 @@ import com.example.quizhub.dto.classroom.response.ClassroomResponseDTO;
 import com.example.quizhub.dto.classroom.response.MemberResponseDTO;
 import com.example.quizhub.entity.ClassJoining;
 import com.example.quizhub.entity.Classroom;
+import com.example.quizhub.entity.JoinStatus;
 import com.example.quizhub.entity.User;
 import com.example.quizhub.exception.AppException;
 import com.example.quizhub.exception.ErrorCode;
@@ -36,10 +37,18 @@ public class ClassroomServiceImpl implements ClassroomService {
 
         String joinCode = generateUniqueCode();
 
+        String defaultImage = "https://images.unsplash.com/photo-1501504905252-473c47e087f8?auto=format&fit=crop&w=400&q=80";
+        String imageUrl = request.getImageUrl();
+        if (imageUrl == null || imageUrl.isBlank()) {
+            imageUrl = defaultImage;
+        }
+
         Classroom classroom = Classroom.builder()
                 .name(request.getName())
                 .description(request.getDescription())
                 .code(joinCode)
+                .imageUrl(imageUrl)
+                .requireApproval(request.getRequireApproval() != null ? request.getRequireApproval() : false)
                 .isEnable(true)
                 .isDraft(false)
                 .creator(teacher)
@@ -135,9 +144,37 @@ public class ClassroomServiceImpl implements ClassroomService {
                 .learner(learner)
                 .displayedName(learner.getFullName())
                 .displayedPhone(learner.getPhone())
+                .status(classroom.getRequireApproval() != null && classroom.getRequireApproval() ? JoinStatus.PENDING
+                        : JoinStatus.APPROVED)
                 .joinedAt(LocalDateTime.now())
                 .build();
 
         classJoiningRepository.save(classJoining);
+    }
+
+    @Override
+    public void approveJoinRequest(Long joiningId, String teacherEmail) {
+        ClassJoining joining = classJoiningRepository.findById(joiningId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_CLASS));
+
+        if (!joining.getClassroom().getCreator().getEmail().equals(teacherEmail)) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        joining.setStatus(JoinStatus.APPROVED);
+        classJoiningRepository.save(joining);
+    }
+
+    @Override
+    public void rejectJoinRequest(Long joiningId, String teacherEmail) {
+        ClassJoining joining = classJoiningRepository.findById(joiningId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_CLASS));
+
+        if (!joining.getClassroom().getCreator().getEmail().equals(teacherEmail)) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        joining.setStatus(JoinStatus.REJECTED);
+        classJoiningRepository.save(joining);
     }
 }

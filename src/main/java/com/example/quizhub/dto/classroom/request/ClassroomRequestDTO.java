@@ -14,4 +14,8 @@ public class ClassroomRequestDTO {
     String name;
 
     String description;
+
+    String imageUrl;
+
+    Boolean requireApproval;
 }

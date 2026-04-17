@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizHub | Quản lý Lớp học</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard-layout.css}">
+
+    <style>
+        .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; }
+        .btn-create { background: var(--blue); color: #fff; padding: 12px 26px; border-radius: 14px; font-weight: 700; border: none; display: flex; align-items: center; gap: 10px; transition: all 0.3s; }
+        .btn-create:hover { background: #1d4ed8; transform: translateY(-2px); color: white !important; }
+
+        .class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
+        .class-card { background: #fff; border-radius: 20px; overflow: hidden; border: 1px solid var(--border); transition: all 0.3s; display: flex; flex-direction: column; }
+        .class-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); border-color: var(--blue); }
+        .class-banner { height: 160px; background: linear-gradient(135deg, #6366f1, #a855f7); position: relative; }
+        .class-banner img { width: 100%; height: 100%; object-fit: cover; opacity: 0.9; }
+        .class-status-badge { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 50px; color: #fff; font-size: 11px; font-weight: 800; }
+        .class-body { padding: 24px; flex-grow: 1; }
+        .class-code { color: var(--blue); background: rgba(37,99,235,0.05); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; margin-bottom: 10px; display: inline-block; }
+        .class-name { font-size: 18px; font-weight: 800; display: block; margin-bottom: 8px; color: var(--text-dark); text-decoration: none; }
+        .class-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .class-footer { border-top: 1px solid #f1f5f9; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; }
+        .btn-manage { color: var(--blue); font-weight: 700; font-size: 13px; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <script>
+        (function () {
+            if (localStorage.getItem('sidebar-collapsed') === 'true') {
+                document.body.classList.add('sidebar-collapsed');
+            }
+        })();
+    </script>
+
+    <!-- Sidebar Fragment -->
+    <aside th:replace="~{layout/sidebar :: teacher-sidebar('classrooms')}"></aside>
+
+    <!-- Header Fragment -->
+    <header th:replace="~{layout/header :: teacher-header}"></header>
+
+    <main id="main-content">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Kho Lớp Học</h1>
+                <p>Quản lý danh sách lớp học và phê duyệt thành viên mới của bạn.</p>
+            </div>
+            <button class="btn-create" data-bs-toggle="modal" data-bs-target="#createClassModal">
+                <i class="bi bi-plus-lg"></i> Tạo lớp học mới
+            </button>
+        </div>
+
+        <div class="class-grid">
+            <div class="class-card" th:each="classroom : ${classrooms}">
+                <div class="class-banner">
+                    <img th:if="${classroom.imageUrl}" th:src="${classroom.imageUrl}" alt="Banner">
+                    <img th:unless="${classroom.imageUrl}" src="https://images.unsplash.com/photo-1501504905252-473c47e087f8?auto=format&fit=crop&w=400&q=80" alt="Default Banner">
+                    <div class="class-status-badge">Đang hoạt động</div>
+                </div>
+                <div class="class-body">
+                    <span class="class-code" th:text="${classroom.code}">CODE123</span>
+                    <a th:href="@{'/teacher/classrooms/' + ${classroom.id}}" class="class-name" th:text="${classroom.name}">Lớp học</a>
+                    <p class="class-desc" th:text="${classroom.description}">Mô tả lớp học...</p>
+                    <div class="class-footer">
+                        <div class="text-muted small"><i class="bi bi-people me-1"></i> Thành viên</div>
+                        <a th:href="@{'/teacher/classrooms/' + ${classroom.id} + '/members'}" class="btn-manage">Quản lý <i class="bi bi-chevron-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal và Script giữ nguyên như cũ -->
+    <div class="modal fade" id="createClassModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 20px;">
+                <div class="modal-header border-0 pb-0 pt-4 px-4">
+                    <h5 class="modal-title fw-bold">Tạo lớp học mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form th:action="@{/teacher/classrooms}" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên lớp học</label>
+                            <input type="text" name="name" class="form-control rounded-3" placeholder="VD: Lập trình Java" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Mô tả</label>
+                            <textarea name="description" class="form-control rounded-3" rows="3"></textarea>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Link ảnh bìa</label>
+                            <input type="text" name="imageUrl" class="form-control rounded-3" placeholder="https://...">
+                        </div>
+                        <div class="form-check form-switch mb-4">
+                            <input class="form-check-input" type="checkbox" id="requireApproval" name="requireApproval" checked>
+                            <label class="form-check-label fw-bold" for="requireApproval">Yêu cầu phê duyệt tham gia</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" style="background: var(--blue); border: none; border-radius: 10px;">Tạo lớp</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const toggleBtn = document.querySelector('.toggle-btn');
+            const body = document.querySelector('body');
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function() {
+                    body.classList.toggle('sidebar-collapsed');
+                    localStorage.setItem('sidebar-collapsed', body.classList.contains('sidebar-collapsed'));
+                });
+            }
+        });
+    </script>
+</body>
+</html>

@@ -17,4 +17,8 @@ public interface ClassroomService {
     void removeStudentFromClass(Long classroomId, Long studentId, String teacherEmail);
 
     void joinClass(String studentEmail, String classCode);
+
+    void approveJoinRequest(Long joiningId, String teacherEmail);
+
+    void rejectJoinRequest(Long joiningId, String teacherEmail);
 }
