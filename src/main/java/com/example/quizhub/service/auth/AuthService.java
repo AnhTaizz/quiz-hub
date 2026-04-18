@@ -19,4 +19,6 @@ public interface AuthService {
     void forgotPassword(String email);
 
     void resetPassword(ResetPasswordRequest request);
+    
+    boolean existsByEmail(String email);
 }

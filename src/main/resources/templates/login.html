@@ -19,19 +19,8 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    
-    <style>
-        /* login-specific: centering with padding-top (khác register dùng auth-wrapper) */
-        .login-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding-top: 80px;
-        }
-        /* Override max-width cho login card (hẹp hơn register) */
-        .login-wrapper .auth-card { max-width: 440px; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+
 </head>
 
 <body id="top">
@@ -177,7 +166,8 @@
                     id: data.id,
                     email: data.email,
                     fullName: data.fullName,
-                    role: data.role
+                    role: data.role,
+                    avatarUrl: data.avatarUrl
                 }));
                 // Tích hợp Cookie cho Thymeleaf (để trình duyệt tự gửi JWT Header)
                 document.cookie = `jwt=${data.token}; path=/; max-age=86400; samesite=strict`;
