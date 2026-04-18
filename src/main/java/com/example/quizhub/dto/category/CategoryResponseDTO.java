@@ -33,7 +33,7 @@ public class CategoryResponseDTO {
         this.description = category.getDescription();
         this.isPublic = category.getIsPublic();
         this.parentId = (category.getParent() != null) ? category.getParent().getId() : null;
-        this.isOwner = category.getCreator().getId().equals(category.getCreator().getId());
+        this.isOwner = category.getCreator() != null && category.getCreator().getId().equals(category.getCreator().getId());
         this.children = new ArrayList<>();
     }
 }

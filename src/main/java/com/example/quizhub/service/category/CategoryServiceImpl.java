@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,11 +13,13 @@ import com.example.quizhub.dto.category.CategoryRequestDTO;
 import com.example.quizhub.dto.category.CategoryResponseDTO;
 import com.example.quizhub.entity.Category;
 import com.example.quizhub.entity.Question;
+import com.example.quizhub.entity.User;
 import com.example.quizhub.exception.AppException;
 import com.example.quizhub.exception.ErrorCode;
 import com.example.quizhub.mapper.CategoryMapper;
 import com.example.quizhub.repository.CategoryRepository;
 import com.example.quizhub.repository.QuestionRepository;
+import com.example.quizhub.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,6 +30,13 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
     private final QuestionRepository questionRepository;
+    private final UserRepository userRepository;
+
+    private User getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    }
 
     @Override
     public List<CategoryResponseDTO> getAllCategories(){
@@ -73,6 +83,7 @@ public class CategoryServiceImpl implements CategoryService {
 
         Category category = categoryMapper.toEntity(request);
         category.setParent(parent);
+        category.setCreator(getCurrentUser());
 
         return categoryMapper.toResponseDTO(categoryRepository.save(category));
     }
