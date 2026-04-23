@@ -879,7 +879,7 @@
                 <a href="#" class="d-flex align-items-center gap-2 text-decoration-none" data-bs-toggle="dropdown">
                     <span id="topbar-name"
                         th:text="${currentUser != null ? currentUser.fullName : 'Administrator'}">Administrator</span>
-                    <img id="topbar-avatar" src="https://ui-avatars.com/api/?name=Admin&background=2563eb&color=fff"
+                    <img id="topbar-avatar" th:src="${currentUser != null && currentUser.avatarUrl != null && !currentUser.avatarUrl.isEmpty() ? currentUser.avatarUrl : 'https://ui-avatars.com/api/?name=' + (currentUser != null ? currentUser.fullName : 'Admin') + '&background=2563eb&color=fff'}"
                         alt="Avatar">
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
@@ -893,6 +893,7 @@
                 </ul>
             </div>
         </div>
+        <script th:replace="~{layout/header :: logout-script}"></script>
     </header>
 
     <main id="main-content">
@@ -1030,16 +1031,14 @@
                 const topName = document.getElementById('topbar-name');
                 const topAvatar = document.getElementById('topbar-avatar');
                 if (topName) topName.textContent = user.fullName;
-                if (topAvatar) topAvatar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=2563eb&color=fff`;
+                if (topAvatar) {
+                    const avatarUrl = user.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=2563eb&color=fff`;
+                    topAvatar.src = avatarUrl;
+                }
             }
         })();
 
-        function doLogout() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            document.cookie = 'jwt=; path=/; max-age=0;';
-            window.location.href = '/login';
-        }
+
 
         let currentPage = 0;
         let activeUserId = null;
@@ -1087,8 +1086,8 @@
             const currentUserEmail = currentUser.email;
 
             const rows = users.map(u => {
-                const initials = (u.fullName || '?').split(' ').map(n => n[0]).slice(-2).join('').toUpperCase();
-                const avatar = u.avatarUrl ? `<img src="${u.avatarUrl}">` : initials;
+                const avatarUrl = u.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.fullName || 'User')}&background=random&color=fff`;
+                const avatar = `<img src="${avatarUrl}" alt="Avatar">`;
                 const roleCls = { ADMIN: 'role-admin', TEACHER: 'role-teacher', STUDENT: 'role-student' }[u.role];
                 const roleName = { ADMIN: 'Admin', TEACHER: 'Giáo viên', STUDENT: 'Học sinh' }[u.role];
                 const isActive = u.isEnable !== false;

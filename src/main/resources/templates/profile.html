@@ -560,10 +560,9 @@
     }
 
     function fallbackAvatar(name) {
-        const initials = (name || '?').split(' ').map(w => w[0]).slice(-2).join('').toUpperCase();
         const el = document.getElementById('avatar-container');
-        el.innerHTML = '';
-        el.textContent = initials;
+        const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=random&color=fff`;
+        el.innerHTML = `<img src="${avatarUrl}" alt="Avatar">`;
     }
 
     function updateAvatarPreview() {

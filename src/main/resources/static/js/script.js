@@ -1,10 +1,5 @@
-// ─── Global: Logout ──────────────────────────────────────────
-function doLogout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    document.cookie = 'jwt=; path=/; max-age=0;';
-    window.location.href = '/login';
-}
+// ─── Global: Logout (Moved to header fragment) ────────────────
+
 
 document.addEventListener('DOMContentLoaded', function () {
     'use strict';

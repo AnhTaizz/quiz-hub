@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizHub | Quản lý thành viên</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard-layout.css}">
+
+    <style>
+        /* Page Content Custom Styles */
+        .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px; }
+        .back-link { color: var(--blue); text-decoration: none; font-weight: 700; display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+
+        .card-management { background: #fff; border-radius: 20px; border: 1px solid var(--border); overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+        
+        .nav-tabs-custom { display: flex; border-bottom: 1px solid var(--border); background: #f8fafc; padding: 0 20px; }
+        .nav-tab-item { padding: 20px 24px; color: #64748b; font-weight: 700; cursor: pointer; border-bottom: 3px solid transparent; transition: all 0.2s; font-size: 15px; }
+        .nav-tab-item.active { color: var(--blue); border-bottom-color: var(--blue); }
+        .nav-tab-item .badge { margin-left: 8px; font-size: 11px; }
+
+        .tab-content { padding: 30px; }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+
+        /* Table Design */
+        .table-custom { width: 100%; border-collapse: separate; border-spacing: 0 12px; }
+        .table-custom th { padding: 0 20px 10px; color: #94a3b8; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+        .table-custom tr { background: #fff; transition: all 0.2s; }
+        .table-custom td { padding: 20px; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
+        .table-custom td:first-child { border-left: 1px solid #f1f5f9; border-top-left-radius: 12px; border-bottom-left-radius: 12px; }
+        .table-custom td:last-child { border-right: 1px solid #f1f5f9; border-top-right-radius: 12px; border-bottom-right-radius: 12px; }
+
+        .user-info { display: flex; align-items: center; gap: 12px; }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .user-name { font-weight: 700; color: var(--text-dark); display: block; }
+        .user-email { font-size: 13px; color: #94a3b8; }
+
+        .btn-action { padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: 13px; border: none; transition: all 0.2s; }
+        .btn-approve { background: rgba(40, 167, 69, 0.1); color: var(--green); margin-right: 8px; }
+        .btn-approve:hover { background: var(--green); color: #fff; }
+        .btn-reject { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+        .btn-reject:hover { background: #ef4444; color: #fff; }
+
+        .empty-icon { font-size: 48px; color: #e2e8f0; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <script>
+        (function () {
+            if (localStorage.getItem('sidebar-collapsed') === 'true') {
+                document.body.classList.add('sidebar-collapsed');
+            }
+        })();
+    </script>
+
+    <!-- Sidebar Fragment -->
+    <aside th:replace="~{layout/sidebar :: teacher-sidebar('classrooms')}"></aside>
+
+    <!-- Header Fragment -->
+    <header th:replace="~{layout/header :: teacher-header}"></header>
+
+    <main id="main-content">
+        <a th:href="@{/teacher/classrooms}" class="back-link">
+            <i class="bi bi-arrow-left"></i> Quay lại danh sách lớp
+        </a>
+
+        <div class="page-header mt-2">
+            <div>
+                <h1 class="fw-black mb-1" th:text="${classroom.name}">Tên lớp học</h1>
+                <p class="text-muted mb-0">Mã lớp: <strong class="text-primary" th:text="${classroom.code}">CODE123</strong></p>
+            </div>
+        </div>
+
+        <!-- Success/Error Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show mb-4 border-0 shadow-sm" style="border-radius: 12px;">
+            <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="card-management">
+            <div class="nav-tabs-custom">
+                <div class="nav-tab-item active" data-tab="pending">
+                    Yêu cầu tham gia 
+                    <span class="badge rounded-pill bg-danger" th:text="${pendingRequests.size()}">0</span>
+                </div>
+                <div class="nav-tab-item" data-tab="active">
+                    Thành viên lớp 
+                    <span class="badge rounded-pill bg-secondary" th:text="${activeMembers.size()}">0</span>
+                </div>
+            </div>
+
+            <div class="tab-content">
+                <!-- Pending Requests Tab -->
+                <div class="tab-pane active" id="tab-pending">
+                    <div th:if="${#lists.isEmpty(pendingRequests)}" class="text-center py-5">
+                        <div class="empty-icon"><i class="bi bi-envelope-open"></i></div>
+                        <h5 class="text-muted fw-bold">Không có yêu cầu nào đang chờ</h5>
+                        <p class="text-muted small">Mọi sinh viên đã được phê duyệt hoặc chưa có yêu cầu mới.</p>
+                    </div>
+                    
+                    <table th:if="${!#lists.isEmpty(pendingRequests)}" class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Sinh viên</th>
+                                <th>Ngày yêu cầu</th>
+                                <th class="text-end">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="request : ${pendingRequests}">
+                                <td>
+                                    <div class="user-info">
+                                        <img th:src="${request.learner.avatarUrl != null && !request.learner.avatarUrl.isEmpty() ? request.learner.avatarUrl : 'https://ui-avatars.com/api/?name=' + request.learner.fullName + '&background=random&color=fff'}" class="user-avatar" alt="Avatar">
+                                        <div>
+                                            <span class="user-name" th:text="${request.learner.fullName}">Tên sinh viên</span>
+                                            <span class="user-email" th:text="${request.learner.email}">email@example.com</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-muted small" th:text="${#temporals.format(request.joinedAt, 'HH:mm - dd/MM/yyyy')}">12:00 - 10/10/2026</span>
+                                </td>
+                                <td class="text-end">
+                                    <form th:action="@{'/teacher/classrooms/' + ${classroom.id} + '/approve/' + ${request.id}}" method="POST" style="display: inline-block;">
+                                        <button type="submit" class="btn-action btn-approve">Phê duyệt</button>
+                                    </form>
+                                    <form th:action="@{'/teacher/classrooms/' + ${classroom.id} + '/reject/' + ${request.id}}" method="POST" style="display: inline-block;">
+                                        <button type="submit" class="btn-action btn-reject">Từ chối</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Active Members Tab -->
+                <div class="tab-pane" id="tab-active">
+                    <div th:if="${#lists.isEmpty(activeMembers)}" class="text-center py-5">
+                        <div class="empty-icon"><i class="bi bi-people"></i></div>
+                        <h5 class="text-muted fw-bold">Chưa có thành viên nào trong lớp</h5>
+                        <p class="text-muted small">Chia sẻ mã lớp để sinh viên có thể tham gia.</p>
+                    </div>
+
+                    <table th:if="${!#lists.isEmpty(activeMembers)}" class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Thành viên</th>
+                                <th>Ngày gia nhập</th>
+                                <th class="text-end">Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="member : ${activeMembers}">
+                                <td>
+                                    <div class="user-info">
+                                        <img th:src="${member.learner.avatarUrl != null && !member.learner.avatarUrl.isEmpty() ? member.learner.avatarUrl : 'https://ui-avatars.com/api/?name=' + member.learner.fullName + '&background=random&color=fff'}" class="user-avatar" alt="Avatar">
+                                        <div>
+                                            <span class="user-name" th:text="${member.learner.fullName}">Tên sinh viên</span>
+                                            <span class="user-email" th:text="${member.learner.email}">email@example.com</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="fw-bold text-muted small" th:text="${#temporals.format(member.joinedAt, 'dd/MM/yyyy')}">10/10/2026</span>
+                                </td>
+                                <td class="text-end">
+                                    <span class="badge bg-success bg-opacity-10 text-success fw-bold p-2 px-3" style="border-radius: 8px;">Đang hoạt động</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tab Switching Logic
+            const tabs = document.querySelectorAll('.nav-tab-item');
+            const panes = document.querySelectorAll('.tab-pane');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const target = tab.getAttribute('data-tab');
+                    
+                    tabs.forEach(t => t.classList.remove('active'));
+                    panes.forEach(p => p.classList.remove('active'));
+
+                    tab.classList.add('active');
+                    document.getElementById('tab-' + target).classList.add('active');
+                });
+            });
+
+            // Sidebar Toggle (Standard across teacher pages)
+            const toggleBtn = document.querySelector('.toggle-btn');
+            const body = document.querySelector('body');
+            
+            if (localStorage.getItem('sidebar-collapsed') === 'true') {
+                body.classList.add('sidebar-collapsed');
+            }
+
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', () => {
+                    body.classList.toggle('sidebar-collapsed');
+                    localStorage.setItem('sidebar-collapsed', body.classList.contains('sidebar-collapsed'));
+                });
+            }
+        });
+    </script>
+</body>
+</html>

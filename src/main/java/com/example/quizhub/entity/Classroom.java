@@ -57,6 +57,9 @@ public class Classroom {
     @JoinColumn(name = "created_id", referencedColumnName = "id")
     User creator;
 
+    @Column(name = "require_approval")
+    Boolean requireApproval;
+
     @CreationTimestamp
     @Column(name = "created_at")
     LocalDateTime createdAt;
