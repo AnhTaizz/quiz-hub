@@ -71,17 +71,21 @@
 
                 <div class="form-group">
                     <label for="password">Mật khẩu</label>
-                    <div class="input-wrapper">
+                    <div class="input-wrapper" id="passwordWrapper">
                         <i class="bi bi-lock"></i>
                         <input type="password" id="password" class="form-control-auth" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                    <div id="loginError" style="display:none; margin-top:8px; padding:10px 14px; background:rgba(248,113,113,0.12); border:1px solid rgba(248,113,113,0.3); border-radius:8px; color:#fca5a5; font-size:13px; font-weight:600; display:none; align-items:center; gap:8px;">
+                        <i class="bi bi-exclamation-circle-fill" style="font-size:14px; flex-shrink:0;"></i>
+                        <span id="loginErrorMsg"></span>
                     </div>
                 </div>
 
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                     <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: rgba(255,255,255,0.6); cursor: pointer; margin-bottom: 0;">
-                        <input type="checkbox" style="accent-color: #4ade80;"> Ghi nhớ tôi
+                        <input type="checkbox" id="rememberMe" style="accent-color: #4ade80;"> Ghi nhớ tôi
                     </label>
-                    <a href="#" style="font-size: 14px; color: #4ade80; text-decoration: none; font-weight: 600;">Quên mật khẩu?</a>
+                    <a th:href="@{/forgot-password}" style="font-size: 14px; color: #4ade80; text-decoration: none; font-weight: 600;">Quên mật khẩu?</a>
                 </div>
 
                 <button type="submit" id="submitBtn" class="btn-auth">
@@ -112,15 +116,41 @@
         }
     }
 
+    function showLoginError(message) {
+        const box = document.getElementById('loginError');
+        const msg = document.getElementById('loginErrorMsg');
+        const wrapper = document.getElementById('passwordWrapper');
+        msg.textContent = message;
+        box.style.display = 'flex';
+        if (wrapper) {
+            wrapper.querySelector('input').style.borderColor = 'rgba(248,113,113,0.6)';
+        }
+    }
+
+    function clearLoginError() {
+        const box = document.getElementById('loginError');
+        const wrapper = document.getElementById('passwordWrapper');
+        box.style.display = 'none';
+        if (wrapper) {
+            wrapper.querySelector('input').style.borderColor = '';
+        }
+    }
+
+    // Reset lỗi khi user gõ lại
+    document.getElementById('email')?.addEventListener('input', clearLoginError);
+    document.getElementById('password')?.addEventListener('input', clearLoginError);
+
     // Nếu người dùng đã đăng nhập VÀ token còn hạn, tự động chuyển về dashboard của role
     (function() {
-        const userJson = localStorage.getItem('user');
-        const token = localStorage.getItem('token');
+        const userJson = localStorage.getItem('user') || sessionStorage.getItem('user');
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         if (userJson && token) {
             if (!isTokenValid(token)) {
                 // Token hết hạn -> xóa dữ liệu cũ, cho đăng nhập lại
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
+                sessionStorage.removeItem('token');
+                sessionStorage.removeItem('user');
                 document.cookie = 'jwt=; path=/; max-age=0;';
                 return;
             }
@@ -160,9 +190,12 @@
             const data = await response.json();
 
             if (response.ok) {
-                // Save user info and token to local storage
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('user', JSON.stringify({
+                // Save user info and token to local/session storage based on Remember Me
+                const rememberMe = document.getElementById('rememberMe').checked;
+                const storage = rememberMe ? localStorage : sessionStorage;
+
+                storage.setItem('token', data.token);
+                storage.setItem('user', JSON.stringify({
                     id: data.id,
                     email: data.email,
                     fullName: data.fullName,
@@ -170,7 +203,11 @@
                     avatarUrl: data.avatarUrl
                 }));
                 // Tích hợp Cookie cho Thymeleaf (để trình duyệt tự gửi JWT Header)
-                document.cookie = `jwt=${data.token}; path=/; max-age=86400; samesite=strict`;
+                if (rememberMe) {
+                    document.cookie = `jwt=${data.token}; path=/; max-age=86400; samesite=strict`;
+                } else {
+                    document.cookie = `jwt=${data.token}; path=/; samesite=strict`;
+                }
 
                 showToast('Đăng nhập thành công!', 'success');
                 
@@ -192,12 +229,25 @@
                     }
                 }, 1000);
             } else {
-                const errorMsg = data.message || 'Email hoặc mật khẩu không chính xác';
-                showToast(errorMsg, 'error');
+                // Dịch message lỗi từ backend sang tiếng Việt
+                let errorMsg = 'Email hoặc mật khẩu không chính xác.';
+                if (data && data.message) {
+                    const msg = data.message.toLowerCase();
+                    if (msg.includes('unauthorized') || msg.includes('bad credentials')) {
+                        errorMsg = 'Email hoặc mật khẩu không chính xác.';
+                    } else if (msg.includes('not found') || msg.includes('user')) {
+                        errorMsg = 'Tài khoản không tồn tại.';
+                    } else if (msg.includes('disabled') || msg.includes('locked')) {
+                        errorMsg = 'Tài khoản đã bị khóa.';
+                    } else {
+                        errorMsg = data.message;
+                    }
+                }
+                showLoginError(errorMsg);
             }
         } catch (error) {
             console.error('Login error:', error);
-            showToast('Đã có lỗi xảy ra. Vui lòng thử lại sau.', 'error');
+            showLoginError('Đã có lỗi xảy ra. Vui lòng thử lại sau.');
         } finally {
             submitBtn.disabled = false;
             submitText.textContent = 'Đăng nhập';
@@ -212,7 +262,7 @@
             document.body.appendChild(container);
         }
         const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
+        toast.className = `login-toast ${type}`;
         
         const icon = type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill';
         
