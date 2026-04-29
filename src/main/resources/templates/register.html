@@ -174,8 +174,8 @@
     <script>
         // ── Redirect nếu đã đăng nhập ──────────────────────────
         (function () {
-            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            const userJson = localStorage.getItem('user') || sessionStorage.getItem('user');
+            const token = localStorage.getItem('token');
+            const userJson = localStorage.getItem('user');
             if (token && userJson) {
                 try {
                     const payload = JSON.parse(atob(token.split('.')[1]));
@@ -191,7 +191,6 @@
 
         let selectedRole = null;
         let isEmailTaken = false; // Theo dõi trạng thái email từ server
-        let lastCheckedEmail = ''; // Email đã được check gần nhất
 
         // ── Chọn role ──────────────────────────────────────────
         function selectRole(role) {
@@ -245,48 +244,33 @@
         }
 
         // ── Real-time Email Check ─────────────────────────────
-        // Reset isEmailTaken mỗi khi user bắt đầu gõ lại
-        document.getElementById('email')?.addEventListener('input', function() {
-            if (this.value.trim() !== lastCheckedEmail) {
-                isEmailTaken = false;
-            }
-        });
-
         document.getElementById('email')?.addEventListener('blur', async function() {
             const email = this.value.trim();
-            const fieldWrapper = this.closest('.auth-input-wrapper');
-            const errorDiv = document.getElementById('error-email');
-
             if (!email || !email.includes('@')) {
                 isEmailTaken = false;
-                lastCheckedEmail = '';
                 return;
             }
 
-            // Không check lại nếu email không thay đổi
-            if (email === lastCheckedEmail) return;
+            const fieldWrapper = this.closest('.auth-input-wrapper');
+            const errorDiv = document.getElementById('error-email');
 
             try {
                 const res = await fetch(`/api/auth/check-email?email=${encodeURIComponent(email)}`);
-                if (!res.ok) { isEmailTaken = false; return; }
-                const result = await res.json();
-                // Đảm bảo chỉ nhận đúng boolean true
-                isEmailTaken = result === true;
-                lastCheckedEmail = email;
+                isEmailTaken = await res.json();
 
                 if (isEmailTaken) {
                     fieldWrapper.classList.add('is-invalid');
                     errorDiv.textContent = 'Email này đã được sử dụng. Vui lòng dùng email khác.';
                     errorDiv.style.display = 'block';
                 } else {
-                    fieldWrapper.classList.remove('is-invalid');
-                    errorDiv.textContent = '';
-                    errorDiv.style.display = 'none';
+                    if (errorDiv.textContent.includes('sử dụng') || errorDiv.textContent.includes('exists')) {
+                        fieldWrapper.classList.remove('is-invalid');
+                        errorDiv.textContent = '';
+                        errorDiv.style.display = 'none';
+                    }
                 }
             } catch (e) {
-                // Nếu check-email lỗi mạng, không block user đăng ký
-                isEmailTaken = false;
-                console.warn('Email check failed, skipping:', e);
+                console.error('Email check failed', e);
             }
         });
 

@@ -24,9 +24,4 @@ public class HomeController{
     public String profilePage(){
         return "profile";
     }
-
-    @GetMapping("/forgot-password")
-    public String forgotPasswordPage(){
-        return "forgot-password";
-    }
 }
