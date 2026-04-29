@@ -718,7 +718,8 @@
                 <a href="#" class="d-flex align-items-center gap-2 text-decoration-none" data-bs-toggle="dropdown"
                     aria-expanded="false">
                     <span th:text="${currentUser != null ? currentUser.fullName : 'Administrator'}">Administrator</span>
-                    <img th:src="${currentUser != null && currentUser.avatarUrl != null && !currentUser.avatarUrl.isEmpty() ? currentUser.avatarUrl : 'https://ui-avatars.com/api/?name=' + (currentUser != null ? currentUser.fullName : 'Admin') + '&background=2563eb&color=fff'}" alt="Admin Avatar">
+                    <img th:src="${currentUser != null && currentUser.avatarUrl != null && !currentUser.avatarUrl.isEmpty() ? currentUser.avatarUrl : 'https://ui-avatars.com/api/?name=' + (currentUser != null ? currentUser.fullName : 'Admin') + '&background=2563eb&color=fff'}"
+                        alt="Admin Avatar">
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i> Hồ sơ cá nhân</a>
