@@ -1938,6 +1938,29 @@ img {
 .toast.success i { color: #10b981; }
 .toast.error i { color: #ef4444; }
 
+/* login-toast: tránh Bootstrap 5 override .toast { display: none } */
+.login-toast {
+  background: rgba(30, 41, 59, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  padding: 16px 24px;
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 300px;
+  font-size: 14px;
+  font-weight: 600;
+  animation: slideInRight 0.3s ease both;
+}
+.login-toast.success { border-left: 3px solid #10b981; }
+.login-toast.success i { color: #10b981; }
+.login-toast.error { border-left: 3px solid #ef4444; }
+.login-toast.error i { color: #ef4444; }
+
 @keyframes slideInRight {
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
