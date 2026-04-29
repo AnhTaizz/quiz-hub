@@ -26,5 +26,7 @@ public class QuizAssigningRequestDTO {
 
     LocalDate startDate;
     LocalDate dueDate;
+    
+    Long topicId;
 }
 

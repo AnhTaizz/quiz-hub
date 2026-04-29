@@ -38,7 +38,8 @@ public enum ErrorCode {
     PASSWORD_SAME(1022, "New password cannot be the same as the old password", HttpStatus.BAD_REQUEST),
     USER_NOT_IN_CLASS(1023, "User is not a member of this class", HttpStatus.BAD_REQUEST),
     USER_ALREADY_IN_CLASS(1024, "User is already a member of this class", HttpStatus.BAD_REQUEST),
-    QUESTION_ALREADY_PUBLIC(1025, "Question already public", HttpStatus.BAD_REQUEST);
+    QUESTION_ALREADY_PUBLIC(1025, "Question already public", HttpStatus.BAD_REQUEST),
+    CLASS_TOPIC_NOT_FOUND(1026, "Class topic not found", HttpStatus.NOT_FOUND);
 
     final int code;
     final String message;
