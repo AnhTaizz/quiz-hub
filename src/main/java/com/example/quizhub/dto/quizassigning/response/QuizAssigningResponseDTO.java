@@ -26,4 +26,7 @@ public class QuizAssigningResponseDTO {
 
     UUID quizId;
     String quizTitle;
+
+    Long topicId;
+    String topicName;
 }

@@ -13,11 +13,14 @@ public interface QuizAssigningMapper {
     @Mapping(source = "classroom.name", target = "classroomName")
     @Mapping(source = "quiz.id", target = "quizId")
     @Mapping(source = "quiz.title", target = "quizTitle")
+    @Mapping(source = "topic.id", target = "topicId")
+    @Mapping(source = "topic.name", target = "topicName")
     QuizAssigningResponseDTO toResponseDTO(QuizAssigning quizAssigning);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "classroom", ignore = true) // Sẽ set tay trong service
     @Mapping(target = "quiz", ignore = true)      // Sẽ set tay trong service
+    @Mapping(target = "topic", ignore = true)     // Sẽ set tay trong service
     @Mapping(target = "createdAt", ignore = true)
     QuizAssigning toEntity(QuizAssigningRequestDTO requestDTO);
 }
