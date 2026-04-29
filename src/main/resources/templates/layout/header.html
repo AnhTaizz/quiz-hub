@@ -123,6 +123,8 @@
         function doLogout() {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('user');
             document.cookie = 'jwt=; path=/; max-age=0;';
             window.location.href = '/login';
         }
