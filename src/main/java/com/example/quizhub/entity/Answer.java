@@ -18,7 +18,7 @@ public class Answer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false, columnDefinition = "TEXT")
     String text;
 
     @Column(name = "is_correct", nullable = false)
