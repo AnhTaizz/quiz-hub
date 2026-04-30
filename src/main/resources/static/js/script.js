@@ -132,8 +132,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // ─── 8. Authentication Management ───────────────────────────
     const checkAuthState = () => {
-        const userJson = localStorage.getItem('user');
-        const token = localStorage.getItem('token');
+        const userJson = localStorage.getItem('user') || sessionStorage.getItem('user');
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         const navUl = document.querySelector('#navbar ul');
 
         if (userJson && token && navUl) {
@@ -174,6 +174,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 e.preventDefault();
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
+                sessionStorage.removeItem('token');
+                sessionStorage.removeItem('user');
                 document.cookie = 'jwt=; path=/; max-age=0;';
                 window.location.href = '/login';
             });
@@ -199,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Nếu là gọi đến API của chúng ta (bắt đầu bằng /api/)
         if (typeof resource === 'string' && resource.startsWith('/api/')) {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             if (token) {
                 if (!config) config = {};
                 if (!config.headers) config.headers = {};
@@ -217,6 +219,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (response.status === 401 && !resource.includes('/api/auth/login')) {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('user');
             document.cookie = 'jwt=; path=/; max-age=0;';
             window.location.href = '/login';
         }

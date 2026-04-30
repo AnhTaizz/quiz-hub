@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <body>
     <aside th:fragment="teacher-sidebar(activeItem)" id="sidebar">
         <div class="brand-logo">
@@ -9,14 +10,16 @@
         <div class="menu-title">Bảng điều khiển</div>
         <ul class="nav-menu">
             <li><a href="/teacher" th:classappend="${activeItem == 'dashboard' ? 'active' : ''}" data-title="Tổng quan">
-                <i class="bi bi-grid-1x2-fill"></i> <span>Tổng quan</span>
-            </a></li>
-            <li><a href="/teacher/classrooms" th:classappend="${activeItem == 'classrooms' ? 'active' : ''}" data-title="Lớp học">
-                <i class="bi bi-people-fill"></i> <span>Lớp học</span>
-            </a></li>
-            <li><a href="/teacher/quizzes" th:classappend="${activeItem == 'quizzes' ? 'active' : ''}" data-title="Đề thi">
-                <i class="bi bi-file-earmark-text-fill"></i> <span>Đề thi</span>
-            </a></li>
+                    <i class="bi bi-grid-1x2-fill"></i> <span>Tổng quan</span>
+                </a></li>
+            <li><a href="/teacher/classrooms" th:classappend="${activeItem == 'classrooms' ? 'active' : ''}"
+                    data-title="Lớp học">
+                    <i class="bi bi-people-fill"></i> <span>Lớp học</span>
+                </a></li>
+            <li><a href="/teacher/quizzes" th:classappend="${activeItem == 'quizzes' ? 'active' : ''}"
+                    data-title="Đề thi">
+                    <i class="bi bi-file-earmark-text-fill"></i> <span>Đề thi</span>
+                </a></li>
         </ul>
 
         <div class="menu-title">Thư viện dữ liệu</div>
@@ -61,4 +64,5 @@
         </ul>
     </aside>
 </body>
+
 </html>
