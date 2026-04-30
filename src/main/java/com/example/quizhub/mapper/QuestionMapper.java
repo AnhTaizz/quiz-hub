@@ -5,8 +5,8 @@ import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.example.quizhub.dto.question.response.AnswerResponseDTO;
-import com.example.quizhub.dto.question.response.QuestionResponseDTO;
+import com.example.quizhub.dto.question.AnswerResponseDTO;
+import com.example.quizhub.dto.question.QuestionResponseDTO;
 import com.example.quizhub.entity.Answer;
 import com.example.quizhub.entity.Question;
 

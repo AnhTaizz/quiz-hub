@@ -1,4 +1,4 @@
-package com.example.quizhub.dto.question.response;
+package com.example.quizhub.dto.question;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

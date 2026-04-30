@@ -8,8 +8,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import com.example.quizhub.dto.question.request.QuestionRequestDTO;
-import com.example.quizhub.dto.question.response.QuestionResponseDTO;
+import com.example.quizhub.dto.question.QuestionRequestDTO;
+import com.example.quizhub.dto.question.QuestionResponseDTO;
 import com.example.quizhub.entity.User;
 import com.example.quizhub.entity.enums.QuestionType;
 import com.example.quizhub.exception.AppException;
@@ -48,11 +48,11 @@ public class TeacherQuestionController {
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) QuestionType type,
             @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "false") Boolean isPublicTab, // <-- Nhận cờ từ Front-end
+            @RequestParam(defaultValue = "false") Boolean isPublicTab,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir) { // Đổi asc thành desc để câu mới lên đầu
+            @RequestParam(defaultValue = "desc") String sortDir) {
 
         Page<QuestionResponseDTO> response;
 

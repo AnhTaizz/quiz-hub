@@ -3,8 +3,8 @@ package com.example.quizhub.mapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.example.quizhub.dto.quiz.request.QuizRequestDTO;
-import com.example.quizhub.dto.quiz.response.QuizResponseDTO;
+import com.example.quizhub.dto.quiz.QuizRequestDTO;
+import com.example.quizhub.dto.quiz.QuizResponseDTO;
 import com.example.quizhub.entity.Quiz;
 
 @Mapper(componentModel = "spring", uses = {QuestionMapper.class})

@@ -1,4 +1,4 @@
-package com.example.quizhub.dto.question.request;
+package com.example.quizhub.dto.question;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -17,8 +17,9 @@ import lombok.experimental.FieldDefaults;
 public class AnswerCreationRequestDTO {
     @NotBlank(message="Đáp án không được để trống")
     private String text;
-    
+
     @com.fasterxml.jackson.annotation.JsonProperty("isCorrect")
+    @NotNull(message = "Trạng thái đúng sai không được null")
     @Builder.Default
     private Boolean correct = false; // Gán mặc định là false nếu FE quên gửi
 }

@@ -20,4 +20,7 @@ public class CategoryRequestDTO {
 
     // null = root category
     Long parentId;
+
+    // true = danh mục công khai
+    Boolean isPublic;
 }

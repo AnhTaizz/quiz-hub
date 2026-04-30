@@ -3,9 +3,9 @@ package com.example.quizhub.controller.student;
 import com.example.quizhub.entity.ClassJoining;
 import com.example.quizhub.entity.User;
 import com.example.quizhub.repository.ClassJoiningRepository;
-import com.example.quizhub.repository.UserRepository;
 import com.example.quizhub.service.classroom.ClassroomService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -21,11 +21,11 @@ import java.util.List;
 @Controller
 @RequestMapping("/student/classrooms")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('STUDENT')")
 public class StudentClassroomWebController {
 
     private final ClassJoiningRepository classJoiningRepository;
     private final ClassroomService classroomService;
-    private final UserRepository userRepository;
 
     @GetMapping
     public String listClassrooms(Model model) {

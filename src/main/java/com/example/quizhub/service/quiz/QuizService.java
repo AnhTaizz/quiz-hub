@@ -1,7 +1,10 @@
 package com.example.quizhub.service.quiz;
 
-import com.example.quizhub.dto.quiz.request.QuizRequestDTO;
-import com.example.quizhub.dto.quiz.response.QuizResponseDTO;
+import java.util.List;
+
+import com.example.quizhub.dto.quiz.QuizRequestDTO;
+import com.example.quizhub.dto.quiz.QuizResponseDTO;
+import com.example.quizhub.dto.quiz.QuizSummaryDTO;
 
 public interface QuizService {
     QuizResponseDTO createNewQuiz(QuizRequestDTO request);
@@ -11,4 +14,10 @@ public interface QuizService {
     QuizResponseDTO updateQuiz(String id, QuizRequestDTO request);
 
     void deleteQuiz(String id);
+
+    /** Quiz công khai (published) trong 1 danh mục */
+    List<QuizSummaryDTO> getPublicQuizzesByCategoryId(Long categoryId);
+
+    /** Quiz cá nhân của user hiện tại trong 1 danh mục */
+    List<QuizSummaryDTO> getMyQuizzesByCategoryId(Long categoryId);
 }

@@ -1,10 +1,10 @@
-package com.example.quizhub.dto.quiz.response;
+package com.example.quizhub.dto.quiz;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import com.example.quizhub.dto.question.response.QuestionResponseDTO;
+import com.example.quizhub.dto.question.QuestionResponseDTO;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -31,6 +31,6 @@ public class QuizResponseDTO {
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
     String categoryName;
-    
+
     List<QuestionResponseDTO> questions;
 }

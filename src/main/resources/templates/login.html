@@ -133,7 +133,7 @@
             const user = JSON.parse(userJson);
             if (user.role === 'ADMIN') window.location.replace('/admin');
             else if (user.role === 'TEACHER') window.location.replace('/teacher');
-            else window.location.replace('/student');
+            else window.location.replace('/student/home');
         }
     })();
 
@@ -188,7 +188,7 @@
                         const role = data.role;
                         if (role === 'ADMIN') window.location.href = '/admin';
                         else if (role === 'TEACHER') window.location.href = '/teacher';
-                        else window.location.href = '/student';
+                        else window.location.href = '/student/home';
                     }
                 }, 1000);
             } else {
