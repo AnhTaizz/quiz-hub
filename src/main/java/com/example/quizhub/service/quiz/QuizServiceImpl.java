@@ -2,13 +2,15 @@ package com.example.quizhub.service.quiz;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.quizhub.dto.quiz.request.QuizRequestDTO;
-import com.example.quizhub.dto.quiz.response.QuizResponseDTO;
+import com.example.quizhub.dto.quiz.QuizRequestDTO;
+import com.example.quizhub.dto.quiz.QuizResponseDTO;
+import com.example.quizhub.dto.quiz.QuizSummaryDTO;
 import com.example.quizhub.entity.Category;
 import com.example.quizhub.entity.Question;
 import com.example.quizhub.entity.Quiz;
@@ -111,5 +113,24 @@ public class QuizServiceImpl implements QuizService {
         // Soft delete
         quiz.setIsEnable(false);
         quizRepository.save(quiz);
+    }
+
+    @Override
+    public List<QuizSummaryDTO> getPublicQuizzesByCategoryId(Long categoryId) {
+        return quizRepository
+                .findByCategoryIdAndIsDraftFalseAndIsEnableTrue(categoryId)
+                .stream()
+                .map(QuizSummaryDTO::new)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<QuizSummaryDTO> getMyQuizzesByCategoryId(Long categoryId) {
+        Long creatorId = getCurrentUser().getId();
+        return quizRepository
+                .findByCategoryIdAndCreatorId(categoryId, creatorId)
+                .stream()
+                .map(QuizSummaryDTO::new)
+                .collect(Collectors.toList());
     }
 }

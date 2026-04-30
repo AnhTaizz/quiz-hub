@@ -2,7 +2,7 @@ package com.example.quizhub.dto;
 
 import java.util.List;
 
-import com.example.quizhub.dto.question.request.QuestionRequestDTO;
+import com.example.quizhub.dto.question.QuestionRequestDTO;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;

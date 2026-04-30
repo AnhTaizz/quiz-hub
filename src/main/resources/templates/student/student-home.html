@@ -128,7 +128,10 @@
                 </div>
                 <div class="dash-card mb-5">
                     <div class="quick-actions">
-                        <a th:href="@{/student/categories}" class="btn-quick">
+                        <a th:href="@{/student/categories(type='public')}" class="btn-quick">
+                            <i class="bi bi-globe2 text-info"></i> Ngân hàng đề thi
+                        </a>
+                        <a th:href="@{/student/categories(type='mine')}" class="btn-quick">
                             <i class="bi bi-folder-plus text-warning"></i> Danh mục của tôi
                         </a>
                         <a th:href="@{/student/questions}" class="btn-quick">

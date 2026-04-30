@@ -2,8 +2,8 @@ package com.example.quizhub.service.question;
 
 import org.springframework.data.domain.Page;
 
-import com.example.quizhub.dto.question.request.QuestionRequestDTO;
-import com.example.quizhub.dto.question.response.QuestionResponseDTO;
+import com.example.quizhub.dto.question.QuestionRequestDTO;
+import com.example.quizhub.dto.question.QuestionResponseDTO;
 import com.example.quizhub.entity.enums.QuestionType;
 
 public interface QuestionService {

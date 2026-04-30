@@ -19,4 +19,9 @@ public class AdminHomeController {
         return "admin/admin-users";
     }
 
+    @GetMapping("/categories")
+    public String adminCategories(Model model) {
+        return "admin/admin-categories";
+    }
+
 }

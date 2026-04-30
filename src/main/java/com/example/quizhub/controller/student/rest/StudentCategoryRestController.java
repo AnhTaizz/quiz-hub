@@ -1,4 +1,4 @@
-package com.example.quizhub.controller.teacher.rest;
+package com.example.quizhub.controller.student.rest;
 
 import java.util.List;
 
@@ -23,27 +23,30 @@ import com.example.quizhub.service.quiz.QuizService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * REST API dành cho học sinh:
+ *   GET  /api/categories/public              → danh mục công khai
+ *   GET  /api/categories/mine               → danh mục cá nhân
+ *   POST /api/categories                    → tạo danh mục mới
+ *   PUT  /api/categories/{id}               → cập nhật danh mục
+ *   DELETE /api/categories/{id}             → xóa danh mục
+ *   GET  /api/categories/{id}/quizzes/public → quiz công khai
+ *   GET  /api/categories/{id}/quizzes/mine  → quiz cá nhân
+ */
 @RestController
-@RequestMapping("/api/teacher/categories")
+@RequestMapping("/api/student/categories")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-public class TeacherCategoryController {
+@PreAuthorize("hasRole('STUDENT')")
+public class StudentCategoryRestController {
 
     private final CategoryService categoryService;
     private final QuizService quizService;
 
-    @GetMapping
-    public ResponseEntity<List<CategoryResponseDTO>> getAllCategories() {
-        return ResponseEntity.ok(categoryService.getAllCategories());
-    }
-
-    /** Danh mục công khai (isPublic=true) kèm số quiz */
     @GetMapping("/public")
     public ResponseEntity<List<CategoryResponseDTO>> getPublicCategories() {
         return ResponseEntity.ok(categoryService.getPublicCategories());
     }
 
-    /** Danh mục cá nhân của giáo viên đang đăng nhập */
     @GetMapping("/mine")
     public ResponseEntity<List<CategoryResponseDTO>> getMyCategories() {
         return ResponseEntity.ok(categoryService.getMyCategories());
@@ -51,33 +54,14 @@ public class TeacherCategoryController {
 
     @PostMapping
     public ResponseEntity<CategoryResponseDTO> createCategory(@RequestBody @Valid CategoryRequestDTO request) {
-        request.setIsPublic(false); // Teacher không được phép tạo danh mục public
-        CategoryResponseDTO response = categoryService.createCategory(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<CategoryResponseDTO> getCategoryById(@PathVariable Long id) {
-        return ResponseEntity.ok(categoryService.getCategoryById(id));
-    }
-
-    /** Quiz công khai (published) trong danh mục */
-    @GetMapping("/{id}/quizzes/public")
-    public ResponseEntity<List<QuizSummaryDTO>> getPublicQuizzes(@PathVariable Long id) {
-        return ResponseEntity.ok(quizService.getPublicQuizzesByCategoryId(id));
-    }
-
-    /** Quiz cá nhân của giáo viên trong danh mục */
-    @GetMapping("/{id}/quizzes/mine")
-    public ResponseEntity<List<QuizSummaryDTO>> getMyQuizzes(@PathVariable Long id) {
-        return ResponseEntity.ok(quizService.getMyQuizzesByCategoryId(id));
+        request.setIsPublic(false); // Sinh viên không được phép tạo danh mục công khai
+        return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.createCategory(request));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<CategoryResponseDTO> updateCategory(
-            @PathVariable Long id,
-            @RequestBody @Valid CategoryRequestDTO request) {
-        request.setIsPublic(false); // Teacher không được phép đổi danh mục thành public
+            @PathVariable Long id, @RequestBody @Valid CategoryRequestDTO request) {
+        request.setIsPublic(false); // Sinh viên không được phép đổi danh mục thành công khai
         return ResponseEntity.ok(categoryService.updateCategory(id, request));
     }
 
@@ -85,5 +69,15 @@ public class TeacherCategoryController {
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/quizzes/public")
+    public ResponseEntity<List<QuizSummaryDTO>> getPublicQuizzes(@PathVariable Long id) {
+        return ResponseEntity.ok(quizService.getPublicQuizzesByCategoryId(id));
+    }
+
+    @GetMapping("/{id}/quizzes/mine")
+    public ResponseEntity<List<QuizSummaryDTO>> getMyQuizzes(@PathVariable Long id) {
+        return ResponseEntity.ok(quizService.getMyQuizzesByCategoryId(id));
     }
 }

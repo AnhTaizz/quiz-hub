@@ -10,9 +10,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.quizhub.dto.question.request.AnswerCreationRequestDTO;
-import com.example.quizhub.dto.question.request.QuestionRequestDTO;
-import com.example.quizhub.dto.question.response.QuestionResponseDTO;
+import com.example.quizhub.dto.question.AnswerCreationRequestDTO;
+import com.example.quizhub.dto.question.QuestionRequestDTO;
+import com.example.quizhub.dto.question.QuestionResponseDTO;
 import com.example.quizhub.entity.Answer;
 import com.example.quizhub.entity.Category;
 import com.example.quizhub.entity.Question;
@@ -179,7 +179,8 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public Page<QuestionResponseDTO> searchMyQuestion(Long userId,Long categoryId, QuestionType type,
-                                                    String keyword, int page, int size,
+                                                    String keyword,
+                                                    int page, int size,
                                                     String sortBy, String sortDir) {
 
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())

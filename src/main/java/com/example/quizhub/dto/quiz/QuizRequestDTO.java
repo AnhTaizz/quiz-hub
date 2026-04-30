@@ -1,10 +1,7 @@
-package com.example.quizhub.dto.question.request;
+package com.example.quizhub.dto.quiz;
 
 import java.util.List;
 
-import com.example.quizhub.entity.enums.QuestionType;
-
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -22,16 +19,22 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
+public class QuizRequestDTO {
+    @NotBlank(message = "Tên bài quiz không được để trống")
+    String title;
 
-public class QuestionRequestDTO {
+    String description;
+
     Long categoryId;
 
-    @NotBlank(message="Câu hỏi không được để trống")
-    String text;
+    String imageUrl;
 
-    @NotNull(message="Loại câu hỏi không được để trống")
-    QuestionType type;
+    @NotNull(message = "Bài quiz có ở trạng thái draft không")
+    Boolean isDraft;
 
-    @NotEmpty(message="Câu hỏi phải có ít nhất 1 đáp án")
-    List<@Valid AnswerCreationRequestDTO> answers;
+    @NotNull(message = "Bài quiz có ở trạng thái exam không")
+    Boolean isExam;
+
+    @NotEmpty(message = "Bài quiz phải có ít nhất 1 câu hỏi")
+    List<Long> questionIds;
 }

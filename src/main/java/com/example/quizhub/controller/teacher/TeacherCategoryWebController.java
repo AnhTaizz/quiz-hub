@@ -1,7 +1,5 @@
 package com.example.quizhub.controller.teacher;
 
-import java.util.List;
-
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.quizhub.dto.category.CategoryRequestDTO;
-import com.example.quizhub.dto.category.CategoryResponseDTO;
 import com.example.quizhub.service.category.CategoryService;
 
 import jakarta.validation.Valid;
@@ -20,15 +17,27 @@ import lombok.RequiredArgsConstructor;
 @Controller
 @RequestMapping("/teacher/categories")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+@PreAuthorize("hasAnyRole('TEACHER')")
 public class TeacherCategoryWebController {
 
     private final CategoryService categoryService;
 
+    @GetMapping("/public")
+    public String getPublicCategoryPage(Model model) {
+        model.addAttribute("categoryType", "public");
+        return "teacher/teacher-category-management";
+    }
+
+    @GetMapping("/mine")
+    public String getMineCategoryPage(Model model) {
+        model.addAttribute("categoryType", "mine");
+        return "teacher/teacher-category-management";
+    }
+
+    /** Render trang — dữ liệu được tải qua AJAX từ REST API */
     @GetMapping
     public String getCategoryPage(Model model) {
-        List<CategoryResponseDTO> rootCategories = categoryService.getAllCategories();
-        model.addAttribute("rootCategories", rootCategories);
+        model.addAttribute("categoryType", "mine");
         return "teacher/teacher-category-management";
     }
 

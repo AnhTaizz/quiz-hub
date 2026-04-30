@@ -1,417 +1,1689 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>QuizHub | Quản lý Kho đề thi</title>
+    <title>QuizHub | Kho Đề Thi</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito+Sans:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Nunito+Sans:wght@700;800;900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard-layout.css}">
 
     <style>
-        /* ─── Typography & Headers ─── */
+        /* ══ Page header ══ */
         .page-title {
             font-family: 'Nunito Sans', sans-serif;
             font-weight: 900;
-            font-size: 2.2rem;
+            font-size: 1.75rem;
             color: #1e1b4b;
-            letter-spacing: -0.5px;
-            margin-bottom: 8px;
+            margin: 0;
         }
 
-        .page-subtitle {
-            font-size: 1rem;
+        .page-sub {
             color: #64748b;
-            margin-bottom: 32px;
+            font-size: .9rem;
+            margin: 2px 0 0;
         }
 
-        .section-label {
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            padding: 6px 14px;
-            border-radius: 50px;
-            display: inline-block;
-            margin-bottom: 12px;
-        }
-
-        /* ─── File Explorer Layout ─── */
-        .category-sidebar {
-            background: #ffffff;
-            border-radius: 20px;
-            border: 1px solid #e2e8f0;
-            padding: 24px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-            height: calc(100vh - 160px);
-            position: sticky;
-            top: 100px;
+        /* ══ Mode tabs ══ */
+        .mode-tabs {
             display: flex;
-            flex-direction: column;
+            gap: 6px;
+            background: #f1f5f9;
+            padding: 5px;
+            border-radius: 14px;
         }
 
-        .btn-create-category {
-            background: #e0e7ff;
-            color: #4338ca;
-            border: 1px dashed #a5b4fc;
-            border-radius: 14px;
-            padding: 14px;
+        .mode-tab {
+            flex: 1;
+            padding: 9px 18px;
+            border-radius: 10px;
             font-weight: 700;
+            font-size: .88rem;
+            border: none;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
-            transition: all 0.3s ease;
-            width: 100%;
+            gap: 7px;
+            color: #64748b;
+            background: transparent;
+            transition: all .2s;
         }
 
-        .btn-create-category:hover {
-            background: #c7d2fe;
-            color: #312e81;
-            border-style: solid;
+        .mode-tab.active {
+            background: #fff;
+            color: #4338ca;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, .08);
         }
 
-        .folder-list {
-            margin-top: 20px;
+        .mode-tab:hover:not(.active) {
+            background: rgba(255, 255, 255, .6);
+        }
+
+        /* ══ File Explorer ══ */
+        .explorer-shell {
+            display: flex;
+            min-height: calc(100vh - 190px);
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            overflow: hidden;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, .05);
+        }
+
+        /* Left tree */
+        .tree-panel {
+            width: 270px;
+            min-width: 200px;
+            border-right: 1px solid #f1f5f9;
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            overflow-y: auto;
-            padding-right: 4px;
+            background: #fafafa;
+            flex-shrink: 0;
         }
 
-        .folder-list::-webkit-scrollbar { width: 4px; }
-        .folder-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .tree-hdr {
+            padding: 16px 14px 8px;
+            border-bottom: 1px solid #f1f5f9;
+        }
 
-        .folder-item {
+        .tree-hdr-title {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #94a3b8;
+            margin: 0;
+        }
+
+        .tree-scroll {
+            flex: 1;
+            padding: 6px;
+        }
+
+        .tree-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .tree-scroll::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 4px;
+        }
+
+        .tree-node {}
+
+        .tree-row {
             display: flex;
             align-items: center;
-            padding: 12px 16px;
-            border-radius: 12px;
-            text-decoration: none;
-            color: #475569;
+            gap: 6px;
+            padding: 7px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: .87rem;
             font-weight: 600;
-            transition: all 0.2s ease;
+            color: #475569;
+            transition: all .15s;
             border: 1px solid transparent;
         }
 
-        .folder-item i {
-            font-size: 1.25rem;
-            margin-right: 12px;
-            color: #94a3b8;
-            transition: color 0.2s ease;
+        .tree-row:hover {
+            background: #f1f5f9;
         }
 
-        .folder-item .badge {
-            margin-left: auto;
+        .tree-row.active {
+            background: linear-gradient(135deg, #4338ca, #6366f1);
+            color: #fff;
+            box-shadow: 0 3px 12px rgba(67, 56, 202, .3);
+        }
+
+        .tree-row.active .tree-arrow,
+        .tree-row.active .tree-icon {
+            color: rgba(255, 255, 255, .8);
+        }
+
+        .tree-row.active .tree-count {
+            background: rgba(255, 255, 255, .2);
+            color: #fff;
+        }
+
+        .tree-arrow {
+            font-size: .7rem;
+            color: #cbd5e1;
+            transition: transform .2s;
+            width: 12px;
+            flex-shrink: 0;
+        }
+
+        .tree-arrow.open {
+            transform: rotate(90deg);
+        }
+
+        .tree-icon {
+            font-size: 1rem;
+            color: #f59e0b;
+            flex-shrink: 0;
+        }
+
+        .tree-label {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .tree-count {
+            font-size: .7rem;
+            font-weight: 700;
             background: #f1f5f9;
             color: #64748b;
-            font-weight: 700;
-            padding: 5px 10px;
-            border-radius: 8px;
-        }
-
-        .folder-item:hover {
-            background: #f8fafc;
-            border-color: #e2e8f0;
-        }
-
-        .folder-item:hover i { color: #3b82f6; }
-
-        .folder-item.active {
-            background: #4338ca;
-            color: #ffffff;
-            box-shadow: 0 8px 20px rgba(67, 56, 202, 0.25);
-        }
-
-        .folder-item.active i { color: #c7d2fe; }
-        .folder-item.active .badge { background: rgba(255, 255, 255, 0.2); color: #ffffff; }
-
-        .content-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #ffffff;
-            padding: 20px 24px;
+            padding: 2px 7px;
             border-radius: 20px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-            margin-bottom: 24px;
+            min-width: 22px;
+            text-align: center;
         }
 
-        .active-category-title {
-            font-family: 'Nunito Sans', sans-serif;
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: #1e1b4b;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .tree-children {
+            padding-left: 16px;
+            display: none;
         }
 
-        .active-category-title i { color: #f59e0b; }
+        .tree-children.open {
+            display: block;
+        }
 
-        .quiz-card {
-            background: #ffffff;
-            border-radius: 16px;
-            border: 1px solid #e2e8f0;
-            padding: 20px;
-            transition: all 0.3s ease;
+        /* Right content */
+        .content-panel {
+            flex: 1;
             display: flex;
             flex-direction: column;
-            height: 100%;
+            overflow: hidden;
+            min-width: 0;
+        }
+
+        .explorer-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 18px;
+            border-bottom: 1px solid #f1f5f9;
+            background: #fff;
+            flex-wrap: wrap;
+        }
+
+        .breadcrumb-nav {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .bc-item {
+            font-size: .84rem;
+            font-weight: 700;
+            color: #94a3b8;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: color .15s;
+        }
+
+        .bc-item:hover {
+            color: #4338ca;
+        }
+
+        .bc-item.active {
+            color: #1e1b4b;
+            cursor: default;
+        }
+
+        .bc-sep {
+            color: #cbd5e1;
+            font-size: .75rem;
+            position: relative;
+            padding: 0 4px;
+        }
+
+        .bc-sep-hoverable:hover i {
+            color: #4338ca;
+        }
+
+        .bc-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, .1);
+            padding: 6px;
+            z-index: 100;
+            min-width: 180px;
+            display: none;
+        }
+
+        .bc-dropdown::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%) rotate(45deg);
+            width: 10px;
+            height: 10px;
+            background: #fff;
+            border-left: 1px solid #e2e8f0;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .bc-dropdown.show {
+            display: block;
+            animation: dropDownFade .2s ease;
+        }
+
+        @keyframes dropDownFade {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translate(-50%, 0);
+            }
+        }
+
+        .bc-dropdown-item {
+            padding: 8px 12px;
+            font-size: .85rem;
+            font-weight: 600;
+            color: #475569;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all .15s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 250px;
+        }
+
+        .bc-dropdown-item:hover {
+            background: #f1f5f9;
+            color: #4338ca;
+        }
+
+        .bc-dropdown-item.active {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .toolbar-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .btn-tool {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: .82rem;
+            border: none;
+            cursor: pointer;
+            transition: all .2s;
+            white-space: nowrap;
+        }
+
+        .btn-new-folder {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .btn-new-folder:hover {
+            background: #4338ca;
+            color: #fff;
+        }
+
+        .btn-new-quiz {
+            background: linear-gradient(135deg, #4338ca, #6366f1);
+            color: #fff;
+        }
+
+        .btn-new-quiz:hover {
+            opacity: .88;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 14px rgba(67, 56, 202, .35);
+        }
+
+        .content-scroll {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .content-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .content-scroll::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 4px;
+        }
+
+        /* Sections */
+        .section-title {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #94a3b8;
+            margin-bottom: 12px;
+        }
+
+        /* Folder cards grid */
+        .folder-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .folder-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 18px 12px 14px;
+            border-radius: 16px;
+            border: 1px solid #f1f5f9;
+            cursor: pointer;
+            transition: all .22s;
+            background: #fafafa;
+            position: relative;
+            text-align: center;
+            gap: 10px;
+        }
+
+        .folder-card:hover {
+            border-color: #a5b4fc;
+            background: #fff;
+            box-shadow: 0 6px 20px rgba(67, 56, 202, .1);
+            transform: translateY(-2px);
+        }
+
+        .folder-card-icon {
+            font-size: 2.2rem;
+            line-height: 1;
+        }
+
+        .folder-card-name {
+            font-weight: 700;
+            font-size: .85rem;
+            color: #334155;
+            line-height: 1.3;
+            word-break: break-word;
+        }
+
+        .folder-card-meta {
+            font-size: .72rem;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        .folder-card-actions {
+            display: none;
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            gap: 4px;
+        }
+
+        .folder-card:hover .folder-card-actions {
+            display: flex;
+        }
+
+        .fca-btn {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .72rem;
+            transition: all .15s;
+        }
+
+        .fca-edit {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .fca-edit:hover {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .fca-del {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .fca-del:hover {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        /* Quiz cards */
+        .quiz-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(265px, 1fr));
+            gap: 16px;
+        }
+
+        .quiz-card {
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            padding: 18px;
+            background: #fff;
+            transition: all .25s;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quiz-card::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #4338ca, #6366f1);
+            opacity: 0;
+            transition: opacity .2s;
         }
 
         .quiz-card:hover {
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.06);
-            border-color: #cbd5e1;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .07);
+            border-color: #a5b4fc;
             transform: translateY(-2px);
+        }
+
+        .quiz-card:hover::after {
+            opacity: 1;
+        }
+
+        .quiz-badge-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .qbadge {
+            font-size: .7rem;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .qbadge-exam {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .qbadge-quiz {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .qbadge-draft {
+            background: #f1f5f9;
+            color: #94a3b8;
+        }
+
+        .qbadge-pub {
+            background: #dcfce7;
+            color: #15803d;
         }
 
         .quiz-title {
             font-family: 'Nunito Sans', sans-serif;
             font-weight: 800;
-            font-size: 1.15rem;
+            font-size: 1rem;
             color: #1e1b4b;
-            margin-bottom: 12px;
+            margin-bottom: 6px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
-        .quiz-meta {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-
-        .info-chip {
-            font-size: 0.8rem;
-            font-weight: 600;
+        .quiz-desc {
+            font-size: .82rem;
             color: #64748b;
-            background: #f1f5f9;
-            padding: 4px 10px;
+            margin-bottom: 12px;
+            flex: 1;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .quiz-chips {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .chip {
+            font-size: .75rem;
+            font-weight: 600;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 3px 9px;
             border-radius: 8px;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
+            color: #64748b;
         }
 
         .quiz-actions {
             margin-top: auto;
             display: flex;
-            gap: 10px;
-            border-top: 1px dashed #e2e8f0;
-            padding-top: 16px;
+            gap: 8px;
+            padding-top: 12px;
+            border-top: 1px dashed #f1f5f9;
         }
 
-        .btn-action {
+        .qact {
             flex: 1;
-            padding: 8px;
+            padding: 7px 10px;
             border-radius: 10px;
-            font-weight: 600;
-            font-size: 0.9rem;
+            font-weight: 700;
+            font-size: .8rem;
+            border: none;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
-            transition: all 0.2s;
+            gap: 5px;
+            transition: all .2s;
             text-decoration: none;
         }
 
-        .btn-edit { background: #eff6ff; color: #2563eb; }
-        .btn-edit:hover { background: #2563eb; color: #fff; }
-        .btn-preview { background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; }
-        .btn-preview:hover { background: #e2e8f0; color: #1e293b; }
-        .btn-delete { background: #fef2f2; color: #dc2626; flex: 0 0 auto; width: 40px; border: none; }
-        .btn-delete:hover { background: #dc2626; color: #fff; }
-
-        .btn-primary-custom {
-            background: #4338ca;
-            color: #fff;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 12px;
-            font-weight: 700;
-            transition: all 0.2s;
+        .qact-edit {
+            background: #eff6ff;
+            color: #2563eb;
         }
 
-        .btn-primary-custom:hover { background: #312e81; transform: translateY(-1px); }
+        .qact-edit:hover {
+            background: #2563eb;
+            color: #fff;
+        }
+
+        .qact-view {
+            background: #f8fafc;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
+        .qact-view:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        .qact-del {
+            background: #fef2f2;
+            color: #dc2626;
+            flex: 0 0 36px;
+        }
+
+        .qact-del:hover {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        /* Empty / Loading */
+        .empty-root {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 15px;
+            color: #94a3b8;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .empty-root-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: #818cf8;
+            margin-bottom: 5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+        }
+
+        .empty-root h3 {
+            font-family: 'Nunito Sans', sans-serif;
+            font-weight: 800;
+            color: #1e293b;
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        .empty-root p {
+            margin: 0;
+            font-size: .95rem;
+            max-width: 400px;
+            line-height: 1.5;
+        }
+
+        .skeleton {
+            animation: shimmer 1.5s infinite;
+            background: linear-gradient(90deg, #f4f4f4 25%, #eaeaea 50%, #f4f4f4 75%);
+            background-size: 200% 100%;
+            border-radius: 12px;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0
+            }
+
+            100% {
+                background-position: 200% 0
+            }
+        }
+
+        /* Modals */
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, .12);
+        }
+
+        .modal-hdr {
+            font-family: 'Nunito Sans', sans-serif;
+            font-weight: 900;
+            color: #1e1b4b;
+        }
+
+        .fc {
+            border-radius: 12px;
+            border: 1.5px solid #e2e8f0;
+            padding: 10px 14px;
+            font-size: .92rem;
+            transition: border-color .2s;
+            width: 100%;
+        }
+
+        .fc:focus {
+            border-color: #4338ca;
+            box-shadow: 0 0 0 3px rgba(67, 56, 202, .1);
+            outline: none;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #4338ca, #6366f1);
+            color: #fff;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+
+        .btn-submit:hover {
+            opacity: .88;
+            color: #fff;
+        }
+
+        /* Toast */
+        #toastWrap {
+            position: fixed;
+            top: 22px;
+            right: 22px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast-msg {
+            background: #1e1b4b;
+            color: #fff;
+            border-radius: 14px;
+            padding: 12px 18px;
+            font-weight: 600;
+            font-size: .88rem;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, .18);
+            opacity: 0;
+            transform: translateX(16px);
+            transition: all .3s ease;
+        }
+
+        .toast-msg.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast-msg.ok i {
+            color: #4ade80;
+        }
+
+        .toast-msg.err i {
+            color: #fb7185;
+        }
+
+        .resize-handle {
+            width: 4px;
+            cursor: col-resize;
+            background: transparent;
+            transition: background .2s;
+            flex-shrink: 0;
+        }
+
+        .resize-handle:hover {
+            background: #a5b4fc;
+        }
+
+        /* ══ Inline tree action buttons (VS Code style) ══ */
+        .tree-row-actions {
+            display: none;
+            align-items: center;
+            gap: 3px;
+            flex-shrink: 0;
+            margin-left: 2px;
+        }
+
+        .tree-row:hover .tree-row-actions {
+            display: flex;
+        }
+
+        .tree-row.active .tree-row-actions {
+            display: flex;
+        }
+
+        .tree-act-btn {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            background: rgba(255, 255, 255, 0.15);
+            color: inherit;
+            transition: background 0.15s;
+            flex-shrink: 0;
+        }
+
+        .tree-row:not(.active) .tree-act-btn {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .tree-row:not(.active) .tree-act-btn:hover {
+            background: #4338ca;
+            color: #fff;
+        }
+
+        .tree-row.active .tree-act-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Hide count when actions visible to save space */
+        .tree-row:hover .tree-count {
+            display: none;
+        }
+
+        .tree-row.active .tree-count {
+            display: none;
+        }
+
+        /* Tree Header Actions */
+        .tree-hdr-actions .tree-act-btn {
+            background: transparent;
+            color: #64748b;
+            width: 24px;
+            height: 24px;
+            font-size: 1rem;
+        }
+
+        .tree-hdr-actions .tree-act-btn:hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
+        /* Drag and Drop */
+        .tree-row.dragging {
+            opacity: 0.5;
+        }
+
+        .tree-row.drag-over {
+            border: 1px dashed #4338ca !important;
+            background: #e0e7ff !important;
+        }
+
+        .tree-hdr.drag-over {
+            background: #e0e7ff;
+        }
     </style>
 </head>
 
 <body>
-    <script>
-        (function () {
-            if (localStorage.getItem('sidebar-collapsed') === 'true') {
-                document.body.classList.add('sidebar-collapsed');
-            }
-        })();
-    </script>
-    <!-- Sidebar Fragment -->
-    <aside th:replace="~{layout/sidebar :: teacher-sidebar('categories')}"></aside>
-
-    <!-- Header Fragment -->
+    <script>(function () { if (localStorage.getItem('sidebar-collapsed') === 'true') document.body.classList.add('sidebar-collapsed'); })()</script>
+    <input type="hidden" id="categoryTypeInput" th:value="${categoryType}">
+    <aside th:replace="~{layout/sidebar :: teacher-sidebar('categories-' + ${categoryType})}"></aside>
     <header th:replace="~{layout/header :: teacher-header}"></header>
 
     <main id="main-content">
-        <div class="mb-4">
-            <h1 class="page-title">Kho Đề Thi</h1>
-            <p class="page-subtitle">Quản lý các danh mục môn học và hệ thống đề thi của bạn.</p>
+        <!-- Page bar -->
+        <div class="d-flex align-items-center justify-content-between mb-3 gap-3 flex-wrap">
+            <div>
+                <h1 class="page-title">🗂️ Kho Đề Thi</h1>
+                <p class="page-sub">Quản lý danh mục và đề thi theo kiểu thư mục.</p>
+            </div>
+            <!-- Mode switcher -->
+            <div class="mode-tabs" style="max-width:320px;width:100%;">
+                <a href="/teacher/categories/mine" class="mode-tab"
+                    th:classappend="${categoryType == 'mine' ? 'active' : ''}" style="text-decoration: none;">
+                    <i class="bi bi-person-fill"></i> Của tôi
+                </a>
+                <a href="/teacher/categories/public" class="mode-tab"
+                    th:classappend="${categoryType == 'public' ? 'active' : ''}" style="text-decoration: none;">
+                    <i class="bi bi-globe2"></i> Công khai
+                </a>
+            </div>
         </div>
 
-        <div class="row g-4">
-            <div class="col-lg-4">
-                <div class="category-sidebar">
-                    <div class="section-label" style="color: #4338ca; background: rgba(67, 56, 202, 0.1);">Danh mục của bạn</div>
-
-                    <button class="btn-create-category" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
-                        <i class="bi bi-folder-plus"></i> Tạo danh mục mới
-                    </button>
-
-                    <div class="folder-list">
-                        <a href="#" class="folder-item active">
-                            <i class="bi bi-folder2-open"></i>
-                            <span>Lập trình Java Nâng cao</span>
-                            <span class="badge">12</span>
-                        </a>
-                        <a href="#" class="folder-item">
-                            <i class="bi bi-folder"></i>
-                            <span>Cơ sở dữ liệu SQL</span>
-                            <span class="badge">5</span>
-                        </a>
-                        <a href="#" class="folder-item">
-                            <i class="bi bi-folder"></i>
-                            <span>Cấu trúc dữ liệu & Giải thuật</span>
-                            <span class="badge">8</span>
-                        </a>
-                        <a href="#" class="folder-item">
-                            <i class="bi bi-folder"></i>
-                            <span>Thiết kế Web Frontend</span>
-                            <span class="badge">3</span>
-                        </a>
-                        <a href="#" class="folder-item">
-                            <i class="bi bi-folder"></i>
-                            <span>Nhập môn Trí tuệ nhân tạo</span>
-                            <span class="badge">0</span>
-                        </a>
+        <!-- File Explorer -->
+        <div class="explorer-shell">
+            <!-- Tree -->
+            <div class="tree-panel" id="treePanel">
+                <div class="tree-hdr d-flex justify-content-between align-items-center"
+                    ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)"
+                    ondrop="handleDrop(event, null)">
+                    <p class="tree-hdr-title mb-0" id="treeLabel">Danh mục của tôi</p>
+                    <div class="tree-hdr-actions" id="treeGlobalActions" style="display:flex; gap:4px;">
+                        <button class="tree-act-btn" title="Thêm thư mục gốc" onclick="openCatModal(null)">
+                            <i class="bi bi-folder-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div style="padding: 10px 14px 0px;">
+                    <input type="text" id="treeSearchInput" class="form-control" placeholder="Tìm kiếm thư mục..."
+                        style="font-size:0.85rem; border-radius:10px; border-color:#e2e8f0; padding:6px 12px;">
+                </div>
+                <div class="tree-scroll" id="treeScroll">
+                    <div style="padding:8px;">
+                        <div class="skeleton" style="height:36px;margin-bottom:6px;"></div>
+                        <div class="skeleton" style="height:36px;margin-bottom:6px;opacity:.7;"></div>
+                        <div class="skeleton" style="height:36px;opacity:.4;"></div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-8">
-                <div class="quiz-content-area">
-                    <div class="content-header">
-                        <h2 class="active-category-title">
-                            <i class="bi bi-folder-fill"></i> Lập trình Java Nâng cao
-                        </h2>
-                        <button class="btn-primary-custom">
-                            <i class="bi bi-plus-lg me-1"></i> Tạo đề thi
+            <div class="resize-handle" id="resizeHandle"></div>
+
+            <!-- Content -->
+            <div class="content-panel">
+                <div class="explorer-toolbar">
+                    <div class="breadcrumb-nav" id="breadcrumb">
+                        <span class="bc-item active" onclick="navigateToRoot()"><i class="bi bi-house-fill"></i>
+                            Gốc</span>
+                    </div>
+                    <div class="toolbar-actions" id="toolbarActions">
+                        <button class="btn-tool btn-new-folder" id="btnNewFolder" onclick="openCatModal(null)">
+                            <i class="bi bi-folder-plus"></i> Thêm thư mục
+                        </button>
+                        <button class="btn-tool btn-new-quiz" id="btnNewQuiz" onclick="openQuizCreate(null)">
+                            <i class="bi bi-file-earmark-plus-fill"></i> Tạo đề thi
                         </button>
                     </div>
-
-                    <div class="row g-4 mt-0">
-                        <div class="col-md-6">
-                            <div class="quiz-card">
-                                <h3 class="quiz-title">Kiểm tra Giữa kỳ - OOP & Collections</h3>
-                                <div class="quiz-meta">
-                                    <div class="info-chip"><i class="bi bi-clock text-primary"></i> 60 Phút</div>
-                                    <div class="info-chip"><i class="bi bi-list-check text-success"></i> 50 Câu</div>
-                                    <div class="info-chip" style="background: #ecfdf5; color: #059669;"><i class="bi bi-check-circle"></i> Đã xuất bản</div>
-                                </div>
-                                <div class="quiz-actions">
-                                    <a href="#" class="btn-action btn-edit"><i class="bi bi-pencil-square"></i> Sửa</a>
-                                    <a href="#" class="btn-action btn-preview"><i class="bi bi-eye"></i> Xem thử</a>
-                                    <button class="btn-action btn-delete" title="Xóa đề thi"><i class="bi bi-trash3"></i></button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="quiz-card">
-                                <h3 class="quiz-title">Bài tập thực hành File I/O và Exception</h3>
-                                <div class="quiz-meta">
-                                    <div class="info-chip"><i class="bi bi-clock text-primary"></i> 30 Phút</div>
-                                    <div class="info-chip"><i class="bi bi-list-check text-success"></i> 20 Câu</div>
-                                    <div class="info-chip" style="background: #fffbeb; color: #d97706;"><i class="bi bi-cone-striped"></i> Bản nháp</div>
-                                </div>
-                                <div class="quiz-actions">
-                                    <a href="#" class="btn-action btn-edit"><i class="bi bi-pencil-square"></i> Sửa</a>
-                                    <a href="#" class="btn-action btn-preview"><i class="bi bi-eye"></i> Xem thử</a>
-                                    <button class="btn-action btn-delete" title="Xóa đề thi"><i class="bi bi-trash3"></i></button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <div class="quiz-card">
-                                <h3 class="quiz-title">Quizz Khởi động: Java Basics</h3>
-                                <div class="quiz-meta">
-                                    <div class="info-chip"><i class="bi bi-clock text-primary"></i> 15 Phút</div>
-                                    <div class="info-chip"><i class="bi bi-list-check text-success"></i> 15 Câu</div>
-                                    <div class="info-chip" style="background: #ecfdf5; color: #059669;"><i class="bi bi-check-circle"></i> Đã xuất bản</div>
-                                </div>
-                                <div class="quiz-actions">
-                                    <a href="#" class="btn-action btn-edit"><i class="bi bi-pencil-square"></i> Sửa</a>
-                                    <a href="#" class="btn-action btn-preview"><i class="bi bi-eye"></i> Xem thử</a>
-                                    <button class="btn-action btn-delete" title="Xóa đề thi"><i class="bi bi-trash3"></i></button>
-                                </div>
-                            </div>
-                        </div>
+                </div>
+                <div class="content-scroll" id="contentScroll">
+                    <div class="empty-root" id="rootLanding">
+                        <div class="empty-root-icon"><i class="bi bi-folder2-open"></i></div>
+                        <h3>Chọn một danh mục</h3>
+                        <p id="rootHint">Chọn thư mục bên trái hoặc tạo danh mục mới để bắt đầu.</p>
                     </div>
+                    <div id="dynamicContent" style="display:none;"></div>
                 </div>
             </div>
         </div>
     </main>
 
-    <!-- Create Category Modal -->
-    <div class="modal fade" id="createCategoryModal" tabindex="-1" aria-labelledby="createCategoryModalLabel" aria-hidden="true">
+    <!-- Create / Edit Category Modal -->
+    <div class="modal fade" id="catModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 20px 40px rgba(0,0,0,0.1);">
-                <div class="modal-header border-0 pb-0 pt-4 px-4">
-                    <h5 class="modal-title" id="createCategoryModalLabel" style="font-family: 'Nunito Sans', sans-serif; font-weight: 800; color: #1e1b4b;">Tạo danh mục mới</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-content">
+                <div class="modal-header border-0 pt-4 pb-0 px-4">
+                    <h5 class="modal-hdr" id="catModalTitle">Tạo danh mục mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body px-4 py-4">
-                    <form action="#" method="POST">
-                        <div class="mb-3">
-                            <label for="categoryName" class="form-label" style="font-weight: 600; color: #475569;">Tên danh mục (Môn học)</label>
-                            <input type="text" class="form-control form-control-lg" id="categoryName" placeholder="VD: Lập trình Python Cơ bản" style="border-radius: 12px; font-size: 1rem;">
-                        </div>
-                        <div class="mb-3">
-                            <label for="categoryDesc" class="form-label" style="font-weight: 600; color: #475569;">Mô tả (Không bắt buộc)</label>
-                            <textarea class="form-control" id="categoryDesc" rows="3" placeholder="Ghi chú ngắn về danh mục này..." style="border-radius: 12px;"></textarea>
-                        </div>
-                    </form>
+                <div class="modal-body px-4 py-3">
+                    <input type="hidden" id="catEditId">
+                    <input type="hidden" id="catParentId">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="color:#475569;">Tên danh mục <span
+                                class="text-danger">*</span></label>
+                        <input class="fc" type="text" id="catNameInput"
+                            placeholder="VD: Lập trình Java, Toán cao cấp...">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="color:#475569;">Mô tả</label>
+                        <textarea class="fc" id="catDescInput" rows="2" placeholder="Ghi chú..."></textarea>
+                    </div>
                 </div>
-                <div class="modal-footer border-0 pt-0 pb-4 px-4">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal" style="border-radius: 10px; font-weight: 600;">Hủy bỏ</button>
-                    <button type="button" class="btn btn-primary-custom" style="padding: 8px 24px;">Tạo mới</button>
+                <div class="modal-footer border-0 pb-4 px-4">
+                    <button class="btn btn-light" data-bs-dismiss="modal"
+                        style="border-radius:10px;font-weight:600;">Hủy</button>
+                    <button class="btn btn-submit" onclick="submitCategory()">Lưu</button>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Delete Category Confirm -->
+    <div class="modal fade" id="delCatModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content text-center p-4">
+                <div style="font-size:2.5rem;margin-bottom:8px;">🗑️</div>
+                <h6 class="fw-bold mb-1">Xóa danh mục?</h6>
+                <p class="text-muted small mb-3">Các danh mục con sẽ được tách ra và đề thi bên trong sẽ không bị xóa.
+                </p>
+                <input type="hidden" id="delCatId">
+                <div class="d-flex gap-2">
+                    <button class="btn btn-light w-50" data-bs-dismiss="modal"
+                        style="border-radius:10px;font-weight:600;">Hủy</button>
+                    <button class="btn btn-danger w-50" onclick="confirmDelCat()"
+                        style="border-radius:10px;">Xóa</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastWrap"></div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const toggleBtn = document.querySelector('.toggle-btn');
-            const body = document.querySelector('body');
+        /* ══════════════════════════════════════════════
+           STATE
+        ══════════════════════════════════════════════ */
+        let MODE = 'mine';   // 'mine' | 'public'
+        let TREE_DATA = [];
+        let navStack = [];       // [{id, name}]
+        let OWN_MODE = true;     // can edit in mine mode
+        let expandedNodes = new Set(); // Lưu trữ ID các thư mục đang được xổ ra
+        let searchTerm = '';      // Từ khóa tìm kiếm cây danh mục
 
-            if (toggleBtn) {
-                toggleBtn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    body.classList.toggle('sidebar-collapsed');
-                    localStorage.setItem('sidebar-collapsed', body.classList.contains('sidebar-collapsed'));
+        // Hàm tìm đường dẫn chuẩn từ Gốc -> Thư mục hiện tại (giúp Breadcrumb chuẩn như File Explorer)
+        function getPathToNode(nodes, targetId, currentPath = []) {
+            for (const n of nodes) {
+                const path = [...currentPath, { id: n.id, name: n.name }];
+                if (n.id === targetId) return path;
+                if (n.children) {
+                    const found = getPathToNode(n.children, targetId, path);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
+
+        /* ══════════════════════════════════════════════
+           INIT
+        ══════════════════════════════════════════════ */
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggleBtn = document.querySelector('.toggle-btn');
+            if (toggleBtn) toggleBtn.addEventListener('click', e => {
+                e.preventDefault();
+                document.body.classList.toggle('sidebar-collapsed');
+                localStorage.setItem('sidebar-collapsed', document.body.classList.contains('sidebar-collapsed'));
+            });
+            initResize();
+
+            const catType = document.getElementById('categoryTypeInput').value || 'mine';
+            initMode(catType);
+
+            const searchInput = document.getElementById('treeSearchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', e => {
+                    searchTerm = e.target.value.trim().toLowerCase();
+                    renderTree(TREE_DATA);
+                    restoreTreeState();
                 });
             }
+
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.bc-dropdown').forEach(d => d.classList.remove('show'));
+            });
         });
+
+        /* ══════════════════════════════════════════════
+           MODE INIT
+        ══════════════════════════════════════════════ */
+        function initMode(m) {
+            MODE = m; OWN_MODE = (m === 'mine');
+
+            document.getElementById('treeLabel').textContent = m === 'mine' ? 'Danh mục của tôi' : 'Danh mục công khai';
+            document.getElementById('rootHint').textContent = m === 'mine'
+                ? 'Chọn thư mục bên trái hoặc tạo danh mục mới để bắt đầu.'
+                : 'Chọn thư mục bên trái để xem các đề thi.';
+
+            // Show/hide create buttons per mode
+            const tf = document.getElementById('toolbarActions');
+            tf.style.display = 'flex';
+            document.getElementById('btnNewFolder').style.display = OWN_MODE ? 'flex' : 'none';
+            document.getElementById('btnNewQuiz').style.display = OWN_MODE ? 'flex' : 'none';
+            const treeGlobal = document.getElementById('treeGlobalActions');
+            if (treeGlobal) treeGlobal.style.display = OWN_MODE ? 'flex' : 'none';
+
+            navStack = [];
+            TREE_DATA = [];
+            searchTerm = '';
+            const searchInput = document.getElementById('treeSearchInput');
+            if (searchInput) searchInput.value = '';
+
+            navigateToRoot();
+            loadTree();
+        }
+
+        /* ══════════════════════════════════════════════
+           TREE
+        ══════════════════════════════════════════════ */
+        async function loadTree() {
+            const token = localStorage.getItem('token');
+            const api = MODE === 'mine' ? '/api/teacher/categories/mine' : '/api/teacher/categories/public';
+            try {
+                const res = await fetch(api, { headers: { Authorization: 'Bearer ' + token } });
+                if (!res.ok) throw new Error('Lỗi tải danh mục');
+                TREE_DATA = await res.json();
+
+                // Auto-expand all folders on first load so the tree structure is fully visible
+                if (expandedNodes.size === 0 && TREE_DATA.length > 0) {
+                    const expandAll = (nodes) => {
+                        nodes.forEach(n => {
+                            expandedNodes.add(n.id);
+                            if (n.children && n.children.length > 0) expandAll(n.children);
+                        });
+                    };
+                    expandAll(TREE_DATA);
+                }
+
+                renderTree(TREE_DATA);
+                restoreTreeState();
+            } catch (e) {
+                document.getElementById('treeScroll').innerHTML =
+                    `<div style="padding:16px;text-align:center;color:#94a3b8;font-size:.84rem;">
+                <i class="bi bi-wifi-off d-block mb-2" style="font-size:1.6rem;"></i>${e.message}
+             </div>`;
+            }
+        }
+
+        function renderTree(nodes) {
+            const wrap = document.getElementById('treeScroll');
+            if (!nodes || nodes.length === 0) {
+                wrap.innerHTML = `<div style="padding:24px 10px;text-align:center;color:#94a3b8;">
+            <i class="bi bi-folder-plus d-block mb-3" style="font-size:2.5rem;color:#c4b5fd;"></i>
+            <h6 style="color:#475569;font-weight:700;margin-bottom:8px;">Chưa có danh mục</h6>
+            <p style="font-size:0.8rem;margin-bottom:16px;">Tạo thư mục đầu tiên để lưu trữ đề thi.</p>
+            ${OWN_MODE ? `<button class="btn-tool btn-new-folder" style="margin:0 auto;" onclick="openCatModal(null)"><i class="bi bi-plus-lg"></i> Thêm mới</button>` : ''}
+        </div>`;
+                return;
+            }
+            wrap.innerHTML = `<div style="padding:6px;">${nodes.map(n => treeNodeHtml(n)).join('')}</div>`;
+        }
+
+        function treeNodeHtml(node) {
+            const match = searchTerm === '' || node.name.toLowerCase().includes(searchTerm);
+            let childrenHtml = '';
+            let hasMatchingChild = false;
+
+            if (node.children && node.children.length > 0) {
+                const childHtmls = node.children.map(c => treeNodeHtml(c)).filter(h => h !== '');
+                if (childHtmls.length > 0) {
+                    hasMatchingChild = true;
+                    childrenHtml = childHtmls.join('');
+                }
+            }
+
+            if (searchTerm !== '' && !match && !hasMatchingChild) {
+                return '';
+            }
+
+            const isForceOpen = searchTerm !== '' && hasMatchingChild;
+            const isNodeOpen = isForceOpen || expandedNodes.has(node.id);
+
+            const hasKids = node.children && node.children.length > 0;
+            const arrow = hasKids
+                ? `<i class="bi bi-chevron-right tree-arrow ${isNodeOpen ? 'open' : ''}" id="arr-${node.id}"></i>`
+                : `<span style="width:12px;display:inline-block;"></span>`;
+
+            const finalKidsHtml = (searchTerm !== '') ? childrenHtml : (node.children ? node.children.map(c => treeNodeHtml(c)).join('') : '');
+            const kids = finalKidsHtml !== ''
+                ? `<div class="tree-children ${isNodeOpen ? 'open' : ''}" id="kids-${node.id}">${finalKidsHtml}</div>`
+                : '';
+
+            // Inline action buttons — chỉ hiện trong chế độ Own
+            const actions = OWN_MODE ? `
+        <span class="tree-row-actions" onclick="event.stopPropagation()">
+            <button class="tree-act-btn" title="Thêm thư mục con"
+                onclick="openCatModal(${node.id})">
+                <i class="bi bi-folder-plus"></i>
+            </button>
+            <button class="tree-act-btn" title="Sửa thư mục"
+                onclick="openEditCatModal(${node.id},${JSON.stringify(node.name).replace(/"/g, '&quot;')},${JSON.stringify(node.description || '').replace(/"/g, '&quot;')},${node.parentId || null})">
+                <i class="bi bi-pencil"></i>
+            </button>
+            <button class="tree-act-btn" title="Xóa thư mục"
+                onclick="openDelCatModal(${node.id})">
+                <i class="bi bi-trash"></i>
+            </button>
+        </span>` : '';
+
+            let displayName = esc(node.name);
+            if (searchTerm !== '' && match) {
+                const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+                displayName = esc(node.name).replace(regex, '<mark style="background:#fef08a;padding:0 2px;border-radius:3px;color:#1e1b4b;">$1</mark>');
+            }
+
+            return `<div class="tree-node">
+        <div class="tree-row" id="tr-${node.id}"
+            draggable="${OWN_MODE ? 'true' : 'false'}"
+            ondragstart="handleDragStart(event, ${node.id})"
+            ondragover="handleDragOver(event)"
+            ondragleave="handleDragLeave(event)"
+            ondrop="handleDrop(event, ${node.id})"
+            onclick="treeClick(${node.id},${JSON.stringify(node.name).replace(/"/g, '&quot;')},event)">
+            ${arrow}
+            <i class="bi bi-folder-fill tree-icon"></i>
+            <span class="tree-label">${displayName}</span>
+            <span class="tree-count">${calcTotal(node)}</span>
+            ${actions}
+        </div>
+        ${kids}
+    </div>`;
+        }
+
+        function calcTotal(node) {
+            let t = node.quizCount || 0;
+            if (node.children) node.children.forEach(c => t += calcTotal(c));
+            return t;
+        }
+
+        function treeClick(id, name, e) {
+            // 1. Xem nội dung thư mục (hiển thị sang bảng bên phải)
+            navigateTo(id, name);
+
+            // 2. Tự động đóng/mở thư mục tại chỗ
+            const kids = document.getElementById('kids-' + id);
+            const arr = document.getElementById('arr-' + id);
+            if (kids) {
+                const isOpen = kids.classList.contains('open');
+                if (isOpen) {
+                    kids.classList.remove('open');
+                    if (arr) arr.classList.remove('open');
+                    expandedNodes.delete(id);
+                } else {
+                    kids.classList.add('open');
+                    if (arr) arr.classList.add('open');
+                    expandedNodes.add(id);
+                }
+            }
+            e.stopPropagation();
+        }
+
+        function setTreeActive(id) {
+            document.querySelectorAll('.tree-row').forEach(r => r.classList.remove('active'));
+            const el = document.getElementById('tr-' + id);
+            if (el) { el.classList.add('active'); el.scrollIntoView({ block: 'nearest' }); }
+        }
+
+        function restoreTreeState() {
+            // Tự động xổ lại những thư mục người dùng đã thao tác mở trước đó
+            expandedNodes.forEach(id => {
+                const kids = document.getElementById('kids-' + id);
+                const arr = document.getElementById('arr-' + id);
+                if (kids) kids.classList.add('open');
+                if (arr) arr.classList.add('open');
+            });
+            // Active lại node cuối cùng
+            if (navStack.length > 0) {
+                setTreeActive(navStack[navStack.length - 1].id);
+            }
+        }
+
+        /* ══════════════════════════════════════════════
+           NAVIGATION
+        ══════════════════════════════════════════════ */
+        function navigateToRoot() {
+            navStack = [];
+            document.getElementById('breadcrumb').innerHTML =
+                `<span class="bc-item active"><i class="bi bi-house-fill"></i> Gốc</span>`;
+            document.getElementById('dynamicContent').style.display = 'none';
+            document.getElementById('rootLanding').style.display = 'flex';
+            document.querySelectorAll('.tree-row').forEach(r => r.classList.remove('active'));
+
+            // Reset toolbar buttons to no category context
+            document.getElementById('btnNewFolder').onclick = () => openCatModal(null);
+            document.getElementById('btnNewQuiz').onclick = () => openQuizCreate(null);
+        }
+
+        function navigateTo(id, name) {
+            // Tự động tính toán đường dẫn thực tế (Ví dụ: Gốc > Toán > Giải Tích)
+            const path = getPathToNode(TREE_DATA, id);
+            if (path) {
+                navStack = path;
+                // Đảm bảo tất cả các thư mục cha trên đường dẫn này đều được xổ ra
+                path.forEach(p => expandedNodes.add(p.id));
+            } else {
+                navStack = [{ id, name }];
+            }
+
+            setTreeActive(id);
+            renderBreadcrumb();
+
+            document.getElementById('rootLanding').style.display = 'none';
+            document.getElementById('dynamicContent').style.display = 'block';
+
+            // Cập nhật toolbars tạo mới
+            document.getElementById('btnNewFolder').onclick = () => openCatModal(id);
+            document.getElementById('btnNewQuiz').onclick = () => openQuizCreate(id);
+
+            loadFolderContent(id);
+        }
+
+        function navigateFromBreadcrumb(idx) {
+            if (idx < 0) { navigateToRoot(); return; }
+            const item = navStack[idx];
+            navigateTo(item.id, item.name); // Click trên thanh đường dẫn sẽ điều hướng như bình thường
+        }
+
+        function renderBreadcrumb() {
+            let html = `<span class="bc-item" onclick="navigateToRoot()"><i class="bi bi-house-fill"></i></span>`;
+            navStack.forEach((item, i) => {
+                const parentId = i > 0 ? navStack[i - 1].id : null;
+                const siblings = getChildrenOf(parentId);
+
+                let siblingHtml = '';
+                let hasSiblings = siblings && siblings.length > 1;
+                if (hasSiblings) {
+                    siblingHtml = `<div class="bc-dropdown" onclick="event.stopPropagation()">
+                ${siblings.map(s => `<div class="bc-dropdown-item ${s.id === item.id ? 'active' : ''}" onclick="navigateTo(${s.id}, '${escJs(s.name)}')">${esc(s.name)}</div>`).join('')}
+            </div>`;
+                }
+
+                html += `<span class="bc-sep ${hasSiblings ? 'bc-sep-hoverable' : ''}" ${hasSiblings ? 'style="cursor:pointer;" onclick="toggleBcDropdown(event, this)"' : ''}>
+            <i class="bi bi-chevron-right"></i>
+            ${siblingHtml}
+        </span>`;
+
+                if (i < navStack.length - 1)
+                    html += `<span class="bc-item" onclick="navigateFromBreadcrumb(${i})">${esc(item.name)}</span>`;
+                else
+                    html += `<span class="bc-item active">${esc(item.name)}</span>`;
+            });
+            document.getElementById('breadcrumb').innerHTML = html;
+        }
+
+        function getChildrenOf(parentId) {
+            if (!parentId) return TREE_DATA;
+            const parent = findNode(TREE_DATA, parentId);
+            return parent ? parent.children : [];
+        }
+
+        function toggleBcDropdown(e, el) {
+            e.stopPropagation();
+            document.querySelectorAll('.bc-dropdown').forEach(d => {
+                if (d !== el.querySelector('.bc-dropdown')) d.classList.remove('show');
+            });
+            const dropdown = el.querySelector('.bc-dropdown');
+            if (dropdown) dropdown.classList.toggle('show');
+        }
+
+        /* ══════════════════════════════════════════════
+           FOLDER CONTENT
+        ══════════════════════════════════════════════ */
+        async function loadFolderContent(catId) {
+            const dc = document.getElementById('dynamicContent');
+            dc.innerHTML = `<div class="quiz-grid">${[1, 2, 3].map(() => `<div class="skeleton" style="height:180px;border-radius:16px;"></div>`).join('')}</div>`;
+
+            const token = localStorage.getItem('token');
+            const node = findNode(TREE_DATA, catId);
+            const subs = node ? (node.children || []) : [];
+
+            let quizzes = [];
+            try {
+                const suffix = MODE === 'mine' ? '/quizzes/mine' : '/quizzes/public';
+                const res = await fetch(`/api/teacher/categories/${catId}${suffix}`,
+                    { headers: { Authorization: 'Bearer ' + token } });
+                if (res.ok) quizzes = await res.json();
+            } catch (_) { }
+
+            renderFolderContent(dc, subs, quizzes, catId);
+        }
+
+        function renderFolderContent(container, subs, quizzes, parentId) {
+            let html = '';
+
+            // Quizzes
+            if (quizzes.length > 0) {
+                html += `<p class="section-title"><i class="bi bi-file-earmark-text me-1"></i> Đề thi / Quiz (${quizzes.length})</p>`;
+                html += `<div class="quiz-grid">`;
+                quizzes.forEach(q => { html += quizCardHtml(q); });
+                html += `</div>`;
+            }
+
+            // Empty
+            if (quizzes.length === 0 && subs.length === 0) {
+                html = `<div class="empty-root">
+            <div class="empty-root-icon"><i class="bi bi-file-earmark-x"></i></div>
+            <h3>Thư mục trống</h3>
+            <p>${OWN_MODE ? 'Hãy thêm thư mục con hoặc tạo đề thi mới vào đây.' : 'Thư mục này hiện chưa có đề thi nào.'}</p>
+            ${OWN_MODE ? `<div style="display:flex;gap:12px;margin-top:8px;">
+                <button class="btn-tool btn-new-folder" onclick="openCatModal(${parentId})"><i class="bi bi-folder-plus"></i> Thêm thư mục con</button>
+                <button class="btn-tool btn-new-quiz"   onclick="openQuizCreate(${parentId})"><i class="bi bi-file-earmark-plus-fill"></i> Tạo đề thi</button>
+            </div>` : ''}
+        </div>`;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function quizCardHtml(q) {
+            const typeBadge = q.isExam
+                ? `<span class="qbadge qbadge-exam"><i class="bi bi-mortarboard-fill"></i> Đề thi</span>`
+                : `<span class="qbadge qbadge-quiz"><i class="bi bi-journal-check"></i> Quiz</span>`;
+            const statusBadge = q.isDraft
+                ? `<span class="qbadge qbadge-draft"><i class="bi bi-cone-striped"></i> Bản nháp</span>`
+                : `<span class="qbadge qbadge-pub"><i class="bi bi-check-circle-fill"></i> Xuất bản</span>`;
+
+            const actions = OWN_MODE
+                ? `<div class="quiz-actions">
+             <a class="qact qact-edit" href="/teacher/quizzes/${q.id}/edit"><i class="bi bi-pencil-square"></i> Sửa</a>
+             <a class="qact qact-view" href="/teacher/quizzes/${q.id}/preview"><i class="bi bi-eye"></i> Xem</a>
+             <button class="qact qact-del" onclick="deleteQuiz('${q.id}')"><i class="bi bi-trash3"></i></button>
+           </div>`
+                : `<div class="quiz-actions">
+             <a class="qact qact-view" style="flex:1;" href="/teacher/quizzes/${q.id}/preview"><i class="bi bi-eye"></i> Xem thử</a>
+           </div>`;
+
+            return `<div class="quiz-card">
+        <div class="quiz-badge-row">${typeBadge} ${statusBadge}</div>
+        <h3 class="quiz-title">${esc(q.title) || '(Chưa có tiêu đề)'}</h3>
+        <p class="quiz-desc">${esc(q.description) || '<span style="color:#cbd5e1;font-style:italic;">Chưa có mô tả.</span>'}</p>
+        <div class="quiz-chips">
+            <span class="chip"><i class="bi bi-list-check text-success"></i> ${q.questionCount} câu</span>
+            ${q.creatorName ? `<span class="chip"><i class="bi bi-person text-primary"></i> ${esc(q.creatorName)}</span>` : ''}
+        </div>
+        ${actions}
+    </div>`;
+        }
+
+        /* ══════════════════════════════════════════════
+           CATEGORY CRUD
+        ══════════════════════════════════════════════ */
+        function openCatModal(parentId) {
+            document.getElementById('catEditId').value = '';
+            document.getElementById('catParentId').value = parentId || '';
+            document.getElementById('catModalTitle').textContent = parentId ? 'Tạo thư mục con' : 'Tạo danh mục mới';
+            document.getElementById('catNameInput').value = '';
+            document.getElementById('catDescInput').value = '';
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('catModal')).show();
+        }
+
+        function openEditCatModal(id, name, desc, parentId) {
+            document.getElementById('catEditId').value = id;
+            document.getElementById('catParentId').value = parentId || '';
+            document.getElementById('catModalTitle').textContent = 'Sửa danh mục';
+            document.getElementById('catNameInput').value = name;
+            document.getElementById('catDescInput').value = desc || '';
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('catModal')).show();
+        }
+
+        async function submitCategory() {
+            const token = localStorage.getItem('token');
+            const editId = document.getElementById('catEditId').value;
+            const parentId = document.getElementById('catParentId').value;
+            const name = document.getElementById('catNameInput').value.trim();
+            const desc = document.getElementById('catDescInput').value.trim();
+            const isPublic = false; // Teacher cannot set isPublic
+
+            if (!name) { showToast('Vui lòng nhập tên danh mục!', 'err'); return; }
+
+            const isEdit = !!editId;
+            const url = isEdit ? `/api/teacher/categories/${editId}` : '/api/teacher/categories';
+            const method = isEdit ? 'PUT' : 'POST';
+
+            try {
+                const res = await fetch(url, {
+                    method, headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, description: desc, parentId: parentId ? parseInt(parentId) : null, isPublic })
+                });
+                if (!res.ok) { const e = await res.json(); throw new Error(e.message || 'Lỗi'); }
+
+                bootstrap.Modal.getInstance(document.getElementById('catModal')).hide();
+                showToast(isEdit ? 'Đã cập nhật danh mục!' : 'Tạo danh mục thành công!', 'ok');
+
+                // 🌟 Tự động ghi nhớ phải xổ thư mục cha ra
+                if (parentId) {
+                    expandedNodes.add(parseInt(parentId));
+                }
+
+                await loadTree();
+                restoreTreeState();
+
+                // 🌟 Điều hướng ngay lập tức vào thư mục cha để nội dung bên phải được Refresh,
+                // cho phép bạn thấy ngay thư mục con vừa tạo y hệt Windows Explorer.
+                if (parentId) {
+                    const parentNode = findNode(TREE_DATA, parseInt(parentId));
+                    if (parentNode) navigateTo(parentNode.id, parentNode.name);
+                } else if (navStack.length > 0) {
+                    loadFolderContent(navStack[navStack.length - 1].id);
+                } else {
+                    navigateToRoot();
+                }
+            } catch (e) { showToast(e.message, 'err'); }
+        }
+
+        function openDelCatModal(id) {
+            document.getElementById('delCatId').value = id;
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('delCatModal')).show();
+        }
+
+        async function confirmDelCat() {
+            const token = localStorage.getItem('token');
+            const id = document.getElementById('delCatId').value;
+            try {
+                const res = await fetch(`/api/teacher/categories/${id}`, {
+                    method: 'DELETE', headers: { Authorization: 'Bearer ' + token }
+                });
+                if (!res.ok) { const e = await res.json(); throw new Error(e.message || 'Lỗi'); }
+                bootstrap.Modal.getInstance(document.getElementById('delCatModal')).hide();
+                showToast('Đã xóa danh mục!', 'ok');
+                const curId = navStack.length > 0 ? navStack[navStack.length - 1].id : null;
+                if (String(curId) === String(id)) navigateFromBreadcrumb(navStack.length - 2);
+                await loadTree();
+                restoreTreeState();
+            } catch (e) { showToast(e.message, 'err'); }
+        }
+
+        /* ══════════════════════════════════════════════
+           DRAG & DROP
+        ══════════════════════════════════════════════ */
+        let draggedNodeId = null;
+
+        function handleDragStart(e, id) {
+            if (!OWN_MODE) return;
+            draggedNodeId = id;
+            e.dataTransfer.effectAllowed = 'move';
+            setTimeout(() => e.target.classList.add('dragging'), 0);
+        }
+
+        function handleDragOver(e) {
+            if (!OWN_MODE) return;
+            e.preventDefault(); // Cho phép drop
+            e.currentTarget.classList.add('drag-over');
+            e.dataTransfer.dropEffect = 'move';
+        }
+
+        function handleDragLeave(e) {
+            if (!OWN_MODE) return;
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        async function handleDrop(e, targetParentId) {
+            if (!OWN_MODE) return;
+            e.stopPropagation();
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+
+            const el = document.querySelector('.tree-row.dragging');
+            if (el) el.classList.remove('dragging');
+
+            if (!draggedNodeId || draggedNodeId === targetParentId) return;
+
+            // Validate: Không được thả vào chính con/cháu của nó
+            const draggedNode = findNode(TREE_DATA, draggedNodeId);
+            if (!draggedNode) return;
+
+            if (targetParentId && isDescendant(draggedNode, targetParentId)) {
+                showToast('Không thể di chuyển danh mục vào bên trong thư mục con của nó!', 'err');
+                return;
+            }
+
+            // Gọi API update parentId
+            const token = localStorage.getItem('token');
+            try {
+                const payload = {
+                    name: draggedNode.name,
+                    description: draggedNode.description || '',
+                    parentId: targetParentId,
+                    isPublic: false
+                };
+                const res = await fetch(`/api/teacher/categories/${draggedNodeId}`, {
+                    method: 'PUT',
+                    headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error('Lỗi di chuyển danh mục');
+
+                showToast('Đã di chuyển danh mục!', 'ok');
+                if (targetParentId) expandedNodes.add(targetParentId);
+                await loadTree();
+                restoreTreeState();
+
+                // Điều hướng lại
+                if (targetParentId) {
+                    const parentNode = findNode(TREE_DATA, targetParentId);
+                    if (parentNode) navigateTo(parentNode.id, parentNode.name);
+                } else {
+                    navigateToRoot();
+                }
+            } catch (err) {
+                showToast(err.message, 'err');
+            } finally {
+                draggedNodeId = null;
+            }
+        }
+
+        function isDescendant(parent, childId) {
+            if (parent.id === childId) return true;
+            if (!parent.children) return false;
+            for (const child of parent.children) {
+                if (isDescendant(child, childId)) return true;
+            }
+            return false;
+        }
+
+        /* ══════════════════════════════════════════════
+           QUIZ ACTIONS
+        ══════════════════════════════════════════════ */
+        function openQuizCreate(catId) {
+            window.location.href = `/teacher/quizzes/create${catId ? '?categoryId=' + catId : ''}`;
+        }
+
+        async function deleteQuiz(id) {
+            if (!confirm('Xóa đề thi này? (Soft delete, không thể khôi phục)')) return;
+            const token = localStorage.getItem('token');
+            try {
+                const res = await fetch(`/api/teacher/quizzes/${id}`, {
+                    method: 'DELETE', headers: { Authorization: 'Bearer ' + token }
+                });
+                if (!res.ok) throw new Error('Lỗi xóa');
+                showToast('Đã xóa đề thi!', 'ok');
+                if (navStack.length > 0) loadFolderContent(navStack[navStack.length - 1].id);
+            } catch (e) { showToast(e.message, 'err'); }
+        }
+
+        /* ══════════════════════════════════════════════
+           UTILS
+        ══════════════════════════════════════════════ */
+        function findNode(nodes, id) {
+            for (const n of nodes) {
+                if (n.id === id) return n;
+                if (n.children) { const f = findNode(n.children, id); if (f) return f; }
+            }
+            return null;
+        }
+        function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+        function escJs(s) { return s ? s.replace(/'/g, "\\'").replace(/"/g, '\\"') : ''; }
+        function showToast(msg, type = 'ok') {
+            const w = document.getElementById('toastWrap');
+            const t = document.createElement('div');
+            t.className = `toast-msg ${type}`;
+            t.innerHTML = `<i class="bi ${type === 'ok' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${msg}`;
+            w.appendChild(t);
+            setTimeout(() => t.classList.add('show'), 10);
+            setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3500);
+        }
+        function initResize() {
+            const handle = document.getElementById('resizeHandle');
+            const panel = document.getElementById('treePanel');
+            let dragging = false, startX, startW;
+            handle.addEventListener('mousedown', e => {
+                dragging = true; startX = e.clientX; startW = panel.offsetWidth;
+                document.body.style.cursor = 'col-resize'; document.body.style.userSelect = 'none';
+            });
+            document.addEventListener('mousemove', e => {
+                if (!dragging) return;
+                panel.style.width = Math.max(160, Math.min(420, startW + e.clientX - startX)) + 'px';
+            });
+            document.addEventListener('mouseup', () => {
+                dragging = false; document.body.style.cursor = ''; document.body.style.userSelect = '';
+            });
+        }
     </script>
 </body>
+
 </html>

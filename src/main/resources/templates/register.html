@@ -183,7 +183,7 @@
                         const role = JSON.parse(userJson).role;
                         if (role === 'ADMIN') window.location.replace('/admin');
                         else if (role === 'TEACHER') window.location.replace('/teacher');
-                        else window.location.replace('/student');
+                        else window.location.replace('/student/home');
                     }
                 } catch (_) { }
             }
@@ -412,7 +412,7 @@
                 showToast('Đăng ký thành công! Đang chuyển hướng...', 'success');
                 setTimeout(() => {
                     if (selectedRole === 'TEACHER') window.location.replace('/teacher');
-                    else window.location.replace('/student');
+                    else window.location.replace('/student/home');
                 }, 1200);
 
             } catch (_) {

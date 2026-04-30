@@ -25,6 +25,7 @@ public class CategoryResponseDTO {
     List<CategoryResponseDTO> children;
     Boolean isPublic;
     Boolean isOwner;
+    long quizCount;   // số quiz trong danh mục (public hoặc personal tuỳ context)
 
     // Constructor từ entity — dùng trong getAllCategories (xây cây thủ công)
     public CategoryResponseDTO(Category category) {
@@ -33,7 +34,8 @@ public class CategoryResponseDTO {
         this.description = category.getDescription();
         this.isPublic = category.getIsPublic();
         this.parentId = (category.getParent() != null) ? category.getParent().getId() : null;
-        this.isOwner = category.getCreator() != null && category.getCreator().getId().equals(category.getCreator().getId());
+        this.isOwner = false; // được set bởi service nếu cần
         this.children = new ArrayList<>();
+        this.quizCount = 0;
     }
 }
