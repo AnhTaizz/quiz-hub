@@ -46,7 +46,7 @@ public class Question {
     @Column(nullable = false)
     QuestionType type;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = false, columnDefinition = "TEXT")
     String text;
 
     @ManyToOne(fetch = FetchType.LAZY)
