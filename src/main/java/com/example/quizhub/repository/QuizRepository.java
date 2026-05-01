@@ -27,4 +27,6 @@ public interface QuizRepository extends JpaRepository<Quiz, UUID> {
 
     /** Đếm quiz cá nhân theo danh mục */
     long countByCategoryIdAndCreatorId(Long categoryId, Long creatorId);
+
+    long countByCategoryId(Long categoryId);
 }

@@ -216,7 +216,7 @@ img {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  transition: all 0.4s ease;
+  transition: background-color 0.4s ease, box-shadow 0.4s ease, padding-top 0.4s ease, padding-bottom 0.4s ease;
   padding: 12px 0;
 }
 
@@ -256,7 +256,7 @@ img {
 }
 
 /* Nav links */
-.navbar ul {
+.navbar > ul {
   display: flex;
   align-items: center;
   gap: 6px;

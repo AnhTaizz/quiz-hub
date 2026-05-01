@@ -35,15 +35,14 @@ def process_file(file_path, subject_name):
         
     parent_cat_id = global_cat_id
     global_cat_id += 1
-    
-    sql.append(f"INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES ({parent_cat_id}, '{subject_name}', 9999, false, NULL);")
+    sql.append(f"INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES ({parent_cat_id}, '{subject_name}', 9999, true, NULL);")
     
     for chap, questions in chapters.items():
         cat_id = global_cat_id
         global_cat_id += 1
         cat_name = f"Chương {chap}"
         
-        sql.append(f"INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES ({cat_id}, '{cat_name}', 9999, false, {parent_cat_id});")
+        sql.append(f"INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES ({cat_id}, '{cat_name}', 9999, true, {parent_cat_id});")
         
         for q in questions:
             q_text = str(q['question']).replace("'", "''")

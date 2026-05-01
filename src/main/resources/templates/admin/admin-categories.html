@@ -872,7 +872,7 @@
 
         <div class="menu-title">Quản trị Hệ thống</div>
         <ul class="nav-menu">
-            <li><a href="/admin/dashboard" class="active" data-title="Dashboard"><i class="bi bi-grid-1x2-fill"></i>
+            <li><a href="/admin" data-title="Dashboard"><i class="bi bi-grid-1x2-fill"></i>
                     <span>Tổng quan</span></a></li>
             <li><a href="/admin/users" data-title="Tài khoản"><i class="bi bi-people-fill"></i> <span>Quản lý Tài
                         khoản</span></a></li>
@@ -916,6 +916,8 @@
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i> Hồ sơ cá nhân</a>
+                    </li>
+                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key me-2"></i> Đổi mật khẩu</a>
                     </li>
                     <li>
                         <hr class="dropdown-divider">
@@ -1119,7 +1121,7 @@ function initMode() {
    TREE
 ══════════════════════════════════════════════ */
 async function loadTree() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     const api   = '/api/admin/categories';
     try {
         const res = await fetch(api, { headers: { Authorization: 'Bearer ' + token } });
@@ -1373,7 +1375,7 @@ async function loadFolderContent(catId) {
     const dc = document.getElementById('dynamicContent');
     dc.innerHTML = `<div class="quiz-grid">${[1,2,3].map(()=>`<div class="skeleton" style="height:180px;border-radius:16px;"></div>`).join('')}</div>`;
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     const node  = findNode(TREE_DATA, catId);
     const subs  = node ? (node.children || []) : [];
 
@@ -1465,7 +1467,7 @@ function openEditCatModal(id, name, desc, parentId) {
 }
 
 async function submitCategory() {
-    const token   = localStorage.getItem('token');
+    const token   = localStorage.getItem('token') || sessionStorage.getItem('token');
     const editId  = document.getElementById('catEditId').value;
     const parentId = document.getElementById('catParentId').value;
     const name    = document.getElementById('catNameInput').value.trim();
@@ -1515,7 +1517,7 @@ function openDelCatModal(id) {
 }
 
 async function confirmDelCat() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     const id    = document.getElementById('delCatId').value;
     try {
         const res = await fetch(`/api/admin/categories/${id}`, {
@@ -1576,7 +1578,7 @@ async function handleDrop(e, targetParentId) {
     }
 
     // Gọi API update parentId
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     try {
         const payload = {
             name: draggedNode.name,
@@ -1628,7 +1630,7 @@ function openQuizCreate(catId) {
 
 async function deleteQuiz(id) {
     if (!confirm('Xóa đề thi này? (Soft delete, không thể khôi phục)')) return;
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     try {
         const res = await fetch(`/api/teacher/quizzes/${id}`, {
             method: 'DELETE', headers: { Authorization: 'Bearer ' + token }
@@ -1677,6 +1679,8 @@ function initResize() {
     });
 }
 </script>
+    <div th:replace="~{layout/header :: changePasswordModal}"></div>
+    <script th:replace="~{layout/header :: change-password-script}"></script>
 </body>
 </html>
 

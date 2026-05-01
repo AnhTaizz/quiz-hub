@@ -58,4 +58,10 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     // Tìm các câu hỏi đang chờ duyệt để Admin xử lý
     Page<Question> findByQuestionStatus(QuestionStatus status, Pageable pageable);
+
+    long countByQuestionStatus(QuestionStatus status);
+
+    long countByCategoryId(Long categoryId);
+
+    java.util.List<Question> findTop5ByQuestionStatusOrderByIdDesc(QuestionStatus status);
 }

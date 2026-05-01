@@ -154,17 +154,19 @@ document.addEventListener('DOMContentLoaded', function () {
             const userLi = document.createElement('li');
             userLi.className = 'dropdown ms-lg-3';
             userLi.innerHTML = `
-                <a href="#" class="nav-btn-user">
+                <a href="#" class="nav-btn-user" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="bi bi-person-circle"></i>
-                    <span>${user.fullName}</span>
+                    <span class="d-none d-md-inline">${user.fullName}</span>
                     <i class="bi bi-chevron-down ms-1" style="font-size: 12px;"></i>
                 </a>
-                <ul class="dropdown-menu">
-                    <li><a href="/profile"><i class="bi bi-person"></i> Hồ sơ</a></li>
-                    ${user.role === 'ADMIN' ? '<li><a href="/admin"><i class="bi bi-speedometer2"></i> Quản trị</a></li>' : ''}
-                    ${user.role === 'TEACHER' ? '<li><a href="/teacher"><i class="bi bi-journal-text"></i> Giảng dạy</a></li>' : ''}
+                <ul class="dropdown-menu dropdown-menu-end shadow" style="border:none; border-radius:12px; margin-top:10px;">
+                    <li><a class="dropdown-item py-2" href="/profile"><i class="bi bi-person me-2"></i> Hồ sơ cá nhân</a></li>
+                    ${user.role === 'ADMIN' ? '<li><a class="dropdown-item py-2" href="/admin"><i class="bi bi-speedometer2 me-2"></i> Quản trị</a></li>' : ''}
+                    ${user.role === 'TEACHER' ? '<li><a class="dropdown-item py-2" href="/teacher"><i class="bi bi-journal-text me-2"></i> Giảng dạy</a></li>' : ''}
+                    ${user.role === 'STUDENT' ? '<li><a class="dropdown-item py-2" href="/student"><i class="bi bi-book me-2"></i> Bảng điều khiển</a></li>' : ''}
+                    <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key me-2"></i> Đổi mật khẩu</a></li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><a href="#" id="logoutBtn" class="text-danger"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a></li>
+                    <li><a class="dropdown-item py-2 text-danger" href="#" id="logoutBtn"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
                 </ul>
             `;
             navUl.appendChild(userLi);

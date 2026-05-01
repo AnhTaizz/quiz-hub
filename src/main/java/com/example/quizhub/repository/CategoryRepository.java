@@ -30,4 +30,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
      */
     @Query("SELECT c FROM Category c LEFT JOIN FETCH c.parent WHERE c.creator.id = :creatorId")
     List<Category> findAllByCreatorIdWithParent(@Param("creatorId") Long creatorId);
+
+    long countByIsPublicTrue();
+
+    java.util.List<com.example.quizhub.entity.Category> findTop5ByIsPublicTrueOrderByIdDesc();
 }

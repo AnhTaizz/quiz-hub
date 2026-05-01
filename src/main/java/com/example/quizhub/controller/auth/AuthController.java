@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.quizhub.dto.auth.response.AuthResponse;
 import com.example.quizhub.dto.auth.request.AuthRequest;
-import com.example.quizhub.dto.auth.request.ChangePasswordRequest;
 import com.example.quizhub.dto.auth.request.RegisterRequest;
 import com.example.quizhub.dto.auth.request.ResetPasswordRequest;
 import com.example.quizhub.service.auth.AuthService;
@@ -41,13 +40,6 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody AuthRequest authRequest) {
         return ResponseEntity.ok(authService.login(authRequest));
-    }
-
-    @PostMapping("/change-password")
-    public ResponseEntity<String> changePassword(@Valid @RequestBody ChangePasswordRequest request,
-            Principal principal) {
-        authService.changePassword(request, principal.getName());
-        return ResponseEntity.ok("Đổi mật khẩu thành công!");
     }
 
     @PostMapping("/forgot-password")

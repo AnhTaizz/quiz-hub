@@ -678,7 +678,7 @@
 
         <div class="menu-title">Quản trị Hệ thống</div>
         <ul class="nav-menu">
-            <li><a href="/admin/dashboard" class="active" data-title="Dashboard"><i class="bi bi-grid-1x2-fill"></i>
+            <li><a href="/admin" class="active" data-title="Dashboard"><i class="bi bi-grid-1x2-fill"></i>
                     <span>Tổng quan</span></a></li>
             <li><a href="/admin/users" data-title="Tài khoản"><i class="bi bi-people-fill"></i> <span>Quản lý Tài
                         khoản</span></a></li>
@@ -724,6 +724,8 @@
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i> Hồ sơ cá nhân</a>
                     </li>
+                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key me-2"></i> Đổi mật khẩu</a>
+                    </li>
                     <li>
                         <hr class="dropdown-divider">
                     </li>
@@ -746,7 +748,7 @@
             <div class="stat-card">
                 <div class="stat-icon icon-blue"><i class="bi bi-people-fill"></i></div>
                 <div class="stat-info">
-                    <h2>1,250</h2>
+                    <h2 id="stat-users">...</h2>
                     <p>Tổng Tài khoản</p>
                 </div>
             </div>
@@ -754,7 +756,7 @@
             <div class="stat-card">
                 <div class="stat-icon icon-green"><i class="bi bi-diagram-3-fill"></i></div>
                 <div class="stat-info">
-                    <h2>45</h2>
+                    <h2 id="stat-categories">...</h2>
                     <p>Danh mục Public</p>
                 </div>
             </div>
@@ -762,7 +764,7 @@
             <div class="stat-card">
                 <div class="stat-icon icon-orange"><i class="bi bi-clipboard2-check-fill"></i></div>
                 <div class="stat-info">
-                    <h2>24</h2>
+                    <h2 id="stat-pending">...</h2>
                     <p>Chờ duyệt</p>
                 </div>
             </div>
@@ -770,7 +772,7 @@
             <div class="stat-card">
                 <div class="stat-icon icon-purple"><i class="bi bi-collection-fill"></i></div>
                 <div class="stat-info">
-                    <h2>5,420</h2>
+                    <h2 id="stat-questions">...</h2>
                     <p>Câu hỏi Hệ thống</p>
                 </div>
             </div>
@@ -794,7 +796,7 @@
                                 <th class="text-right">Hành động</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="moderation-tbody">
                             <tr>
                                 <td>
                                     <div class="td-bold">Câu hỏi: "Đâu là đặc điểm của Spring Boot?"</div>
@@ -856,7 +858,7 @@
                                 <th>Ngày tham gia</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="recent-users-tbody">
                             <tr>
                                 <td>
                                     <div class="td-bold">Nguyễn Hữu Anh Tài</div>
@@ -887,7 +889,7 @@
                             style="background: none; border: none; color: var(--blue); cursor: pointer; font-size: 18px;"><i
                                 class="bi bi-plus-circle-fill"></i></button>
                     </div>
-                    <ul class="cat-list">
+                    <ul class="cat-list" id="category-list">
                         <li class="cat-item">
                             <div class="cat-info">
                                 <h6>💻 Lập trình cơ sở</h6>
@@ -960,6 +962,80 @@
             }
         });
     </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/api/admin/dashboard/stats');
+                if (response.ok) {
+                    const data = await response.json();
+                    const formatNumber = (num) => num.toLocaleString('en-US');
+                    document.getElementById('stat-users').innerText = formatNumber(data.totalUsers);
+                    document.getElementById('stat-categories').innerText = formatNumber(data.totalPublicCategories);
+                    document.getElementById('stat-pending').innerText = formatNumber(data.pendingQuestions);
+                    document.getElementById('stat-questions').innerText = formatNumber(data.totalQuestions);
+                }
+            } catch (error) {
+                console.error("Error fetching dashboard stats:", error);
+            }
+        });
+
+        // Fetch Dashboard Details (Tables & Lists)
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/api/admin/dashboard/details');
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // Render Recent Users
+                    const userTbody = document.getElementById('recent-users-tbody');
+                    userTbody.innerHTML = data.recentUsers.map(u => `
+                        <tr>
+                            <td><div class="td-bold">${u.fullName}</div></td>
+                            <td>${u.email}</td>
+                            <td><span class="badge-role role-${u.role.toLowerCase()}">${u.role === 'TEACHER' ? 'Giáo viên' : u.role === 'STUDENT' ? 'Học sinh' : 'Admin'}</span></td>
+                            <td>${u.createdAt}</td>
+                        </tr>
+                    `).join('');
+                    if (data.recentUsers.length === 0) userTbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">Chưa có người dùng mới.</td></tr>';
+
+                    // Render Moderation
+                    const modTbody = document.getElementById('moderation-tbody');
+                    modTbody.innerHTML = data.pendingModeration.map(q => `
+                        <tr>
+                            <td>
+                                <div class="td-bold">${q.text.length > 60 ? q.text.substring(0, 60) + '...' : q.text}</div>
+                                <div class="td-sub"><i class="bi bi-question-circle me-1"></i>${q.type}</div>
+                            </td>
+                            <td>${q.creatorName}</td>
+                            <td><strong>${q.categoryName}</strong></td>
+                            <td class="text-right">
+                                <button class="btn-action-sm btn-approve me-1"><i class="bi bi-check-lg"></i> Duyệt</button>
+                                <button class="btn-action-sm btn-reject"><i class="bi bi-x-lg"></i></button>
+                            </td>
+                        </tr>
+                    `).join('');
+                    if (data.pendingModeration.length === 0) modTbody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-muted">Không có nội dung chờ duyệt.</td></tr>';
+
+                    // Render Categories
+                    const catList = document.getElementById('category-list');
+                    catList.innerHTML = data.categories.map(c => `
+                        <li class="cat-item">
+                            <div class="cat-info">
+                                <h6>${c.name}</h6>
+                                <p>${c.quizCount} Đề thi · ${c.questionCount} Câu hỏi</p>
+                            </div>
+                            <i class="bi bi-three-dots-vertical"></i>
+                        </li>
+                    `).join('');
+                    if (data.categories.length === 0) catList.innerHTML = '<li class="text-center py-3 text-muted">Chưa có danh mục.</li>';
+                }
+            } catch (error) {
+                console.error("Error fetching dashboard details:", error);
+            }
+        });
+    </script>
+    <div th:replace="~{layout/header :: changePasswordModal}"></div>
+    <script th:replace="~{layout/header :: change-password-script}"></script>
 </body>
 
 </html>

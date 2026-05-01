@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 import com.example.quizhub.dto.auth.response.AuthResponse;
 import com.example.quizhub.dto.auth.request.AuthRequest;
-import com.example.quizhub.dto.auth.request.ChangePasswordRequest;
 import com.example.quizhub.dto.auth.request.RegisterRequest;
 import com.example.quizhub.dto.auth.request.ResetPasswordRequest;
 import com.example.quizhub.entity.User;
@@ -92,23 +91,6 @@ public class AuthServiceImpl implements AuthService {
                 .role(user.getRole())
                 .avatarUrl(user.getAvatarUrl())
                 .build();
-    }
-
-    @Override
-    public void changePassword(ChangePasswordRequest request, String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-            throw new AppException(ErrorCode.WRONG_PASSWORD);
-        }
-        if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
-            throw new AppException(ErrorCode.PASSWORD_MISMATCH);
-        }
-        if (request.getNewPassword().equals(request.getOldPassword())) {
-            throw new AppException(ErrorCode.PASSWORD_SAME);
-        }
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
-        userRepository.save(user);
     }
 
     @Override

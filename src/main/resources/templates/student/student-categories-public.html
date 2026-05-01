@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function loadRoot() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     try {
         const res = await fetch(CAT_API, { headers: { Authorization: 'Bearer ' + token } });
         if (!res.ok) throw new Error('Lỗi tải danh mục');
@@ -409,7 +409,7 @@ async function loadCategory(id) {
         <div class="quiz-grid">${[1,2,3].map(()=>`<div class="skeleton skeleton-quiz"></div>`).join('')}</div>
     `;
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     const node = findNode(TREE_DATA, id);
     const subCats = node ? (node.children || []) : [];
 
@@ -470,7 +470,7 @@ async function loadCategory(id) {
 }
 
 async function startAttempt(quizId, title, btn) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     const orig = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang nạp...';

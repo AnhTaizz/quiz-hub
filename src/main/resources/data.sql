@@ -5,8 +5,8 @@ DELETE FROM _user WHERE id IN (9997, 9998, 9999);
 INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified) VALUES (9999, 'TEACHER', 'teacher@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Teacher JSON', true, true);
 INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified) VALUES (9998, 'ADMIN', 'admin@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Admin Quản Trị', true, true);
 INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified) VALUES (9997, 'STUDENT', 'student@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Student Học Sinh', true, true);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90000, 'Môn Tư tưởng Hồ Chí Minh', 9999, false, NULL);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90001, 'Chương 1', 9999, false, 90000);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90000, 'Môn Tư tưởng Hồ Chí Minh', 9999, true, NULL);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90001, 'Chương 1', 9999, true, 90000);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (90000, 'Khái niệm “Tư tưởng Hồ Chí Minh” không bao gồm nội dung nào sau', 'MULTIPLE_CHOICE', 90001, 9999, 'PRIVATE');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90000, 'Hệ thống các quan điểm lý luận, phản ánh những vấn đề có tính quy luật của cách mạng Việt Nam.', false, 90000);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90001, 'Nguồn gốc tư tưởng, lý luận của tư tưởng Hồ Chí Minh: chủ nghĩa Mác – Lênin; giá trị văn hoá dân tộc, tinh hoa văn hoá nhân loại.', false, 90000);
@@ -356,7 +356,7 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90275, 'Con bạ
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90276, 'Con rồng tre', false, 90069);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90277, 'Con đỉa 2 vòi', true, 90069);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90278, 'Con voi', false, 90069);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90002, 'Chương 2', 9999, false, 90000);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90002, 'Chương 2', 9999, true, 90000);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (90070, 'Ai là người có công lớn giúp Hồ Chí Minh thoát ra khỏi nhà tù của thực dân Anh ở Hồng Kông (1931 - 1933)?', 'MULTIPLE_CHOICE', 90002, 9999, 'PRIVATE');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90279, 'Luật sư Francis Henry Loseby.', true, 90070);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90280, 'Tống Khánh Linh.', false, 90070);
@@ -606,7 +606,7 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90474, 'Hồ Ch�
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90475, 'Hồ Chí Minh coi ngoại lực là quyết định.', false, 90119);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90476, 'Hồ Chí Minh coi nội lực và ngoại lực là như nhau.', false, 90119);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90477, 'Hồ Chí Minh coi nội lực là quyết định nhất, ngoại lực là rất quan trọng.', true, 90119);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90003, 'Chương 3', 9999, false, 90000);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90003, 'Chương 3', 9999, true, 90000);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (90120, 'Hồ Chí Minh nói tới văn kiện nào trong câu sau: “Hỡi đồng bào bị đọa đày đau khổ! Đây là cái cần thiết cho chúng ta, đây là con đường giải phóng chúng ta”?', 'MULTIPLE_CHOICE', 90003, 9999, 'PRIVATE');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90478, 'Sơ thảo lần thứ nhất những luận cương về vấn đề dân tộc và vấn đề thuộc địa của', true, 90120);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90479, 'Nghị quyết Đại hội V Quốc tế Cộng sản.', false, 90120);
@@ -856,7 +856,7 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90673, 'Từ 5 �
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90674, 'Từ 5 đến 15 năm.', false, 90169);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90675, 'Từ 5 đến 20 năm.', true, 90169);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90676, 'Từ 10 đến 20 năm.', false, 90169);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90004, 'Chương 4', 9999, false, 90000);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90004, 'Chương 4', 9999, true, 90000);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (90170, 'So với học thuyết Mác - Lênin, Hồ Chí Minh đã bổ sung yếu tố nào trong sự thành lập Đảng Cộng sản Việt Nam?', 'MULTIPLE_CHOICE', 90004, 9999, 'PRIVATE');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90677, 'Phong trào dân chủ.', false, 90170);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90678, 'Phong trào yêu nước.', true, 90170);
@@ -1106,7 +1106,7 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90872, 'Khoa h�
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90873, 'Văn hóa.', true, 90219);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90874, 'Xã hội.', false, 90219);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90875, 'Kinh tế.', false, 90219);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90005, 'Chương 5', 9999, false, 90000);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90005, 'Chương 5', 9999, true, 90000);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (90220, 'Phương án nào sau đây không phải của Hồ Chí Minh về phương châm, phương pháp giáo dục?', 'MULTIPLE_CHOICE', 90005, 9999, 'PRIVATE');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90876, 'Học đi đôi với hành. Lý luận liên hệ với thực tế.', false, 90220);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (90877, 'Học tập kết hợp với lao động. Phối hợp nhà trường - gia đình - xã hội.', false, 90220);
@@ -1407,8 +1407,8 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91112, 'Sửa đ
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91113, 'Di chúc (1965-1969).', false, 90279);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91114, 'Đạo đức cách mạng (1958).', false, 90279);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91115, 'Người cán bộ cách mạng (1955).', false, 90279);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90006, 'Môn Mạng Máy Tính', 9999, false, NULL);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90007, 'Chương 1', 9999, false, 90006);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90006, 'Môn Mạng Máy Tính', 9999, true, NULL);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90007, 'Chương 1', 9999, true, 90006);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (90280, 'Các mạng máy tính được thiết kế và cài đặt theo quan điểm:', 'MULTIPLE_CHOICE', 90007, 9999, 'PRIVATE');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91116, 'Có cấu trúc đa tầng', true, 90280);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91117, 'Nhiều tầng', false, 90280);
@@ -1698,7 +1698,7 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91343, 'Toàn b�
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91344, 'Hai kênh truyền thông cùng phân chia giải thông của đường truyền', false, 90337);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91345, 'Ba kênh truyền thông cùng phân chia giải thông của đường truyền', false, 90337);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91346, 'Nhiều kênh truyền thông cùng phân chia giải thông của đường truyền', true, 90337);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90008, 'Chương 2', 9999, false, 90006);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90008, 'Chương 2', 9999, true, 90006);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (90338, 'Thứ tự của các tầng trong mô hình tham chiếu OSI:', 'MULTIPLE_CHOICE', 90008, 9999, 'PRIVATE');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91347, 'Physical, Data Link, Network, Transport, System, Presentation, Application', false, 90338);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91348, 'Physical, Data Link, Network, Transport, Session, Presentation, Application', true, 90338);
@@ -1854,7 +1854,7 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91467, 'Tạo kh
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91468, 'Đóng gói dữ liệu', false, 90368);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91469, 'Cung cấp các phương tiện để người dùng có thể truy nhập được vào môi trường mạng', true, 90368);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91470, 'Vận chuyển thông tin giữa các máy chủ (End to End)', false, 90368);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90009, 'Chương 3', 9999, false, 90006);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90009, 'Chương 3', 9999, true, 90006);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (90369, 'FTP là từ viết tắt của:', 'MULTIPLE_CHOICE', 90009, 9999, 'PRIVATE');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91471, 'File Transfer Protocol', true, 90369);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91472, 'Folder Transfer Protocol', false, 90369);
@@ -2045,7 +2045,7 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91619, '(name, v
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91620, '(value, name, ttl, type)', false, 90406);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91621, '(value, ttl, name, type)', false, 90406);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91622, '(name, type, ttl, value)', false, 90406);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90010, 'Chương 4', 9999, false, 90006);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90010, 'Chương 4', 9999, true, 90006);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (90407, 'Những giao thức nào sau đây thuộc tầng vận chuyển (Transport Layer) trong mô hình TCP/IP:', 'MULTIPLE_CHOICE', 90010, 9999, 'PRIVATE');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91623, 'UDP', false, 90407);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91624, 'IP', false, 90407);
@@ -2216,7 +2216,7 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91755, 'Kiến t
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91756, 'Các thiết bị mạng (router, switch, hub,…)', false, 90440);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91757, 'Các đặc tính của kênh truyền', true, 90440);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91758, 'Khoảng cách giữa các hosts', false, 90440);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90011, 'Chương 5', 9999, false, 90006);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90011, 'Chương 5', 9999, true, 90006);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (90441, 'Byte đầu tiên của một địa chỉ IP có dạng: 11100001. Vậy nó thuộc lớp nào:', 'MULTIPLE_CHOICE', 90011, 9999, 'PRIVATE');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91759, 'Lớp B', false, 90441);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91760, 'Lớp C', false, 90441);
@@ -2502,7 +2502,7 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91983, '2001:F68
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91984, '2001:F68::1986:69AF', false, 90497);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91985, 'Cả hai biểu diễn trên đều đúng', true, 90497);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91986, 'Cả hai biểu diễn trên đều sai', false, 90497);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90012, 'Chương 6', 9999, false, 90006);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90012, 'Chương 6', 9999, true, 90006);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (90498, 'Frame là dữ liệu ở tầng:', 'MULTIPLE_CHOICE', 90012, 9999, 'PRIVATE');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91987, 'Physical', false, 90498);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (91988, 'Network', false, 90498);
@@ -2728,7 +2728,7 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92163, 'TCP/IP',
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92164, 'IPX/SPX', false, 90542);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92165, 'NetBEUI', false, 90542);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92166, 'Tất cả', true, 90542);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90013, 'Chương 7', 9999, false, 90006);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90013, 'Chương 7', 9999, true, 90006);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (90543, 'Bảo vệ các tài nguyên thông tin trên mạng là cần thiết và cấp bách, vì:', 'MULTIPLE_CHOICE', 90013, 9999, 'PRIVATE');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92167, 'Các máy tính được nối thành mạng', false, 90543);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92168, 'Nhiều người sử dụng và phân tán về mặt vật lý', true, 90543);
@@ -2779,7 +2779,7 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92203, 'Mã hóa
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92204, 'Mã hóa khóa công khai', true, 90552);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92205, 'Cả mã hóa khóa đối xứng và mã hóa khóa công khai', false, 90552);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92206, 'Tất cả các phương án trên đều sai', false, 90552);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90014, 'Chương 8', 9999, false, 90006);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90014, 'Chương 8', 9999, true, 90006);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (90553, 'Sử dụng lệnh IPconfig khi muốn:', 'MULTIPLE_CHOICE', 90014, 9999, 'PRIVATE');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92207, 'Xác định đường đi của các gói tin từ nguồn đến đích', false, 90553);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92208, 'Biết trạng thái cấu hình TCP/IP của máy tính (cấu hình về các card mạng)', true, 90553);
@@ -2900,8 +2900,8 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92299, 'Bấm th
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92300, 'Đổi vị trí các sợi 1, 2 với sợi 3, 6', false, 90576);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92301, 'Một đầu bấm theo chuẩn TIA/EIA T-568A, đầu kia theo chuẩn TIA/EIA T568-B', false, 90576);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92302, 'Tất cả đều sai', false, 90576);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90015, 'Môn Pháp Luật Đại Cương', 9999, false, NULL);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90016, 'Chương 1', 9999, false, 90015);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90015, 'Môn Pháp Luật Đại Cương', 9999, true, NULL);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90016, 'Chương 1', 9999, true, 90015);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (90577, 'Theo quan điểm của chủ nghĩa Mác-Lênin thì nguyên nhân chủ yếu làm xuất hiện Nhànước là?', 'MULTIPLE_CHOICE', 90016, 9999, 'PRIVATE');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92303, 'Do có sự phân hóa lao động trong xã hội', false, 90577);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92304, 'Do có sự phân hóa giai cấp và đấu tranh giai cấp trong xã hội', true, 90577);
@@ -3742,7 +3742,7 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92971, 'Quyền 
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92972, 'Quyền ban hành pháp luật', false, 90744);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92973, 'Quyền tổ chức thực hiện pháp luật', false, 90744);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92974, 'Quyền bảo vệ pháp luật', true, 90744);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90017, 'Chương 2', 9999, false, 90015);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90017, 'Chương 2', 9999, true, 90015);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (90745, 'Đạo luật nào dưới đây quy định một cách cơ bản về chế độ chính trị, chế độ kinh tế, văn hóa, xã hội và tổ chức bộ máy nhà nước:', 'MULTIPLE_CHOICE', 90017, 9999, 'PRIVATE');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92975, 'Luật tổ chức Quốc hội', false, 90745);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (92976, 'Luật tổ chức Chính phủ', false, 90745);
@@ -4352,7 +4352,7 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (93458, 'Nhiều 
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (93459, 'Không có giai cấp và không có đấu tranh giai cấp.', true, 90866);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (93460, 'Nhiều tội phạm.', false, 90866);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (93461, 'Sự phát triển kinh tế hàng hóa.', false, 90866);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90018, 'Chương 3', 9999, false, 90015);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90018, 'Chương 3', 9999, true, 90015);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (90867, 'Vùng biển Bắc cực được luật lệ Công pháp quốc tế xác định theo phương án nào sau đây ?', 'MULTIPLE_CHOICE', 90018, 9999, 'PRIVATE');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (93462, 'Các quốc gia giáp với vùng Bắc cực có được một phần nội thủy và lãnh hải có chiều rộng 12 hải lý tính từ ranh giới quốc gia hướng tới Bắc cực;', false, 90867);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (93463, 'Các quốc gia vành đai giáp với Bắc cực có được một phần lãnh thổ theo quy tắc phù hợp với Công pháp quốc tế tính từ mốc quốc giới ngoài cùng của quốc gia hướng tới tâm Bắc cực;', true, 90867);
@@ -4592,7 +4592,7 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (93649, 'Tính th
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (93650, 'Tính toàn diện, tính đồng bộ, tính phù hợp, trình độ kỹ thuật pháp lý cao', false, 90914);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (93651, 'Tính đầy đủ, tính hợp lý, tính thống nhất, trình độ kỹ thuật pháp lý cao', false, 90914);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (93652, 'Cả a, c đều đúng', true, 90914);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90019, 'Chương 4', 9999, false, 90015);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90019, 'Chương 4', 9999, true, 90015);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (90915, 'Tên gọi Liên minh châu Âu (EU) có từ năm nào sau đây?</p>', 'MULTIPLE_CHOICE', 90019, 9999, 'PRIVATE');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (93653, '1963.', true, 90915);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (93654, 'B. 1973', false, 90915);
@@ -4758,7 +4758,7 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (93781, 'Cá nhâ
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (93782, 'Pháp nhân', false, 90947);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (93783, 'Tổ chức', false, 90947);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (93784, 'Hộ gia đình', false, 90947);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90020, 'Chương 5', 9999, false, 90015);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90020, 'Chương 5', 9999, true, 90015);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (90948, 'Quá trình hoạt động có mục đích nhằm đưa pháp luật vào cuộc sống, trở thànhhành vi thực tế hợp pháp của các chủ thể pháp luật, gọi là?', 'MULTIPLE_CHOICE', 90020, 9999, 'PRIVATE');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (93785, 'Áp dụng pháp luật', false, 90948);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (93786, 'Thực thi pháp luật', false, 90948);
@@ -5059,7 +5059,7 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (94021, 'Thời �
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (94022, 'Thời điểm chủ thể người phạm tội ra đầu thú', false, 91007);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (94023, 'Thời điểm vi phạm pháp luật được thực hiện', false, 91007);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (94024, 'Các đáp án đều sai', true, 91007);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90021, 'Chương 6', 9999, false, 90015);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90021, 'Chương 6', 9999, true, 90015);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (91008, 'Tìm đáp án sai trong các nhận định sau?', 'MULTIPLE_CHOICE', 90021, 9999, 'PRIVATE');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (94025, 'Pháp luật và pháp chế có mối quan hệ mật thiết với nhau', false, 91008);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (94026, 'Trong mối quan hệ giữa pháp luật với pháp chế thì pháp luật là yếu tố tìền đề', false, 91008);
@@ -5070,7 +5070,7 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (94029, 'Nhà nư
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (94030, 'Nhà nước dân chủ', false, 91009);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (94031, 'Nhà nước pháp quyền XHCN Việt Nam', false, 91009);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (94032, 'Cả 3 Nhà nước trên', true, 91009);
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90022, 'Chương 7', 9999, false, 90015);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90022, 'Chương 7', 9999, true, 90015);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (91010, 'Luật Hiến pháp là một ngành luật chủ đạo trong hệ thống pháp luật Việt Nam vì?', 'MULTIPLE_CHOICE', 90022, 9999, 'PRIVATE');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (94033, 'Do Quốc hội - cơ quan quyền lực Nhà nước cao nhất ban hành', false, 91010);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (94034, 'Quy định về những vấn đề cơ bản nhất, quan trọng nhất của Nhà nước', false, 91010);

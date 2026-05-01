@@ -23,7 +23,7 @@
         <header id="header" class="fixed-top">
             <div class="container d-flex align-items-center justify-content-between">
                 <h1 class="logo mb-0">
-                    <a th:href="@{/student/home}">
+                    <a th:href="@{/student}">
                         <i class="bi bi-layers-fill logo-icon"></i>
                         Quiz<span class="hub">Hub</span>
                     </a>
@@ -31,7 +31,7 @@
 
                 <nav id="navbar" class="navbar">
                     <ul>
-                        <li><a class="nav-link" th:classappend="${activePage == 'dashboard' ? 'active' : ''}" th:href="@{/student/home}">Bảng điều khiển</a></li>
+                        <li><a class="nav-link" th:classappend="${activePage == 'dashboard' ? 'active' : ''}" th:href="@{/student}">Bảng điều khiển</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'classrooms' ? 'active' : ''}" th:href="@{/student/classrooms}">Lớp học của tôi</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'history' ? 'active' : ''}" th:href="@{/student/history}">Lịch sử làm bài</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'qbank' ? 'active' : ''}" th:href="@{/student/categories(type='public')}">Ngân hàng đề thi</a></li>
@@ -60,6 +60,7 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2 rounded-3">
                             <li><a class="dropdown-item py-2" href="/profile"><i class="bi bi-person me-2"></i> Hồ sơ cá nhân</a></li>
+                            <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key me-2"></i> Đổi mật khẩu</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item py-2 text-danger" href="#" onclick="doLogout(); return false;"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
                         </ul>
@@ -69,6 +70,8 @@
             <script th:replace="~{layout/header :: logout-script}"></script>
         </header>
         <div th:replace="~{layout/header :: student-modals}"></div>
+        <div th:replace="~{layout/header :: changePasswordModal}"></div>
+        <script th:replace="~{layout/header :: change-password-script}"></script>
     </th:block>
 
     <header th:fragment="teacher-header" id="header-nav">
@@ -87,7 +90,7 @@
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                     <li><a class="dropdown-item" href="/profile"><i class="bi bi-person"></i> Hồ sơ cá nhân</a></li>
-                    <li><a class="dropdown-item" href="/settings"><i class="bi bi-gear"></i> Cài đặt</a></li>
+                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key"></i> Đổi mật khẩu</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item text-danger" href="#" onclick="doLogout(); return false;"><i class="bi bi-box-arrow-right"></i> Đăng xuất</a></li>
                 </ul>
@@ -95,6 +98,150 @@
         </div>
         <script th:replace="~{layout/header :: logout-script}"></script>
     </header>
+
+    <!-- Change Password Modal (dùng chung cho teacher) -->
+    <div th:fragment="changePasswordModal" class="modal fade" id="changePasswordModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 460px;">
+            <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden;">
+                <div class="modal-header" style="background: linear-gradient(135deg, #10b981, #059669); border: none; padding: 24px 28px;">
+                    <h5 class="modal-title fw-bold text-white"><i class="bi bi-key-fill me-2"></i>Đổi mật khẩu</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding: 28px;">
+                    <div id="cpw-alert" style="display:none; margin-bottom:16px; padding:12px 16px; border-radius:12px; font-size:14px; font-weight:600;"></div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="color:#374151;">Mật khẩu hiện tại <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="password" id="cpw-current" class="form-control" placeholder="Nhập mật khẩu hiện tại"
+                                style="border-radius: 12px 0 0 12px; border: 1.5px solid #e5e7eb; padding: 11px 14px;">
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVisibility('cpw-current', this)"
+                                style="border-radius: 0 12px 12px 0; border: 1.5px solid #e5e7eb; border-left: none;">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="color:#374151;">Mật khẩu mới <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="password" id="cpw-new" class="form-control" placeholder="Ít nhất 6 ký tự"
+                                style="border-radius: 12px 0 0 12px; border: 1.5px solid #e5e7eb; padding: 11px 14px;">
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVisibility('cpw-new', this)"
+                                style="border-radius: 0 12px 12px 0; border: 1.5px solid #e5e7eb; border-left: none;">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="color:#374151;">Xác nhận mật khẩu mới <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="password" id="cpw-confirm" class="form-control" placeholder="Nhập lại mật khẩu mới"
+                                style="border-radius: 12px 0 0 12px; border: 1.5px solid #e5e7eb; padding: 11px 14px;">
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePwdVisibility('cpw-confirm', this)"
+                                style="border-radius: 0 12px 12px 0; border: 1.5px solid #e5e7eb; border-left: none;">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border: none; padding: 0 28px 24px; gap: 10px;">
+                    <button class="btn btn-light fw-semibold" data-bs-dismiss="modal" style="border-radius:12px; padding: 10px 20px;">Hủy</button>
+                    <button class="btn fw-bold text-white" id="cpw-submit-btn" onclick="submitChangePassword()"
+                        style="border-radius:12px; padding: 10px 24px; background: linear-gradient(135deg,#10b981,#059669); border: none;">
+                        <i class="bi bi-check-lg me-1"></i> Cập nhật
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:fragment="change-password-script">
+        function togglePwdVisibility(inputId, btn) {
+            const input = document.getElementById(inputId);
+            const icon = btn.querySelector('i');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'bi bi-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'bi bi-eye';
+            }
+        }
+
+        function showCpwAlert(msg, isSuccess) {
+            const el = document.getElementById('cpw-alert');
+            el.style.display = 'block';
+            el.style.background = isSuccess ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)';
+            el.style.color = isSuccess ? '#065f46' : '#b91c1c';
+            el.style.border = isSuccess ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(239,68,68,0.3)';
+            el.innerHTML = `<i class="bi bi-${isSuccess ? 'check-circle' : 'exclamation-circle'}-fill me-2"></i>${msg}`;
+        }
+
+        async function submitChangePassword() {
+            const current  = document.getElementById('cpw-current').value.trim();
+            const newPwd   = document.getElementById('cpw-new').value.trim();
+            const confirm  = document.getElementById('cpw-confirm').value.trim();
+
+            if (!current || !newPwd || !confirm) { showCpwAlert('Vui lòng điền đầy đủ các trường!', false); return; }
+            if (newPwd.length < 6)               { showCpwAlert('Mật khẩu mới phải ít nhất 6 ký tự!', false); return; }
+            if (newPwd !== confirm)               { showCpwAlert('Mật khẩu xác nhận không khớp!', false); return; }
+
+            const btn = document.getElementById('cpw-submit-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xử lý...';
+
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            try {
+                const res = await fetch('/api/users/change-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ oldPassword: current, newPassword: newPwd, confirmNewPassword: confirm })
+                });
+                const text = await res.text();
+                if (res.ok) {
+                    showCpwAlert('Đổi mật khẩu thành công!', true);
+                    setTimeout(() => {
+                        document.getElementById('cpw-current').value = '';
+                        document.getElementById('cpw-new').value = '';
+                        document.getElementById('cpw-confirm').value = '';
+                        document.getElementById('cpw-alert').style.display = 'none';
+                        bootstrap.Modal.getInstance(document.getElementById('changePasswordModal')).hide();
+                    }, 1500);
+                } else {
+                    let errorMsg = text;
+                    try {
+                        const json = JSON.parse(text);
+                        errorMsg = json.message || text;
+                    } catch (e) {}
+
+                    let msg = errorMsg || 'Có lỗi xảy ra!';
+                    if (errorMsg.includes('hiện tại') || errorMsg.includes('incorrect')) {
+                        msg = 'Mật khẩu hiện tại không đúng!';
+                    } else if (errorMsg.includes('same as the old password') || errorMsg.includes('PASSWORD_SAME')) {
+                        msg = 'Mật khẩu mới không được trùng với mật khẩu hiện tại!';
+                    }
+                    showCpwAlert(msg, false);
+                }
+            } catch (e) {
+                showCpwAlert('Lỗi kết nối mạng!', false);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Cập nhật';
+            }
+        }
+
+        // Reset form khi đóng modal
+        document.addEventListener('DOMContentLoaded', () => {
+            const modal = document.getElementById('changePasswordModal');
+            if (modal) {
+                modal.addEventListener('hidden.bs.modal', () => {
+                    document.getElementById('cpw-current').value = '';
+                    document.getElementById('cpw-new').value = '';
+                    document.getElementById('cpw-confirm').value = '';
+                    document.getElementById('cpw-alert').style.display = 'none';
+                });
+            }
+        });
+    </script>
 
     <th:block th:fragment="dashboard-student-header">
         <header id="header-nav" class="bg-white">
@@ -109,6 +256,7 @@
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2 rounded-3">
                         <li><a class="dropdown-item py-2" href="/profile"><i class="bi bi-person me-2"></i> Hồ sơ cá nhân</a></li>
+                        <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key me-2"></i> Đổi mật khẩu</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item py-2 text-danger" href="#" onclick="doLogout(); return false;"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
                     </ul>
@@ -117,6 +265,8 @@
             <script th:replace="~{layout/header :: logout-script}"></script>
         </header>
         <div th:replace="~{layout/header :: student-modals}"></div>
+        <div th:replace="~{layout/header :: changePasswordModal}"></div>
+        <script th:replace="~{layout/header :: change-password-script}"></script>
     </th:block>
 
     <script th:fragment="logout-script">

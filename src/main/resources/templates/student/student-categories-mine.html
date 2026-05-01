@@ -324,7 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function loadTree() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     try {
         const res = await fetch(CAT_API, { headers: { Authorization: 'Bearer ' + token } });
         if (!res.ok) throw new Error('Lỗi tải danh mục');
@@ -538,7 +538,7 @@ async function loadFolderContent(catId) {
     const dc = document.getElementById('dynamicContent');
     dc.innerHTML = `<div class="quiz-grid">${[1,2,3].map(()=>`<div class="skeleton" style="height:200px;border-radius:16px;"></div>`).join('')}</div>`;
 
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     const node = findNode(TREE_DATA, catId);
     const subCats = node ? (node.children || []) : [];
     let quizzes = [];
@@ -629,7 +629,7 @@ function openEditCategoryModal(id, name, desc, parentId) {
 }
 
 async function submitCategory() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     const editId = document.getElementById('catEditId').value;
     const parentId = document.getElementById('catParentId').value;
     const name = document.getElementById('catNameInput').value.trim();
@@ -670,7 +670,7 @@ function openDeleteCatModal(id) {
 }
 
 async function confirmDeleteCat() {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     const id = document.getElementById('delCatId').value;
     try {
         const res = await fetch(`/api/student/categories/${id}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
@@ -697,7 +697,7 @@ function openQuizCreate(categoryId) {
 }
 
 async function startAttempt(quizId, title, btn) {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     const orig = btn.innerHTML;
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang tạo...';
@@ -716,7 +716,7 @@ async function startAttempt(quizId, title, btn) {
 
 async function deleteQuiz(id) {
     if (!confirm('Xóa đề thi này?')) return;
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     try {
         const res = await fetch(`/api/student/quizzes/${id}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
         if (!res.ok) throw new Error('Lỗi xóa');

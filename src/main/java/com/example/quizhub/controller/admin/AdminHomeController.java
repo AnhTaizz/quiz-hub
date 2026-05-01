@@ -24,4 +24,8 @@ public class AdminHomeController {
         return "admin/admin-categories";
     }
 
+    @GetMapping("/reports")
+    public String adminReports(Model model) {
+        return "admin/admin-reports";
+    }
 }

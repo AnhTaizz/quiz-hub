@@ -1122,7 +1122,7 @@
            TREE
         ══════════════════════════════════════════════ */
         async function loadTree() {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             const api = MODE === 'mine' ? '/api/teacher/categories/mine' : '/api/teacher/categories/public';
             try {
                 const res = await fetch(api, { headers: { Authorization: 'Bearer ' + token } });
@@ -1378,7 +1378,7 @@
             const dc = document.getElementById('dynamicContent');
             dc.innerHTML = `<div class="quiz-grid">${[1, 2, 3].map(() => `<div class="skeleton" style="height:180px;border-radius:16px;"></div>`).join('')}</div>`;
 
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             const node = findNode(TREE_DATA, catId);
             const subs = node ? (node.children || []) : [];
 
@@ -1472,7 +1472,7 @@
         }
 
         async function submitCategory() {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             const editId = document.getElementById('catEditId').value;
             const parentId = document.getElementById('catParentId').value;
             const name = document.getElementById('catNameInput').value.trim();
@@ -1522,7 +1522,7 @@
         }
 
         async function confirmDelCat() {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             const id = document.getElementById('delCatId').value;
             try {
                 const res = await fetch(`/api/teacher/categories/${id}`, {
@@ -1583,7 +1583,7 @@
             }
 
             // Gọi API update parentId
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             try {
                 const payload = {
                     name: draggedNode.name,
@@ -1635,7 +1635,7 @@
 
         async function deleteQuiz(id) {
             if (!confirm('Xóa đề thi này? (Soft delete, không thể khôi phục)')) return;
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             try {
                 const res = await fetch(`/api/teacher/quizzes/${id}`, {
                     method: 'DELETE', headers: { Authorization: 'Bearer ' + token }
@@ -1684,6 +1684,8 @@
             });
         }
     </script>
+    <div th:replace="~{layout/header :: changePasswordModal}"></div>
+    <script th:replace="~{layout/header :: change-password-script}"></script>
 </body>
 
 </html>

@@ -22,4 +22,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
            "(:role IS NULL OR u.role = :role) AND " +
            "(LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     Page<User> searchUsers(@Param("keyword") String keyword, @Param("role") com.example.quizhub.entity.enums.Role role, Pageable pageable);
+
+    long countByRole(com.example.quizhub.entity.enums.Role role);
+
+    java.util.List<User> findTop5ByOrderByIdDesc();
 }

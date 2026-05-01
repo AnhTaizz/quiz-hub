@@ -4,8 +4,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.example.quizhub.dto.auth.request.ChangePasswordRequest;
+import com.example.quizhub.dto.user.request.CreateUserRequest;
 import com.example.quizhub.dto.user.request.UpdateProfileRequest;
 import com.example.quizhub.dto.user.response.UserProfileResponse;
 import com.example.quizhub.dto.user.response.UserResponseDTO;
@@ -23,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserResponseDTO getUserById(Long id) {
@@ -72,6 +76,23 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public void changePassword(ChangePasswordRequest request, String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw new AppException(ErrorCode.WRONG_PASSWORD);
+        }
+        if (!request.getNewPassword().equals(request.getConfirmNewPassword())) {
+            throw new AppException(ErrorCode.PASSWORD_MISMATCH);
+        }
+        if (request.getNewPassword().equals(request.getOldPassword())) {
+            throw new AppException(ErrorCode.PASSWORD_SAME);
+        }
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
+
+    @Override
     public void changeUserStatus(Long userId, boolean isEnable) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
@@ -107,5 +128,28 @@ public class UserServiceImpl implements UserService {
                 .role(user.getRole())
                 .isEnable(user.getIsEnable())
                 .build());
+    }
+
+    @Override
+    public void createUser(CreateUserRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new AppException(ErrorCode.USER_EXISTED);
+        }
+
+        User user = User.builder()
+                .fullName(request.getFullName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .role(request.getRole() != null ? request.getRole() : Role.STUDENT)
+                .isEnable(true)
+                .isVerified(true)
+                .build();
+
+        userRepository.save(user);
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
     }
 }
