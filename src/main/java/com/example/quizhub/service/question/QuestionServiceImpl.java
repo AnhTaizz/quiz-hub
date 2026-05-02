@@ -17,6 +17,7 @@ import com.example.quizhub.entity.Answer;
 import com.example.quizhub.entity.Category;
 import com.example.quizhub.entity.Question;
 import com.example.quizhub.entity.User;
+import com.example.quizhub.entity.enums.QuestionLevel;
 import com.example.quizhub.entity.enums.QuestionStatus;
 import com.example.quizhub.entity.enums.QuestionType;
 import com.example.quizhub.exception.AppException;
@@ -92,6 +93,7 @@ public class QuestionServiceImpl implements QuestionService {
                             .questionStatus(QuestionStatus.PRIVATE)
                             .creator(creator)
                             .category(category)
+                            .level(request.getLevel() != null ? request.getLevel() : QuestionLevel.MEDIUM)
                             .build();
 
         List<Answer> answers = request.getAnswers().stream()
@@ -139,6 +141,7 @@ public class QuestionServiceImpl implements QuestionService {
                                         .creator(oldQuestion.getCreator())
                                         .category(category)
                                         .questionStatus(QuestionStatus.PRIVATE)
+                                        .level(request.getLevel() != null ? request.getLevel() : QuestionLevel.MEDIUM)
                                         .build();
 
             List<Answer> cloneAnswers = request.getAnswers().stream()
@@ -160,6 +163,9 @@ public class QuestionServiceImpl implements QuestionService {
             oldQuestion.setType(request.getType());
             oldQuestion.setCategory(category);
             oldQuestion.setQuestionStatus(QuestionStatus.PRIVATE);
+            if (request.getLevel() != null) {
+                oldQuestion.setLevel(request.getLevel());
+            }
 
             List<Answer> newAnswers = request.getAnswers().stream()
                     .map(ansDto -> Answer.builder()

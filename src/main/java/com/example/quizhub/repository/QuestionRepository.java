@@ -64,4 +64,16 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     long countByCategoryId(Long categoryId);
 
     java.util.List<Question> findTop5ByQuestionStatusOrderByIdDesc(QuestionStatus status);
+
+    @Query("SELECT q.id FROM Question q WHERE q.category.id = :categoryId AND q.questionStatus = :status ORDER BY q.id ASC")
+    List<Long> findQuestionIdsByCategoryAndStatus(@Param("categoryId") Long categoryId, @Param("status") QuestionStatus status);
+
+    @Query(value = "SELECT * FROM _question WHERE category_id = :categoryId AND approval_status = 'PUBLIC' ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
+    List<Question> findRandomPublicQuestionsByCategory(@Param("categoryId") Long categoryId, @Param("limit") int limit);
+
+    @Query(value = "SELECT * FROM _question WHERE category_id IN :categoryIds AND approval_status = 'PUBLIC' ORDER BY id ASC LIMIT :limit OFFSET :offset", nativeQuery = true)
+    List<Question> findRandomPublicQuestionsByCategories(@Param("categoryIds") List<Long> categoryIds, @Param("limit") int limit, @Param("offset") int offset);
+
+    @Query("SELECT COUNT(q) FROM Question q WHERE q.category.id IN :categoryIds AND q.questionStatus = com.example.quizhub.entity.enums.QuestionStatus.PUBLIC")
+    long countPublicQuestionsByCategories(@Param("categoryIds") List<Long> categoryIds);
 }

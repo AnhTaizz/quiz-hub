@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import com.example.quizhub.entity.enums.QuestionLevel;
 
 @Getter
 @Setter
@@ -24,6 +25,7 @@ public class QuestionResponseDTO {
     String text;
     QuestionType type;
     QuestionStatus questionStatus;
+    QuestionLevel level;
 
     // Chỉ lấy thông tin cơ bản của creator, không dùng cả entity User
     Long creatorId;
