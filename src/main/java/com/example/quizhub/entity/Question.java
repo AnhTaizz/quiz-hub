@@ -4,9 +4,10 @@ import java.util.List;
 
 import org.hibernate.annotations.BatchSize;
 
+import com.example.quizhub.entity.enums.QuestionLevel;
 import com.example.quizhub.entity.enums.QuestionStatus;
 import com.example.quizhub.entity.enums.QuestionType;
-
+    
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -61,6 +62,11 @@ public class Question {
     @Column(name = "approval_status")
     @Builder.Default
     private QuestionStatus questionStatus = QuestionStatus.PRIVATE;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "question_level")
+    @Builder.Default
+    private QuestionLevel level = QuestionLevel.MEDIUM;
 
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size = 20)

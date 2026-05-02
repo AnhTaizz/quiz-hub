@@ -15,4 +15,14 @@ public class StudentHomeController {
     public String home(Model model) {
         return "student/student-home";
     }
+
+    @GetMapping("/practice-history")
+    public String practiceHistory(Model model) {
+        return "student/student-practice-history";
+    }
+
+    @GetMapping("/practice/play")
+    public String practicePlay(Model model) {
+        return "student/student-practice-play";
+    }
 }

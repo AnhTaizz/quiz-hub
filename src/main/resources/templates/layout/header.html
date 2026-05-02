@@ -34,6 +34,7 @@
                         <li><a class="nav-link" th:classappend="${activePage == 'dashboard' ? 'active' : ''}" th:href="@{/student}">Bảng điều khiển</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'classrooms' ? 'active' : ''}" th:href="@{/student/classrooms}">Lớp học của tôi</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'history' ? 'active' : ''}" th:href="@{/student/history}">Lịch sử làm bài</a></li>
+                        <li><a class="nav-link" th:classappend="${activePage == 'practice_history' ? 'active' : ''}" th:href="@{/student/practice-history}">Lịch sử tự luyện</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'qbank' ? 'active' : ''}" th:href="@{/student/categories(type='public')}">Ngân hàng đề thi</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'myqbank' ? 'active' : ''}" th:href="@{/student/categories(type='mine')}">Đề thi của tôi</a></li>
                     </ul>

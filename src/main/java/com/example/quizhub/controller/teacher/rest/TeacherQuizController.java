@@ -49,4 +49,10 @@ public class TeacherQuizController {
         quizService.deleteQuiz(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/generate-from-category")
+    public ResponseEntity<QuizResponseDTO> generateQuizFromCategory(
+            @RequestBody @Valid com.example.quizhub.dto.quiz.QuizGenerateRequestDTO request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(quizService.generateQuizFromCategory(request));
+    }
 }

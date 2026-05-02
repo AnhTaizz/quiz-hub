@@ -133,4 +133,47 @@ public class QuizServiceImpl implements QuizService {
                 .map(QuizSummaryDTO::new)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    @Transactional
+    public QuizResponseDTO generateQuizFromCategory(com.example.quizhub.dto.quiz.QuizGenerateRequestDTO request) {
+        Category category = resolveCategory(request.getCategoryId());
+
+        List<Long> questionIds = questionRepository.findQuestionIdsByCategoryAndStatus(category.getId(), com.example.quizhub.entity.enums.QuestionStatus.PUBLIC);
+        if (questionIds.isEmpty()) {
+            throw new AppException(ErrorCode.QUESTION_NOT_FOUND); // No questions available
+        }
+
+        List<Long> selectedIds;
+        if ("RANDOM".equalsIgnoreCase(request.getMethod())) {
+            int amount = request.getAmount() != null ? request.getAmount() : 40;
+            java.util.Collections.shuffle(questionIds);
+            selectedIds = questionIds.stream().limit(amount).collect(Collectors.toList());
+        } else if ("RANGE".equalsIgnoreCase(request.getMethod())) {
+            int offset = request.getOffset() != null ? request.getOffset() : 0;
+            int limit = request.getLimit() != null ? request.getLimit() : 40;
+            selectedIds = questionIds.stream().skip(offset).limit(limit).collect(Collectors.toList());
+        } else {
+            throw new IllegalArgumentException("Invalid method. Must be RANDOM or RANGE");
+        }
+
+        if (selectedIds.isEmpty()) {
+            throw new AppException(ErrorCode.QUESTION_NOT_FOUND);
+        }
+
+        List<Question> questions = questionRepository.findAllById(selectedIds);
+
+        Quiz quiz = Quiz.builder()
+                .title(request.getTitle())
+                .description("Generated from category: " + category.getName())
+                .isDraft(false)
+                .isEnable(true)
+                .isExam(false)
+                .category(category)
+                .creator(getCurrentUser())
+                .questions(questions)
+                .build();
+
+        return quizMapper.toResponseDTO(quizRepository.save(quiz));
+    }
 }

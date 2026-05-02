@@ -1,4 +1,4 @@
-DELETE FROM _answer WHERE question_id >= 90000;
+DELETE FROM _answer WHERE question_id IN (SELECT id FROM _question WHERE created_id = 9999) OR question_id >= 90000;
 DELETE FROM _question WHERE created_id = 9999;
 DELETE FROM categories WHERE creator_id = 9999;
 DELETE FROM _user WHERE id IN (9997, 9998, 9999);

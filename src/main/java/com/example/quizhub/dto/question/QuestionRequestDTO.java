@@ -2,6 +2,7 @@ package com.example.quizhub.dto.question;
 
 import java.util.List;
 
+import com.example.quizhub.entity.enums.QuestionLevel;
 import com.example.quizhub.entity.enums.QuestionType;
 
 import jakarta.validation.Valid;
@@ -31,6 +32,8 @@ public class QuestionRequestDTO {
 
     @NotNull(message="Loại câu hỏi không được để trống")
     QuestionType type;
+
+    QuestionLevel level;
 
     @NotEmpty(message="Câu hỏi phải có ít nhất 1 đáp án")
     List<@Valid AnswerCreationRequestDTO> answers;
