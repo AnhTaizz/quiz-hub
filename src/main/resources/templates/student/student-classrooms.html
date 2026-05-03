@@ -43,7 +43,7 @@
 
         <div class="class-grid">
             <!-- Joined Classes -->
-            <div class="class-card" th:each="joining : ${joinedClasses}">
+            <div class="class-card" style="position: relative;" th:each="joining : ${joinedClasses}">
                 <div class="class-banner">
                     <img th:if="${joining.classroom.imageUrl}" th:src="${joining.classroom.imageUrl}" alt="Banner">
                     <img th:unless="${joining.classroom.imageUrl}" src="https://images.unsplash.com/photo-1510070112810-d4e9a46d9e91?auto=format&fit=crop&w=400&q=80" alt="Default Banner">
@@ -65,7 +65,7 @@
 
                 <div class="class-footer">
                     <div class="text-muted small"><i class="bi bi-clock-history me-1"></i> Tham gia: <span th:text="${#temporals.format(joining.joinedAt, 'dd/MM/yyyy')}">12/04/2026</span></div>
-                    <a th:if="${joining.status.name() == 'APPROVED'}" th:href="@{'/student/classrooms/' + ${joining.classroom.id}}" class="btn-enter">Vào lớp <i class="bi bi-arrow-right-short"></i></a>
+                    <a th:if="${joining.status.name() == 'APPROVED'}" th:href="@{'/student/classrooms/' + ${joining.classroom.id}}" class="btn-enter stretched-link">Vào lớp <i class="bi bi-arrow-right-short"></i></a>
                     <span th:unless="${joining.status.name() == 'APPROVED'}" class="text-muted small fw-bold">Bị khóa</span>
                 </div>
             </div>
