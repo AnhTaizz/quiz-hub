@@ -19,6 +19,7 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     List<Question> findByCreatorId(Long creatorId);
 
     List<Question> findByCategoryId(Long categoryId);
+    Page<Question> findByCategoryId(Long categoryId, Pageable pageable);
 
     List<Question> findByType(QuestionType type);
 

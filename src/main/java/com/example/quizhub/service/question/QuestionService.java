@@ -40,4 +40,6 @@ public interface QuestionService {
     void rejectQuestion(Long questionId);
 
     void deleteQuestionByAdmin(Long questionId);
+
+    void moveQuestionByAdmin(Long questionId, Long categoryId);
 }

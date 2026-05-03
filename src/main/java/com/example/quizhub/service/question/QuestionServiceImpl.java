@@ -26,6 +26,7 @@ import com.example.quizhub.mapper.QuestionMapper;
 import com.example.quizhub.repository.CategoryRepository;
 import com.example.quizhub.repository.QuestionRepository;
 import com.example.quizhub.repository.UserRepository;
+import com.example.quizhub.repository.AnswerRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -36,6 +37,7 @@ public class QuestionServiceImpl implements QuestionService {
     private final UserRepository userRepository;
     private final QuestionRepository questionRepository;
     private final CategoryRepository categoryRepository;
+    private final AnswerRepository answerRepository;
     private final QuestionMapper questionMapper;
 
     // Business Logic
@@ -298,17 +300,44 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     @Transactional
     public void approveQuestion(Long questionId, Long categoryId) {
-        Question question = questionRepository.findById(questionId)
+        Question originalQuestion = questionRepository.findById(questionId)
                 .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
 
+        Category category = null;
         if (categoryId != null) {
-            Category category = categoryRepository.findById(categoryId)
+            category = categoryRepository.findById(categoryId)
                     .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-            question.setCategory(category);
         }
 
-        question.setQuestionStatus(QuestionStatus.PUBLIC);
-        questionRepository.save(question);
+        // Tạo câu hỏi mới (clone) cho mục PUBLIC
+        Question clone = new Question();
+        clone.setText(originalQuestion.getText());
+        clone.setType(originalQuestion.getType());
+        clone.setLevel(originalQuestion.getLevel());
+        clone.setCreator(originalQuestion.getCreator());
+        clone.setCategory(category);
+        clone.setQuestionStatus(QuestionStatus.PUBLIC);
+
+        // Lưu clone
+        Question savedClone = questionRepository.save(clone);
+
+        // Sao chép các đáp án
+        if (originalQuestion.getAnswers() != null) {
+            java.util.List<Answer> clonedAnswers = new java.util.ArrayList<>();
+            for (Answer ans : originalQuestion.getAnswers()) {
+                Answer clonedAns = new Answer();
+                clonedAns.setText(ans.getText());
+                clonedAns.setIsCorrect(ans.getIsCorrect());
+                clonedAns.setQuestion(savedClone);
+                clonedAnswers.add(clonedAns);
+            }
+            answerRepository.saveAll(clonedAnswers);
+            savedClone.setAnswers(clonedAnswers);
+        }
+
+        // Chuyển trạng thái của câu hỏi gốc về PRIVATE
+        originalQuestion.setQuestionStatus(QuestionStatus.PRIVATE);
+        questionRepository.save(originalQuestion);
     }
 
     //Admin từ chối
@@ -330,6 +359,17 @@ public class QuestionServiceImpl implements QuestionService {
                 .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
 
         question.setQuestionStatus(QuestionStatus.DELETED);
+        questionRepository.save(question);
+    }
+
+    @Override
+    @Transactional
+    public void moveQuestionByAdmin(Long questionId, Long categoryId) {
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+        question.setCategory(category);
         questionRepository.save(question);
     }
 }

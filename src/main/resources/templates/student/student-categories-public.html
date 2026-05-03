@@ -1277,13 +1277,22 @@
             const displayMode = document.getElementById('selectDisplayMode').value;
 
             let startQ = 1;
+            let endQ = currentPracticeTotalQuestions;
             if (currentRangeMode === 'quick') {
                 const activeRange = document.querySelector('.range-btn.active');
                 if (activeRange) {
                     startQ = parseInt(activeRange.dataset.start) || 1;
+                    endQ = parseInt(activeRange.dataset.end) || startQ;
                 }
             } else {
                 startQ = parseInt(document.getElementById('customStartQuestion').value) || 1;
+                endQ = parseInt(document.getElementById('customEndQuestion').value) || startQ;
+            }
+
+            const maxLimit = endQ - startQ + 1;
+            if (limit > maxLimit) {
+                showToast(`Bạn chỉ được chọn tối đa ${maxLimit} câu hỏi trong dải đã chọn!`, 'err');
+                return;
             }
 
             const offset = startQ - 1;
@@ -1354,13 +1363,22 @@
                 return;
             }
             let startQ = 1;
+            let endQ = currentPracticeTotalQuestions;
             if (currentRangeMode === 'quick') {
                 const activeRange = document.querySelector('.range-btn.active');
                 if (activeRange) {
                     startQ = parseInt(activeRange.dataset.start) || 1;
+                    endQ = parseInt(activeRange.dataset.end) || startQ;
                 }
             } else {
                 startQ = parseInt(document.getElementById('customStartQuestion').value) || 1;
+                endQ = parseInt(document.getElementById('customEndQuestion').value) || startQ;
+            }
+
+            const maxLimit = endQ - startQ + 1;
+            if (limit > maxLimit) {
+                showToast(`Bạn chỉ được chọn tối đa ${maxLimit} câu hỏi trong dải đã chọn!`, 'err');
+                return;
             }
 
             const offset = startQ - 1;

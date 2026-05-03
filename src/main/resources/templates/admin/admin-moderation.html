@@ -485,7 +485,36 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="text-muted small mb-3"><i class="bi bi-info-circle me-1"></i> Hãy chọn một danh mục hệ thống (Public Category) để lưu câu hỏi này.</p>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <p class="text-muted small mb-0"><i class="bi bi-info-circle me-1"></i> Chọn danh mục hệ thống (Public Category):</p>
+                        <button type="button" class="btn btn-sm btn-outline-primary fw-bold" style="border-radius: 10px; font-size: 0.8rem; padding: 4px 12px;" onclick="toggleNewCategoryForm()">
+                            <i class="bi bi-folder-plus"></i> + Thêm danh mục mới
+                        </button>
+                    </div>
+
+                    <!-- Create New Category Panel within Modal -->
+                    <div id="new-category-form" style="display: none; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 14px; padding: 14px; margin-bottom: 16px;">
+                        <h6 class="fw-bold mb-2 text-primary" style="font-size: 0.95rem;"><i class="bi bi-folder-plus me-1"></i> Tạo nhanh danh mục mới</h6>
+                        <div class="mb-2">
+                            <label class="form-label small fw-bold text-muted mb-1">Tên danh mục <span class="text-danger">*</span></label>
+                            <input type="text" id="new-cat-name" class="form-control form-control-sm" style="border-radius: 8px; height: 36px;" placeholder="Ví dụ: Lập trình Python" autocomplete="off">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small fw-bold text-muted mb-1">Mô tả (Không bắt buộc)</label>
+                            <input type="text" id="new-cat-desc" class="form-control form-control-sm" style="border-radius: 8px; height: 36px;" placeholder="Mô tả ngắn gọn..." autocomplete="off">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted mb-1">Danh mục cha (Để trống nếu là danh mục gốc)</label>
+                            <select id="new-cat-parent-select" class="form-select form-select-sm" style="border-radius: 8px; height: 36px;">
+                                <option value="">-- Danh mục gốc (Không có cha) --</option>
+                            </select>
+                        </div>
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button type="button" class="btn btn-sm btn-light fw-bold" style="border-radius: 8px; padding: 4px 14px;" onclick="toggleNewCategoryForm(false)">Hủy</button>
+                            <button type="button" class="btn btn-sm btn-primary fw-bold" style="border-radius: 8px; padding: 4px 14px;" onclick="saveNewCategory()">Lưu danh mục</button>
+                        </div>
+                    </div>
+
                     <div id="modal-category-tree" style="max-height: 350px; overflow-y: auto;">
                         <!-- Category tree populated via JS -->
                     </div>
@@ -494,6 +523,27 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal" style="border-radius: 12px; padding: 10px 24px;">Hủy</button>
                     <button type="button" class="btn btn-primary fw-bold" onclick="confirmApprove()" style="border-radius: 12px; padding: 10px 24px;">Xác nhận Duyệt</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Modal -->
+    <div class="modal fade" id="rejectModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
+                <div class="modal-header fw-bold" style="background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; border-top-left-radius: 20px; border-top-right-radius: 20px;">
+                    <h5 class="modal-title"><i class="bi bi-x-circle-fill me-2"></i>Từ chối Duyệt câu hỏi</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <i class="bi bi-exclamation-octagon text-danger" style="font-size: 3.5rem;"></i>
+                    <h5 class="fw-bold mt-3 text-dark">Bạn có chắc chắn muốn từ chối câu hỏi này?</h5>
+                    <p class="text-muted small">Hành động này sẽ từ chối đưa câu hỏi lên hệ thống công khai.</p>
+                </div>
+                <div class="modal-footer p-3 bg-light" style="border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
+                    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal" style="border-radius:12px; padding:10px 24px;">Hủy</button>
+                    <button type="button" class="btn btn-danger fw-bold" id="btnConfirmReject" style="border-radius:12px; padding:10px 24px;">Từ chối</button>
                 </div>
             </div>
         </div>
@@ -597,7 +647,10 @@
                                 <span class="q-badge q-badge-level"><i class="bi bi-graph-up"></i> ${levelLabel}</span>
                                 <span class="q-badge q-badge-status-pending"><i class="bi bi-clock-fill"></i> Đang chờ duyệt</span>
                             </div>
-                            <div class="text-muted small">Người gửi: <strong>${escapeHTML(q.creatorName || 'N/A')}</strong></div>
+                            <div class="text-muted small d-flex flex-column align-items-end">
+                                <div>Người gửi: <strong>${escapeHTML(q.creatorName || 'N/A')}</strong></div>
+                                <div>Danh mục gốc: <strong class="text-primary">${escapeHTML(q.categoryName || 'Chưa phân mục')}</strong></div>
+                            </div>
                         </div>
                         <div class="q-text">${escapeHTML(q.text)}</div>
                         ${answersHtml}
@@ -722,22 +775,101 @@
             }
         }
 
-        async function rejectQuestion(questionId) {
-            if (!confirm('Bạn có chắc chắn muốn từ chối câu hỏi này không?')) return;
+        function rejectQuestion(questionId) {
+            const modalEl = document.getElementById('rejectModal');
+            const modal = new bootstrap.Modal(modalEl);
+            document.getElementById('btnConfirmReject').onclick = async function() {
+                try {
+                    const res = await fetch(`/api/admin/questions/${questionId}/reject`, {
+                        method: 'PUT'
+                    });
+
+                    if (res.ok) {
+                        showToast('Đã từ chối câu hỏi thành công!', 'success');
+                        modal.hide();
+                        fetchPendingQuestions();
+                    } else {
+                        showToast('Có lỗi xảy ra khi từ chối câu hỏi!', 'error');
+                    }
+                } catch (err) {
+                    showToast(err.message, 'error');
+                }
+            };
+            modal.show();
+        }
+
+        function toggleNewCategoryForm(show) {
+            const form = document.getElementById('new-category-form');
+            if (show === undefined) {
+                form.style.display = form.style.display === 'none' ? 'block' : 'none';
+            } else {
+                form.style.display = show ? 'block' : 'none';
+            }
+            if (form.style.display === 'block') {
+                const select = document.getElementById('new-cat-parent-select');
+                select.innerHTML = '<option value="">-- Danh mục gốc (Không có cha) --</option>';
+                const flatList = flattenCategoriesForSelect(publicCategories);
+                flatList.forEach(c => {
+                    select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+                });
+            }
+        }
+
+        function flattenCategoriesForSelect(nodes, level = 0, output = []) {
+            if (!nodes) return output;
+            nodes.forEach(n => {
+                output.push({ id: n.id, name: ' '.repeat(level * 4).replace(/ /g, '&nbsp;') + n.name });
+                if (n.children && n.children.length > 0) {
+                    flattenCategoriesForSelect(n.children, level + 1, output);
+                }
+            });
+            return output;
+        }
+
+        async function saveNewCategory() {
+            const name = document.getElementById('new-cat-name').value.trim();
+            const description = document.getElementById('new-cat-desc').value.trim();
+            const parentId = document.getElementById('new-cat-parent-select').value || null;
+
+            if (!name) {
+                alert('Vui lòng nhập tên danh mục!');
+                return;
+            }
+
+            const payload = {
+                name: name,
+                description: description,
+                parentId: parentId ? parseInt(parentId) : null
+            };
 
             try {
-                const res = await fetch(`/api/admin/questions/${questionId}/reject`, {
-                    method: 'PUT'
+                const res = await fetch('/api/admin/categories', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
                 });
 
                 if (res.ok) {
-                    showToast('Đã từ chối câu hỏi thành công!', 'success');
-                    fetchPendingQuestions();
+                    const newCat = await res.json();
+                    showToast('Tạo danh mục mới thành công!', 'success');
+                    
+                    document.getElementById('new-cat-name').value = '';
+                    document.getElementById('new-cat-desc').value = '';
+                    document.getElementById('new-cat-parent-select').value = '';
+                    
+                    toggleNewCategoryForm(false);
+                    
+                    await fetchCategories();
+                    renderTree(publicCategories);
+                    selectCategoryNode(newCat.id);
                 } else {
-                    showToast('Có lỗi xảy ra khi từ chối câu hỏi!', 'error');
+                    const err = await res.json();
+                    showToast(err.message || 'Lỗi khi tạo danh mục mới', 'error');
                 }
             } catch (err) {
-                showToast(err.message, 'error');
+                showToast('Có lỗi xảy ra: ' + err.message, 'error');
             }
         }
 

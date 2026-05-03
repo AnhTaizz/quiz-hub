@@ -546,7 +546,7 @@
         <div class="filter-shell">
             <div class="filter-group">
                 <label><i class="bi bi-search me-1"></i> Từ khóa tìm kiếm</label>
-                <input type="text" id="filter-keyword" class="form-control filter-ctrl" placeholder="Tìm tên câu hỏi..." oninput="triggerSearch()">
+                <input type="text" id="filter-keyword" class="form-control filter-ctrl" placeholder="Tìm tên câu hỏi..." oninput="triggerSearch()" autocomplete="off">
             </div>
             <div class="filter-group">
                 <label><i class="bi bi-folder2-open me-1"></i> Danh mục</label>
@@ -587,9 +587,12 @@
             <!-- Pagination Bar -->
             <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top flex-wrap gap-2" id="pagination-shell" style="display:none !important;">
                 <div class="text-muted small" id="pagination-info">Hiển thị 1 đến 10 trong tổng số 0 câu hỏi</div>
-                <nav>
-                    <ul class="pagination pagination-sm mb-0 gap-1" id="pagination-list"></ul>
-                </nav>
+                <div class="d-flex flex-column align-items-end gap-2">
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0 gap-1" id="pagination-list"></ul>
+                    </nav>
+                    <div id="pagination-jump-area"></div>
+                </div>
             </div>
         </div>
     </main>
@@ -603,7 +606,7 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <form id="question-form">
+                    <form id="question-form" autocomplete="off">
                         <input type="hidden" id="q-id">
                         <div class="row g-3">
                             <div class="col-12">
@@ -675,6 +678,47 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal" style="border-radius: 12px; padding: 10px 24px;">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Share Question Confirm Modal -->
+    <div class="modal fade" id="shareConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
+                <div class="modal-header fw-bold" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border-top-left-radius: 20px; border-top-right-radius: 20px;">
+                    <h5 class="modal-title"><i class="bi bi-share-fill me-2"></i>Chia sẻ Câu hỏi</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <i class="bi bi-patch-question text-primary" style="font-size: 3.5rem;"></i>
+                    <h5 class="fw-bold mt-3 text-dark">Bạn có chắc chắn muốn gửi yêu cầu chia sẻ?</h5>
+                    <p class="text-muted small">Câu hỏi này sẽ được gửi lên hệ thống công khai để quản trị viên duyệt.</p>
+                </div>
+                <div class="modal-footer p-3 bg-light" style="border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
+                    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal" style="border-radius:12px; padding:10px 24px;">Hủy</button>
+                    <button type="button" class="btn btn-primary fw-bold" id="btnConfirmShare" style="border-radius:12px; padding:10px 24px;">Đồng ý</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Question Confirm Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
+                <div class="modal-header fw-bold" style="background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; border-top-left-radius: 20px; border-top-right-radius: 20px;">
+                    <h5 class="modal-title"><i class="bi bi-trash3-fill me-2"></i>Xóa Câu hỏi</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <i class="bi bi-exclamation-triangle text-danger" style="font-size: 3.5rem;"></i>
+                    <h5 class="fw-bold mt-3 text-dark">Bạn có chắc chắn muốn xóa câu hỏi này?</h5>
+                    <p class="text-muted small">Hành động này không thể hoàn tác, hãy cân nhắc kỹ.</p>
+                </div>
+                <div class="modal-footer p-3 bg-light" style="border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
+                    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal" style="border-radius:12px; padding:10px 24px;">Hủy</button>
+                    <button type="button" class="btn btn-danger fw-bold" id="btnConfirmDelete" style="border-radius:12px; padding:10px 24px;">Xóa</button>
                 </div>
             </div>
         </div>
@@ -793,13 +837,7 @@
                     </div>`;
             }
 
-            if (publicTreeHtml) {
-                finalHtml += `
-                    <div class="mb-3">
-                        <div class="fw-bold text-success mb-2"><i class="bi bi-globe2"></i> Danh mục hệ thống</div>
-                        ${publicTreeHtml}
-                    </div>`;
-            }
+
 
             if (!finalHtml) {
                 finalHtml = `<div class="text-muted text-center my-4">Không có danh mục nào</div>`;
@@ -1011,6 +1049,7 @@
             const shell = document.getElementById('pagination-shell');
             const info = document.getElementById('pagination-info');
             const list = document.getElementById('pagination-list');
+            const jumpArea = document.getElementById('pagination-jump-area');
 
             if (!data || data.totalElements === 0) {
                 shell.style.display = 'none';
@@ -1021,7 +1060,7 @@
             info.innerText = `Hiển thị ${data.number * data.size + 1} đến ${Math.min((data.number + 1) * data.size, data.totalElements)} trong tổng số ${data.totalElements} câu hỏi`;
 
             let pages = [];
-            const maxVisible = 5;
+            const maxVisible = 6;
             const startPage = Math.max(0, data.number - Math.floor(maxVisible / 2));
             const endPage = Math.min(data.totalPages - 1, startPage + maxVisible - 1);
 
@@ -1052,6 +1091,23 @@
             }
 
             list.innerHTML = pages.join('');
+
+            // Page jump input area below
+            if (jumpArea) {
+                jumpArea.innerHTML = `
+                    <div class="d-flex align-items-center gap-2 mt-1" style="font-size: 0.82rem;">
+                        <span class="text-muted fw-bold">Đi đến trang:</span>
+                        <input type="number" id="goToPageInput" class="form-control form-control-sm text-center" 
+                               style="width: 60px; height: 32px; border-radius: 8px; font-weight: bold;" 
+                               min="1" max="${data.totalPages}" value="${data.number + 1}"
+                               onkeydown="if(event.key === 'Enter'){ const p = parseInt(this.value); if(!isNaN(p) && p >= 1 && p <= ${data.totalPages}){ goToPage(p - 1); } }">
+                        <button class="btn btn-sm btn-outline-primary fw-bold" style="height:32px; border-radius: 8px;"
+                                onclick="const p = parseInt(document.getElementById('goToPageInput').value); if(!isNaN(p) && p >= 1 && p <= ${data.totalPages}){ goToPage(p - 1); }">
+                            Đến
+                        </button>
+                    </div>
+                `;
+            }
         }
 
         function goToPage(p) {
@@ -1152,7 +1208,7 @@
 
             div.innerHTML = `
                 ${toggleHtml}
-                <input type="text" class="ans-input" value="${escapeHTML(textValue)}" placeholder="Nhập đáp án..." required oninput="syncSelectedStyles()">
+                <input type="text" class="ans-input" value="${escapeHTML(textValue)}" placeholder="Nhập đáp án..." autocomplete="off" required oninput="syncSelectedStyles()">
                 <button type="button" class="btn btn-sm text-danger border-0 p-1" onclick="this.parentElement.remove(); syncSelectedStyles()">
                     <i class="bi bi-x-circle fs-5"></i>
                 </button>
@@ -1352,42 +1408,52 @@
             }
         }
 
-        async function requestShare(qId) {
-            if (!confirm('Bạn có chắc chắn muốn gửi yêu cầu chia sẻ câu hỏi này lên hệ thống công khai?')) return;
-            try {
-                const response = await fetch(`/api/teacher/questions/${qId}/share`, {
-                    method: 'PUT',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+        function requestShare(qId) {
+            const modalEl = document.getElementById('shareConfirmModal');
+            const modal = new bootstrap.Modal(modalEl);
+            document.getElementById('btnConfirmShare').onclick = async function() {
+                try {
+                    const response = await fetch(`/api/teacher/questions/${qId}/share`, {
+                        method: 'PUT',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
 
-                if (!response.ok) {
-                    throw new Error('Yêu cầu chia sẻ thất bại!');
+                    if (!response.ok) {
+                        throw new Error('Yêu cầu chia sẻ thất bại!');
+                    }
+
+                    showToast('Đã gửi yêu cầu chia sẻ lên hệ thống thành công!', 'success');
+                    modal.hide();
+                    fetchQuestions();
+                } catch (err) {
+                    showToast(err.message, 'error');
                 }
-
-                showToast('Đã gửi yêu cầu chia sẻ lên hệ thống thành công!', 'success');
-                fetchQuestions();
-            } catch (err) {
-                showToast(err.message, 'error');
-            }
+            };
+            modal.show();
         }
 
-        async function deleteQuestion(qId) {
-            if (!confirm('Bạn có chắc chắn muốn xóa câu hỏi này?')) return;
-            try {
-                const response = await fetch(`/api/teacher/questions/${qId}`, {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+        function deleteQuestion(qId) {
+            const modalEl = document.getElementById('deleteConfirmModal');
+            const modal = new bootstrap.Modal(modalEl);
+            document.getElementById('btnConfirmDelete').onclick = async function() {
+                try {
+                    const response = await fetch(`/api/teacher/questions/${qId}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
 
-                if (!response.ok) {
-                    throw new Error('Xóa câu hỏi thất bại!');
+                    if (!response.ok) {
+                        throw new Error('Xóa câu hỏi thất bại!');
+                    }
+
+                    showToast('Xóa câu hỏi thành công!', 'success');
+                    modal.hide();
+                    fetchQuestions();
+                } catch (err) {
+                    showToast(err.message, 'error');
                 }
-
-                showToast('Xóa câu hỏi thành công!', 'success');
-                fetchQuestions();
-            } catch (err) {
-                showToast(err.message, 'error');
-            }
+            };
+            modal.show();
         }
 
         function showToast(msg, type = 'success') {

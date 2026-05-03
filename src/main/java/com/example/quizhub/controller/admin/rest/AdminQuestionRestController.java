@@ -56,4 +56,18 @@ public class AdminQuestionRestController {
         questionService.rejectQuestion(id);
         return ResponseEntity.ok().build();
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteQuestion(@PathVariable Long id) {
+        questionService.deleteQuestionByAdmin(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}/move")
+    public ResponseEntity<Void> moveQuestion(
+            @PathVariable Long id,
+            @RequestParam Long categoryId) {
+        questionService.moveQuestionByAdmin(id, categoryId);
+        return ResponseEntity.ok().build();
+    }
 }
