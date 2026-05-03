@@ -17,4 +17,5 @@ public class RecentAttemptResponse {
     private String quizTitle;
     private BigDecimal score;
     private LocalDateTime startedAt;
+    private String type; // QUIZ or PRACTICE
 }

@@ -1,5 +1,6 @@
 package com.example.quizhub.service.practice;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -69,10 +70,9 @@ public class PracticeServiceImpl implements PracticeService {
 
         // Fetch random questions for these categories
         List<Question> questions = questionRepository.findRandomPublicQuestionsByCategories(
-            categoryIds,
-            request.getLimit() != null ? request.getLimit() : 10,
-            request.getOffset() != null ? request.getOffset() : 0
-        );
+                categoryIds,
+                request.getLimit() != null ? request.getLimit() : 10,
+                request.getOffset() != null ? request.getOffset() : 0);
 
         if (questions.isEmpty()) {
             throw new AppException(ErrorCode.QUESTION_NOT_FOUND);
@@ -81,16 +81,16 @@ public class PracticeServiceImpl implements PracticeService {
         // Map to safe DTO without correct answers
         return questions.stream().map(q -> {
             List<PracticeAnswerResponseDTO> answers = q.getAnswers().stream()
-                .map(a -> new PracticeAnswerResponseDTO(a.getId(), a.getText(), null))
-                .collect(Collectors.toList());
+                    .map(a -> new PracticeAnswerResponseDTO(a.getId(), a.getText(), a.getIsCorrect()))
+                    .collect(Collectors.toList());
 
             return PracticeQuestionResponseDTO.builder()
-                .id(q.getId())
-                .text(q.getText())
-                .type(q.getType())
-                .level(q.getLevel())
-                .answers(answers)
-                .build();
+                    .id(q.getId())
+                    .text(q.getText())
+                    .type(q.getType())
+                    .level(q.getLevel())
+                    .answers(answers)
+                    .build();
         }).collect(Collectors.toList());
     }
 
@@ -104,10 +104,9 @@ public class PracticeServiceImpl implements PracticeService {
         collectCategoryIds(category, categoryIds);
 
         List<Question> questions = questionRepository.findRandomPublicQuestionsByCategories(
-            categoryIds,
-            request.getLimit() != null ? request.getLimit() : 10,
-            request.getOffset() != null ? request.getOffset() : 0
-        );
+                categoryIds,
+                request.getLimit() != null ? request.getLimit() : 10,
+                request.getOffset() != null ? request.getOffset() : 0);
 
         if (questions.isEmpty()) {
             throw new AppException(ErrorCode.QUESTION_NOT_FOUND);
@@ -116,16 +115,16 @@ public class PracticeServiceImpl implements PracticeService {
         // Map with isCorrect for preview
         return questions.stream().map(q -> {
             List<PracticeAnswerResponseDTO> answers = q.getAnswers().stream()
-                .map(a -> new PracticeAnswerResponseDTO(a.getId(), a.getText(), a.getIsCorrect()))
-                .collect(Collectors.toList());
+                    .map(a -> new PracticeAnswerResponseDTO(a.getId(), a.getText(), a.getIsCorrect()))
+                    .collect(Collectors.toList());
 
             return PracticeQuestionResponseDTO.builder()
-                .id(q.getId())
-                .text(q.getText())
-                .type(q.getType())
-                .level(q.getLevel())
-                .answers(answers)
-                .build();
+                    .id(q.getId())
+                    .text(q.getText())
+                    .type(q.getType())
+                    .level(q.getLevel())
+                    .answers(answers)
+                    .build();
         }).collect(Collectors.toList());
     }
 
@@ -190,6 +189,9 @@ public class PracticeServiceImpl implements PracticeService {
                     .selectedAnswerId(selectedAnswer != null ? selectedAnswer.getId() : null)
                     .correctAnswerId(correctAnswerId)
                     .isCorrect(isCorrect)
+                    .answers(question.getAnswers().stream()
+                            .map(a -> new PracticeAnswerResponseDTO(a.getId(), a.getText(), a.getIsCorrect()))
+                            .collect(Collectors.toList()))
                     .build());
         }
 
@@ -201,6 +203,8 @@ public class PracticeServiceImpl implements PracticeService {
                 .categoryName(category.getName())
                 .totalQuestions(totalQuestions)
                 .correctAnswers(correctCount)
+                .score(BigDecimal.valueOf((correctCount * 10.0) / totalQuestions)
+                        .setScale(1, java.math.RoundingMode.HALF_UP))
                 .createdAt(savedPractice.getCreatedAt())
                 .details(detailResponses)
                 .build();
@@ -222,8 +226,9 @@ public class PracticeServiceImpl implements PracticeService {
     @Transactional(readOnly = true)
     public List<com.example.quizhub.dto.practice.PracticeHistoryResponseDTO> getPracticeHistory(Long categoryId) {
         User user = getCurrentUser();
-        List<Practice> practices = practiceRepository.findByUserIdAndCategoryIdOrderByCreatedAtDesc(user.getId(), categoryId);
-        
+        List<Practice> practices = practiceRepository.findByUserIdAndCategoryIdOrderByCreatedAtDesc(user.getId(),
+                categoryId);
+
         return practices.stream().map(p -> com.example.quizhub.dto.practice.PracticeHistoryResponseDTO.builder()
                 .id(p.getId())
                 .categoryId(p.getCategory().getId())
@@ -231,7 +236,46 @@ public class PracticeServiceImpl implements PracticeService {
                 .totalQuestions(p.getTotalQuestions())
                 .correctAnswers(p.getCorrectAnswers())
                 .createdAt(p.getCreatedAt())
-                .build()
-        ).collect(Collectors.toList());
+                .build()).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PracticeResultResponseDTO getPracticeDetail(Long practiceId) {
+        User user = getCurrentUser();
+        Practice practice = practiceRepository.findById(practiceId)
+                .orElseThrow(() -> new AppException(ErrorCode.PRACTICE_NOT_FOUND));
+
+        // Check ownership
+        if (!practice.getUser().getId().equals(user.getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        List<PracticeDetailResponseDTO> details = practice.getDetails().stream()
+                .map(d -> PracticeDetailResponseDTO.builder()
+                        .questionId(d.getQuestion().getId())
+                        .questionText(d.getQuestion().getText())
+                        .selectedAnswerId(d.getSelectedAnswer() != null ? d.getSelectedAnswer().getId() : null)
+                        .correctAnswerId(d.getQuestion().getAnswers().stream()
+                                .filter(a -> Boolean.TRUE.equals(a.getIsCorrect()))
+                                .map(Answer::getId)
+                                .findFirst().orElse(null))
+                        .isCorrect(d.getIsCorrect())
+                        .answers(d.getQuestion().getAnswers().stream()
+                                .map(a -> new PracticeAnswerResponseDTO(a.getId(), a.getText(), a.getIsCorrect()))
+                                .collect(Collectors.toList()))
+                        .build())
+                .collect(Collectors.toList());
+
+        return PracticeResultResponseDTO.builder()
+                .practiceId(practice.getId())
+                .categoryName(practice.getCategory().getName())
+                .totalQuestions(practice.getTotalQuestions())
+                .correctAnswers(practice.getCorrectAnswers())
+                .score(BigDecimal.valueOf((practice.getCorrectAnswers() * 10.0) / practice.getTotalQuestions())
+                        .setScale(1, java.math.RoundingMode.HALF_UP))
+                .createdAt(practice.getCreatedAt())
+                .details(details)
+                .build();
     }
 }

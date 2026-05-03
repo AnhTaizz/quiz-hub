@@ -1,0 +1,1296 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizHub | Đang luyện tập</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Nunito+Sans:wght@700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-dark: #4338ca;
+            --secondary: #10b981;
+            --bg-body: #f8fafc;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            background-color: var(--bg-body);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* ── Header ── */
+        .practice-nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: #fff;
+            border-bottom: 1px solid var(--border-color);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            padding: 0 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+
+        .logo a {
+            display: flex;
+            align-items: center;
+            font-family: 'Nunito Sans', sans-serif;
+            font-size: 24px;
+            font-weight: 900;
+            color: #1e1b4b;
+            letter-spacing: -0.5px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            font-size: 24px;
+            margin-right: 8px;
+            background: linear-gradient(135deg, #4ade80, #16a34a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .logo a span.hub {
+            background: linear-gradient(90deg, #10b981, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .practice-title-wrap {
+            margin-left: 30px;
+            padding-left: 30px;
+            border-left: 1px solid var(--border-color);
+            flex: 1;
+        }
+
+        .practice-category {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .practice-session-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin: 0;
+            color: #1e1b4b;
+        }
+
+        .btn-exit {
+            background: #f1f5f9;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-exit:hover {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        /* ── Layout ── */
+        .practice-container {
+            margin-top: 100px;
+            margin-bottom: 50px;
+            max-width: 1200px;
+        }
+
+        /* ── Sidebar ── */
+        .question-nav-card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            position: sticky;
+            top: 100px;
+        }
+
+        .nav-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .nav-dot {
+            aspect-ratio: 1;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid #f1f5f9;
+            background: #fff;
+            color: var(--text-muted);
+        }
+
+        .nav-dot:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .nav-dot.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        .nav-dot.answered {
+            background: #e0e7ff;
+            color: var(--primary);
+            border-color: #e0e7ff;
+        }
+        
+        .nav-dot.correct {
+            background: #dcfce7;
+            color: #166534;
+            border-color: #dcfce7;
+        }
+
+        .nav-dot.incorrect {
+            background: #fee2e2;
+            color: #991b1b;
+            border-color: #fee2e2;
+        }
+
+        /* ── Main Content ── */
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            padding: 40px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            margin-bottom: 30px;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 25px;
+        }
+
+        .q-number-badge {
+            background: #f1f5f9;
+            color: var(--primary);
+            font-weight: 800;
+            padding: 6px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+
+        .q-level-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 8px;
+            text-transform: uppercase;
+        }
+
+        .level-easy { background: #dcfce7; color: #166534; }
+        .level-medium { background: #fef9c3; color: #854d0e; }
+        .level-hard { background: #fee2e2; color: #991b1b; }
+
+        .question-text {
+            font-family: 'Nunito Sans', sans-serif;
+            font-weight: 800;
+            font-size: 1.4rem;
+            line-height: 1.4;
+            margin-bottom: 30px;
+            color: #1e1b4b;
+        }
+
+        /* ── Answers ── */
+        .answers-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .answer-item {
+            padding: 18px 24px;
+            border-radius: 16px;
+            border: 2px solid #f1f5f9;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+        }
+
+        .answer-item:hover:not(.locked) {
+            border-color: var(--primary);
+            background: #f8fafc;
+            transform: translateX(5px);
+        }
+
+        .answer-item.selected {
+            border-color: var(--primary);
+            background: #eef2ff;
+        }
+
+        .answer-item.correct {
+            border-color: var(--secondary) !important;
+            background: #ecfdf5 !important;
+        }
+
+        .answer-item.incorrect {
+            border-color: #ef4444 !important;
+            background: #fef2f2 !important;
+        }
+
+        .answer-prefix {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+
+        .answer-item.selected .answer-prefix {
+            background: var(--primary);
+            color: #fff;
+        }
+        
+        .answer-item.correct .answer-prefix {
+            background: var(--secondary);
+            color: #fff;
+        }
+        
+        .answer-item.incorrect .answer-prefix {
+            background: #ef4444;
+            color: #fff;
+        }
+
+        .answer-content {
+            font-weight: 600;
+            font-size: 1.05rem;
+            flex: 1;
+        }
+
+        /* ── Feedback Overlay ── */
+        .answer-item.locked {
+            cursor: not-allowed;
+            pointer-events: none;
+            opacity: 0.9;
+        }
+
+        .feedback-box {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 16px;
+            display: none;
+            animation: slideIn 0.3s ease;
+        }
+
+        .feedback-box.correct {
+            background: #ecfdf5;
+            border: 1px solid #10b981;
+            color: #065f46;
+            display: block;
+        }
+
+        .feedback-box.incorrect {
+            background: #fef2f2;
+            border: 1px solid #ef4444;
+            color: #991b1b;
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Footer Actions ── */
+        .practice-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: auto;
+            padding-top: 30px;
+        }
+
+        .btn-nav {
+            padding: 12px 28px;
+            border-radius: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s;
+        }
+
+        .btn-prev {
+            background: #fff;
+            border: 2px solid var(--border-color);
+            color: var(--text-muted);
+        }
+
+        .btn-prev:hover:not(:disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-next {
+            background: var(--primary);
+            border: none;
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+        }
+
+        .btn-next:hover:not(:disabled) {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn-finish {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            color: #fff;
+            padding: 12px 35px;
+            border-radius: 14px;
+            font-weight: 800;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-finish:hover {
+            opacity: 0.9;
+            transform: scale(1.02);
+        }
+
+        /* ── Result View ── */
+        .result-card {
+            background: #fff;
+            border-radius: 30px;
+            padding: 50px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+            display: none;
+        }
+
+        .score-circle {
+            width: 180px;
+            height: 180px;
+            margin: 0 auto 25px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-circle svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .score-circle circle {
+            fill: none;
+            stroke-width: 12;
+            stroke-linecap: round;
+        }
+
+        .score-circle .bg {
+            stroke: #f1f5f9;
+        }
+
+        .score-circle .progress {
+            stroke: var(--primary);
+            stroke-dasharray: 440;
+            stroke-dashoffset: 440;
+            transition: stroke-dashoffset 1.5s ease-out;
+        }
+
+        .score-text-wrap {
+            position: absolute;
+            text-align: center;
+        }
+
+        .score-percent {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: #1e1b4b;
+            line-height: 1;
+        }
+
+        .score-sub {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .score-detail {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1e1b4b;
+            margin-bottom: 20px;
+            background: #f8fafc;
+            padding: 8px 20px;
+            border-radius: 50px;
+            display: inline-block;
+        }
+
+        /* ── Skeleton ── */
+        .skeleton {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 12px;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        /* ── Loading Overlay ── */
+        #pageLoading {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #fff;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ── Score Badge ── */
+        .score-badge {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 25px rgba(124, 58, 237, 0.3);
+            margin: 15px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        .score-badge i {
+            font-size: 1.5rem;
+            color: #fbbf24;
+        }
+        .score-val-wrap {
+            text-align: left;
+            line-height: 1.2;
+        }
+        .score-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+            font-weight: 700;
+        }
+        .score-number {
+            font-size: 1.6rem;
+            font-weight: 900;
+            font-family: 'Nunito Sans', sans-serif;
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); opacity: 1; }
+            70% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+        /* ── Toast ── */
+        #toastWrap {
+            position: fixed;
+            top: 22px;
+            right: 22px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .toast-msg {
+            background: #1e1b4b;
+            color: #fff;
+            border-radius: 14px;
+            padding: 12px 18px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+            opacity: 0;
+            transform: translateX(16px);
+            transition: all 0.3s ease;
+        }
+        .toast-msg.show { opacity: 1; transform: translateX(0); }
+        .toast-msg.ok i { color: #4ade80; }
+        .toast-msg.err i { color: #fb7185; }
+
+        @media (max-width: 991px) {
+            .question-nav-card { position: static; margin-bottom: 20px; }
+            .nav-grid { grid-template-columns: repeat(10, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="pageLoading">
+        <div class="loading-spinner"></div>
+        <div class="fw-bold text-primary" style="font-family:'Nunito Sans', sans-serif; font-size: 1.2rem;">QuizHub</div>
+        <p class="text-muted small mt-2">Đang nạp dữ liệu...</p>
+    </div>
+
+    <nav class="practice-nav">
+        <h1 class="logo mb-0">
+            <a href="/student/categories">
+                <i class="bi bi-layers-fill logo-icon"></i>
+                Quiz<span class="hub">Hub</span>
+            </a>
+        </h1>
+        <div class="practice-title-wrap">
+            <p class="practice-category" id="topCategoryName">Đang tải...</p>
+            <h1 class="practice-session-title">Chế độ Tự Luyện</h1>
+        </div>
+        <div class="practice-actions">
+            <button class="btn-exit" onclick="confirmExit()" id="btnExit">
+                <i class="bi bi-box-arrow-left"></i> <span>Thoát</span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="container practice-container" id="mainContent">
+        <div class="row g-4">
+            <!-- Sidebar: Navigation -->
+            <div class="col-lg-3">
+                <div class="question-nav-card">
+                    <h5 class="fw-bold mb-1" style="color:#1e1b4b;">Câu hỏi</h5>
+                    <p class="text-muted small mb-0">Nhấn để di chuyển nhanh</p>
+                    <div class="nav-grid" id="questionNav">
+                        <!-- Nav dots injected here -->
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-top" id="navLegend">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div style="width:12px;height:12px;border-radius:3px;background:#e0e7ff;"></div>
+                            <span class="small text-muted">Đã trả lời</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="width:12px;height:12px;border-radius:3px;background:#f1f5f9;border:1px solid #e2e8f0;"></div>
+                            <span class="small text-muted">Chưa trả lời</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main: Question Area -->
+            <div class="col-lg-9">
+                <div class="question-card" id="questionArea">
+                    <div class="question-header">
+                        <span class="q-number-badge" id="qNumber">Câu 0/0</span>
+                        <span class="q-level-badge level-easy" id="qLevel">Dễ</span>
+                    </div>
+
+                    <div class="question-text" id="qText">
+                        Đang tải nội dung câu hỏi...
+                    </div>
+
+                    <div class="answers-list" id="answersList">
+                        <!-- Answers injected here -->
+                    </div>
+
+                    <div class="feedback-box" id="feedbackBox">
+                        <!-- Feedback content -->
+                    </div>
+
+                    <div class="practice-footer">
+                        <button class="btn-nav btn-prev" id="btnPrev" onclick="prevQuestion()" disabled>
+                            <i class="bi bi-arrow-left"></i> Câu trước
+                        </button>
+                        
+                        <div class="d-flex gap-3">
+                            <button class="btn-nav btn-next" id="btnNext" onclick="nextQuestion()">
+                                Tiếp theo <i class="bi bi-arrow-right"></i>
+                            </button>
+                            <button class="btn-finish d-none" id="btnFinish" onclick="submitPractice()">
+                                <i class="bi bi-check2-all"></i> Nộp bài
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Result Card (Hidden by default) -->
+                <div class="result-card" id="resultCard">
+                    <div class="score-circle">
+                        <svg viewBox="0 0 160 160">
+                            <circle class="bg" cx="80" cy="80" r="70"></circle>
+                            <circle class="progress" id="scoreCircleProgress" cx="80" cy="80" r="70"></circle>
+                        </svg>
+                        <div class="score-text-wrap">
+                            <div class="score-percent" id="resPercent">0%</div>
+                            <div class="score-sub">Chính xác</div>
+                        </div>
+                    </div>
+                    
+                    <div class="score-detail">
+                        Đúng <span id="resCorrect">0</span> <span id="resTotal">/ 0</span> câu
+                    </div>
+                    
+                    <div class="score-badge">
+                        <i class="bi bi-star-fill"></i>
+                        <div class="score-val-wrap">
+                            <div class="score-label">Điểm số đạt được</div>
+                            <div class="score-number"><span id="resScore">0.0</span> <span style="font-size: 1rem; opacity: 0.7;">/ 10</span></div>
+                        </div>
+                    </div>
+
+                    <h2 class="fw-bold mb-2">Hoàn thành luyện tập!</h2>
+                    <p class="text-muted mb-4">Tuyệt vời! Bạn vừa hoàn thành lượt tự luyện này.</p>
+                    
+                    <div class="d-flex gap-3 justify-content-center">
+                        <button class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-bold" onclick="viewReview()">
+                            Xem lại bài làm
+                        </button>
+                        <a href="/student/categories" class="btn btn-primary px-4 py-2 rounded-pill fw-bold" style="background:var(--primary); border:none;">
+                            Về ngân hàng đề
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toastWrap"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        const reviewPracticeId = /*[[${reviewPracticeId}]]*/ null;
+    </script>
+    <script>
+        // ── Data & State ──
+        let questions = [];
+        let settings = { showAnswer: true, shuffle: false, displayMode: 'sequential' };
+        let categoryId = null;
+        let categoryName = "";
+        
+        let currentIndex = 0;
+        let userAnswers = {}; // questionId -> selectedAnswerId
+        let answeredCorrectly = {}; // questionId -> boolean (if showAnswer is on)
+        let practiceResult = null; // Store result details for review
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initData();
+        });
+
+        async function initData() {
+            try {
+                // If we have a review ID from URL
+                if (reviewPracticeId) {
+                    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                    try {
+                        const res = await fetch(`/api/student/practice/history/detail?id=${reviewPracticeId}`, {
+                            headers: { 'Authorization': 'Bearer ' + token }
+                        });
+                        if (res.ok) {
+                            const data = await res.json();
+                            practiceResult = data;
+                            categoryId = data.categoryId || 0;
+                            categoryName = data.categoryName || "Review Mode";
+                            document.getElementById('topCategoryName').textContent = categoryName;
+                            
+                            questions = data.details.map(d => ({
+                                id: d.questionId,
+                                text: d.questionText,
+                                level: 'NORMAL',
+                                type: 'SINGLE_CHOICE',
+                                answers: d.answers || []
+                            }));
+                            
+                            data.details.forEach(d => {
+                                userAnswers[d.questionId] = d.selectedAnswerId;
+                                answeredCorrectly[d.questionId] = d.isCorrect;
+                            });
+
+                            showResult(data, true);
+                            return;
+                        }
+                    } catch (err) {
+                        console.error("Failed to fetch review detail", err);
+                    }
+                }
+
+                // Check if we are in review mode via sessionStorage (fallback)
+                const isReview = sessionStorage.getItem('practice_review_mode');
+                if (isReview === 'true') {
+                    const data = JSON.parse(sessionStorage.getItem('practice_result_data'));
+                    sessionStorage.removeItem('practice_review_mode'); // Clear it
+                    
+                    if (data) {
+                        practiceResult = data;
+                        categoryId = data.categoryId || 0;
+                        categoryName = data.categoryName || "Review";
+                        
+                        // Map result details back to questions for rendering
+                        questions = data.details.map(d => ({
+                            id: d.questionId,
+                            text: d.questionText,
+                            level: 'NORMAL',
+                            type: 'SINGLE_CHOICE',
+                            answers: d.answers || [] // Now included in the DTO!
+                        }));
+                        
+                        // Populate userAnswers and answeredCorrectly for immediate use
+                        data.details.forEach(d => {
+                            userAnswers[d.questionId] = d.selectedAnswerId;
+                            answeredCorrectly[d.questionId] = d.isCorrect;
+                        });
+
+                        showResult(data, true);
+                        return;
+                    }
+                }
+
+                const rawQ = sessionStorage.getItem('practice_questions');
+                const rawS = sessionStorage.getItem('practice_settings');
+                const idRaw = sessionStorage.getItem('practice_category_id');
+                categoryId = idRaw ? parseInt(idRaw) : null;
+                categoryName = sessionStorage.getItem('practice_category_name');
+
+                if (!rawQ || !categoryId) {
+                    window.location.href = '/student/categories';
+                    return;
+                }
+
+                questions = JSON.parse(rawQ);
+                if (rawS) settings = JSON.parse(rawS);
+
+                // Handle shuffle persistence
+                const isShuffled = sessionStorage.getItem('practice_is_shuffled');
+                if (settings.shuffle && !isShuffled) {
+                    shuffleArray(questions);
+                    sessionStorage.setItem('practice_questions', JSON.stringify(questions));
+                    sessionStorage.setItem('practice_is_shuffled', 'true');
+                }
+
+                // Load saved progress
+                const savedAnswers = sessionStorage.getItem('practice_user_answers');
+                const savedCorrect = sessionStorage.getItem('practice_answered_correctly');
+                if (savedAnswers) userAnswers = JSON.parse(savedAnswers);
+                if (savedCorrect) answeredCorrectly = JSON.parse(savedCorrect);
+
+                document.getElementById('topCategoryName').textContent = categoryName || "Danh mục";
+                
+                renderNav();
+                
+                // Refresh nav dots status
+                questions.forEach((q, i) => {
+                    const dot = document.getElementById(`nav-${i}`);
+                    if (userAnswers[q.id]) {
+                        dot.classList.add('answered');
+                        if (settings.showAnswer) {
+                            dot.classList.add(answeredCorrectly[q.id] ? 'correct' : 'incorrect');
+                        }
+                    }
+                });
+
+                const savedIndex = sessionStorage.getItem('practice_current_index');
+                const startIndex = savedIndex ? parseInt(savedIndex) : 0;
+                showQuestion(startIndex);
+                
+                // Hide loader
+                const loader = document.getElementById('pageLoading');
+                if (loader) loader.style.display = 'none';
+            } catch (e) {
+                console.error(e);
+                showToast("Lỗi dữ liệu luyện tập", "err");
+                const loader = document.getElementById('pageLoading');
+                if (loader) loader.style.display = 'none';
+            }
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // ── UI Rendering ──
+        function renderNav() {
+            const nav = document.getElementById('questionNav');
+            nav.innerHTML = '';
+            
+            // Hide legend in review mode
+            const legend = document.getElementById('navLegend');
+            if (legend) legend.style.display = practiceResult ? 'none' : 'block';
+
+            questions.forEach((q, i) => {
+                const dot = document.createElement('div');
+                dot.className = 'nav-dot';
+                dot.textContent = i + 1;
+                dot.id = `nav-${i}`;
+                
+                // Coloring logic
+                if (practiceResult) {
+                    const isCorrect = answeredCorrectly[q.id];
+                    dot.classList.add(isCorrect ? 'correct' : 'incorrect');
+                } else if (userAnswers[q.id]) {
+                    dot.classList.add('answered');
+                    if (settings.showAnswer) {
+                        dot.classList.add(answeredCorrectly[q.id] ? 'correct' : 'incorrect');
+                    }
+                }
+                
+                dot.onclick = () => showQuestion(i);
+                nav.appendChild(dot);
+            });
+        }
+
+        function showQuestion(index) {
+            if (settings.displayMode === 'all') {
+                // If not rendered yet, render first
+                if (!document.getElementById('allQuestionsList')) {
+                    renderAllQuestions();
+                }
+                
+                const el = document.getElementById(`q-block-${index}`);
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    currentIndex = index;
+                    
+                    // Highlight active dot
+                    document.querySelectorAll('.nav-dot').forEach(d => d.classList.remove('active'));
+                    const dot = document.getElementById(`nav-${index}`);
+                    if (dot) dot.classList.add('active');
+                }
+                return;
+            }
+
+            currentIndex = index;
+            sessionStorage.setItem('practice_current_index', index);
+            const q = questions[index];
+            if (!q) return;
+
+            // Update Nav dots
+            document.querySelectorAll('.nav-dot').forEach(d => d.classList.remove('active'));
+            const dot = document.getElementById(`nav-${index}`);
+            if (dot) dot.classList.add('active');
+
+            // Update Header
+            document.getElementById('qNumber').textContent = `Câu ${index + 1}/${questions.length}`;
+            const levelEl = document.getElementById('qLevel');
+            levelEl.textContent = q.level === 'EASY' ? 'Dễ' : (q.level === 'MEDIUM' ? 'Trung bình' : 'Khó');
+            levelEl.className = 'q-level-badge ' + (q.level === 'EASY' ? 'level-easy' : (q.level === 'MEDIUM' ? 'level-medium' : 'level-hard'));
+
+            // Question Text
+            document.getElementById('qText').textContent = q.text;
+
+            // Answers
+            const list = document.getElementById('answersList');
+            list.innerHTML = '';
+            
+            const selectedId = userAnswers[q.id];
+            const isAnswered = !!selectedId;
+            const feedback = document.getElementById('feedbackBox');
+            feedback.style.display = 'none';
+
+            q.answers.forEach((a, idx) => {
+                const prefix = String.fromCharCode(65 + idx);
+                const item = document.createElement('div');
+                item.className = 'answer-item';
+                if (selectedId == a.id) item.classList.add('selected');
+                
+                // If showAnswer is true OR in review mode
+                const showResults = settings.showAnswer || !!practiceResult;
+                if (showResults && (isAnswered || !!practiceResult)) {
+                    item.classList.add('locked');
+                    if (a.isCorrect) item.classList.add('correct');
+                    else if (selectedId == a.id) item.classList.add('incorrect');
+                }
+
+                item.innerHTML = `
+                    <div class="answer-prefix">${prefix}</div>
+                    <div class="answer-content">${esc(a.text)}</div>
+                `;
+                
+                if (!item.classList.contains('locked') && !practiceResult) {
+                    item.onclick = (event) => selectAnswer(q.id, a.id, a.isCorrect, event);
+                }
+                
+                list.appendChild(item);
+            });
+
+            // Update Buttons
+            document.getElementById('btnPrev').disabled = (index === 0);
+            if (index === questions.length - 1) {
+                document.getElementById('btnNext').classList.add('d-none');
+                if (!practiceResult) {
+                    document.getElementById('btnFinish').classList.remove('d-none');
+                }
+            } else {
+                document.getElementById('btnNext').classList.remove('d-none');
+                document.getElementById('btnFinish').classList.add('d-none');
+            }
+
+            // Show feedback if showAnswer is on (including unanswered in review mode)
+            if (settings.showAnswer || !!practiceResult) {
+                if (isAnswered || !!practiceResult) {
+                    showFeedback(answeredCorrectly[q.id]);
+                }
+            }
+        }
+
+        function renderAllQuestions() {
+            const container = document.getElementById('questionArea');
+            container.innerHTML = '<div id="allQuestionsList"></div>';
+            if (!practiceResult) {
+                const footer = document.createElement('div');
+                footer.className = 'd-flex justify-content-center mt-5';
+                footer.innerHTML = `
+                    <button class="btn-finish" id="btnFinish" onclick="submitPractice()">
+                        <i class="bi bi-check2-all"></i> Nộp tất cả bài làm
+                    </button>
+                `;
+                container.appendChild(footer);
+            }
+
+            const list = document.getElementById('allQuestionsList');
+            questions.forEach((q, index) => {
+                const qBlock = document.createElement('div');
+                qBlock.className = 'question-card mb-4';
+                qBlock.id = `q-block-${index}`;
+                
+                const selectedId = userAnswers[q.id];
+                const isAnswered = selectedId !== undefined;
+
+                let answersHtml = '';
+                q.answers.forEach((a, idx) => {
+                    const prefix = String.fromCharCode(65 + idx);
+                    const isSelected = selectedId == a.id;
+                    let classes = 'answer-item';
+                    if (isSelected) classes += ' selected';
+                    
+                    const showResults = settings.showAnswer || !!practiceResult;
+                    if (showResults && (isAnswered || !!practiceResult)) {
+                        classes += ' locked';
+                        if (a.isCorrect) classes += ' correct';
+                        else if (isSelected) classes += ' incorrect';
+                    }
+
+                    answersHtml += `
+                        <div class="${classes}" ${(!classes.includes('locked') && !practiceResult) ? `onclick="selectAnswer(${q.id}, ${a.id}, ${a.isCorrect}, event, ${index})"` : ''}>
+                            <div class="answer-prefix">${prefix}</div>
+                            <div class="answer-content">${esc(a.text)}</div>
+                        </div>
+                    `;
+                });
+
+                let feedbackHtml = '';
+                const showResults = settings.showAnswer || !!practiceResult;
+                if (showResults && (isAnswered || !!practiceResult)) {
+                    const isCorrect = answeredCorrectly[q.id];
+                    feedbackHtml = `
+                        <div class="feedback-box ${isCorrect ? 'correct' : 'incorrect'}" style="display:block;">
+                            ${isCorrect 
+                                ? '<i class="bi bi-check-circle-fill me-2"></i> <strong>Chính xác!</strong>' 
+                                : isAnswered 
+                                    ? '<i class="bi bi-x-circle-fill me-2"></i> <strong>Chưa đúng!</strong>'
+                                    : '<i class="bi bi-exclamation-circle-fill me-2"></i> <strong>Chưa trả lời!</strong>'}
+                        </div>
+                    `;
+                }
+
+                qBlock.innerHTML = `
+                    <div class="d-flex justify-content-between mb-3">
+                        <span class="q-number-badge">Câu ${index + 1}</span>
+                        <span class="q-level-badge level-${q.level ? q.level.toLowerCase() : 'normal'}">${q.level || 'NORMAL'}</span>
+                    </div>
+                    <div class="question-text mb-4">${esc(q.text)}</div>
+                    <div class="answers-list mb-3">${answersHtml}</div>
+                    ${feedbackHtml}
+                `;
+                list.appendChild(qBlock);
+            });
+        }
+
+        function selectAnswer(qId, aId, isCorrect, event, index) {
+            if (practiceResult) return; // Disable selection in review mode
+
+            userAnswers[qId] = aId;
+            answeredCorrectly[qId] = isCorrect;
+            
+            // Save to session
+            sessionStorage.setItem('practice_user_answers', JSON.stringify(userAnswers));
+            sessionStorage.setItem('practice_answered_correctly', JSON.stringify(answeredCorrectly));
+
+            // Mark nav dot
+            const currentIdx = (index !== undefined) ? index : currentIndex;
+            const dot = document.getElementById(`nav-${currentIdx}`);
+            if (dot) dot.classList.add('answered');
+
+            if (settings.showAnswer) {
+                if (dot) dot.classList.add(isCorrect ? 'correct' : 'incorrect');
+                
+                if (settings.displayMode === 'all') {
+                    renderAllQuestions();
+                    // Scroll back to the question after re-render
+                    document.getElementById(`q-block-${currentIdx}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+                } else {
+                    showFeedback(isCorrect);
+                    showQuestion(currentIndex);
+                }
+            } else {
+                // Non-immediate feedback: just highlight
+                if (settings.displayMode === 'all') {
+                    const block = document.getElementById(`q-block-${currentIdx}`);
+                    block.querySelectorAll('.answer-item').forEach(el => el.classList.remove('selected'));
+                    event.currentTarget.classList.add('selected');
+                } else {
+                    document.querySelectorAll('.answer-item').forEach(el => el.classList.remove('selected'));
+                    event.currentTarget.classList.add('selected');
+                }
+            }
+        }
+
+        function showFeedback(isCorrect) {
+            const box = document.getElementById('feedbackBox');
+            if (!box) return; // In "Show All" mode, box might not exist in the same way
+            
+            box.className = 'feedback-box ' + (isCorrect ? 'correct' : 'incorrect');
+            
+            const selectedId = userAnswers[questions[currentIndex].id];
+            if (isCorrect) {
+                box.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i> <strong>Chính xác!</strong> Bạn đã chọn đáp án đúng.';
+            } else if (selectedId) {
+                box.innerHTML = '<i class="bi bi-x-circle-fill me-2"></i> <strong>Chưa đúng rồi!</strong> Hãy xem lại kiến thức nhé.';
+            } else {
+                box.innerHTML = '<i class="bi bi-exclamation-circle-fill me-2"></i> <strong>Chưa trả lời!</strong> Bạn nên chọn một đáp án.';
+            }
+            
+            const dot = document.getElementById(`nav-${currentIndex}`);
+            if (dot) dot.classList.add(isCorrect ? 'correct' : 'incorrect');
+        }
+
+        function nextQuestion() {
+            if (currentIndex < questions.length - 1) showQuestion(currentIndex + 1);
+        }
+
+        function prevQuestion() {
+            if (currentIndex > 0) showQuestion(currentIndex - 1);
+        }
+
+        // ── Submission ──
+        async function submitPractice() {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            const answersArray = questions.map(q => ({
+                questionId: q.id,
+                selectedAnswerId: userAnswers[q.id] || null
+            }));
+
+            const btn = document.getElementById('btnFinish');
+            const orig = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang nộp...';
+
+            try {
+                const res = await fetch('/api/student/practice/submit', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ categoryId, answers: answersArray })
+                });
+
+                if (!res.ok) throw new Error("Không thể nộp bài");
+
+                const result = await res.json();
+            practiceResult = result; // Store for review
+            showResult(result);
+            } catch (e) {
+                showToast(e.message, 'err');
+                btn.disabled = false;
+                btn.innerHTML = orig;
+            }
+        }
+
+        function showResult(data, silent = false) {
+            // Hide all submit buttons
+            document.querySelectorAll('#btnFinish').forEach(b => b.classList.add('d-none'));
+
+            // Update exit button label
+            const exitBtn = document.getElementById('btnExit');
+            if (exitBtn) {
+                exitBtn.innerHTML = '<i class="bi bi-x-lg"></i> <span>Đóng review</span>';
+            }
+
+            // Hide sidebar and question area
+            document.querySelector('.col-lg-3').style.display = 'none';
+            document.getElementById('questionArea').style.display = 'none';
+            
+            // Expand main content column to full width and show result
+            const mainCol = document.querySelector('.col-lg-9');
+            mainCol.className = 'col-lg-12'; // Make it full width
+            
+            const card = document.getElementById('resultCard');
+            card.style.display = 'block';
+            
+            const correct = data.correctAnswers;
+            const total = data.totalQuestions;
+            const percent = total > 0 ? Math.round((correct / total) * 100) : 0;
+            
+            document.getElementById('resCorrect').textContent = correct;
+            document.getElementById('resTotal').textContent = `/ ${total}`;
+            document.getElementById('resPercent').textContent = `${percent}%`;
+            document.getElementById('resScore').textContent = data.score !== undefined ? data.score.toFixed(1) : "0.0";
+            
+            // Hide loader if any
+            const loader = document.getElementById('pageLoading');
+            if (loader) loader.style.display = 'none';
+
+            // Animate circle
+            const circle = document.getElementById('scoreCircleProgress');
+            const radius = 70;
+            const circumference = 2 * Math.PI * radius;
+            circle.style.strokeDasharray = circumference;
+            
+            // Set offset
+            setTimeout(() => {
+                const offset = circumference - (percent / 100) * circumference;
+                circle.style.strokeDashoffset = offset;
+            }, 100);
+            
+            // Clean up session storage
+            sessionStorage.removeItem('practice_user_answers');
+            sessionStorage.removeItem('practice_answered_correctly');
+            sessionStorage.removeItem('practice_is_shuffled');
+            sessionStorage.removeItem('practice_current_index');
+            
+            if (!silent) {
+                showToast("Đã hoàn thành luyện tập!", "ok");
+            }
+        }
+
+        function viewReview() {
+            // Update URL to review mode without reloading
+            if (practiceResult && practiceResult.practiceId) {
+                const reviewUrl = `/student/practice/review/${practiceResult.practiceId}`;
+                window.history.pushState({ path: reviewUrl }, '', reviewUrl);
+            }
+
+            const card = document.getElementById('resultCard');
+            card.style.display = 'none';
+            
+            // Show sidebar and expand main content
+            document.querySelector('.col-lg-3').style.display = 'block';
+            const mainCol = document.querySelector('.col-lg-12');
+            if (mainCol) mainCol.className = 'col-lg-9';
+            
+            const area = document.getElementById('questionArea');
+            area.style.display = 'block';
+            
+            // Re-render questions in review mode
+            settings.displayMode = 'all';
+            settings.showAnswer = true;
+            
+            // Use results to update answeredCorrectly and userAnswers
+            practiceResult.details.forEach(d => {
+                userAnswers[d.questionId] = d.selectedAnswerId;
+                answeredCorrectly[d.questionId] = d.isCorrect;
+            });
+
+            renderAllQuestions();
+            renderNav();
+            
+            // Add a "Back to Result" button at the top of questionArea
+            const header = `
+                <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded-4">
+                    <div>
+                        <h4 class="fw-bold mb-0 text-primary">Xem lại bài làm</h4>
+                        <p class="text-muted small mb-0">Đáp án đúng được đánh dấu xanh</p>
+                    </div>
+                    <button class="btn btn-dark rounded-pill px-4" onclick="showResult(practiceResult, true)">
+                        Quay lại bảng điểm
+                    </button>
+                </div>
+            `;
+            const list = document.getElementById('allQuestionsList');
+            list.insertAdjacentHTML('afterbegin', header);
+        }
+
+        // ── Utils ──
+        function confirmExit() {
+            if (practiceResult) {
+                // In review mode, just exit without warning
+                sessionStorage.removeItem('practice_result_data');
+                sessionStorage.removeItem('practice_review_mode');
+                window.location.href = '/student/categories';
+                return;
+            }
+            if (confirm("Bạn có chắc chắn muốn thoát lượt luyện tập này? Kết quả chưa nộp sẽ bị mất.")) {
+                window.location.href = '/student/categories';
+            }
+        }
+
+        function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+        function showToast(msg, type = 'ok') {
+            const w = document.getElementById('toastWrap');
+            const t = document.createElement('div');
+            t.className = `toast-msg ${type}`;
+            t.innerHTML = `<i class="bi ${type === 'ok' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${msg}`;
+            w.appendChild(t);
+            setTimeout(() => t.classList.add('show'), 10);
+            setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3500);
+        }
+    </script>
+</body>
+</html>

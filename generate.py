@@ -113,7 +113,7 @@ for i in range(10):
     sql.append(f"INSERT INTO _question_creating (quiz_id, quest_id) VALUES ('{quiz_id}', {q_id});")
 
 # 4. Assign Quiz to the Mạng Máy Tính classroom (90001) under "Kiểm tra & Bài tập" topic (90101)
-sql.append(f"INSERT INTO _quiz_assigning (classroom_id, quiz_id, note, max_attempt, question_shuffled, answer_shuffled, duration_in_mins, start_date, due_date, created_at, topic_id) VALUES (90001, '{quiz_id}', 'Làm bài trong 60 phút', 1, true, true, 60, '2024-05-01', '2024-12-31', NOW(), 90101);")
+sql.append(f"INSERT INTO _quiz_assigning (classroom_id, quiz_id, note, max_attempt, question_shuffled, answer_shuffled, duration_in_mins, start_date, due_date, created_at, topic_id) VALUES (90001, '{quiz_id}', 'Làm bài trong 60 phút', 3, true, true, 60, '2024-05-01', '2024-12-31', NOW(), 90101);")
 
 # 5. Enroll 5 Students in all classrooms
 student_ids = [9997, 9990, 9991, 9992, 9993]

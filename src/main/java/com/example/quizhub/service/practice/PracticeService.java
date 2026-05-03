@@ -19,5 +19,7 @@ public interface PracticeService {
     long countQuestions(Long categoryId);
 
     List<PracticeHistoryResponseDTO> getPracticeHistory(Long categoryId);
+    
+    PracticeResultResponseDTO getPracticeDetail(Long practiceId);
 }
 

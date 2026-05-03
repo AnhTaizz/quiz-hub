@@ -15,6 +15,7 @@ import com.example.quizhub.dto.quiztaking.request.QuestionSubmitRequestDTO;
 import com.example.quizhub.dto.quiztaking.request.QuizSubmitRequestDTO;
 import com.example.quizhub.dto.quiztaking.response.AnswerTakingResponseDTO;
 import com.example.quizhub.dto.quiztaking.response.QuestionTakingResponseDTO;
+import com.example.quizhub.dto.quiztaking.response.QuizResultResponseDTO;
 import com.example.quizhub.dto.quiztaking.response.QuizTakingResponseDTO;
 import com.example.quizhub.entity.Answer;
 import com.example.quizhub.entity.Attempt;
@@ -57,20 +58,44 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         Quiz quiz = quizAssigning.getQuiz();
         QuizTaking quizTaking = quizTakingRepository.findByLearnerIdAndQuizId(studentId, quiz.getId())
                                     .stream().findFirst()
-                                    .orElseGet(() -> QuizTaking.builder()
-                                                        .isAssigned(true)
-                                                        .status(TakingStatus.IN_PROGRESS)
-                                                        .quiz(quiz)
-                                                        .learner(student)
-                                                        .build());
+                                    .orElseGet(() -> quizTakingRepository.save(QuizTaking.builder()
+                                                         .isAssigned(true)
+                                                         .status(TakingStatus.NOT_STARTED)
+                                                         .quiz(quiz)
+                                                         .learner(student)
+                                                         .build()));
 
-        Attempt attempt = Attempt.builder()
+        // Find existing attempts
+        List<Attempt> attempts = attemptRepository.findByQuizTakingId(quizTaking.getId());
+        
+        // Find unfinished attempt to resume
+        Attempt attempt = attempts.stream()
+                .filter(a -> a.getEndedAt() == null)
+                .findFirst()
+                .orElse(null);
+
+        if (attempt == null) {
+            // Check if reached max attempts
+            if (quizAssigning.getMaxAttempt() != null) {
+                long finishedCount = attempts.stream()
+                        .filter(a -> a.getEndedAt() != null)
+                        .count();
+                if (finishedCount >= quizAssigning.getMaxAttempt()) {
+                    throw new AppException(ErrorCode.MAX_ATTEMPTS_REACHED);
+                }
+            }
+
+            attempt = Attempt.builder()
                 .quizTaking(quizTaking)
                 .startedAt(LocalDateTime.now())
                 .totalQuestNum(quiz.getQuestions().size())
                 .build();
+            attempt = attemptRepository.save(attempt);
+            quizTaking.setStatus(TakingStatus.IN_PROGRESS);
+            quizTakingRepository.save(quizTaking);
+        }
 
-        attempt = attemptRepository.save(attempt);
+        java.util.Random random = new java.util.Random(attempt.getId());
 
         List<QuestionTakingResponseDTO> questionDTOs = quiz.getQuestions().stream()
                     .map(question -> {
@@ -81,7 +106,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                                                     .collect(Collectors.toList());
 
                         if(Boolean.TRUE.equals(quizAssigning.getAnswerShuffled())){
-                            Collections.shuffle(answerDTOs);
+                            Collections.shuffle(answerDTOs, random);
                         }
 
                         return new QuestionTakingResponseDTO(
@@ -94,14 +119,59 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                     .collect(Collectors.toList());
 
         if(Boolean.TRUE.equals(quizAssigning.getQuestionShuffled())){
-            Collections.shuffle(questionDTOs);
+            Collections.shuffle(questionDTOs, random);
         }
+
+        // Fetch saved answers for this attempt
+        java.util.Map<Long, List<Long>> selectedAnswers = userAttemptAnswerRepository.findByAttemptId(attempt.getId())
+                .stream()
+                .collect(Collectors.groupingBy(
+                        uaa -> uaa.getQuestion().getId(),
+                        Collectors.mapping(uaa -> uaa.getAnswer().getId(), Collectors.toList())
+                ));
 
         return QuizTakingResponseDTO.builder()
                 .attemptId(attempt.getId())
                 .quizTitle(quiz.getTitle())
+                .durationInMins(quizAssigning.getDurationInMins())
+                .startedAt(attempt.getStartedAt())
                 .questions(questionDTOs)
+                .selectedAnswers(selectedAnswers)
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void saveAnswer(Long studentId, Long attemptId, Long questionId, List<Long> answerIds) {
+        Attempt attempt = attemptRepository.findById(attemptId)
+                .orElseThrow(() -> new AppException(ErrorCode.ATTEMPT_NOT_FOUND));
+
+        if (!attempt.getQuizTaking().getLearner().getId().equals(studentId)) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        if (attempt.getEndedAt() != null) {
+            throw new AppException(ErrorCode.ATTEMPT_ALREADY_SUBMITTED);
+        }
+
+        // Remove old answers for this question in this attempt
+        userAttemptAnswerRepository.deleteByAttemptIdAndQuestionId(attemptId, questionId);
+
+        // Save new answers
+        for (Long answerId : answerIds) {
+            Answer answer = answerRepository.findById(answerId)
+                    .orElseThrow(() -> new AppException(ErrorCode.ANSWER_NOT_FOUND));
+            Question question = Question.builder().id(questionId).build();
+
+            UserAttemptAnswer userAttemptAnswer = UserAttemptAnswer.builder()
+                    .attempt(attempt)
+                    .question(question)
+                    .answer(answer)
+                    .timestamp(LocalDateTime.now())
+                    .build();
+
+            userAttemptAnswerRepository.save(userAttemptAnswer);
+        }
     }
 
     @Override
@@ -141,8 +211,11 @@ public class QuizTakingServiceImpl implements QuizTakingService {
             if(submitedAnswersIds.size() == correctAnswersIds.size() && submitedAnswersIds.containsAll(correctAnswersIds)){
                 correctCount++;
             }
-
-            //Lưu câu trả lời vào DB
+            
+            // Note: Answers are already saved in real-time via saveAnswer API.
+            // We only re-save if the submitted list differs or if we want to ensure final state.
+            // For robustness, let's refresh them one last time to match the final submission.
+            userAttemptAnswerRepository.deleteByAttemptIdAndQuestionId(attempt.getId(), question.getId());
             for(Long answerId : submitedAnswersIds){
                 Answer answer = answerRepository.findById(answerId)
                                     .orElseThrow(() -> new AppException(ErrorCode.ANSWER_NOT_FOUND));
@@ -176,5 +249,66 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         attemptRepository.save(attempt);
 
         return attempt;
+    }
+
+    @Override
+    public QuizResultResponseDTO getQuizResult(Long studentId, Long attemptId) {
+        Attempt attempt = attemptRepository.findById(attemptId)
+                .orElseThrow(() -> new AppException(ErrorCode.ATTEMPT_NOT_FOUND));
+
+        if (!attempt.getQuizTaking().getLearner().getId().equals(studentId)) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        Quiz quiz = attempt.getQuizTaking().getQuiz();
+        List<UserAttemptAnswer> userAnswers = userAttemptAnswerRepository.findByAttemptId(attemptId);
+
+        // Map questionId -> list of selected answerIds
+        Map<Long, List<Long>> selectedAnswersMap = userAnswers.stream()
+                .collect(Collectors.groupingBy(
+                        ua -> ua.getQuestion().getId(),
+                        Collectors.mapping(ua -> ua.getAnswer().getId(), Collectors.toList())
+                ));
+
+        List<QuizResultResponseDTO.QuestionResultDTO> questionResults = quiz.getQuestions().stream()
+                .map(q -> {
+                    List<Long> selectedIds = selectedAnswersMap.getOrDefault(q.getId(), Collections.emptyList());
+                    List<Long> correctIds = q.getAnswers().stream()
+                            .filter(Answer::getIsCorrect)
+                            .map(Answer::getId)
+                            .collect(Collectors.toList());
+
+                    boolean isCorrect = selectedIds.size() == correctIds.size() && selectedIds.containsAll(correctIds);
+
+                    List<QuizResultResponseDTO.AnswerResultDTO> answerResults = q.getAnswers().stream()
+                            .map(a -> QuizResultResponseDTO.AnswerResultDTO.builder()
+                                    .answerId(a.getId())
+                                    .text(a.getText())
+                                    .isCorrect(a.getIsCorrect())
+                                    .build())
+                            .collect(Collectors.toList());
+
+                    return QuizResultResponseDTO.QuestionResultDTO.builder()
+                            .questionId(q.getId())
+                            .text(q.getText())
+                            .type(q.getType().name())
+                            .answers(answerResults)
+                            .selectedAnswerIds(selectedIds)
+                            .isCorrect(isCorrect)
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        return QuizResultResponseDTO.builder()
+                .attemptId(attempt.getId())
+                .quizTitle(quiz.getTitle())
+                .score(attempt.getResult())
+                .correctNum(attempt.getCorrectNum())
+                .incorrectNum(attempt.getIncorrectNum())
+                .totalNum(attempt.getTotalQuestNum())
+                .startedAt(attempt.getStartedAt())
+                .endedAt(attempt.getEndedAt())
+                .questions(questionResults)
+                .build();
     }
 }

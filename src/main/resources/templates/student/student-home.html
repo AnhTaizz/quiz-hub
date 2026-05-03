@@ -27,7 +27,7 @@
     <header th:replace="~{layout/header :: student-header(activePage='dashboard')}"></header>
 
     <main class="container">
-
+        <!-- Dashboard Hero Section -->
         <section class="dashboard-hero mb-5 reveal">
             <div class="dash-blob dash-blob-1"></div>
             <div class="dash-blob dash-blob-2"></div>
@@ -35,22 +35,21 @@
             <div class="hero-content d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4">
                 <div>
                     <h1 class="hero-title">Chào buổi sáng, <span
-                            th:text="${currentUser != null ? currentUser.fullName : 'Quỳnh Trang'}">Quỳnh Trang</span>
+                            th:text="${currentUser != null ? currentUser.fullName : 'Học sinh'}">Học sinh</span>
                         👋
                     </h1>
-                    <p class="hero-subtitle">Mọi thứ đang đi đúng hướng! Bạn có <strong>2 bài kiểm tra</strong> sắp đến
-                        hạn
-                        trong tuần này. Hãy hoàn thành sớm để giữ vững phong độ nhé.</p>
+                    <p class="hero-subtitle">Mọi thứ đang đi đúng hướng! Bạn có <strong th:text="${pendingCount != null ? pendingCount : 0}">0</strong> bài kiểm tra sắp đến
+                        hạn trong tuần này. Hãy hoàn thành sớm để giữ vững phong độ nhé.</p>
 
                     <div class="hero-stats-row">
                         <div class="hero-stat-glass">
-                            <i class="bi bi-check2-circle text-success"></i> Đã làm: 15 Bài thi
+                            <i class="bi bi-check2-circle text-success"></i> Đã làm: <span th:text="${totalCompleted != null ? totalCompleted : 0}">0</span> Bài thi
                         </div>
                         <div class="hero-stat-glass">
-                            <i class="bi bi-star-fill text-warning"></i> Điểm TB: 8.5/10
+                            <i class="bi bi-star-fill text-warning"></i> Điểm TB: <span th:text="${avgScore != null ? avgScore : '0.0'}">0.0</span>/10
                         </div>
                         <div class="hero-stat-glass">
-                            <i class="bi bi-lightning-charge-fill text-info"></i> Xếp hạng: Top 5%
+                            <i class="bi bi-lightning-charge-fill text-info"></i> Trạng thái: <span th:text="${pendingCount > 0 ? 'Cần cố gắng' : 'Đã hoàn thành'}">Cần cố gắng</span>
                         </div>
                     </div>
                 </div>
@@ -67,7 +66,9 @@
             </div>
         </section>
 
-        <div class="row g-jc-center g-5">
+        <!-- Content Grid -->
+        <div class="row g-4">
+            <!-- Left Column: Pending Tasks -->
             <div class="col-lg-8 reveal" style="transition-delay: 0.1s;">
                 <div class="d-flex justify-content-between align-items-end mb-4">
                     <div>
@@ -79,48 +80,41 @@
                             class="bi bi-arrow-right"></i></a>
                 </div>
 
-                <div class="dash-card task-card task-warning mb-4">
-                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
-                        <div class="d-flex gap-3 align-items-center">
-                            <div class="dash-icon-box bg-warning bg-opacity-10 text-warning">
-                                <i class="bi bi-filetype-java"></i>
-                            </div>
-                            <div>
-                                <h4 class="task-title">Kiểm tra giữa kỳ - Lập trình Java Nâng cao</h4>
-                                <div class="task-chips">
-                                    <div class="info-chip"><i class="bi bi-clock"></i> 45 Phút</div>
-                                    <div class="info-chip"><i class="bi bi-list-check"></i> 40 Câu</div>
-                                    <div class="info-chip urgent"><i class="bi bi-exclamation-triangle-fill"></i> Hết
-                                        hạn: Hôm nay</div>
-                                </div>
-                            </div>
-                        </div>
-                        <button class="btn-green rounded-pill px-4 text-nowrap"><i class="bi bi-pencil-square me-1"></i>
-                            Làm bài</button>
-                    </div>
+                <!-- Empty State -->
+                <div th:if="${assignedQuizzes == null || assignedQuizzes.isEmpty()}" 
+                     class="dash-card py-5 text-center bg-white bg-opacity-50 border-dashed mb-4">
+                    <i class="bi bi-emoji-smile fs-1 text-muted d-block mb-3"></i>
+                    <p class="text-muted mb-0">Tuyệt vời! Bạn không còn bài thi nào đang chờ.</p>
                 </div>
 
-                <div class="dash-card task-card task-primary">
+                <!-- Task Items -->
+                <div th:each="assigning : ${assignedQuizzes}" class="dash-card task-card mb-4 task-primary">
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
                         <div class="d-flex gap-3 align-items-center">
-                            <div class="dash-icon-box bg-primary bg-opacity-10 text-primary">
-                                <i class="bi bi-database"></i>
+                            <div class="dash-icon-box bg-opacity-10 bg-primary text-primary">
+                                <i class="bi bi-file-earmark-text"></i>
                             </div>
                             <div>
-                                <h4 class="task-title">Bài tập Trắc nghiệm SQL Server</h4>
+                                <h4 class="task-title" th:text="${assigning.quiz.title}">Tên bài thi</h4>
                                 <div class="task-chips">
-                                    <div class="info-chip"><i class="bi bi-clock"></i> 30 Phút</div>
-                                    <div class="info-chip"><i class="bi bi-list-check"></i> 25 Câu</div>
-                                    <div class="info-chip safe"><i class="bi bi-calendar-event"></i> Còn 3 ngày</div>
+                                    <div class="info-chip"><i class="bi bi-clock"></i> <span th:text="${assigning.durationInMins}">0</span> Phút</div>
+                                    <div class="info-chip"><i class="bi bi-list-check"></i> <span th:text="${assigning.quiz.questions != null ? assigning.quiz.questions.size() : 0}">0</span> Câu</div>
+                                    <div class="info-chip safe">
+                                        <i class="bi bi-calendar-event"></i> 
+                                        Hạn: <span th:text="${assigning.dueDate != null ? #temporals.format(assigning.dueDate, 'dd/MM/yyyy') : 'Không thời hạn'}">--/--/----</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <button class="btn btn-outline-secondary rounded-pill fw-bold px-4 text-nowrap">Chi
-                            tiết</button>
+                        <a th:href="@{/student/quiz/play/{id}(id=${assigning.id})}" class="btn-green rounded-pill px-4 text-nowrap text-decoration-none d-flex align-items-center">
+                            <i class="bi bi-pencil-square me-1"></i> 
+                            <span>Làm bài</span>
+                        </a>
                     </div>
                 </div>
             </div>
 
+            <!-- Right Column: Quick Actions -->
             <div class="col-lg-4 reveal" style="transition-delay: 0.2s;">
                 <div class="mb-4">
                     <div class="section-label" style="color: #0d6efd; background: rgba(13,110,253,0.1);">Cá Nhân</div>

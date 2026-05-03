@@ -1,6 +1,11 @@
+DELETE FROM _practice_detail;
+DELETE FROM _practice;
 DELETE FROM _class_joining WHERE class_id >= 90000;
 DELETE FROM _quiz_assigning WHERE classroom_id >= 90000;
 DELETE FROM class_topics WHERE classroom_id >= 90000;
+DELETE FROM _user_attempt_answer;
+DELETE FROM _attempt;
+DELETE FROM _quiz_taking;
 DELETE FROM _question_creating WHERE quiz_id = '00000000-0000-0000-0000-000000000001';
 DELETE FROM _quiz WHERE id = '00000000-0000-0000-0000-000000000001';
 DELETE FROM _classroom WHERE id >= 90000;
@@ -15917,7 +15922,7 @@ INSERT INTO _question_creating (quiz_id, quest_id) VALUES ('00000000-0000-0000-0
 INSERT INTO _question_creating (quiz_id, quest_id) VALUES ('00000000-0000-0000-0000-000000000001', 90287);
 INSERT INTO _question_creating (quiz_id, quest_id) VALUES ('00000000-0000-0000-0000-000000000001', 90288);
 INSERT INTO _question_creating (quiz_id, quest_id) VALUES ('00000000-0000-0000-0000-000000000001', 90289);
-INSERT INTO _quiz_assigning (classroom_id, quiz_id, note, max_attempt, question_shuffled, answer_shuffled, duration_in_mins, start_date, due_date, created_at, topic_id) VALUES (90001, '00000000-0000-0000-0000-000000000001', 'Làm bài trong 60 phút', 1, true, true, 60, '2024-05-01', '2024-12-31', NOW(), 90101);
+INSERT INTO _quiz_assigning (classroom_id, quiz_id, note, max_attempt, question_shuffled, answer_shuffled, duration_in_mins, start_date, due_date, created_at, topic_id) VALUES (90001, '00000000-0000-0000-0000-000000000001', 'Làm bài trong 60 phút', 3, true, true, 60, '2024-05-01', '2024-12-31', NOW(), 90101);
 INSERT INTO _class_joining (class_id, learner_id, status, _displayed_name, joined_at) VALUES (90000, 9997, 'APPROVED', (SELECT full_name FROM _user WHERE id=9997), NOW());
 INSERT INTO _class_joining (class_id, learner_id, status, _displayed_name, joined_at) VALUES (90000, 9990, 'APPROVED', (SELECT full_name FROM _user WHERE id=9990), NOW());
 INSERT INTO _class_joining (class_id, learner_id, status, _displayed_name, joined_at) VALUES (90000, 9991, 'APPROVED', (SELECT full_name FROM _user WHERE id=9991), NOW());

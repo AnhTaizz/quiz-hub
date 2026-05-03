@@ -56,4 +56,9 @@ public class StudentPracticeRestController {
             @RequestParam("categoryId") Long categoryId) {
         return ResponseEntity.ok(practiceService.getPracticeHistory(categoryId));
     }
+
+    @GetMapping("/history/detail")
+    public ResponseEntity<PracticeResultResponseDTO> getPracticeDetail(@RequestParam("id") Long id) {
+        return ResponseEntity.ok(practiceService.getPracticeDetail(id));
+    }
 }

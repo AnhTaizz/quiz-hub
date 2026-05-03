@@ -12,4 +12,8 @@ public interface UserAttemptAnswerRepository extends JpaRepository<UserAttemptAn
     List<UserAttemptAnswer> findByAttemptId(Long attemptId);
 
     List<UserAttemptAnswer> findByQuestionId(Long questionId);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @org.springframework.transaction.annotation.Transactional
+    void deleteByAttemptIdAndQuestionId(Long attemptId, Long questionId);
 }

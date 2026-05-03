@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kết quả bài thi | QuizHub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito+Sans:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --bg-body: #f8fafc;
+            --text-main: #1e293b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            padding-bottom: 50px;
+        }
+
+        .result-header {
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .exam-logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            color: #1a1a2e;
+            font-family: 'Nunito Sans', sans-serif;
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-icon {
+            font-size: 22px;
+            margin-right: 8px;
+            background: linear-gradient(135deg, #4ade80, #16a34a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hub {
+            background: linear-gradient(90deg, #10b981, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .summary-card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            margin-top: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: #f0fdf4;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            border: 8px solid #dcfce7;
+        }
+
+        .score-value {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--primary-dark);
+            line-height: 1;
+        }
+
+        .score-label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        .stat-box {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 15px;
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #334155;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .review-title {
+            margin-top: 50px;
+            margin-bottom: 25px;
+            font-weight: 800;
+            color: #334155;
+        }
+
+        .q-result-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+            transition: transform 0.2s;
+        }
+
+        .q-result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+        }
+
+        .q-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: inline-block;
+        }
+
+        .badge-correct { background: #dcfce7; color: #166534; }
+        .badge-wrong { background: #fee2e2; color: #991b1b; }
+
+        .ans-opt {
+            padding: 12px 18px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1.5px solid #f1f5f9;
+        }
+
+        .ans-opt.correct {
+            background: #f0fdf4;
+            border-color: #4ade80;
+        }
+
+        .ans-opt.selected-wrong {
+            background: #fff1f2;
+            border-color: #fb7185;
+        }
+
+        .opt-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 0.8rem;
+        }
+
+        .icon-correct { background: #4ade80; color: white; }
+        .icon-wrong { background: #fb7185; color: white; }
+        .icon-none { background: #e2e8f0; color: #94a3b8; }
+
+        .btn-home {
+            background: var(--primary);
+            color: white;
+            border-radius: 14px;
+            padding: 12px 30px;
+            font-weight: 700;
+            border: none;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn-home:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            color: white;
+        }
+
+        #resultLoading {
+            position: fixed;
+            inset: 0;
+            background: white;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loader-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body th:data-attempt-id="${attemptId}">
+
+    <div id="resultLoading">
+        <div class="loader-spinner mb-3"></div>
+        <p class="fw-bold text-muted">Đang tải kết quả bài thi...</p>
+    </div>
+
+    <header class="result-header">
+        <div class="container d-flex align-items-center justify-content-between">
+            <a th:href="@{/student}" class="exam-logo">
+                <i class="bi bi-layers-fill logo-icon"></i>
+                Quiz<span class="hub">Hub</span>
+            </a>
+            <a th:href="@{/student}" class="btn-home">
+                <i class="bi bi-house-door-fill me-2"></i>Về trang chủ
+            </a>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Summary Section -->
+        <div class="summary-card">
+            <div class="score-circle">
+                <span class="score-value" id="scoreValue">0.0</span>
+                <span class="score-label">Điểm</span>
+            </div>
+            <h2 class="fw-bold mb-4" id="quizTitle">Tên bài thi</h2>
+            
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <div class="stat-box">
+                    <div class="stat-value text-success" id="correctCount">0</div>
+                    <div class="stat-label">Câu đúng</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value text-danger" id="incorrectCount">0</div>
+                    <div class="stat-label">Câu sai</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="timeSpent">0 ph</div>
+                    <div class="stat-label">Thời gian làm bài</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Review Section -->
+        <h4 class="review-title">Xem lại chi tiết</h4>
+        <div id="questionsReviewList">
+            <!-- Questions rendered here -->
+        </div>
+    </div>
+
+    <script>
+        const attemptId = document.body.dataset.attemptId;
+
+        document.addEventListener('DOMContentLoaded', fetchResult);
+
+        async function fetchResult() {
+            try {
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                const response = await fetch(`/api/student/quiz/result?attemptId=${attemptId}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (!response.ok) throw new Error("Không thể tải kết quả");
+                const result = await response.json();
+
+                renderSummary(result);
+                renderReview(result.questions);
+
+                document.getElementById('resultLoading').style.display = 'none';
+
+            } catch (error) {
+                alert(error.message);
+                window.location.href = '/student';
+            }
+        }
+
+        function renderSummary(data) {
+            document.getElementById('scoreValue').textContent = data.score.toFixed(1);
+            document.getElementById('quizTitle').textContent = data.quizTitle;
+            document.getElementById('correctCount').textContent = data.correctNum;
+            document.getElementById('incorrectCount').textContent = data.incorrectNum;
+
+            const start = new Date(data.startedAt);
+            const end = new Date(data.endedAt);
+            const diffMs = end - start;
+            const diffMins = Math.floor(diffMs / 1000 / 60);
+            const diffSecs = Math.floor((diffMs / 1000) % 60);
+            document.getElementById('timeSpent').textContent = `${diffMins}p ${diffSecs}s`;
+        }
+
+        function renderReview(questions) {
+            const list = document.getElementById('questionsReviewList');
+            list.innerHTML = '';
+
+            questions.forEach((q, idx) => {
+                const card = document.createElement('div');
+                card.className = 'q-result-card';
+                
+                const badge = q.correct ? 
+                    '<span class="q-badge badge-correct"><i class="bi bi-check-circle-fill me-1"></i>Chính xác</span>' : 
+                    '<span class="q-badge badge-wrong"><i class="bi bi-x-circle-fill me-1"></i>Chưa chính xác</span>';
+
+                let answersHtml = '';
+                q.answers.forEach((ans, i) => {
+                    const isSelected = q.selectedAnswerIds.includes(ans.answerId);
+                    const isCorrect = ans.correct;
+                    
+                    let statusClass = '';
+                    let iconClass = 'icon-none';
+                    let icon = String.fromCharCode(65 + i);
+
+                    if (isCorrect) {
+                        statusClass = 'correct';
+                        iconClass = 'icon-correct';
+                        icon = '<i class="bi bi-check-lg"></i>';
+                    } else if (isSelected && !isCorrect) {
+                        statusClass = 'selected-wrong';
+                        iconClass = 'icon-wrong';
+                        icon = '<i class="bi bi-x-lg"></i>';
+                    }
+
+                    answersHtml += `
+                        <div class="ans-opt ${statusClass}">
+                            <div class="opt-icon ${iconClass}">${icon}</div>
+                            <div class="opt-text">${ans.text}</div>
+                        </div>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="d-flex align-items-center flex-wrap">
+                                ${badge}
+                                <span class="q-badge bg-light text-muted ms-2">${q.type === 'SINGLE_CHOICE' ? 'CHỌN MỘT ĐÁP ÁN' : 'CHỌN NHIỀU ĐÁP ÁN'}</span>
+                            </div>
+                            <h5 class="fw-bold mb-3">Câu ${idx + 1}: ${q.text}</h5>
+                        </div>
+                    </div>
+                    <div class="answers-list">
+                        ${answersHtml}
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>
