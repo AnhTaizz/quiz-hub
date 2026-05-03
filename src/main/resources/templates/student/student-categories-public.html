@@ -565,6 +565,9 @@
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 4px;
         }
 
         .range-btn {
@@ -951,7 +954,6 @@
                         <div class="mb-3 d-flex align-items-center justify-content-between">
                             <div>
                                 <h4 class="fw-bold mb-1" style="color:#1e1b4b;"><i class="bi bi-joystick text-primary me-2"></i>Chế độ Tự Luyện</h4>
-                                <p class="text-muted mb-0" style="font-size:0.85rem;">Hệ thống sẽ bốc ngẫu nhiên câu hỏi trong danh mục này để bạn luyện tập.</p>
                             </div>
                             <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold" style="font-size: 0.85rem;">
                                 ${currentPracticeTotalQuestions} câu hỏi
@@ -1239,7 +1241,7 @@
                 return;
             }
 
-            for (let i = 0; i < Math.min(count, 12); i++) {
+            for (let i = 0; i < count; i++) {
                 const start = i * chunkSize + 1;
                 const end = Math.min((i + 1) * chunkSize, total);
                 const btn = document.createElement('button');

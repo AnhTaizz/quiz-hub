@@ -21,6 +21,7 @@ import com.example.quizhub.entity.Practice;
 import com.example.quizhub.entity.PracticeDetail;
 import com.example.quizhub.entity.Question;
 import com.example.quizhub.entity.User;
+import com.example.quizhub.entity.enums.QuestionStatus;
 import com.example.quizhub.exception.AppException;
 import com.example.quizhub.exception.ErrorCode;
 import com.example.quizhub.repository.AnswerRepository;
@@ -215,7 +216,7 @@ public class PracticeServiceImpl implements PracticeService {
         List<Long> categoryIds = new ArrayList<>();
         collectCategoryIds(category, categoryIds);
 
-        return questionRepository.countPublicQuestionsByCategories(categoryIds);
+        return questionRepository.countPublicQuestionsByCategories(categoryIds, QuestionStatus.PUBLIC);
     }
 
     @Override

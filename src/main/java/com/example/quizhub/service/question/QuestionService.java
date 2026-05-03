@@ -11,6 +11,8 @@ public interface QuestionService {
 
     QuestionResponseDTO updateQuestion(Long userId, Long id, QuestionRequestDTO request);
 
+    QuestionResponseDTO getQuestionById(Long id);
+
     void deleteQuestion(Long userId, Long id);
 
     Page<QuestionResponseDTO> searchMyQuestion(Long userId, Long categoryId,
@@ -33,7 +35,7 @@ public interface QuestionService {
     void requestShareQuestion(Long questionId, Long teacherId);
 
     //Admin
-    void approveQuestion(Long questionId);
+    void approveQuestion(Long questionId, Long categoryId);
 
     void rejectQuestion(Long questionId);
 

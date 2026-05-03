@@ -129,9 +129,10 @@ public class QuestionServiceImpl implements QuestionService {
         }
 
         boolean isUsedInQuiz = questionRepository.isQuestionUsedInQuiz(id);
+        boolean isUsedInPractice = questionRepository.isQuestionUsedInPractice(id);
 
-        if(isUsedInQuiz){
-            //xóa câu hỏi cũ nếu đã dùng trong quiz rồi
+        if(isUsedInQuiz || isUsedInPractice){
+            //xóa câu hỏi cũ nếu đã dùng trong quiz hoặc luyện tập rồi
             oldQuestion.setQuestionStatus(QuestionStatus.DELETED);
             questionRepository.save(oldQuestion);
             //tạo câu hỏi mới
@@ -183,8 +184,18 @@ public class QuestionServiceImpl implements QuestionService {
         }
     }
 
+    private void collectCategoryIds(Category category, List<Long> ids) {
+        if (category == null) return;
+        ids.add(category.getId());
+        if (category.getChildren() != null) {
+            for (Category child : category.getChildren()) {
+                collectCategoryIds(child, ids);
+            }
+        }
+    }
+
     @Override
-    public Page<QuestionResponseDTO> searchMyQuestion(Long userId,Long categoryId, QuestionType type,
+    public Page<QuestionResponseDTO> searchMyQuestion(Long userId, Long categoryId, QuestionType type,
                                                     String keyword,
                                                     int page, int size,
                                                     String sortBy, String sortDir) {
@@ -195,8 +206,21 @@ public class QuestionServiceImpl implements QuestionService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        List<QuestionStatus> statuses = List.of(QuestionStatus.PRIVATE, QuestionStatus.PENDING, QuestionStatus.PUBLIC);
-        Page<Question> questionPage = questionRepository.searchMyQuestion(userId, categoryId, type, keyword, statuses, pageable);
+        boolean useCategoryFilter = false;
+        List<Long> categoryIds = new java.util.ArrayList<>();
+        if (categoryId != null) {
+            if (categoryId == -1L) {
+                categoryIds.add(-1L);
+            } else {
+                Category category = categoryRepository.findById(categoryId)
+                        .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+                collectCategoryIds(category, categoryIds);
+            }
+            useCategoryFilter = true;
+        }
+
+        String searchKeyword = (keyword == null || keyword.trim().isEmpty()) ? null : "%" + keyword.trim().toLowerCase() + "%";
+        Page<Question> questionPage = questionRepository.searchMyQuestion(userId, useCategoryFilter, categoryIds, type, searchKeyword, pageable);
 
         return questionPage.map(questionMapper::toResponseDTO);
     }
@@ -212,9 +236,30 @@ public class QuestionServiceImpl implements QuestionService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        Page<Question> questionPage = questionRepository.searchPublicQuestion(categoryId, type, keyword, QuestionStatus.PUBLIC, pageable);
+        boolean useCategoryFilter = false;
+        List<Long> categoryIds = new java.util.ArrayList<>();
+        if (categoryId != null) {
+            if (categoryId == -1L) {
+                categoryIds.add(-1L);
+            } else {
+                Category category = categoryRepository.findById(categoryId)
+                        .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+                collectCategoryIds(category, categoryIds);
+            }
+            useCategoryFilter = true;
+        }
+
+        String searchKeyword = (keyword == null || keyword.trim().isEmpty()) ? null : "%" + keyword.trim().toLowerCase() + "%";
+        Page<Question> questionPage = questionRepository.searchPublicQuestion(useCategoryFilter, categoryIds, type, searchKeyword, QuestionStatus.PUBLIC, pageable);
 
         return questionPage.map(questionMapper::toResponseDTO);
+    }
+
+    @Override
+    public QuestionResponseDTO getQuestionById(Long id) {
+        Question question = questionRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
+        return questionMapper.toResponseDTO(question);
     }
 
     @Override
@@ -243,6 +288,7 @@ public class QuestionServiceImpl implements QuestionService {
         if(question.getQuestionStatus() == QuestionStatus.PUBLIC){
             throw new AppException(ErrorCode.QUESTION_ALREADY_PUBLIC);
         }
+
         // Chuyển trạng thái sang PENDING (chưa public ngay)
         question.setQuestionStatus(QuestionStatus.PENDING);
         questionRepository.save(question);
@@ -251,9 +297,15 @@ public class QuestionServiceImpl implements QuestionService {
     //Admin duyệt
     @Override
     @Transactional
-    public void approveQuestion(Long questionId) {
+    public void approveQuestion(Long questionId, Long categoryId) {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
+
+        if (categoryId != null) {
+            Category category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+            question.setCategory(category);
+        }
 
         question.setQuestionStatus(QuestionStatus.PUBLIC);
         questionRepository.save(question);
