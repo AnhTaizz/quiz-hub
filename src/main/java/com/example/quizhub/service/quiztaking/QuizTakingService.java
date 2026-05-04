@@ -11,4 +11,5 @@ public interface QuizTakingService {
     void saveAnswer(Long studentId, Long attemptId, Long questionId, com.example.quizhub.dto.quiztaking.request.SaveAnswerRequestDTO request);
     com.example.quizhub.dto.quiztaking.response.QuizResultResponseDTO getQuizResult(Long studentId, Long attemptId);
     Attempt recordViolation(com.example.quizhub.dto.quiztaking.request.ViolationRequestDTO request);
+    void autoSubmitExpiredAttempts();
 }

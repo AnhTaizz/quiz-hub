@@ -20,4 +20,7 @@ public interface AttemptRepository extends JpaRepository<Attempt, Long> {
 
     long countByQuizTakingLearnerId(Long learnerId);
     java.util.List<Attempt> findByQuizTakingLearnerId(Long learnerId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT a FROM Attempt a WHERE a.endedAt IS NULL AND a.quizTaking.quizAssigning.dueDate < :now")
+    java.util.List<Attempt> findExpiredAttempts(@org.springframework.data.repository.query.Param("now") java.time.LocalDateTime now);
 }

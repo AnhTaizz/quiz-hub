@@ -26,6 +26,7 @@ import com.example.quizhub.entity.QuizTaking;
 import com.example.quizhub.entity.User;
 import com.example.quizhub.entity.UserAttemptAnswer;
 import com.example.quizhub.entity.enums.TakingStatus;
+import com.example.quizhub.entity.enums.QuestionType;
 import com.example.quizhub.exception.AppException;
 import com.example.quizhub.exception.ErrorCode;
 import com.example.quizhub.repository.AnswerRepository;
@@ -210,6 +211,67 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                 userAttemptAnswerRepository.save(uaa);
             }
         }
+    }
+
+    @Override
+    @Transactional
+    public void autoSubmitExpiredAttempts() {
+        List<Attempt> expiredAttempts = attemptRepository.findExpiredAttempts(LocalDateTime.now());
+        for (Attempt attempt : expiredAttempts) {
+            finalizeAttempt(attempt);
+        }
+    }
+
+    private void finalizeAttempt(Attempt attempt) {
+        Quiz quiz = attempt.getQuizTaking().getQuiz();
+        int totalQuestion = attempt.getTotalQuestNum();
+        int correctCount = 0;
+
+        // Get saved answers from DB
+        List<UserAttemptAnswer> savedAnswers = userAttemptAnswerRepository.findByAttemptId(attempt.getId());
+        Map<Long, List<UserAttemptAnswer>> answersMap = savedAnswers.stream()
+                .collect(Collectors.groupingBy(uaa -> uaa.getQuestion().getId()));
+
+        for (Question question : quiz.getQuestions()) {
+            List<UserAttemptAnswer> userAnswers = answersMap.getOrDefault(question.getId(), Collections.emptyList());
+
+            if (question.getType() == QuestionType.FILL_IN_BLANK) {
+                String studentText = userAnswers.isEmpty() ? "" : (userAnswers.get(0).getSelectedText() != null ? userAnswers.get(0).getSelectedText() : "");
+                boolean isCorrect = question.getAnswers().stream()
+                        .filter(Answer::getIsCorrect)
+                        .anyMatch(a -> a.getText().trim().equalsIgnoreCase(studentText.trim()));
+                if (isCorrect) correctCount++;
+            } else {
+                List<Long> submitedAnswersIds = userAnswers.stream()
+                        .filter(uaa -> uaa.getAnswer() != null)
+                        .map(uaa -> uaa.getAnswer().getId())
+                        .collect(Collectors.toList());
+                
+                List<Long> correctAnswersIds = question.getAnswers().stream()
+                        .filter(Answer::getIsCorrect)
+                        .map(Answer::getId)
+                        .collect(Collectors.toList());
+
+                if (!correctAnswersIds.isEmpty() && submitedAnswersIds.size() == correctAnswersIds.size() && submitedAnswersIds.containsAll(correctAnswersIds)) {
+                    correctCount++;
+                }
+            }
+        }
+
+        int incorrectCount = totalQuestion - correctCount;
+        BigDecimal finalScore = BigDecimal.ZERO;
+        if (totalQuestion > 0) {
+            finalScore = BigDecimal.valueOf((double) correctCount / totalQuestion * 10.0)
+                    .setScale(2, RoundingMode.HALF_UP);
+        }
+
+        attempt.setResult(finalScore);
+        attempt.setCorrectNum(correctCount);
+        attempt.setIncorrectNum(incorrectCount);
+        attempt.setEndedAt(LocalDateTime.now());
+        attempt.getQuizTaking().setStatus(TakingStatus.COMPLETED);
+        quizTakingRepository.save(attempt.getQuizTaking());
+        attemptRepository.save(attempt);
     }
 
     @Override
