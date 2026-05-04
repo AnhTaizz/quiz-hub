@@ -52,10 +52,10 @@ public class QuizAssigning {
     Integer durationInMins;
 
     @Column(name = "start_date")
-    LocalDate startDate;
+    LocalDateTime startDate;
 
     @Column(name = "due_date")
-    LocalDate dueDate;
+    LocalDateTime dueDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "classroom_id")

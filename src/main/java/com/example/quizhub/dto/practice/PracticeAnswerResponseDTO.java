@@ -17,5 +17,6 @@ import lombok.experimental.FieldDefaults;
 public class PracticeAnswerResponseDTO {
     Long id;
     String text;
+    @com.fasterxml.jackson.annotation.JsonProperty("isCorrect")
     Boolean isCorrect;
 }

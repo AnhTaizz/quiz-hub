@@ -138,17 +138,27 @@
             box-shadow: 0 5px 15px rgba(0,0,0,0.03);
         }
 
-        .q-badge {
+        .q-badge, .q-level-badge {
             font-size: 0.75rem;
-            font-weight: 700;
-            padding: 5px 12px;
+            font-weight: 800;
+            padding: 6px 12px;
             border-radius: 8px;
-            margin-bottom: 15px;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 28px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid #e2e8f0;
         }
 
-        .badge-correct { background: #dcfce7; color: #166534; }
-        .badge-wrong { background: #fee2e2; color: #991b1b; }
+        .badge-correct { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+        .badge-wrong { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        .badge-warning { background: #fef9c3; color: #854d0e; border-color: #fef08a; }
+        
+        .q-level-badge.level-easy { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+        .q-level-badge.level-medium { background: #fffbeb; color: #d97706; border-color: #fde68a; }
+        .q-level-badge.level-hard { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
 
         .ans-opt {
             padding: 12px 18px;
@@ -162,12 +172,14 @@
 
         .ans-opt.correct {
             background: #f0fdf4;
-            border-color: #4ade80;
+            border-color: #22c55e;
+            box-shadow: 0 0 0 1px #22c55e;
         }
 
         .ans-opt.selected-wrong {
             background: #fff1f2;
-            border-color: #fb7185;
+            border-color: #ef4444;
+            box-shadow: 0 0 0 1px #ef4444;
         }
 
         .opt-icon {
@@ -327,43 +339,78 @@
                 const card = document.createElement('div');
                 card.className = 'q-result-card';
                 
-                const badge = q.correct ? 
-                    '<span class="q-badge badge-correct"><i class="bi bi-check-circle-fill me-1"></i>Chính xác</span>' : 
-                    '<span class="q-badge badge-wrong"><i class="bi bi-x-circle-fill me-1"></i>Chưa chính xác</span>';
+                const hasAnswered = q.type === 'FILL_IN_BLANK' ? (q.selectedText && q.selectedText.trim() !== '') : (q.selectedAnswerIds && q.selectedAnswerIds.length > 0);
+                
+                let badge = '';
+                if (q.isCorrect) {
+                    badge = '<span class="q-badge badge-correct"><i class="bi bi-check-circle-fill me-1"></i>Chính xác</span>';
+                } else if (!hasAnswered) {
+                    badge = '<span class="q-badge badge-warning text-dark border-warning"><i class="bi bi-exclamation-circle-fill me-1"></i>Chưa trả lời</span>';
+                } else {
+                    badge = '<span class="q-badge badge-wrong"><i class="bi bi-x-circle-fill me-1"></i>Chưa chính xác</span>';
+                }
 
                 let answersHtml = '';
-                q.answers.forEach((ans, i) => {
-                    const isSelected = q.selectedAnswerIds.includes(ans.answerId);
-                    const isCorrect = ans.correct;
+                if (q.type === 'FILL_IN_BLANK') {
+                    const studentText = q.selectedText || '(Trống)';
+                    const correctAnswers = q.answers.filter(a => a.isCorrect).map(a => a.text).join(', ');
                     
-                    let statusClass = '';
-                    let iconClass = 'icon-none';
-                    let icon = String.fromCharCode(65 + i);
-
-                    if (isCorrect) {
-                        statusClass = 'correct';
-                        iconClass = 'icon-correct';
-                        icon = '<i class="bi bi-check-lg"></i>';
-                    } else if (isSelected && !isCorrect) {
-                        statusClass = 'selected-wrong';
-                        iconClass = 'icon-wrong';
-                        icon = '<i class="bi bi-x-lg"></i>';
-                    }
-
-                    answersHtml += `
-                        <div class="ans-opt ${statusClass}">
-                            <div class="opt-icon ${iconClass}">${icon}</div>
-                            <div class="opt-text">${ans.text}</div>
+                    answersHtml = `
+                        <div class="ans-opt ${q.isCorrect ? 'correct' : 'selected-wrong'}">
+                            <div class="opt-icon ${q.isCorrect ? 'icon-correct' : 'icon-wrong'}">
+                                <i class="bi ${q.isCorrect ? 'bi-check-lg' : 'bi-x-lg'}"></i>
+                            </div>
+                            <div>
+                                <div class="small text-muted fw-bold">Câu trả lời của bạn:</div>
+                                <div class="fw-bold">${studentText}</div>
+                            </div>
                         </div>
+                        ${!q.isCorrect ? `
+                        <div class="ans-opt correct mt-2">
+                            <div class="opt-icon icon-correct"><i class="bi bi-check-lg"></i></div>
+                            <div>
+                                <div class="small text-muted fw-bold">Đáp án đúng:</div>
+                                <div class="fw-bold">${correctAnswers}</div>
+                            </div>
+                        </div>` : ''}
                     `;
-                });
+                } else {
+                    q.answers.forEach((ans, i) => {
+                        const isSelected = q.selectedAnswerIds.includes(ans.answerId);
+                        const isCorrect = ans.isCorrect;
+                        
+                        let statusClass = '';
+                        let iconClass = 'icon-none';
+                        let icon = String.fromCharCode(65 + i);
+
+                        if (isCorrect) {
+                            statusClass = 'correct';
+                            iconClass = 'icon-correct';
+                            icon = '<i class="bi bi-check-lg"></i>';
+                        } else if (isSelected && !isCorrect) {
+                            statusClass = 'selected-wrong';
+                            iconClass = 'icon-wrong';
+                            icon = '<i class="bi bi-x-lg"></i>';
+                        }
+
+                        answersHtml += `
+                            <div class="ans-opt ${statusClass}">
+                                <div class="opt-icon ${iconClass}">${icon}</div>
+                                <div class="opt-text">${ans.text}</div>
+                            </div>
+                        `;
+                    });
+                }
+
+                const typeLabel = q.type === 'SINGLE_CHOICE' ? 'CHỌN MỘT' : (q.type === 'FILL_IN_BLANK' ? 'ĐIỀN KHUYẾT' : 'CHỌN NHIỀU');
 
                 card.innerHTML = `
                     <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <div class="d-flex align-items-center flex-wrap">
+                        <div class="w-100">
+                            <div class="d-flex align-items-center flex-wrap gap-2 mb-3">
                                 ${badge}
-                                <span class="q-badge bg-light text-muted ms-2">${q.type === 'SINGLE_CHOICE' ? 'CHỌN MỘT ĐÁP ÁN' : 'CHỌN NHIỀU ĐÁP ÁN'}</span>
+                                <span class="q-badge bg-light text-muted">${typeLabel}</span>
+                                <span class="q-level-badge level-${(q.level || 'medium').toLowerCase()}">${q.level || 'MEDIUM'}</span>
                             </div>
                             <h5 class="fw-bold mb-3">Câu ${idx + 1}: ${q.text}</h5>
                         </div>

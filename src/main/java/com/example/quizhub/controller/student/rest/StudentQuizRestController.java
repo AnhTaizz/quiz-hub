@@ -51,9 +51,9 @@ public class StudentQuizRestController {
     public ResponseEntity<Void> saveAnswer(Principal principal, 
                                          @RequestParam Long attemptId, 
                                          @RequestParam Long questionId, 
-                                         @RequestBody java.util.List<Long> answerIds) {
+                                         @RequestBody com.example.quizhub.dto.quiztaking.request.SaveAnswerRequestDTO request) {
         User user = userRepository.findByEmail(principal.getName()).orElseThrow();
-        quizTakingService.saveAnswer(user.getId(), attemptId, questionId, answerIds);
+        quizTakingService.saveAnswer(user.getId(), attemptId, questionId, request);
         return ResponseEntity.ok().build();
     }
 
@@ -61,5 +61,11 @@ public class StudentQuizRestController {
     public ResponseEntity<com.example.quizhub.dto.quiztaking.response.QuizResultResponseDTO> getQuizResult(Principal principal, @RequestParam Long attemptId) {
         User user = userRepository.findByEmail(principal.getName()).orElseThrow();
         return ResponseEntity.ok(quizTakingService.getQuizResult(user.getId(), attemptId));
+    }
+
+    @PostMapping("/log-violation")
+    public ResponseEntity<Void> logViolation(@RequestBody com.example.quizhub.dto.quiztaking.request.ViolationRequestDTO request) {
+        quizTakingService.recordViolation(request);
+        return ResponseEntity.ok().build();
     }
 }

@@ -37,10 +37,10 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
 
         QuizAssigning quizAssigning = quizAssigningMapper.toEntity(request);
         if(quizAssigning.getStartDate() == null){
-            quizAssigning.setStartDate(LocalDate.now());
+            quizAssigning.setStartDate(java.time.LocalDateTime.now());
         }
         if(quizAssigning.getDueDate() == null){
-            quizAssigning.setDueDate(LocalDate.now().plusDays(7));
+            quizAssigning.setDueDate(java.time.LocalDateTime.now().plusDays(7));
         }
         if(quizAssigning.getMaxAttempt() == null){
             quizAssigning.setMaxAttempt(1);

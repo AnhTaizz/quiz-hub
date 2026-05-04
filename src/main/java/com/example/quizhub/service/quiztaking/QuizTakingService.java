@@ -8,6 +8,7 @@ public interface QuizTakingService {
     QuizTakingResponseDTO startQuizAttempt(Long studentId, Long quizAssigningId);
 
     Attempt submitQuizAttempt(Long studentId, QuizSubmitRequestDTO requestDTO);
-    void saveAnswer(Long studentId, Long attemptId, Long questionId, java.util.List<Long> answerIds);
+    void saveAnswer(Long studentId, Long attemptId, Long questionId, com.example.quizhub.dto.quiztaking.request.SaveAnswerRequestDTO request);
     com.example.quizhub.dto.quiztaking.response.QuizResultResponseDTO getQuizResult(Long studentId, Long attemptId);
+    Attempt recordViolation(com.example.quizhub.dto.quiztaking.request.ViolationRequestDTO request);
 }

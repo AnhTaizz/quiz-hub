@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuizHub | Đang luyện tập</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Nunito+Sans:wght@700;800;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Nunito+Sans:wght@700;800;900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    
+
     <style>
         :root {
             --primary: #4f46e5;
@@ -43,7 +46,7 @@
             display: flex;
             align-items: center;
             padding: 0 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
         }
 
         .logo a {
@@ -168,7 +171,7 @@
             color: var(--primary);
             border-color: #e0e7ff;
         }
-        
+
         .nav-dot.correct {
             background: #dcfce7;
             color: #166534;
@@ -187,7 +190,7 @@
             border-radius: 24px;
             border: 1px solid var(--border-color);
             padding: 40px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
             margin-bottom: 30px;
             min-height: 400px;
             display: flex;
@@ -213,14 +216,41 @@
         .q-level-badge {
             font-size: 0.75rem;
             font-weight: 700;
-            padding: 4px 10px;
+            padding: 5px 12px;
             border-radius: 8px;
             text-transform: uppercase;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .level-easy { background: #dcfce7; color: #166534; }
-        .level-medium { background: #fef9c3; color: #854d0e; }
-        .level-hard { background: #fee2e2; color: #991b1b; }
+        .q-type-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 8px;
+            text-transform: uppercase;
+            background: #64748b;
+            color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .level-easy {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .level-medium {
+            background: #fef9c3;
+            color: #854d0e;
+        }
+
+        .level-hard {
+            background: #fee2e2;
+            color: #991b1b;
+        }
 
         .question-text {
             font-family: 'Nunito Sans', sans-serif;
@@ -289,12 +319,12 @@
             background: var(--primary);
             color: #fff;
         }
-        
+
         .answer-item.correct .answer-prefix {
             background: var(--secondary);
             color: #fff;
         }
-        
+
         .answer-item.incorrect .answer-prefix {
             background: #ef4444;
             color: #fff;
@@ -336,8 +366,15 @@
         }
 
         @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         /* ── Footer Actions ── */
@@ -406,7 +443,7 @@
             border-radius: 30px;
             padding: 50px;
             text-align: center;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
             display: none;
         }
 
@@ -480,14 +517,24 @@
             animation: shimmer 1.5s infinite;
             border-radius: 12px;
         }
+
         @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
+            0% {
+                background-position: -200% 0;
+            }
+
+            100% {
+                background-position: 200% 0;
+            }
         }
+
         /* ── Loading Overlay ── */
         #pageLoading {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: #fff;
             z-index: 9999;
             display: flex;
@@ -495,6 +542,7 @@
             align-items: center;
             justify-content: center;
         }
+
         .loading-spinner {
             width: 50px;
             height: 50px;
@@ -504,9 +552,15 @@
             animation: spin 1s linear infinite;
             margin-bottom: 20px;
         }
+
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         /* ── Score Badge ── */
@@ -523,14 +577,17 @@
             border: 1px solid rgba(255, 255, 255, 0.2);
             animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
+
         .score-badge i {
             font-size: 1.5rem;
             color: #fbbf24;
         }
+
         .score-val-wrap {
             text-align: left;
             line-height: 1.2;
         }
+
         .score-label {
             font-size: 0.75rem;
             text-transform: uppercase;
@@ -538,17 +595,33 @@
             opacity: 0.8;
             font-weight: 700;
         }
+
         .score-number {
             font-size: 1.6rem;
             font-weight: 900;
             font-family: 'Nunito Sans', sans-serif;
         }
+
         @keyframes bounceIn {
-            0% { transform: scale(0.3); opacity: 0; }
-            50% { transform: scale(1.05); opacity: 1; }
-            70% { transform: scale(0.9); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.05);
+                opacity: 1;
+            }
+
+            70% {
+                transform: scale(0.9);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
+
         /* ── Toast ── */
         #toastWrap {
             position: fixed;
@@ -559,6 +632,7 @@
             flex-direction: column;
             gap: 8px;
         }
+
         .toast-msg {
             background: #1e1b4b;
             color: #fff;
@@ -569,26 +643,44 @@
             display: flex;
             align-items: center;
             gap: 9px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
             opacity: 0;
             transform: translateX(16px);
             transition: all 0.3s ease;
         }
-        .toast-msg.show { opacity: 1; transform: translateX(0); }
-        .toast-msg.ok i { color: #4ade80; }
-        .toast-msg.err i { color: #fb7185; }
+
+        .toast-msg.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast-msg.ok i {
+            color: #4ade80;
+        }
+
+        .toast-msg.err i {
+            color: #fb7185;
+        }
 
         @media (max-width: 991px) {
-            .question-nav-card { position: static; margin-bottom: 20px; }
-            .nav-grid { grid-template-columns: repeat(10, 1fr); }
+            .question-nav-card {
+                position: static;
+                margin-bottom: 20px;
+            }
+
+            .nav-grid {
+                grid-template-columns: repeat(10, 1fr);
+            }
         }
     </style>
 </head>
+
 <body>
 
     <div id="pageLoading">
         <div class="loading-spinner"></div>
-        <div class="fw-bold text-primary" style="font-family:'Nunito Sans', sans-serif; font-size: 1.2rem;">QuizHub</div>
+        <div class="fw-bold text-primary" style="font-family:'Nunito Sans', sans-serif; font-size: 1.2rem;">QuizHub
+        </div>
         <p class="text-muted small mt-2">Đang nạp dữ liệu...</p>
     </div>
 
@@ -620,14 +712,16 @@
                     <div class="nav-grid" id="questionNav">
                         <!-- Nav dots injected here -->
                     </div>
-                    
+
                     <div class="mt-4 pt-4 border-top" id="navLegend">
                         <div class="d-flex align-items-center gap-2 mb-2">
                             <div style="width:12px;height:12px;border-radius:3px;background:#e0e7ff;"></div>
                             <span class="small text-muted">Đã trả lời</span>
                         </div>
                         <div class="d-flex align-items-center gap-2">
-                            <div style="width:12px;height:12px;border-radius:3px;background:#f1f5f9;border:1px solid #e2e8f0;"></div>
+                            <div
+                                style="width:12px;height:12px;border-radius:3px;background:#f1f5f9;border:1px solid #e2e8f0;">
+                            </div>
                             <span class="small text-muted">Chưa trả lời</span>
                         </div>
                     </div>
@@ -639,7 +733,10 @@
                 <div class="question-card" id="questionArea">
                     <div class="question-header">
                         <span class="q-number-badge" id="qNumber">Câu 0/0</span>
-                        <span class="q-level-badge level-easy" id="qLevel">Dễ</span>
+                        <div class="d-flex gap-2">
+                            <span class="q-type-badge" id="qType"></span>
+                            <span class="q-level-badge level-easy" id="qLevel">Dễ</span>
+                        </div>
                     </div>
 
                     <div class="question-text" id="qText">
@@ -658,7 +755,7 @@
                         <button class="btn-nav btn-prev" id="btnPrev" onclick="prevQuestion()" disabled>
                             <i class="bi bi-arrow-left"></i> Câu trước
                         </button>
-                        
+
                         <div class="d-flex gap-3">
                             <button class="btn-nav btn-next" id="btnNext" onclick="nextQuestion()">
                                 Tiếp theo <i class="bi bi-arrow-right"></i>
@@ -682,27 +779,29 @@
                             <div class="score-sub">Chính xác</div>
                         </div>
                     </div>
-                    
+
                     <div class="score-detail">
                         Đúng <span id="resCorrect">0</span> <span id="resTotal">/ 0</span> câu
                     </div>
-                    
+
                     <div class="score-badge">
                         <i class="bi bi-star-fill"></i>
                         <div class="score-val-wrap">
                             <div class="score-label">Điểm số đạt được</div>
-                            <div class="score-number"><span id="resScore">0.0</span> <span style="font-size: 1rem; opacity: 0.7;">/ 10</span></div>
+                            <div class="score-number"><span id="resScore">0.0</span> <span
+                                    style="font-size: 1rem; opacity: 0.7;">/ 10</span></div>
                         </div>
                     </div>
 
                     <h2 class="fw-bold mb-2">Hoàn thành luyện tập!</h2>
                     <p class="text-muted mb-4">Tuyệt vời! Bạn vừa hoàn thành lượt tự luyện này.</p>
-                    
+
                     <div class="d-flex gap-3 justify-content-center">
                         <button class="btn btn-outline-secondary px-4 py-2 rounded-pill fw-bold" onclick="viewReview()">
                             Xem lại bài làm
                         </button>
-                        <a href="/student/categories" class="btn btn-primary px-4 py-2 rounded-pill fw-bold" style="background:var(--primary); border:none;">
+                        <a href="/student/categories" class="btn btn-primary px-4 py-2 rounded-pill fw-bold"
+                            style="background:var(--primary); border:none;">
                             Về ngân hàng đề
                         </a>
                     </div>
@@ -723,11 +822,12 @@
         let settings = { showAnswer: true, shuffle: false, displayMode: 'sequential' };
         let categoryId = null;
         let categoryName = "";
-        
+
         let currentIndex = 0;
         let userAnswers = {}; // questionId -> selectedAnswerId
         let answeredCorrectly = {}; // questionId -> boolean (if showAnswer is on)
         let practiceResult = null; // Store result details for review
+        let confirmedAnswers = {}; // questionId -> boolean (used in showAnswer mode)
 
         document.addEventListener('DOMContentLoaded', () => {
             initData();
@@ -748,17 +848,26 @@
                             categoryId = data.categoryId || 0;
                             categoryName = data.categoryName || "Review Mode";
                             document.getElementById('topCategoryName').textContent = categoryName;
-                            
+
                             questions = data.details.map(d => ({
                                 id: d.questionId,
                                 text: d.questionText,
-                                level: 'NORMAL',
-                                type: 'SINGLE_CHOICE',
+                                level: d.questionLevel || 'MEDIUM',
+                                type: d.questionType || 'SINGLE_CHOICE',
                                 answers: d.answers || []
                             }));
-                            
+
                             data.details.forEach(d => {
-                                userAnswers[d.questionId] = d.selectedAnswerId;
+                                const q = questions.find(qu => qu.id === d.questionId);
+                                if (q) {
+                                    if (q.type === 'FILL_IN_BLANK') {
+                                        userAnswers[d.questionId] = d.selectedText;
+                                    } else if (q.type === 'MULTIPLE_CHOICE') {
+                                        userAnswers[d.questionId] = d.selectedAnswerIds || [];
+                                    } else {
+                                        userAnswers[d.questionId] = d.selectedAnswerIds && d.selectedAnswerIds.length > 0 ? d.selectedAnswerIds[0] : null;
+                                    }
+                                }
                                 answeredCorrectly[d.questionId] = d.isCorrect;
                             });
 
@@ -775,24 +884,33 @@
                 if (isReview === 'true') {
                     const data = JSON.parse(sessionStorage.getItem('practice_result_data'));
                     sessionStorage.removeItem('practice_review_mode'); // Clear it
-                    
+
                     if (data) {
                         practiceResult = data;
                         categoryId = data.categoryId || 0;
                         categoryName = data.categoryName || "Review";
-                        
+
                         // Map result details back to questions for rendering
                         questions = data.details.map(d => ({
                             id: d.questionId,
                             text: d.questionText,
-                            level: 'NORMAL',
-                            type: 'SINGLE_CHOICE',
+                            level: d.questionLevel || 'MEDIUM',
+                            type: d.questionType || 'SINGLE_CHOICE',
                             answers: d.answers || [] // Now included in the DTO!
                         }));
-                        
+
                         // Populate userAnswers and answeredCorrectly for immediate use
                         data.details.forEach(d => {
-                            userAnswers[d.questionId] = d.selectedAnswerId;
+                            const q = questions.find(qu => qu.id === d.questionId);
+                            if (q) {
+                                if (q.type === 'FILL_IN_BLANK') {
+                                    userAnswers[d.questionId] = d.selectedText;
+                                } else if (q.type === 'MULTIPLE_CHOICE') {
+                                    userAnswers[d.questionId] = d.selectedAnswerIds || [];
+                                } else {
+                                    userAnswers[d.questionId] = d.selectedAnswerIds && d.selectedAnswerIds.length > 0 ? d.selectedAnswerIds[0] : null;
+                                }
+                            }
                             answeredCorrectly[d.questionId] = d.isCorrect;
                         });
 
@@ -825,14 +943,18 @@
 
                 // Load saved progress
                 const savedAnswers = sessionStorage.getItem('practice_user_answers');
-                const savedCorrect = sessionStorage.getItem('practice_answered_correctly');
                 if (savedAnswers) userAnswers = JSON.parse(savedAnswers);
-                if (savedCorrect) answeredCorrectly = JSON.parse(savedCorrect);
+
+                const savedCorrectly = sessionStorage.getItem('practice_answered_correctly');
+                if (savedCorrectly) answeredCorrectly = JSON.parse(savedCorrectly);
+
+                const savedConfirmed = sessionStorage.getItem('practice_confirmed_answers');
+                if (savedConfirmed) confirmedAnswers = JSON.parse(savedConfirmed);
 
                 document.getElementById('topCategoryName').textContent = categoryName || "Danh mục";
-                
+
                 renderNav();
-                
+
                 // Refresh nav dots status
                 questions.forEach((q, i) => {
                     const dot = document.getElementById(`nav-${i}`);
@@ -847,7 +969,7 @@
                 const savedIndex = sessionStorage.getItem('practice_current_index');
                 const startIndex = savedIndex ? parseInt(savedIndex) : 0;
                 showQuestion(startIndex);
-                
+
                 // Hide loader
                 const loader = document.getElementById('pageLoading');
                 if (loader) loader.style.display = 'none';
@@ -870,7 +992,7 @@
         function renderNav() {
             const nav = document.getElementById('questionNav');
             nav.innerHTML = '';
-            
+
             // Hide legend in review mode
             const legend = document.getElementById('navLegend');
             if (legend) legend.style.display = practiceResult ? 'none' : 'block';
@@ -880,7 +1002,7 @@
                 dot.className = 'nav-dot';
                 dot.textContent = i + 1;
                 dot.id = `nav-${i}`;
-                
+
                 // Coloring logic
                 if (practiceResult) {
                     const isCorrect = answeredCorrectly[q.id];
@@ -891,7 +1013,7 @@
                         dot.classList.add(answeredCorrectly[q.id] ? 'correct' : 'incorrect');
                     }
                 }
-                
+
                 dot.onclick = () => showQuestion(i);
                 nav.appendChild(dot);
             });
@@ -903,12 +1025,12 @@
                 if (!document.getElementById('allQuestionsList')) {
                     renderAllQuestions();
                 }
-                
+
                 const el = document.getElementById(`q-block-${index}`);
                 if (el) {
                     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     currentIndex = index;
-                    
+
                     // Highlight active dot
                     document.querySelectorAll('.nav-dot').forEach(d => d.classList.remove('active'));
                     const dot = document.getElementById(`nav-${index}`);
@@ -929,9 +1051,12 @@
 
             // Update Header
             document.getElementById('qNumber').textContent = `Câu ${index + 1}/${questions.length}`;
+            const typeEl = document.getElementById('qType');
+            typeEl.textContent = q.type === 'MULTIPLE_CHOICE' ? 'CHỌN NHIỀU' : (q.type === 'FILL_IN_BLANK' ? 'ĐIỀN KHUYẾT' : 'CHỌN MỘT');
+
             const levelEl = document.getElementById('qLevel');
-            levelEl.textContent = q.level === 'EASY' ? 'Dễ' : (q.level === 'MEDIUM' ? 'Trung bình' : 'Khó');
-            levelEl.className = 'q-level-badge ' + (q.level === 'EASY' ? 'level-easy' : (q.level === 'MEDIUM' ? 'level-medium' : 'level-hard'));
+            levelEl.textContent = q.level || 'MEDIUM';
+            levelEl.className = 'q-level-badge level-' + (q.level ? q.level.toLowerCase() : 'medium');
 
             // Question Text
             document.getElementById('qText').textContent = q.text;
@@ -939,37 +1064,82 @@
             // Answers
             const list = document.getElementById('answersList');
             list.innerHTML = '';
-            
-            const selectedId = userAnswers[q.id];
-            const isAnswered = !!selectedId;
+
             const feedback = document.getElementById('feedbackBox');
             feedback.style.display = 'none';
 
-            q.answers.forEach((a, idx) => {
-                const prefix = String.fromCharCode(65 + idx);
-                const item = document.createElement('div');
-                item.className = 'answer-item';
-                if (selectedId == a.id) item.classList.add('selected');
-                
-                // If showAnswer is true OR in review mode
-                const showResults = settings.showAnswer || !!practiceResult;
-                if (showResults && (isAnswered || !!practiceResult)) {
-                    item.classList.add('locked');
-                    if (a.isCorrect) item.classList.add('correct');
-                    else if (selectedId == a.id) item.classList.add('incorrect');
-                }
+            const userVal = userAnswers[q.id];
+            const isAnswered = q.type === 'FILL_IN_BLANK' ? (userVal && userVal.trim() !== '') : (Array.isArray(userVal) ? userVal.length > 0 : !!userVal);
+            const showResults = settings.showAnswer || !!practiceResult;
 
-                item.innerHTML = `
-                    <div class="answer-prefix">${prefix}</div>
-                    <div class="answer-content">${esc(a.text)}</div>
+            if (q.type === 'FILL_IN_BLANK') {
+                const isLocked = !!practiceResult || (settings.showAnswer && confirmedAnswers[q.id]);
+                const inputHtml = `
+                        <div class="p-3">
+                            <label class="form-label fw-bold mb-2">Nhập đáp án của bạn:</label>
+                            <input type="text" class="form-control form-control-lg rounded-4 ${isLocked ? 'locked' : ''}" 
+                                   id="fillInput-${q.id}" 
+                                   value="${userVal || ''}" 
+                                   placeholder="Gõ câu trả lời tại đây..." 
+                                   ${isLocked ? 'readonly' : ''}
+                                   oninput="handleFillInput(${q.id}, this.value)">
+                        </div>
+                    `;
+                list.innerHTML = inputHtml;
+            } else {
+                q.answers.forEach((a, idx) => {
+                    const prefix = String.fromCharCode(65 + idx);
+                    const item = document.createElement('div');
+                    item.className = 'answer-item';
+
+                    let isSelected = false;
+                    if (q.type === 'MULTIPLE_CHOICE') {
+                        isSelected = Array.isArray(userVal) && userVal.includes(a.id);
+                        item.innerHTML = `
+                            <div class="answer-prefix">${prefix}</div>
+                            <div class="answer-content d-flex justify-content-between align-items-center">
+                                <span>${esc(a.text)}</span>
+                                <i class="bi ${isSelected ? 'bi-check-square-fill text-primary' : 'bi-square'}"></i>
+                            </div>
+                        `;
+                    } else {
+                        isSelected = userVal == a.id;
+                        item.innerHTML = `
+                            <div class="answer-prefix">${prefix}</div>
+                            <div class="answer-content">${esc(a.text)}</div>
+                        `;
+                    }
+
+                    if (isSelected) item.classList.add('selected');
+
+                    const isLocked = !!practiceResult || (settings.showAnswer && confirmedAnswers[q.id]);
+
+                    if (isLocked) {
+                        item.classList.add('locked');
+                        if (a.isCorrect) item.classList.add('correct');
+                        else if (isSelected) item.classList.add('incorrect');
+                    }
+
+                    if (!item.classList.contains('locked') && !practiceResult) {
+                        item.onclick = (event) => selectAnswer(q.id, a.id, a.isCorrect, event);
+                    }
+
+                    list.appendChild(item);
+                });
+            }
+
+            // Add Check button for Multi/Fill if showAnswer is on
+            const isLocked = !!practiceResult || (settings.showAnswer && confirmedAnswers[q.id]);
+            if (settings.showAnswer && !isLocked && !practiceResult && (q.type === 'MULTIPLE_CHOICE' || q.type === 'FILL_IN_BLANK')) {
+                const checkBtnWrap = document.createElement('div');
+                checkBtnWrap.className = 'text-center mt-3';
+                checkBtnWrap.innerHTML = `
+                    <button class="btn btn-primary rounded-pill px-4" onclick="checkAnswer(${q.id}, ${index})">
+                        <i class="bi bi-check-lg"></i> Kiểm tra
+                    </button>
                 `;
-                
-                if (!item.classList.contains('locked') && !practiceResult) {
-                    item.onclick = (event) => selectAnswer(q.id, a.id, a.isCorrect, event);
-                }
-                
-                list.appendChild(item);
-            });
+                list.appendChild(checkBtnWrap);
+            }
 
             // Update Buttons
             document.getElementById('btnPrev').disabled = (index === 0);
@@ -983,11 +1153,9 @@
                 document.getElementById('btnFinish').classList.add('d-none');
             }
 
-            // Show feedback if showAnswer is on (including unanswered in review mode)
-            if (settings.showAnswer || !!practiceResult) {
-                if (isAnswered || !!practiceResult) {
-                    showFeedback(answeredCorrectly[q.id]);
-                }
+            // Show feedback
+            if (isLocked) {
+                showFeedback(answeredCorrectly[q.id], q);
             }
         }
 
@@ -1010,43 +1178,98 @@
                 const qBlock = document.createElement('div');
                 qBlock.className = 'question-card mb-4';
                 qBlock.id = `q-block-${index}`;
-                
-                const selectedId = userAnswers[q.id];
-                const isAnswered = selectedId !== undefined;
 
-                let answersHtml = '';
-                q.answers.forEach((a, idx) => {
-                    const prefix = String.fromCharCode(65 + idx);
-                    const isSelected = selectedId == a.id;
-                    let classes = 'answer-item';
-                    if (isSelected) classes += ' selected';
-                    
-                    const showResults = settings.showAnswer || !!practiceResult;
-                    if (showResults && (isAnswered || !!practiceResult)) {
-                        classes += ' locked';
-                        if (a.isCorrect) classes += ' correct';
-                        else if (isSelected) classes += ' incorrect';
-                    }
+                const userVal = userAnswers[q.id];
+                const isAnswered = q.type === 'FILL_IN_BLANK' ? (userVal && userVal.trim() !== '') : (Array.isArray(userVal) ? userVal.length > 0 : !!userVal);
+                const showResults = settings.showAnswer || !!practiceResult;
 
-                    answersHtml += `
-                        <div class="${classes}" ${(!classes.includes('locked') && !practiceResult) ? `onclick="selectAnswer(${q.id}, ${a.id}, ${a.isCorrect}, event, ${index})"` : ''}>
-                            <div class="answer-prefix">${prefix}</div>
-                            <div class="answer-content">${esc(a.text)}</div>
+                const isLocked = !!practiceResult || (settings.showAnswer && confirmedAnswers[q.id]);
+
+                let contentHtml = '';
+                if (q.type === 'FILL_IN_BLANK') {
+                    contentHtml = `
+                        <div class="p-3">
+                            <input type="text" class="form-control form-control-lg rounded-4 ${isLocked ? 'locked' : ''}" 
+                                   value="${userVal || ''}" 
+                                   placeholder="Gõ câu trả lời..."
+                                   ${isLocked ? 'readonly' : ''}
+                                   oninput="handleFillInput(${q.id}, this.value, ${index})">
                         </div>
                     `;
-                });
+                } else {
+                    let answersHtml = '';
+                    q.answers.forEach((a, idx) => {
+                        const prefix = String.fromCharCode(65 + idx);
+                        let isSelected = false;
+                        if (q.type === 'MULTIPLE_CHOICE') {
+                            isSelected = Array.isArray(userVal) && userVal.includes(a.id);
+                        } else {
+                            isSelected = userVal == a.id;
+                        }
+
+                        let classes = 'answer-item';
+                        if (isSelected) classes += ' selected';
+
+                        if (isLocked) {
+                            classes += ' locked';
+                            if (a.isCorrect) classes += ' correct';
+                            else if (isSelected) classes += ' incorrect';
+                        }
+
+                        let innerContent = '';
+                        if (q.type === 'MULTIPLE_CHOICE') {
+                            innerContent = `
+                                <div class="answer-prefix">${prefix}</div>
+                                <div class="answer-content d-flex justify-content-between align-items-center">
+                                    <span>${esc(a.text)}</span>
+                                    <i class="bi ${isSelected ? 'bi-check-square-fill text-primary' : 'bi-square'}"></i>
+                                </div>
+                            `;
+                        } else {
+                            innerContent = `
+                                <div class="answer-prefix">${prefix}</div>
+                                <div class="answer-content">${esc(a.text)}</div>
+                            `;
+                        }
+
+                        answersHtml += `
+                            <div class="${classes}" ${(!classes.includes('locked') && !practiceResult) ? `onclick="selectAnswer(${q.id}, ${a.id}, ${a.isCorrect}, event, ${index})"` : ''}>
+                                ${innerContent}
+                            </div>
+                        `;
+                    });
+                    contentHtml = `<div class="answers-list mb-3">${answersHtml}</div>`;
+                }
+
+                let checkBtnHtml = '';
+                if (settings.showAnswer && !isLocked && !practiceResult && (q.type === 'MULTIPLE_CHOICE' || q.type === 'FILL_IN_BLANK')) {
+                    checkBtnHtml = `
+                        <div class="text-center mt-2 mb-3">
+                            <button class="btn btn-sm btn-primary rounded-pill px-3" onclick="checkAnswer(${q.id}, ${index})">
+                                <i class="bi bi-check-lg"></i> Kiểm tra
+                            </button>
+                        </div>
+                    `;
+                }
 
                 let feedbackHtml = '';
-                const showResults = settings.showAnswer || !!practiceResult;
-                if (showResults && (isAnswered || !!practiceResult)) {
+                if (isLocked) {
                     const isCorrect = answeredCorrectly[q.id];
+                    let feedbackText = '';
+                    if (isCorrect) feedbackText = '<i class="bi bi-check-circle-fill me-2"></i> <strong>Chính xác!</strong>';
+                    else if (isAnswered) {
+                        feedbackText = '<i class="bi bi-x-circle-fill me-2"></i> <strong>Chưa đúng!</strong>';
+                        if (q.type === 'FILL_IN_BLANK' && practiceResult) {
+                            const detail = practiceResult.details.find(d => d.questionId === q.id);
+                            if (detail && detail.correctTexts) {
+                                feedbackText += `<br><small>Đáp án đúng là: <strong>${detail.correctTexts.join(' hoặc ')}</strong></small>`;
+                            }
+                        }
+                    } else feedbackText = '<i class="bi bi-exclamation-circle-fill me-2"></i> <strong>Chưa trả lời!</strong>';
+
                     feedbackHtml = `
                         <div class="feedback-box ${isCorrect ? 'correct' : 'incorrect'}" style="display:block;">
-                            ${isCorrect 
-                                ? '<i class="bi bi-check-circle-fill me-2"></i> <strong>Chính xác!</strong>' 
-                                : isAnswered 
-                                    ? '<i class="bi bi-x-circle-fill me-2"></i> <strong>Chưa đúng!</strong>'
-                                    : '<i class="bi bi-exclamation-circle-fill me-2"></i> <strong>Chưa trả lời!</strong>'}
+                            ${feedbackText}
                         </div>
                     `;
                 }
@@ -1054,10 +1277,14 @@
                 qBlock.innerHTML = `
                     <div class="d-flex justify-content-between mb-3">
                         <span class="q-number-badge">Câu ${index + 1}</span>
-                        <span class="q-level-badge level-${q.level ? q.level.toLowerCase() : 'normal'}">${q.level || 'NORMAL'}</span>
+                        <div class="d-flex gap-2">
+                            <span class="q-type-badge">${q.type === 'MULTIPLE_CHOICE' ? 'CHỌN NHIỀU' : (q.type === 'FILL_IN_BLANK' ? 'ĐIỀN KHUYẾT' : 'CHỌN MỘT')}</span>
+                            <span class="q-level-badge level-${q.level ? q.level.toLowerCase() : 'medium'}">${q.level || 'MEDIUM'}</span>
+                        </div>
                     </div>
                     <div class="question-text mb-4">${esc(q.text)}</div>
-                    <div class="answers-list mb-3">${answersHtml}</div>
+                    ${contentHtml}
+                    ${checkBtnHtml}
                     ${feedbackHtml}
                 `;
                 list.appendChild(qBlock);
@@ -1065,61 +1292,125 @@
         }
 
         function selectAnswer(qId, aId, isCorrect, event, index) {
-            if (practiceResult) return; // Disable selection in review mode
+            if (practiceResult) return;
 
-            userAnswers[qId] = aId;
-            answeredCorrectly[qId] = isCorrect;
-            
-            // Save to session
+            const q = questions.find(qu => qu.id === qId);
+            if (!q) return;
+
+            if (q.type === 'MULTIPLE_CHOICE') {
+                if (!Array.isArray(userAnswers[qId])) userAnswers[qId] = [];
+                const idx = userAnswers[qId].indexOf(aId);
+                if (idx > -1) userAnswers[qId].splice(idx, 1);
+                else userAnswers[qId].push(aId);
+
+                // For MULTIPLE_CHOICE immediate feedback, we'd need to know if the FULL set is correct.
+                // For simplicity in practice mode, we might wait for a "Check" button or just check current set.
+                const correctIds = q.answers.filter(a => a.isCorrect).map(a => a.id).sort();
+                const selectedIds = [...userAnswers[qId]].sort();
+                answeredCorrectly[qId] = JSON.stringify(correctIds) === JSON.stringify(selectedIds);
+            } else {
+                userAnswers[qId] = aId;
+                answeredCorrectly[qId] = isCorrect;
+            }
+
+            if (q.type === 'SINGLE_CHOICE' && settings.showAnswer) {
+                confirmedAnswers[qId] = true;
+                sessionStorage.setItem('practice_confirmed_answers', JSON.stringify(confirmedAnswers));
+            }
+
             sessionStorage.setItem('practice_user_answers', JSON.stringify(userAnswers));
             sessionStorage.setItem('practice_answered_correctly', JSON.stringify(answeredCorrectly));
 
-            // Mark nav dot
             const currentIdx = (index !== undefined) ? index : currentIndex;
             const dot = document.getElementById(`nav-${currentIdx}`);
-            if (dot) dot.classList.add('answered');
 
-            if (settings.showAnswer) {
-                if (dot) dot.classList.add(isCorrect ? 'correct' : 'incorrect');
-                
-                if (settings.displayMode === 'all') {
-                    renderAllQuestions();
-                    // Scroll back to the question after re-render
-                    document.getElementById(`q-block-${currentIdx}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
-                } else {
-                    showFeedback(isCorrect);
-                    showQuestion(currentIndex);
-                }
+            const isAnswered = q.type === 'MULTIPLE_CHOICE' ? userAnswers[qId].length > 0 : !!userAnswers[qId];
+            if (isAnswered) dot.classList.add('answered');
+            else dot.classList.remove('answered');
+
+            const isLocked = !!practiceResult || (settings.showAnswer && confirmedAnswers[q.id]);
+
+            if (isLocked) {
+                if (dot) dot.classList.add(answeredCorrectly[q.id] ? 'correct' : 'incorrect');
+            }
+
+            if (settings.displayMode === 'all') {
+                renderAllQuestions();
+                document.getElementById(`q-block-${currentIdx}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
             } else {
-                // Non-immediate feedback: just highlight
-                if (settings.displayMode === 'all') {
-                    const block = document.getElementById(`q-block-${currentIdx}`);
-                    block.querySelectorAll('.answer-item').forEach(el => el.classList.remove('selected'));
-                    event.currentTarget.classList.add('selected');
-                } else {
-                    document.querySelectorAll('.answer-item').forEach(el => el.classList.remove('selected'));
-                    event.currentTarget.classList.add('selected');
-                }
+                showQuestion(currentIndex);
             }
         }
 
-        function showFeedback(isCorrect) {
+        function handleFillInput(qId, val, index) {
+            if (practiceResult) return;
+            userAnswers[qId] = val;
+
+            const q = questions.find(qu => qu.id === qId);
+            const correctTexts = q.answers.filter(a => a.isCorrect).map(a => a.text.trim());
+            answeredCorrectly[qId] = correctTexts.includes(val.trim());
+
+            sessionStorage.setItem('practice_user_answers', JSON.stringify(userAnswers));
+            sessionStorage.setItem('practice_answered_correctly', JSON.stringify(answeredCorrectly));
+
+            const currentIdx = (index !== undefined) ? index : currentIndex;
+            const dot = document.getElementById(`nav-${currentIdx}`);
+            if (val && val.trim() !== '') dot.classList.add('answered');
+            else dot.classList.remove('answered');
+
+            if (settings.displayMode === 'all') {
+                // If in 'all' mode, we might want to update the dot, but avoid full re-render on every keystroke
+            }
+        }
+
+        function checkAnswer(qId, index) {
+            const userVal = userAnswers[qId];
+            const q = questions.find(qu => qu.id === qId);
+            if (!q) return;
+
+            const isValPresent = q.type === 'FILL_IN_BLANK' ? (userVal && userVal.trim() !== '') : (Array.isArray(userVal) ? userVal.length > 0 : !!userVal);
+            if (!isValPresent) {
+                showToast("Vui lòng chọn hoặc nhập đáp án trước khi kiểm tra!", "err");
+                return;
+            }
+
+            confirmedAnswers[qId] = true;
+            sessionStorage.setItem('practice_confirmed_answers', JSON.stringify(confirmedAnswers));
+
+            if (settings.displayMode === 'all') {
+                renderAllQuestions();
+                document.getElementById(`q-block-${index}`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                showQuestion(currentIndex);
+            }
+        }
+
+        function showFeedback(isCorrect, q) {
             const box = document.getElementById('feedbackBox');
-            if (!box) return; // In "Show All" mode, box might not exist in the same way
-            
+            if (!box) return;
+
             box.className = 'feedback-box ' + (isCorrect ? 'correct' : 'incorrect');
-            
-            const selectedId = userAnswers[questions[currentIndex].id];
+
+            const userVal = userAnswers[q.id];
+            const isAnswered = q.type === 'FILL_IN_BLANK' ? (userVal && userVal.trim() !== '') : (Array.isArray(userVal) ? userVal.length > 0 : !!userVal);
+
             if (isCorrect) {
                 box.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i> <strong>Chính xác!</strong> Bạn đã chọn đáp án đúng.';
-            } else if (selectedId) {
+            } else if (isAnswered) {
                 box.innerHTML = '<i class="bi bi-x-circle-fill me-2"></i> <strong>Chưa đúng rồi!</strong> Hãy xem lại kiến thức nhé.';
+                if (q.type === 'FILL_IN_BLANK' && !!practiceResult) {
+                    const detail = practiceResult.details.find(d => d.questionId === q.id);
+                    if (detail && detail.correctTexts) {
+                        box.innerHTML += `<br><small>Đáp án đúng là: <strong>${detail.correctTexts.join(' hoặc ')}</strong></small>`;
+                    }
+                }
             } else {
                 box.innerHTML = '<i class="bi bi-exclamation-circle-fill me-2"></i> <strong>Chưa trả lời!</strong> Bạn nên chọn một đáp án.';
             }
-            
+
             const dot = document.getElementById(`nav-${currentIndex}`);
             if (dot) dot.classList.add(isCorrect ? 'correct' : 'incorrect');
+            box.style.display = 'block';
         }
 
         function nextQuestion() {
@@ -1133,10 +1424,18 @@
         // ── Submission ──
         async function submitPractice() {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            const answersArray = questions.map(q => ({
-                questionId: q.id,
-                selectedAnswerId: userAnswers[q.id] || null
-            }));
+            const answersArray = questions.map(q => {
+                const val = userAnswers[q.id];
+                const dto = { questionId: q.id };
+                if (q.type === 'FILL_IN_BLANK') {
+                    dto.selectedText = val || "";
+                } else if (q.type === 'MULTIPLE_CHOICE') {
+                    dto.selectedAnswerIds = Array.isArray(val) ? val : [];
+                } else {
+                    dto.selectedAnswerId = val || null;
+                }
+                return dto;
+            });
 
             const btn = document.getElementById('btnFinish');
             const orig = btn.innerHTML;
@@ -1153,8 +1452,8 @@
                 if (!res.ok) throw new Error("Không thể nộp bài");
 
                 const result = await res.json();
-            practiceResult = result; // Store for review
-            showResult(result);
+                practiceResult = result; // Store for review
+                showResult(result);
             } catch (e) {
                 showToast(e.message, 'err');
                 btn.disabled = false;
@@ -1175,23 +1474,23 @@
             // Hide sidebar and question area
             document.querySelector('.col-lg-3').style.display = 'none';
             document.getElementById('questionArea').style.display = 'none';
-            
+
             // Expand main content column to full width and show result
             const mainCol = document.querySelector('.col-lg-9');
             mainCol.className = 'col-lg-12'; // Make it full width
-            
+
             const card = document.getElementById('resultCard');
             card.style.display = 'block';
-            
+
             const correct = data.correctAnswers;
             const total = data.totalQuestions;
             const percent = total > 0 ? Math.round((correct / total) * 100) : 0;
-            
+
             document.getElementById('resCorrect').textContent = correct;
             document.getElementById('resTotal').textContent = `/ ${total}`;
             document.getElementById('resPercent').textContent = `${percent}%`;
             document.getElementById('resScore').textContent = data.score !== undefined ? data.score.toFixed(1) : "0.0";
-            
+
             // Hide loader if any
             const loader = document.getElementById('pageLoading');
             if (loader) loader.style.display = 'none';
@@ -1201,19 +1500,20 @@
             const radius = 70;
             const circumference = 2 * Math.PI * radius;
             circle.style.strokeDasharray = circumference;
-            
+
             // Set offset
             setTimeout(() => {
                 const offset = circumference - (percent / 100) * circumference;
                 circle.style.strokeDashoffset = offset;
             }, 100);
-            
+
             // Clean up session storage
             sessionStorage.removeItem('practice_user_answers');
             sessionStorage.removeItem('practice_answered_correctly');
+            sessionStorage.removeItem('practice_confirmed_answers');
             sessionStorage.removeItem('practice_is_shuffled');
             sessionStorage.removeItem('practice_current_index');
-            
+
             if (!silent) {
                 showToast("Đã hoàn thành luyện tập!", "ok");
             }
@@ -1228,28 +1528,37 @@
 
             const card = document.getElementById('resultCard');
             card.style.display = 'none';
-            
+
             // Show sidebar and expand main content
             document.querySelector('.col-lg-3').style.display = 'block';
             const mainCol = document.querySelector('.col-lg-12');
             if (mainCol) mainCol.className = 'col-lg-9';
-            
+
             const area = document.getElementById('questionArea');
             area.style.display = 'block';
-            
+
             // Re-render questions in review mode
             settings.displayMode = 'all';
             settings.showAnswer = true;
-            
+
             // Use results to update answeredCorrectly and userAnswers
             practiceResult.details.forEach(d => {
-                userAnswers[d.questionId] = d.selectedAnswerId;
+                const q = questions.find(qu => qu.id === d.questionId);
+                if (q) {
+                    if (q.type === 'FILL_IN_BLANK') {
+                        userAnswers[d.questionId] = d.selectedText;
+                    } else if (q.type === 'MULTIPLE_CHOICE') {
+                        userAnswers[d.questionId] = d.selectedAnswerIds || [];
+                    } else {
+                        userAnswers[d.questionId] = d.selectedAnswerIds && d.selectedAnswerIds.length > 0 ? d.selectedAnswerIds[0] : null;
+                    }
+                }
                 answeredCorrectly[d.questionId] = d.isCorrect;
             });
 
             renderAllQuestions();
             renderNav();
-            
+
             // Add a "Back to Result" button at the top of questionArea
             const header = `
                 <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded-4">
@@ -1293,4 +1602,5 @@
         }
     </script>
 </body>
+
 </html>

@@ -19,8 +19,13 @@ import lombok.experimental.FieldDefaults;
 public class PracticeDetailResponseDTO {
     Long questionId;
     String questionText;
-    Long selectedAnswerId;
-    Long correctAnswerId; // Send this back in results
+    List<Long> selectedAnswerIds;
+    String selectedText;
+    List<Long> correctAnswerIds;
+    List<String> correctTexts;
+    @com.fasterxml.jackson.annotation.JsonProperty("isCorrect")
     Boolean isCorrect;
+    String questionType;
+    String questionLevel;
     List<PracticeAnswerResponseDTO> answers;
 }

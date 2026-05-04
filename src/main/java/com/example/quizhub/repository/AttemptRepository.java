@@ -10,6 +10,7 @@ import java.util.List;
 public interface AttemptRepository extends JpaRepository<Attempt, Long> {
 
     List<Attempt> findByQuizTakingId(Long quizTakingId);
+    int countByQuizTakingId(Long quizTakingId);
 
     long countByResultLessThan(java.math.BigDecimal score);
     long countByResultBetween(java.math.BigDecimal min, java.math.BigDecimal max);

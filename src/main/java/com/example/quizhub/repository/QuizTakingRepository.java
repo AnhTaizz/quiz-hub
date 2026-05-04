@@ -20,5 +20,7 @@ public interface QuizTakingRepository extends JpaRepository<QuizTaking, Long> {
     List<QuizTaking> findByStatus(TakingStatus status);
     List<QuizTaking> findByLearnerIdAndStatusIn(Long learnerId, java.util.Collection<TakingStatus> statuses);
 
+    java.util.Optional<QuizTaking> findByLearnerIdAndQuizAssigningId(Long learnerId, Long quizAssigningId);
+
     long countByLearnerId(Long learnerId);
 }

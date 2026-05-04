@@ -88,28 +88,38 @@
                 </div>
 
                 <!-- Task Items -->
-                <div th:each="assigning : ${assignedQuizzes}" class="dash-card task-card mb-4 task-primary">
+                <div th:each="info : ${assignedQuizzes}" class="dash-card task-card mb-4 task-primary">
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
                         <div class="d-flex gap-3 align-items-center">
                             <div class="dash-icon-box bg-opacity-10 bg-primary text-primary">
                                 <i class="bi bi-file-earmark-text"></i>
                             </div>
                             <div>
-                                <h4 class="task-title" th:text="${assigning.quiz.title}">Tên bài thi</h4>
+                                <h4 class="task-title" th:text="${info.assigning.quiz.title}">Tên bài thi</h4>
                                 <div class="task-chips">
-                                    <div class="info-chip"><i class="bi bi-clock"></i> <span th:text="${assigning.durationInMins}">0</span> Phút</div>
-                                    <div class="info-chip"><i class="bi bi-list-check"></i> <span th:text="${assigning.quiz.questions != null ? assigning.quiz.questions.size() : 0}">0</span> Câu</div>
+                                    <div class="info-chip"><i class="bi bi-clock"></i> <span th:text="${info.assigning.durationInMins}">0</span> Phút</div>
+                                    <div class="info-chip"><i class="bi bi-list-check"></i> <span th:text="${info.assigning.quiz.questions != null ? info.assigning.quiz.questions.size() : 0}">0</span> Câu</div>
+                                    <div class="info-chip" th:classappend="${info.attemptsMade > 0 ? 'text-primary border-primary' : ''}">
+                                        <i class="bi bi-person-walking"></i> 
+                                        Lượt: <span th:text="${info.attemptsMade}">0</span> / <span th:text="${info.assigning.maxAttempt != null && info.assigning.maxAttempt > 0 ? info.assigning.maxAttempt : '∞'}">∞</span>
+                                    </div>
                                     <div class="info-chip safe">
                                         <i class="bi bi-calendar-event"></i> 
-                                        Hạn: <span th:text="${assigning.dueDate != null ? #temporals.format(assigning.dueDate, 'dd/MM/yyyy') : 'Không thời hạn'}">--/--/----</span>
+                                        Hạn: <span th:text="${info.assigning.dueDate != null ? #temporals.format(info.assigning.dueDate, 'HH:mm dd/MM/yyyy') : 'Không thời hạn'}">--/--/----</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <a th:href="@{/student/quiz/play/{id}(id=${assigning.id})}" class="btn-green rounded-pill px-4 text-nowrap text-decoration-none d-flex align-items-center">
-                            <i class="bi bi-pencil-square me-1"></i> 
-                            <span>Làm bài</span>
-                        </a>
+                        <div class="d-flex gap-2">
+                            <a th:if="${info.hasStarted}" th:href="@{/student/quizzes}" class="btn btn-outline-primary rounded-pill px-4 text-nowrap text-decoration-none d-flex align-items-center">
+                                <i class="bi bi-clock-history me-1"></i> 
+                                <span>Lịch sử</span>
+                            </a>
+                            <a th:href="@{/student/quiz/play/{id}(id=${info.assigning.id})}" class="btn-green rounded-pill px-4 text-nowrap text-decoration-none d-flex align-items-center">
+                                <i class="bi bi-pencil-square me-1"></i> 
+                                <span>Làm bài</span>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>

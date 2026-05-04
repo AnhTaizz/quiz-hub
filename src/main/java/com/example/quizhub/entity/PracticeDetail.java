@@ -39,9 +39,16 @@ public class PracticeDetail {
     @JoinColumn(name = "question_id", nullable = false)
     Question question;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "selected_answer_id")
-    Answer selectedAnswer;
+    @jakarta.persistence.ManyToMany(fetch = FetchType.LAZY)
+    @jakarta.persistence.JoinTable(
+        name = "_practice_detail_selected_answers",
+        joinColumns = @jakarta.persistence.JoinColumn(name = "practice_detail_id"),
+        inverseJoinColumns = @jakarta.persistence.JoinColumn(name = "answer_id")
+    )
+    java.util.List<Answer> selectedAnswers;
+
+    @Column(name = "selected_text")
+    String selectedText;
 
     @Column(name = "is_correct")
     Boolean isCorrect;

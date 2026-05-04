@@ -154,31 +154,66 @@ public class PracticeServiceImpl implements PracticeService {
             Question question = questionRepository.findById(ansReq.getQuestionId())
                     .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
 
-            Answer selectedAnswer = null;
+            List<Answer> selectedAnswers = new ArrayList<>();
+            String selectedText = ansReq.getSelectedText();
             boolean isCorrect = false;
-            Long correctAnswerId = null;
 
-            // Find the correct answer for this question
-            for (Answer a : question.getAnswers()) {
-                if (Boolean.TRUE.equals(a.getIsCorrect())) {
-                    correctAnswerId = a.getId();
+            List<Long> correctAnswerIds = question.getAnswers().stream()
+                    .filter(a -> Boolean.TRUE.equals(a.getIsCorrect()))
+                    .map(Answer::getId)
+                    .collect(Collectors.toList());
+            List<String> correctTexts = question.getAnswers().stream()
+                    .filter(a -> Boolean.TRUE.equals(a.getIsCorrect()))
+                    .map(Answer::getText)
+                    .collect(Collectors.toList());
+
+            switch (question.getType()) {
+                case SINGLE_CHOICE:
+                    if (ansReq.getSelectedAnswerId() != null) {
+                        Answer sa = answerRepository.findById(ansReq.getSelectedAnswerId()).orElse(null);
+                        if (sa != null) {
+                            selectedAnswers.add(sa);
+                            if (Boolean.TRUE.equals(sa.getIsCorrect())) {
+                                isCorrect = true;
+                            }
+                        }
+                    }
                     break;
-                }
+                case MULTIPLE_CHOICE:
+                    if (ansReq.getSelectedAnswerIds() != null && !ansReq.getSelectedAnswerIds().isEmpty()) {
+                        List<Answer> sas = answerRepository.findAllById(ansReq.getSelectedAnswerIds());
+                        selectedAnswers.addAll(sas);
+
+                        List<Long> saIds = sas.stream().map(Answer::getId).sorted().collect(Collectors.toList());
+                        List<Long> caIds = correctAnswerIds.stream().sorted().collect(Collectors.toList());
+                        if (saIds.equals(caIds)) {
+                            isCorrect = true;
+                        }
+                    }
+                    break;
+                case FILL_IN_BLANK:
+                    if (selectedText != null && !selectedText.trim().isEmpty()) {
+                        String trimmedSelected = selectedText.trim();
+                        for (String ct : correctTexts) {
+                            if (ct.trim().equals(trimmedSelected)) {
+                                isCorrect = true;
+                                break;
+                            }
+                        }
+                    }
+                    break;
             }
 
-            if (ansReq.getSelectedAnswerId() != null) {
-                selectedAnswer = answerRepository.findById(ansReq.getSelectedAnswerId()).orElse(null);
-                if (selectedAnswer != null && Boolean.TRUE.equals(selectedAnswer.getIsCorrect())) {
-                    isCorrect = true;
-                    correctCount++;
-                }
+            if (isCorrect) {
+                correctCount++;
             }
 
             // Save detail
             PracticeDetail detail = PracticeDetail.builder()
                     .practice(savedPractice)
                     .question(question)
-                    .selectedAnswer(selectedAnswer)
+                    .selectedAnswers(selectedAnswers)
+                    .selectedText(selectedText)
                     .isCorrect(isCorrect)
                     .build();
             practiceDetailRepository.save(detail);
@@ -187,9 +222,13 @@ public class PracticeServiceImpl implements PracticeService {
             detailResponses.add(PracticeDetailResponseDTO.builder()
                     .questionId(question.getId())
                     .questionText(question.getText())
-                    .selectedAnswerId(selectedAnswer != null ? selectedAnswer.getId() : null)
-                    .correctAnswerId(correctAnswerId)
+                    .selectedAnswerIds(selectedAnswers.stream().map(Answer::getId).collect(Collectors.toList()))
+                    .selectedText(selectedText)
+                    .correctAnswerIds(correctAnswerIds)
+                    .correctTexts(correctTexts)
                     .isCorrect(isCorrect)
+                    .questionType(question.getType().name())
+                    .questionLevel(question.getLevel().name())
                     .answers(question.getAnswers().stream()
                             .map(a -> new PracticeAnswerResponseDTO(a.getId(), a.getText(), a.getIsCorrect()))
                             .collect(Collectors.toList()))
@@ -256,12 +295,20 @@ public class PracticeServiceImpl implements PracticeService {
                 .map(d -> PracticeDetailResponseDTO.builder()
                         .questionId(d.getQuestion().getId())
                         .questionText(d.getQuestion().getText())
-                        .selectedAnswerId(d.getSelectedAnswer() != null ? d.getSelectedAnswer().getId() : null)
-                        .correctAnswerId(d.getQuestion().getAnswers().stream()
+                        .selectedAnswerIds(d.getSelectedAnswers() != null ? 
+                                d.getSelectedAnswers().stream().map(Answer::getId).collect(Collectors.toList()) : null)
+                        .selectedText(d.getSelectedText())
+                        .correctAnswerIds(d.getQuestion().getAnswers().stream()
                                 .filter(a -> Boolean.TRUE.equals(a.getIsCorrect()))
                                 .map(Answer::getId)
-                                .findFirst().orElse(null))
+                                .collect(Collectors.toList()))
+                        .correctTexts(d.getQuestion().getAnswers().stream()
+                                .filter(a -> Boolean.TRUE.equals(a.getIsCorrect()))
+                                .map(Answer::getText)
+                                .collect(Collectors.toList()))
                         .isCorrect(d.getIsCorrect())
+                        .questionType(d.getQuestion().getType().name())
+                        .questionLevel(d.getQuestion().getLevel().name())
                         .answers(d.getQuestion().getAnswers().stream()
                                 .map(a -> new PracticeAnswerResponseDTO(a.getId(), a.getText(), a.getIsCorrect()))
                                 .collect(Collectors.toList()))

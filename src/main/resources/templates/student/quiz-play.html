@@ -278,15 +278,26 @@
             gap: 10px;
         }
 
-        .q-type-badge {
+        .q-type-badge, .q-level-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             background: #f1f5f9;
             color: #475569;
-            padding: 4px 12px;
+            padding: 6px 12px;
             border-radius: 8px;
-            font-size: 0.8rem;
-            font-weight: 700;
+            font-size: 0.75rem;
+            font-weight: 800;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1;
+            height: 28px;
+            border: 1px solid #e2e8f0;
         }
+
+        .q-level-badge.level-easy { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
+        .q-level-badge.level-medium { background: #fef3c7; color: #d97706; border-color: #fde68a; }
+        .q-level-badge.level-hard { background: #fee2e2; color: #dc2626; border-color: #fecaca; }
 
         .q-text {
             font-size: 1.4rem;
@@ -349,9 +360,34 @@
             font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+        }
+
+        /* ── Toast ── */
+        #toastWrap { position:fixed; top:22px; right:22px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
+        .toast-msg { background:#1e1b4b; color:#fff; border-radius:14px; padding:12px 18px; font-weight:600; font-size:0.88rem; display:flex; align-items:center; gap:9px; box-shadow:0 8px 24px rgba(0,0,0,0.18); opacity:0; transform:translateX(16px); transition:all 0.3s ease; pointer-events:none; }
+        .toast-msg.show { opacity:1; transform:translateX(0); }
+        .toast-msg.ok i { color:#4ade80; }
+        .toast-msg.err i { color:#fb7185; }
+
+        /* ── Fill in Blank ── */
+        .fill-input {
+            width: 100%;
+            padding: 18px 25px;
+            border-radius: 16px;
+            border: 2px solid #f1f5f9;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1e293b;
+            outline: none;
             transition: all 0.2s;
         }
+        .fill-input:focus {
+            border-color: var(--exam-accent);
+            background: #f8fafc;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
 
         .btn-submit {
             background: #10b981;
@@ -393,6 +429,13 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        .error-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); z-index: 9999; display: none; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+        .error-content { max-width: 500px; background: #fff; padding: 40px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border: 1px solid #eee; }
+        .error-icon { font-size: 80px; margin-bottom: 24px; display: inline-block; }
+        .error-title { font-size: 24px; font-weight: 800; color: #1e293b; margin-bottom: 12px; }
+        .error-msg { color: #64748b; font-size: 16px; margin-bottom: 30px; line-height: 1.6; }
+        .btn-back { background: #312e81; color: #fff; border: none; padding: 14px 32px; border-radius: 50px; font-weight: 700; font-size: 16px; transition: all 0.3s ease; text-decoration: none; display: inline-block; }
+        .btn-back:hover { background: #1e1b4b; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(49, 46, 129, 0.2); color: #fff; }
     </style>
 </head>
 <body th:data-assigning-id="${quizId}">
@@ -533,6 +576,17 @@
         </div>
     </div>
 
+    <div id="toastWrap"></div>
+
+    <div class="error-overlay" id="errorOverlay">
+        <div class="error-content">
+            <div class="error-icon" id="errorIcon">🚫</div>
+            <div class="error-title" id="errorTitle">Thông báo</div>
+            <div class="error-msg" id="errorMsg">Đã có lỗi xảy ra. Vui lòng thử lại sau.</div>
+            <a href="/student" class="btn-back">Quay về trang chủ</a>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const assigningId = document.body.dataset.assigningId;
@@ -545,6 +599,38 @@
 
         document.addEventListener('DOMContentLoaded', initQuiz);
 
+        function showErrorOverlay(err) {
+            const overlay = document.getElementById('errorOverlay');
+            const title = document.getElementById('errorTitle');
+            const msg = document.getElementById('errorMsg');
+            const icon = document.getElementById('errorIcon');
+
+            overlay.style.display = 'flex';
+            
+            // Map error codes
+            switch(err.code) {
+                case 1029: // QUIZ_EXPIRED
+                    title.innerText = "Bài thi đã kết thúc";
+                    msg.innerText = "Rất tiếc, thời gian làm bài của kỳ thi này đã hết. Bạn không thể bắt đầu lượt làm bài mới.";
+                    icon.innerText = "⏰";
+                    break;
+                case 1030: // QUIZ_NOT_STARTED
+                    title.innerText = "Chưa đến giờ làm bài";
+                    msg.innerText = "Kỳ thi này chưa bắt đầu. Vui lòng quay lại vào đúng thời gian đã được thông báo.";
+                    icon.innerText = "📅";
+                    break;
+                case 1028: // MAX_ATTEMPTS_REACHED
+                    title.innerText = "Hết lượt làm bài";
+                    msg.innerText = "Bạn đã hoàn thành tối đa số lượt làm bài cho phép đối với kỳ thi này.";
+                    icon.innerText = "🏁";
+                    break;
+                default:
+                    title.innerText = "Không thể truy cập";
+                    msg.innerText = err.message || "Đã có lỗi xảy ra khi tải bài thi. Vui lòng kiểm tra lại kết nối hoặc liên hệ giáo viên.";
+                    icon.innerText = "⚠️";
+            }
+        }
+
         async function initQuiz() {
             try {
                 const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -552,15 +638,28 @@
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
 
-                if (!response.ok) throw new Error("Không thể tải bài thi");
+                if (!response.ok) {
+                    const errData = await response.json();
+                    showErrorOverlay(errData);
+                    return;
+                }
                 quizData = await response.json();
 
                 // Initialize answers from server first, then local as backup
                 userAnswers = quizData.selectedAnswers || {};
+                if (quizData.selectedTexts) {
+                    Object.assign(userAnswers, quizData.selectedTexts);
+                }
+
                 const saved = localStorage.getItem(`quiz_answers_${quizData.attemptId}`);
                 if (saved) {
                     const localData = JSON.parse(saved);
-                    Object.assign(userAnswers, localData);
+                    // Only restore from local if the local data is fresher than the server's start time
+                    // This prevents stale answers from appearing after a database reset/reseed.
+                    const serverStart = quizData.startedAtMillis;
+                    if (localData.timestamp && localData.timestamp > serverStart) {
+                        Object.assign(userAnswers, localData.answers);
+                    }
                 }
 
                 setupTimer();
@@ -631,22 +730,43 @@
         function renderSingleQuestion() {
             const q = quizData.questions[currentIndex];
             document.getElementById('qNumber').textContent = `Câu ${currentIndex + 1}`;
-            document.getElementById('qType').textContent = q.type === 'SINGLE_CHOICE' ? 'CHỌN MỘT ĐÁP ÁN' : 'CHỌN NHIỀU ĐÁP ÁN';
+            document.getElementById('qType').textContent = q.type === 'SINGLE_CHOICE' ? 'CHỌN MỘT ĐÁP ÁN' : (q.type === 'FILL_IN_BLANK' ? 'ĐIỀN KHUYẾT' : 'CHỌN NHIỀU ĐÁP ÁN');
+            
+            // Clear and add level badge
+            const meta = document.querySelector('.q-meta');
+            const existingLevel = meta.querySelector('.q-level-badge');
+            if (existingLevel) existingLevel.remove();
+            
+            const levelBadge = document.createElement('span');
+            levelBadge.className = `q-level-badge level-${(q.level || 'medium').toLowerCase()}`;
+            levelBadge.textContent = q.level || 'MEDIUM';
+            meta.appendChild(levelBadge);
+
             document.getElementById('qText').textContent = q.text;
 
             const list = document.getElementById('answersList');
             list.innerHTML = '';
 
-            q.answers.forEach((ans, i) => {
-                const div = document.createElement('div');
-                div.className = `answer-opt ${isAnswerSelected(q.id, ans.id) ? 'selected' : ''}`;
-                div.innerHTML = `
-                    <div class="opt-prefix">${String.fromCharCode(65 + i)}</div>
-                    <div class="opt-text">${ans.text}</div>
-                `;
-                div.onclick = () => toggleAnswer(q.id, ans.id, q.type);
-                list.appendChild(div);
-            });
+            if (q.type === 'FILL_IN_BLANK') {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'fill-input';
+                input.placeholder = 'Nhập câu trả lời của bạn tại đây...';
+                input.value = userAnswers[q.id] || '';
+                input.oninput = (e) => handleFillInput(q.id, e.target.value);
+                list.appendChild(input);
+            } else {
+                q.answers.forEach((ans, i) => {
+                    const div = document.createElement('div');
+                    div.className = `answer-opt ${isAnswerSelected(q.id, ans.id) ? 'selected' : ''}`;
+                    div.innerHTML = `
+                        <div class="opt-prefix">${String.fromCharCode(65 + i)}</div>
+                        <div class="opt-text">${ans.text}</div>
+                    `;
+                    div.onclick = () => toggleAnswer(q.id, ans.id, q.type);
+                    list.appendChild(div);
+                });
+            }
 
             // Update Nav Buttons
             document.getElementById('btnPrev').disabled = currentIndex === 0;
@@ -665,20 +785,25 @@
                 qDiv.id = `q-full-${idx}`;
                 
                 let answersHtml = '';
-                q.answers.forEach((ans, i) => {
-                    answersHtml += `
-                        <div class="answer-opt ${isAnswerSelected(q.id, ans.id) ? 'selected' : ''}" 
-                             onclick="toggleAnswer(${q.id}, ${ans.id}, '${q.type}')">
-                            <div class="opt-prefix">${String.fromCharCode(65 + i)}</div>
-                            <div class="opt-text">${ans.text}</div>
-                        </div>
-                    `;
-                });
+                if (q.type === 'FILL_IN_BLANK') {
+                    answersHtml = `<input type="text" class="fill-input" placeholder="Nhập câu trả lời..." value="${userAnswers[q.id] || ''}" oninput="handleFillInput(${q.id}, this.value, true)">`;
+                } else {
+                    q.answers.forEach((ans, i) => {
+                        answersHtml += `
+                            <div class="answer-opt ${isAnswerSelected(q.id, ans.id) ? 'selected' : ''}" 
+                                 onclick="toggleAnswer(${q.id}, ${ans.id}, '${q.type}')">
+                                <div class="opt-prefix">${String.fromCharCode(65 + i)}</div>
+                                <div class="opt-text">${ans.text}</div>
+                            </div>
+                        `;
+                    });
+                }
 
                 qDiv.innerHTML = `
-                    <div class="mb-3">
+                    <div class="mb-3 d-flex gap-2">
                         <span class="q-type-badge">Câu ${idx + 1}</span>
-                        <span class="q-type-badge text-muted">${q.type === 'SINGLE_CHOICE' ? 'CHỌN MỘT ĐÁP ÁN' : 'CHỌN NHIỀU ĐÁP ÁN'}</span>
+                        <span class="q-type-badge">${q.type === 'SINGLE_CHOICE' ? 'CHỌN MỘT' : (q.type === 'FILL_IN_BLANK' ? 'ĐIỀN KHUYẾT' : 'CHỌN NHIỀU')}</span>
+                        <span class="q-level-badge level-${(q.level || 'medium').toLowerCase()}">${q.level || 'MEDIUM'}</span>
                     </div>
                     <div class="fw-bold fs-5 mb-3">${q.text}</div>
                     <div class="answers-list">${answersHtml}</div>
@@ -708,12 +833,38 @@
             return userAnswers[qId] && userAnswers[qId].includes(ansId);
         }
 
+        function handleFillInput(qId, val, isFullMode = false) {
+            userAnswers[qId] = val;
+            saveToLocal();
+            saveToServer(qId, val); // For FILL_IN_BLANK, we send the string
+            if (!isFullMode) {
+                renderGrid();
+            } else {
+                // Update dots without re-rendering everything
+                const dot = document.querySelector(`.q-dot[data-index="${currentIndex}"]`);
+                // Actually in full mode we'd need to find the right dot.
+                // For simplicity, let's just refresh the grid.
+                renderGrid();
+            }
+        }
         function saveToLocal() {
-            localStorage.setItem(`quiz_answers_${quizData.attemptId}`, JSON.stringify(userAnswers));
+            const dataToSave = {
+                answers: userAnswers,
+                timestamp: new Date().getTime()
+            };
+            localStorage.setItem(`quiz_answers_${quizData.attemptId}`, JSON.stringify(dataToSave));
         }
 
-        async function saveToServer(qId, answerIds) {
+        async function saveToServer(qId, val) {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            const q = quizData.questions.find(qu => qu.id == qId);
+            const payload = {};
+            if (q && q.type === 'FILL_IN_BLANK') {
+                payload.selectedText = val;
+            } else {
+                payload.answerIds = val;
+            }
+
             try {
                 await fetch(`/api/student/quiz/save-answer?attemptId=${quizData.attemptId}&questionId=${qId}`, {
                     method: 'POST',
@@ -721,7 +872,7 @@
                         'Authorization': 'Bearer ' + token,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(answerIds)
+                    body: JSON.stringify(payload)
                 });
             } catch (e) {
                 console.error("Lỗi khi lưu đáp án lên server:", e);
@@ -780,6 +931,7 @@
         }
 
         async function executeSubmit() {
+            isMonitoring = false; // Tắt giám sát khi đang nộp bài
             document.getElementById('pageLoading').style.display = 'flex';
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             const submitBtn = document.querySelector('#submitModal .btn-primary');
@@ -788,10 +940,16 @@
 
             try {
                 // Prepare request body
-                const questions = quizData.questions.map(q => ({
-                    questionId: q.id,
-                    answerIds: userAnswers[q.id] || []
-                }));
+                const questions = quizData.questions.map(q => {
+                    const ans = userAnswers[q.id];
+                    const qPayload = { questionId: q.id };
+                    if (q.type === 'FILL_IN_BLANK') {
+                        qPayload.selectedText = ans || '';
+                    } else {
+                        qPayload.answerIds = ans || [];
+                    }
+                    return qPayload;
+                });
 
                 const response = await fetch('/api/student/quiz/submit', {
                     method: 'POST',
@@ -819,14 +977,85 @@
         }
 
         function autoSubmit() {
-            alert("Đã hết thời gian làm bài! Hệ thống sẽ tự động nộp bài.");
+            showToast("Đã hết thời gian làm bài! Hệ thống sẽ tự động nộp bài.", "err");
             executeSubmit();
         }
 
         function confirmExit() {
-            if (confirm("Dữ liệu bài thi đang được lưu lại. Bạn có chắc chắn muốn thoát ra ngoài?")) {
-                window.location.href = '/student';
+            if (confirm("Dữ liệu bài thi đang được lưu lại. Bạn có chắc chắn muốn thoát ra ngoài? Hệ thống sẽ ghi nhận hành động này là một lần thoát bài thi sớm.")) {
+                logViolation('MANUAL_EXIT');
+                // Đợi một chút để request logViolation kịp gửi đi trước khi chuyển trang
+                setTimeout(() => {
+                    isMonitoring = false;
+                    window.location.href = '/student';
+                }, 500);
             }
+        }
+
+        // Monitoring logic
+        let isMonitoring = true;
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden' && isMonitoring) {
+                logViolation('TAB_SWITCH');
+            }
+        });
+
+        window.addEventListener('blur', () => {
+            if (isMonitoring) {
+                logViolation('WINDOW_BLUR');
+            }
+        });
+
+        window.addEventListener('beforeunload', (event) => {
+            if (isMonitoring) {
+                // Sử dụng sendBeacon để đảm bảo request gửi thành công ngay cả khi đóng tab
+                logViolation('TAB_CLOSE', true);
+            }
+        });
+
+        async function logViolation(code, isBeacon = false) {
+            if(!quizData || !quizData.attemptId) return;
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            const url = '/api/student/quiz/log-violation';
+            const data = JSON.stringify({
+                attemptId: quizData.attemptId,
+                violationCode: code
+            });
+
+            if (isBeacon && navigator.sendBeacon) {
+                // Beacon không hỗ trợ Header Authorization truyền thống, 
+                // nhưng vì security filter của bạn có thể chặn, chúng ta sẽ thử gửi.
+                // Lưu ý: sendBeacon thường dùng cho log không cần auth chặt chẽ hoặc dùng cookie.
+                const blob = new Blob([data], { type: 'application/json' });
+                navigator.sendBeacon(url, blob);
+                return;
+            }
+
+            try {
+                await fetch(url, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': 'Bearer ' + token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: data
+                });
+                showToast("Phát hiện hành động bất thường! Hệ thống đã ghi nhận.", "err");
+            } catch (e) {
+                console.error("Lỗi khi ghi nhận vi phạm:", e);
+            }
+        }
+
+        function showToast(msg, type = 'ok') {
+            const wrap = document.getElementById('toastWrap');
+            const t = document.createElement('div');
+            t.className = `toast-msg show ${type}`;
+            t.innerHTML = `<i class="bi ${type==='ok'?'bi-check-circle-fill':'bi-exclamation-triangle-fill'}"></i> <span>${msg}</span>`;
+            wrap.appendChild(t);
+            setTimeout(() => {
+                t.classList.remove('show');
+                setTimeout(() => t.remove(), 300);
+            }, 3000);
         }
     </script>
 </body>

@@ -41,7 +41,9 @@ public enum ErrorCode {
     QUESTION_ALREADY_PUBLIC(1025, "Question already public", HttpStatus.BAD_REQUEST),
     CLASS_TOPIC_NOT_FOUND(1026, "Class topic not found", HttpStatus.NOT_FOUND),
     PRACTICE_NOT_FOUND(1027, "Practice not found", HttpStatus.NOT_FOUND),
-    MAX_ATTEMPTS_REACHED(1028, "You have reached the maximum number of attempts for this quiz", HttpStatus.BAD_REQUEST);
+    MAX_ATTEMPTS_REACHED(1028, "You have reached the maximum number of attempts for this quiz", HttpStatus.BAD_REQUEST),
+    QUIZ_EXPIRED(1029, "The quiz has already ended", HttpStatus.BAD_REQUEST),
+    QUIZ_NOT_STARTED(1030, "The quiz has not started yet", HttpStatus.BAD_REQUEST);
 
     final int code;
     final String message;

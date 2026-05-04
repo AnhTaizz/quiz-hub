@@ -24,8 +24,8 @@ public class QuizAssigningRequestDTO {
     @NotNull(message = "Thời gian làm bài không được để trống")
     Integer durationInMins;
 
-    LocalDate startDate;
-    LocalDate dueDate;
+    java.time.LocalDateTime startDate;
+    java.time.LocalDateTime dueDate;
     
     Long topicId;
 }

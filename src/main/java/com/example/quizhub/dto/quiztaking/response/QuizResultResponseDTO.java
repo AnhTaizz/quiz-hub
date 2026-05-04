@@ -32,8 +32,11 @@ public class QuizResultResponseDTO {
         private Long questionId;
         private String text;
         private String type;
+        private String level;
         private List<AnswerResultDTO> answers;
         private List<Long> selectedAnswerIds;
+        private String selectedText;
+        @com.fasterxml.jackson.annotation.JsonProperty("isCorrect")
         private boolean isCorrect;
     }
 
@@ -44,6 +47,7 @@ public class QuizResultResponseDTO {
     public static class AnswerResultDTO {
         private Long answerId;
         private String text;
+        @com.fasterxml.jackson.annotation.JsonProperty("isCorrect")
         private boolean isCorrect;
     }
 }

@@ -20,5 +20,6 @@ public class QuestionTakingResponseDTO {
     Long id;
     String text;
     QuestionType type;
+    com.example.quizhub.entity.enums.QuestionLevel level;
     List<AnswerTakingResponseDTO> answers;
 }

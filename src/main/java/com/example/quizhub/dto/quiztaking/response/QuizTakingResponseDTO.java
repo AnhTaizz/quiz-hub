@@ -21,7 +21,9 @@ public class QuizTakingResponseDTO {
     String quizTitle;
     Integer durationInMins;
     LocalDateTime startedAt;
+    Long startedAtMillis;
 
     List<QuestionTakingResponseDTO> questions;
     java.util.Map<Long, List<Long>> selectedAnswers;
+    java.util.Map<Long, String> selectedTexts;
 }

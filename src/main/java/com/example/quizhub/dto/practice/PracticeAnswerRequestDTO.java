@@ -20,6 +20,12 @@ public class PracticeAnswerRequestDTO {
     @NotNull(message = "Question ID is required")
     Long questionId;
 
-    // Can be null if the student didn't answer this question
+    // For SINGLE_CHOICE
     Long selectedAnswerId;
+
+    // For MULTIPLE_CHOICE
+    java.util.List<Long> selectedAnswerIds;
+
+    // For FILL_IN_BLANK
+    String selectedText;
 }

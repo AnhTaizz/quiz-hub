@@ -83,8 +83,8 @@
         .badge-warn { background: #ffe5e5; color: #dc3545; padding: 6px 12px; border-radius: 50px; font-size: 12px; font-weight: 700; }
         .badge-done { background: var(--bg-body); color: var(--text-muted); padding: 6px 12px; border-radius: 50px; font-size: 12px; font-weight: 700; }
 
-        .link-action { color: var(--blue); font-weight: 700; font-size: 14px; }
-        .link-action:hover { color: #1d4ed8; text-decoration: underline; }
+        .link-action { color: var(--blue); font-weight: 700; font-size: 14px; text-decoration: none; }
+        .link-action:hover { color: #1d4ed8; text-decoration: none; opacity: 0.8; }
 
         .quick-actions { display: flex; flex-direction: column; gap: 12px; }
         .btn-quick { display: flex; align-items: center; padding: 14px 20px; background: var(--bg-body); border: 1px solid transparent; border-radius: 14px; color: var(--text-dark); font-weight: 600; font-size: 15px; transition: all 0.3s ease; cursor: pointer; border: none; }
@@ -125,7 +125,7 @@
             <div class="stat-card">
                 <div class="stat-icon icon-blue"><i class="bi bi-mortarboard-fill"></i></div>
                 <div class="stat-info">
-                    <h2 th:text="${studentCount ?: '142'}">142</h2>
+                    <h2 th:text="${studentCount ?: '0'}">0</h2>
                     <p>Tổng sinh viên</p>
                 </div>
             </div>
@@ -133,7 +133,7 @@
             <div class="stat-card">
                 <div class="stat-icon icon-green"><i class="bi bi-diagram-3-fill"></i></div>
                 <div class="stat-info">
-                    <h2 th:text="${classroomCount ?: '5'}">5</h2>
+                    <h2 th:text="${classroomCount ?: '0'}">0</h2>
                     <p>Lớp học</p>
                 </div>
             </div>
@@ -141,7 +141,7 @@
             <div class="stat-card">
                 <div class="stat-icon icon-teal"><i class="bi bi-collection-fill"></i></div>
                 <div class="stat-info">
-                    <h2 th:text="${questionCount ?: '185'}">185</h2>
+                    <h2 th:text="${questionCount ?: '0'}">0</h2>
                     <p>Câu hỏi</p>
                 </div>
             </div>
@@ -149,7 +149,7 @@
             <div class="stat-card">
                 <div class="stat-icon icon-orange"><i class="bi bi-stopwatch-fill"></i></div>
                 <div class="stat-info">
-                    <h2>1</h2>
+                    <h2 th:text="${liveQuizCount ?: '0'}">0</h2>
                     <p>Phòng thi Live</p>
                 </div>
             </div>
@@ -171,23 +171,31 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td><div class="td-bold">Lập trình Java</div></td>
-                            <td><div class="td-sub">Kiểm tra giữa kỳ</div></td>
-                            <td><span class="badge-live"><i class="bi bi-record-circle me-1"></i> Đang thi (40/45)</span></td>
-                            <td class="text-right"><a href="#" class="link-action">Giám sát</a></td>
+                        <tr th:each="as : ${assignments}">
+                            <td><div class="td-bold" th:text="${as.classroomName}">Lập trình Java</div></td>
+                            <td><div class="td-sub" th:text="${as.quizTitle}">Kiểm tra giữa kỳ</div></td>
+                            <td>
+                                <span th:if="${as.status == 'LIVE'}" class="badge-live">
+                                    <i class="bi bi-record-circle me-1"></i> Đang diễn ra
+                                </span>
+                                <span th:if="${as.violationCount > 0}" class="badge-warn">
+                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> <span th:text="${as.violationCount}">2</span> Vi phạm
+                                </span>
+                                <span th:if="${as.status == 'ENDED' && as.violationCount == 0}" class="badge-done">
+                                    <i class="bi bi-check2-circle me-1"></i> Đã kết thúc
+                                </span>
+                                <span th:if="${as.status == 'UPCOMING'}" class="badge-done" style="background: #e2e8f0; color: #4a5568;">
+                                    <i class="bi bi-calendar-event me-1"></i> Sắp diễn ra
+                                </span>
+                            </td>
+                            <td class="text-right">
+                                <a th:if="${as.violationCount > 0}" th:href="@{'/teacher/monitoring/log/' + ${as.assigningId}}" class="link-action" style="color: #dc3545;">Xem Log</a>
+                                <a th:if="${as.status == 'LIVE' && as.violationCount == 0}" th:href="@{'/teacher/monitoring/log/' + ${as.assigningId}}" class="link-action">Giám sát</a>
+                                <a th:if="${as.status == 'ENDED'}" href="#" class="link-action" style="color: #718096;">Bảng điểm</a>
+                            </td>
                         </tr>
-                        <tr>
-                            <td><div class="td-bold">Web Frontend</div></td>
-                            <td><div class="td-sub">Quiz HTML/CSS</div></td>
-                            <td><span class="badge-warn"><i class="bi bi-exclamation-triangle-fill me-1"></i> 2 Vi phạm</span></td>
-                            <td class="text-right"><a href="#" class="link-action" style="color: #dc3545;">Xem Log</a></td>
-                        </tr>
-                        <tr>
-                            <td><div class="td-bold">Cấu trúc dữ liệu</div></td>
-                            <td><div class="td-sub">Bài tập Cây Nhị Phân</div></td>
-                            <td><span class="badge-done"><i class="bi bi-check2-circle me-1"></i> Đã kết thúc</span></td>
-                            <td class="text-right"><a href="#" class="link-action" style="color: #718096;">Bảng điểm</a></td>
+                        <tr th:if="${#lists.isEmpty(assignments)}">
+                            <td colspan="4" class="text-center py-4 text-muted italic">Chưa có hoạt động kiểm tra nào.</td>
                         </tr>
                     </tbody>
                 </table>

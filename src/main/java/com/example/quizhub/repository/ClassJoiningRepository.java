@@ -2,8 +2,9 @@ package com.example.quizhub.repository;
 
 import com.example.quizhub.entity.ClassJoining;
 import com.example.quizhub.entity.JoinStatus;
-
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -19,4 +20,7 @@ public interface ClassJoiningRepository extends JpaRepository<ClassJoining, Long
     List<ClassJoining> findByLearnerId(Long learnerId);
 
     Optional<ClassJoining> findByClassroomIdAndLearnerId(Long classroomId, Long learnerId);
+
+    @Query("SELECT COUNT(DISTINCT cj.learner) FROM ClassJoining cj WHERE cj.classroom.creator.id = :teacherId AND cj.status = com.example.quizhub.entity.JoinStatus.APPROVED")
+    long countDistinctLearnersByTeacherId(@Param("teacherId") Long teacherId);
 }

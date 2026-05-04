@@ -1,7 +1,6 @@
 package com.example.quizhub.dto.quiztaking.request;
 
 import java.util.List;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,8 +13,7 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class QuestionSubmitRequestDTO {
-    Long questionId;
+public class SaveAnswerRequestDTO {
     List<Long> answerIds;
     String selectedText;
 }

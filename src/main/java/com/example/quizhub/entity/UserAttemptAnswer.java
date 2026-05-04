@@ -32,6 +32,9 @@ public class UserAttemptAnswer {
     @JoinColumn(name = "answer_id")
     Answer answer;
 
+    @Column(name = "selected_text")
+    String selectedText;
+
     @Column(name = "timestamp")
     LocalDateTime timestamp;
 }

@@ -17,6 +17,7 @@ import com.example.quizhub.entity.enums.QuestionType;
 public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     List<Question> findByCreatorId(Long creatorId);
+    long countByCreatorId(Long creatorId);
 
     List<Question> findByCategoryId(Long categoryId);
     Page<Question> findByCategoryId(Long categoryId, Pageable pageable);

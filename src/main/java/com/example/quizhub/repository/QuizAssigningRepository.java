@@ -15,4 +15,6 @@ public interface QuizAssigningRepository extends JpaRepository<QuizAssigning, Lo
     List<QuizAssigning> findByQuizId(UUID quizId);
 
     List<QuizAssigning> findByClassroomIdAndQuizId(Long classroomId, UUID quizId);
+
+    List<QuizAssigning> findByClassroomCreatorId(Long teacherId);
 }

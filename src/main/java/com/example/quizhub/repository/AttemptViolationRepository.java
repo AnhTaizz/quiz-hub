@@ -11,4 +11,10 @@ import java.util.UUID;
 public interface AttemptViolationRepository extends JpaRepository<AttemptViolation, UUID> {
 
     List<AttemptViolation> findByAttemptId(Long attemptId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COUNT(v) FROM AttemptViolation v WHERE v.attempt.quizTaking.quizAssigning.id = :assigningId")
+    long countByAssigningId(Long assigningId);
+
+    @org.springframework.data.jpa.repository.Query("SELECT v FROM AttemptViolation v WHERE v.attempt.quizTaking.quizAssigning.id = :assigningId ORDER BY v.occurredAt DESC")
+    List<AttemptViolation> findAllByAssigningId(Long assigningId);
 }

@@ -17,8 +17,8 @@ public class QuizAssigningResponseDTO {
     boolean questionShuffle;
     boolean answerShuffle;
     Integer durationInMins;
-    LocalDate startDate;
-    LocalDate dueDate;
+    LocalDateTime startDate;
+    LocalDateTime dueDate;
     LocalDateTime createdAt;
 
     Long classroomId;

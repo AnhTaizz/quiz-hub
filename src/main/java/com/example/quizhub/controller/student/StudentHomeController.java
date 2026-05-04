@@ -23,6 +23,7 @@ import com.example.quizhub.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -81,22 +82,59 @@ public class StudentHomeController {
 
             // Get all assigned quizzes from joined classrooms
             List<ClassJoining> joinedClasses = classJoiningRepository.findByLearnerId(student.getId());
-            List<QuizAssigning> assignedQuizzes = new ArrayList<>();
+            List<QuizAssigning> rawAssignedQuizzes = new ArrayList<>();
             for (ClassJoining joining : joinedClasses) {
                 if (joining.getStatus() == JoinStatus.APPROVED) {
-                    assignedQuizzes.addAll(quizAssigningRepository.findByClassroomId(joining.getClassroom().getId()));
+                    rawAssignedQuizzes
+                            .addAll(quizAssigningRepository.findByClassroomId(joining.getClassroom().getId()));
                 }
             }
 
-            // Filter out completed ones and map to a consistent structure
-            // For now, let's just send the AssignedQuizzes and handle status
+            // Filter and map to dashboard-friendly structure
+            List<QuizDashboardInfo> dashboardQuizzes = new ArrayList<>();
+            for (QuizAssigning assigning : rawAssignedQuizzes) {
+                QuizTaking taking = quizTakingRepository
+                        .findByLearnerIdAndQuizAssigningId(student.getId(), assigning.getId())
+                        .orElse(null);
+
+                int attemptsMade = 0;
+                if (taking != null) {
+                    attemptsMade = attemptRepository.countByQuizTakingId(taking.getId());
+                }
+
+                int max = assigning.getMaxAttempt() != null ? assigning.getMaxAttempt() : 0;
+                boolean hasAttemptsLeft = (max == 0) || (attemptsMade < max);
+
+                LocalDateTime now = LocalDateTime.now();
+                boolean isExpired = assigning.getDueDate() != null && now.isAfter(assigning.getDueDate());
+                boolean isUpcoming = assigning.getStartDate() != null && now.isBefore(assigning.getStartDate());
+
+                if (hasAttemptsLeft && !isExpired && !isUpcoming) {
+                    QuizDashboardInfo info = new QuizDashboardInfo();
+                    info.setAssigning(assigning);
+                    info.setAttemptsMade(attemptsMade);
+                    info.setAttemptsLeft(max == 0 ? -1 : (max - attemptsMade));
+                    info.setHasStarted(attemptsMade > 0);
+                    dashboardQuizzes.add(info);
+                }
+            }
+
             model.addAttribute("totalCompleted", totalCompleted);
             model.addAttribute("avgScore", avgScore);
-            model.addAttribute("assignedQuizzes", assignedQuizzes);
-            model.addAttribute("pendingCount", assignedQuizzes.size());
+            model.addAttribute("assignedQuizzes", dashboardQuizzes);
+            model.addAttribute("pendingCount", dashboardQuizzes.size());
         }
 
         return "student/student-home";
+    }
+
+    // Helper class for dashboard
+    @lombok.Data
+    public static class QuizDashboardInfo {
+        private QuizAssigning assigning;
+        private int attemptsMade;
+        private int attemptsLeft; // -1 for unlimited
+        private boolean hasStarted;
     }
 
     @GetMapping("/practice-history")
