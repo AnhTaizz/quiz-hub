@@ -16,4 +16,7 @@ public interface AttemptRepository extends JpaRepository<Attempt, Long> {
     long countByResultGreaterThanEqual(java.math.BigDecimal score);
 
     java.util.List<Attempt> findTop10ByOrderByStartedAtDesc();
+
+    long countByQuizTakingLearnerId(Long learnerId);
+    java.util.List<Attempt> findByQuizTakingLearnerId(Long learnerId);
 }

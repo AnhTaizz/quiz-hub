@@ -575,8 +575,8 @@
     function goBack() {
         const role = userRole || (JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || '{}').role);
         if (role === 'ADMIN')   window.location.href = '/admin';
-        else if (role === 'TEACHER') window.location.href = '/teacher/teacher-home';
-        else                    window.location.href = '/student/student-home';
+        else if (role === 'TEACHER') window.location.href = '/teacher';
+        else                    window.location.href = '/student';
     }
 
     function showToast(msg, type) {

@@ -1,5 +1,6 @@
 package com.example.quizhub.entity;
 
+import java.util.List;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -12,6 +13,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -53,4 +55,7 @@ public class Practice {
     @CreationTimestamp
     @Column(name = "created_at")
     LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "practice", cascade = jakarta.persistence.CascadeType.ALL, fetch = FetchType.LAZY)
+    List<PracticeDetail> details;
 }

@@ -23,4 +23,5 @@ public class QuizTakingResponseDTO {
     LocalDateTime startedAt;
 
     List<QuestionTakingResponseDTO> questions;
+    java.util.Map<Long, List<Long>> selectedAnswers;
 }

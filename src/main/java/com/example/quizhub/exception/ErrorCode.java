@@ -40,7 +40,8 @@ public enum ErrorCode {
     USER_ALREADY_IN_CLASS(1024, "User is already a member of this class", HttpStatus.BAD_REQUEST),
     QUESTION_ALREADY_PUBLIC(1025, "Question already public", HttpStatus.BAD_REQUEST),
     CLASS_TOPIC_NOT_FOUND(1026, "Class topic not found", HttpStatus.NOT_FOUND),
-    QUESTION_NOT_IN_PUBLIC_CATEGORY(1027, "Câu hỏi phải thuộc danh mục công khai trước khi chia sẻ!", HttpStatus.BAD_REQUEST);
+    PRACTICE_NOT_FOUND(1027, "Practice not found", HttpStatus.NOT_FOUND),
+    MAX_ATTEMPTS_REACHED(1028, "You have reached the maximum number of attempts for this quiz", HttpStatus.BAD_REQUEST);
 
     final int code;
     final String message;

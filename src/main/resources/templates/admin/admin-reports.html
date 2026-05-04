@@ -372,6 +372,18 @@
             font-weight: 700;
             font-size: 12px;
         }
+
+        .badge-type {
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+        .type-quiz { background: rgba(124, 58, 237, 0.1); color: #7c3aed; border: 1px solid rgba(124, 58, 237, 0.2); }
+        .type-practice { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
     </style>
 </head>
 
@@ -467,8 +479,9 @@
                 <table class="table">
                     <thead>
                         <tr>
+                            <th>Loại</th>
                             <th>Học viên</th>
-                            <th>Đề thi</th>
+                            <th>Nội dung</th>
                             <th>Kết quả</th>
                             <th>Thời gian</th>
                         </tr>
@@ -591,7 +604,7 @@
         function renderRecentAttempts(attempts) {
             const tbody = document.getElementById('recentAttemptsTable');
             if (!attempts || attempts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4">Chưa có lượt làm bài nào.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">Chưa có lượt làm bài nào.</td></tr>';
                 return;
             }
 
@@ -604,8 +617,13 @@
                 const date = new Date(att.startedAt);
                 const timeStr = date.toLocaleDateString('vi-VN') + ' ' + date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 
+                const isPractice = att.type === 'PRACTICE';
+                const typeLabel = isPractice ? 'Luyện tập' : 'Bài thi';
+                const typeClass = isPractice ? 'type-practice' : 'type-quiz';
+
                 return `
                     <tr>
+                        <td><span class="badge-type ${typeClass}">${typeLabel}</span></td>
                         <td>
                             <div class="user-info">
                                 <div class="avatar">${att.studentName.charAt(0)}</div>

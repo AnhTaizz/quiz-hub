@@ -18,8 +18,10 @@ import com.example.quizhub.repository.CategoryRepository;
 import com.example.quizhub.repository.QuestionRepository;
 import com.example.quizhub.repository.QuizRepository;
 import com.example.quizhub.repository.UserRepository;
+import com.example.quizhub.repository.PracticeRepository;
 import com.example.quizhub.dto.admin.response.AdminDashboardDetailsResponse;
 import java.time.format.DateTimeFormatter;
+import java.util.*;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,6 +35,7 @@ public class AdminDashboardController {
     private final QuestionRepository questionRepository;
     private final AttemptRepository attemptRepository;
     private final QuizRepository quizRepository;
+    private final PracticeRepository practiceRepository;
 
     @GetMapping("/stats")
     public ResponseEntity<AdminDashboardStatsResponse> getStats() {
@@ -61,19 +64,51 @@ public class AdminDashboardController {
                 .scoreLow(attemptRepository.countByResultLessThan(new BigDecimal("5.0")))
                 .scoreMedium(attemptRepository.countByResultBetween(new BigDecimal("5.0"), new BigDecimal("8.0")))
                 .scoreHigh(attemptRepository.countByResultGreaterThanEqual(new BigDecimal("8.0")))
-                // Recent Attempts
-                .recentAttempts(attemptRepository.findTop10ByOrderByStartedAtDesc().stream()
-                        .map(attempt -> RecentAttemptResponse.builder()
-                                .id(attempt.getId())
-                                .studentName(attempt.getQuizTaking().getLearner().getFullName())
-                                .quizTitle(attempt.getQuizTaking().getQuiz().getTitle())
-                                .score(attempt.getResult())
-                                .startedAt(attempt.getStartedAt())
-                                .build())
-                        .collect(Collectors.toList()))
+                // Recent Activity (Merged Attempts & Practices)
+                .recentAttempts(getCombinedRecentActivity())
                 .build();
 
         return ResponseEntity.ok(stats);
+    }
+
+    private List<RecentAttemptResponse> getCombinedRecentActivity() {
+        List<RecentAttemptResponse> activities = new ArrayList<>();
+
+        // Add Recent Quiz Attempts
+        attemptRepository.findTop10ByOrderByStartedAtDesc().forEach(attempt -> {
+            activities.add(RecentAttemptResponse.builder()
+                    .id(attempt.getId())
+                    .studentName(attempt.getQuizTaking().getLearner().getFullName())
+                    .quizTitle(attempt.getQuizTaking().getQuiz().getTitle())
+                    .score(attempt.getResult())
+                    .startedAt(attempt.getStartedAt())
+                    .type("QUIZ")
+                    .build());
+        });
+
+        // Add Recent Practices
+        practiceRepository.findTop10ByOrderByCreatedAtDesc().forEach(p -> {
+            BigDecimal score = BigDecimal.ZERO;
+            if (p.getTotalQuestions() != null && p.getTotalQuestions() > 0) {
+                double calc = (p.getCorrectAnswers() * 10.0) / p.getTotalQuestions();
+                score = BigDecimal.valueOf(calc).setScale(1, java.math.RoundingMode.HALF_UP);
+            }
+
+            activities.add(RecentAttemptResponse.builder()
+                    .id(p.getId())
+                    .studentName(p.getUser().getFullName())
+                    .quizTitle("Luyện tập: " + (p.getCategory() != null ? p.getCategory().getName() : "N/A"))
+                    .score(score)
+                    .startedAt(p.getCreatedAt())
+                    .type("PRACTICE")
+                    .build());
+        });
+
+        // Sort by date desc and limit to 10
+        return activities.stream()
+                .sorted(Comparator.comparing(RecentAttemptResponse::getStartedAt).reversed())
+                .limit(10)
+                .collect(Collectors.toList());
     }
 
     @GetMapping("/details")

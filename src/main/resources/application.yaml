@@ -14,7 +14,7 @@ spring:
       ddl-auto: update
   sql:
     init:
-      mode: never
+      mode: always
       encoding: UTF-8
     show-sql: true
     properties:

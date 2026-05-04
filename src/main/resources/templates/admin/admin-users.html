@@ -826,32 +826,93 @@
                 opacity: 1;
             }
         }
+
+        .form-label {
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            font-size: 14px;
         }
 
-        .form-label { font-weight: 700; color: var(--text-dark); margin-bottom: 8px; font-size: 14px; }
-        .form-control, .form-select {
+        .form-control,
+        .form-select {
             border-radius: 12px;
             padding: 12px 16px;
             border: 1.5px solid var(--border);
             transition: all 0.2s;
             font-size: 14px;
         }
-        .form-control:focus, .form-select:focus {
+
+        .form-control:focus,
+        .form-select:focus {
             border-color: var(--blue);
             box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
         }
-        .modal-title { font-family: 'Nunito Sans', sans-serif; font-weight: 800; }
-        .input-group-text { border-radius: 12px 0 0 12px; border: 1.5px solid var(--border); background: #f8fafc; }
-        .input-group .form-control:first-child { border-radius: 12px; }
-        .input-group .form-control:not(:first-child):not(:last-child) { border-radius: 0; }
-        .input-group .form-control:last-child { border-radius: 0 12px 12px 0; }
-        .btn-eye { border: 1.5px solid var(--border); border-left: none; background: #fff; color: var(--text-muted); border-radius: 0 12px 12px 0 !important; padding: 0 12px; }
-        .btn-eye:hover { color: var(--blue); }
-        .email-status { font-size: 12px; margin-top: 4px; font-weight: 600; display: none; }
-        .email-status.valid { color: var(--green); display: block; }
-        .email-status.invalid { color: var(--red); display: block; }
-        .invalid-feedback-custom { color: var(--red); font-size: 12px; margin-top: 4px; font-weight: 600; display: none; }
-        .is-invalid-custom { border-color: var(--red) !important; }
+
+        .modal-title {
+            font-family: 'Nunito Sans', sans-serif;
+            font-weight: 800;
+        }
+
+        .input-group-text {
+            border-radius: 12px 0 0 12px;
+            border: 1.5px solid var(--border);
+            background: #f8fafc;
+        }
+
+        .input-group .form-control:first-child {
+            border-radius: 12px;
+        }
+
+        .input-group .form-control:not(:first-child):not(:last-child) {
+            border-radius: 0;
+        }
+
+        .input-group .form-control:last-child {
+            border-radius: 0 12px 12px 0;
+        }
+
+        .btn-eye {
+            border: 1.5px solid var(--border);
+            border-left: none;
+            background: #fff;
+            color: var(--text-muted);
+            border-radius: 0 12px 12px 0 !important;
+            padding: 0 12px;
+        }
+
+        .btn-eye:hover {
+            color: var(--blue);
+        }
+
+        .email-status {
+            font-size: 12px;
+            margin-top: 4px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .email-status.valid {
+            color: var(--green);
+            display: block;
+        }
+
+        .email-status.invalid {
+            color: var(--red);
+            display: block;
+        }
+
+        .invalid-feedback-custom {
+            color: var(--red);
+            font-size: 12px;
+            margin-top: 4px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .is-invalid-custom {
+            border-color: var(--red) !important;
+        }
     </style>
 </head>
 
@@ -905,13 +966,15 @@
                 <a href="#" class="d-flex align-items-center gap-2 text-decoration-none" data-bs-toggle="dropdown">
                     <span id="topbar-name"
                         th:text="${currentUser != null ? currentUser.fullName : 'Administrator'}">Administrator</span>
-                    <img id="topbar-avatar" th:src="${currentUser != null && currentUser.avatarUrl != null && !currentUser.avatarUrl.isEmpty() ? currentUser.avatarUrl : 'https://ui-avatars.com/api/?name=' + (currentUser != null ? currentUser.fullName : 'Admin') + '&background=2563eb&color=fff'}"
+                    <img id="topbar-avatar"
+                        th:src="${currentUser != null && currentUser.avatarUrl != null && !currentUser.avatarUrl.isEmpty() ? currentUser.avatarUrl : 'https://ui-avatars.com/api/?name=' + (currentUser != null ? currentUser.fullName : 'Admin') + '&background=2563eb&color=fff'}"
                         alt="Avatar">
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i> Hồ sơ cá nhân</a>
                     </li>
-                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key me-2"></i> Đổi mật khẩu</a>
+                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal"
+                            data-bs-target="#changePasswordModal"><i class="bi bi-key me-2"></i> Đổi mật khẩu</a>
                     </li>
                     <li>
                         <hr class="dropdown-divider">
@@ -983,7 +1046,9 @@
                 <button class="btn-refresh" onclick="loadUsers()">
                     <i class="bi bi-arrow-clockwise"></i> Làm mới
                 </button>
-                <button class="btn btn-primary" style="border-radius: 12px; font-weight: 600; padding: 0 20px; height: 42px;" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                <button class="btn btn-primary"
+                    style="border-radius: 12px; font-weight: 600; padding: 0 20px; height: 42px;" data-bs-toggle="modal"
+                    data-bs-target="#addUserModal">
                     <i class="bi bi-person-plus-fill me-1"></i> Thêm người dùng
                 </button>
             </div>
@@ -1054,7 +1119,8 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title fs-4"><i class="bi bi-person-plus-fill me-2 text-primary"></i>Tạo tài khoản mới</h5>
+                    <h5 class="modal-title fs-4"><i class="bi bi-person-plus-fill me-2 text-primary"></i>Tạo tài khoản
+                        mới</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body pt-4">
@@ -1063,7 +1129,8 @@
                             <label class="form-label">Họ và Tên</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-person"></i></span>
-                                <input type="text" class="form-control" id="add-fullName" required placeholder="Nhập họ và tên đầy đủ..." oninput="validateField('add-fullName')">
+                                <input type="text" class="form-control" id="add-fullName" required
+                                    placeholder="Nhập họ và tên đầy đủ..." oninput="validateField('add-fullName')">
                             </div>
                             <div id="err-fullName" class="invalid-feedback-custom">Họ tên không được để trống</div>
                         </div>
@@ -1071,7 +1138,8 @@
                             <label class="form-label">Email (Tên đăng nhập)</label>
                             <div class="input-group">
                                 <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                                <input type="email" class="form-control" id="add-email" required placeholder="example@gmail.com" oninput="handleEmailInput()">
+                                <input type="email" class="form-control" id="add-email" required
+                                    placeholder="example@gmail.com" oninput="handleEmailInput()">
                             </div>
                             <div id="email-status" class="email-status"></div>
                         </div>
@@ -1080,8 +1148,10 @@
                                 <label class="form-label">Mật khẩu</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                                    <input type="password" class="form-control" id="add-password" required placeholder="********" oninput="validateField('add-password')">
-                                    <button class="btn btn-eye" type="button" onclick="togglePass('add-password', this)">
+                                    <input type="password" class="form-control" id="add-password" required
+                                        placeholder="********" oninput="validateField('add-password')">
+                                    <button class="btn btn-eye" type="button"
+                                        onclick="togglePass('add-password', this)">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                 </div>
@@ -1091,12 +1161,15 @@
                                 <label class="form-label">Xác nhận mật khẩu</label>
                                 <div class="input-group">
                                     <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
-                                    <input type="password" class="form-control" id="add-confirm-password" required placeholder="********" oninput="validateField('add-confirm-password')">
-                                    <button class="btn btn-eye" type="button" onclick="togglePass('add-confirm-password', this)">
+                                    <input type="password" class="form-control" id="add-confirm-password" required
+                                        placeholder="********" oninput="validateField('add-confirm-password')">
+                                    <button class="btn btn-eye" type="button"
+                                        onclick="togglePass('add-confirm-password', this)">
                                         <i class="bi bi-eye"></i>
                                     </button>
                                 </div>
-                                <div id="err-confirm-password" class="invalid-feedback-custom">Mật khẩu xác nhận không khớp</div>
+                                <div id="err-confirm-password" class="invalid-feedback-custom">Mật khẩu xác nhận không
+                                    khớp</div>
                             </div>
                         </div>
                         <div class="mb-2">
@@ -1110,8 +1183,10 @@
                     </form>
                 </div>
                 <div class="modal-footer border-0 pt-0">
-                    <button type="button" class="btn btn-light px-4" style="border-radius:12px; font-weight:600" data-bs-dismiss="modal">Hủy bỏ</button>
-                    <button type="button" class="btn btn-primary px-4" style="border-radius:12px; font-weight:600" onclick="submitAddUser()">
+                    <button type="button" class="btn btn-light px-4" style="border-radius:12px; font-weight:600"
+                        data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="button" class="btn btn-primary px-4" style="border-radius:12px; font-weight:600"
+                        onclick="submitAddUser()">
                         <span id="add-btn-text">Kích hoạt tài khoản</span>
                         <span id="add-btn-spinner" class="spinner-border spinner-border-sm d-none"></span>
                     </button>
@@ -1448,7 +1523,7 @@
             clearTimeout(emailTimeout);
             const email = document.getElementById('add-email').value;
             const statusDiv = document.getElementById('email-status');
-            
+
             if (!email || !email.includes('@')) {
                 statusDiv.className = 'email-status';
                 return;

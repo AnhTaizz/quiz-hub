@@ -8,4 +8,6 @@ public interface QuizTakingService {
     QuizTakingResponseDTO startQuizAttempt(Long studentId, Long quizAssigningId);
 
     Attempt submitQuizAttempt(Long studentId, QuizSubmitRequestDTO requestDTO);
+    void saveAnswer(Long studentId, Long attemptId, Long questionId, java.util.List<Long> answerIds);
+    com.example.quizhub.dto.quiztaking.response.QuizResultResponseDTO getQuizResult(Long studentId, Long attemptId);
 }

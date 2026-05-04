@@ -1,5 +1,7 @@
 package com.example.quizhub.dto.practice;
 
+import java.util.List;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,4 +22,5 @@ public class PracticeDetailResponseDTO {
     Long selectedAnswerId;
     Long correctAnswerId; // Send this back in results
     Boolean isCorrect;
+    List<PracticeAnswerResponseDTO> answers;
 }
