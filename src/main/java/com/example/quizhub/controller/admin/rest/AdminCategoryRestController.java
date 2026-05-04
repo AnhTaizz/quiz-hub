@@ -31,6 +31,8 @@ public class AdminCategoryRestController {
 
     private final CategoryService categoryService;
     private final QuizService quizService;
+    private final com.example.quizhub.repository.QuestionRepository questionRepository;
+    private final com.example.quizhub.mapper.QuestionMapper questionMapper;
 
     @GetMapping
     public ResponseEntity<List<CategoryResponseDTO>> getPublicCategories() {
@@ -53,6 +55,16 @@ public class AdminCategoryRestController {
     @GetMapping("/{id}/quizzes")
     public ResponseEntity<List<QuizSummaryDTO>> getPublicQuizzes(@PathVariable Long id) {
         return ResponseEntity.ok(quizService.getPublicQuizzesByCategoryId(id));
+    }
+
+    @GetMapping("/{id}/questions")
+    public ResponseEntity<org.springframework.data.domain.Page<com.example.quizhub.dto.question.QuestionResponseDTO>> getQuestionsByCategoryId(
+            @PathVariable Long id,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "0") int page,
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "10") int size) {
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("id").descending());
+        org.springframework.data.domain.Page<com.example.quizhub.entity.Question> questionPage = questionRepository.findByCategoryId(id, pageable);
+        return ResponseEntity.ok(questionPage.map(questionMapper::toResponseDTO));
     }
 
     @PutMapping("/{id}")

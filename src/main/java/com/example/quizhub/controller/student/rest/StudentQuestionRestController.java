@@ -1,5 +1,4 @@
-// src/main/java/com/example/quizhub/controller/teacher/rest/TeacherQuestionController.java
-package com.example.quizhub.controller.teacher.rest;
+package com.example.quizhub.controller.student.rest;
 
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -21,10 +20,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/teacher/questions")
+@RequestMapping("/api/student/questions")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-public class TeacherQuestionController {
+@PreAuthorize("hasRole('STUDENT')")
+public class StudentQuestionRestController {
 
     private final QuestionService questionService;
     private final UserRepository userRepository;
@@ -42,27 +41,18 @@ public class TeacherQuestionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    // ĐÃ SỬA: Thêm isPublicTab và rẽ nhánh gọi Service
     @GetMapping
-    public ResponseEntity<Page<QuestionResponseDTO>> getQuestionsByTeacher(
+    public ResponseEntity<Page<QuestionResponseDTO>> getQuestionsByStudent(
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) QuestionType type,
             @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "false") Boolean isPublicTab,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
 
-        Page<QuestionResponseDTO> response;
-
-        if (isPublicTab) {
-            // Lấy kho hệ thống
-            response = questionService.searchPublicQuestion(categoryId, type, keyword, page, size, sortBy, sortDir);
-        } else {
-            // Lấy kho cá nhân
-            response = questionService.searchMyQuestion(getCurrentUserId(), categoryId, type, keyword, page, size, sortBy, sortDir);
-        }
+        Page<QuestionResponseDTO> response = questionService.searchMyQuestion(
+                getCurrentUserId(), categoryId, type, keyword, page, size, sortBy, sortDir);
 
         return ResponseEntity.ok(response);
     }
@@ -83,12 +73,5 @@ public class TeacherQuestionController {
     public ResponseEntity<Void> deleteQuestion(@PathVariable Long id) {
         questionService.deleteQuestion(getCurrentUserId(), id);
         return ResponseEntity.noContent().build();
-    }
-
-    // MỚI THÊM: API xin chia sẻ (Xin Public)
-    @PutMapping("/{id}/share")
-    public ResponseEntity<String> requestShareQuestion(@PathVariable Long id) {
-        questionService.requestShareQuestion(id, getCurrentUserId());
-        return ResponseEntity.ok("Question has been submitted for approval");
     }
 }

@@ -33,7 +33,7 @@ public class Quiz {
     @Column(length = 255)
     String title;
 
-    @Column(length = 255)
+    @Column(length = 1000)
     String description;
 
     @Column(name = "image_url", length = 256)

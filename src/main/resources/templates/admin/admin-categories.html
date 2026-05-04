@@ -880,12 +880,12 @@
 
         <div class="menu-title">Nội dung Public</div>
         <ul class="nav-menu">
-            <li><a href="/admin/categories" data-title="Danh mục"><i class="bi bi-diagram-3-fill"></i> <span>Danh mục Hệ
+            <li><a href="/admin/categories" class="active" data-title="Danh mục"><i class="bi bi-diagram-3-fill"></i> <span>Danh mục Hệ
                         thống</span></a></li>
             <li>
                 <a href="/admin/moderation" data-title="Duyệt nội dung">
                     <i class="bi bi-clipboard2-check-fill"></i>
-                    <span>Duyệt Đề thi / Câu hỏi</span>
+                    <span>Duyệt Câu hỏi</span>
                     <span
                         style="background: var(--orange); color: #fff; padding: 2px 7px; border-radius: 20px; font-size: 11px; margin-left: auto;">5</span>
                 </a>
@@ -931,12 +931,9 @@
     </header>
 
 <main id="main-content">
-    <!-- Page bar -->
-    <div class="d-flex align-items-center justify-content-between mb-3 gap-3 flex-wrap">
-        <div>
-            <h1 class="page-title">🗂️ Danh mục Hệ thống</h1>
-            <p class="page-sub">Quản lý cấu trúc cây danh mục công khai chung của toàn hệ thống.</p>
-        </div>
+    <div class="page-title-box">
+        <h4>🗂️ Danh mục Hệ thống</h4>
+        <p>Quản lý cấu trúc cây danh mục công khai chung của toàn hệ thống.</p>
     </div>
 
     <!-- File Explorer -->
@@ -1036,6 +1033,44 @@
     </div>
 </div>
 
+<!-- Delete Question Modal -->
+<div class="modal fade" id="deleteQuestionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content text-center p-4" style="border-radius:20px; border:none; box-shadow:0 10px 30px rgba(0,0,0,0.1);">
+            <div style="font-size:2.5rem;margin-bottom:8px;">🗑️</div>
+            <h6 class="fw-bold mb-1" style="font-size:1.1rem; color:#1e293b;">Xóa câu hỏi?</h6>
+            <p class="text-muted small mb-3">Hành động này sẽ xóa vĩnh viễn câu hỏi này khỏi hệ thống công khai.</p>
+            <div class="d-flex gap-2">
+                <button class="btn btn-light w-50" data-bs-dismiss="modal" style="border-radius:12px;font-weight:600;height:42px;">Hủy</button>
+                <button class="btn btn-danger w-50 fw-bold" onclick="doDeleteQuestion()" style="border-radius:12px;height:42px;">Xóa</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Move Question Modal -->
+<div class="modal fade" id="moveQuestionModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content p-4" style="border-radius:20px; border:none; box-shadow:0 10px 30px rgba(0,0,0,0.1);">
+            <div class="modal-header border-0 p-0 mb-3">
+                <h5 class="modal-title fw-bold" style="color:#1e293b;"><i class="bi bi-folder-symlink-fill me-1 text-primary"></i> Chuyển danh mục câu hỏi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0 mb-3">
+                <input type="hidden" id="moveQuestionId">
+                <div class="mb-3">
+                    <label for="moveCategorySelect" class="form-label small fw-bold text-muted mb-1">Chọn danh mục công khai đích</label>
+                    <select id="moveCategorySelect" class="form-select" style="border-radius:12px; height:45px; border-color:#cbd5e1; font-size:0.92rem;"></select>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-light w-50" data-bs-dismiss="modal" style="border-radius:12px;font-weight:600;height:42px;">Hủy</button>
+                <button class="btn btn-primary w-50 fw-bold" onclick="doMoveQuestion()" style="border-radius:12px;height:42px;">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <div id="toastWrap"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -1127,17 +1162,6 @@ async function loadTree() {
         const res = await fetch(api, { headers: { Authorization: 'Bearer ' + token } });
         if (!res.ok) throw new Error('Lỗi tải danh mục');
         TREE_DATA = await res.json();
-
-        // Auto-expand all folders on first load so the tree structure is fully visible
-        if (expandedNodes.size === 0 && TREE_DATA.length > 0) {
-            const expandAll = (nodes) => {
-                nodes.forEach(n => {
-                    expandedNodes.add(n.id);
-                    if (n.children && n.children.length > 0) expandAll(n.children);
-                });
-            };
-            expandAll(TREE_DATA);
-        }
 
         renderTree(TREE_DATA);
         restoreTreeState();
@@ -1371,8 +1395,23 @@ function toggleBcDropdown(e, el) {
 /* ══════════════════════════════════════════════
    FOLDER CONTENT
 ══════════════════════════════════════════════ */
-async function loadFolderContent(catId) {
+let currentQuestionPage = 0;
+let currentQuestionSize = 10;
+let activeFolderId = null;
+
+async function loadFolderContent(catId, page = 0) {
+    if (activeFolderId !== catId) {
+        currentQuestionPage = 0;
+        activeFolderId = catId;
+    } else {
+        currentQuestionPage = page;
+    }
+
     const dc = document.getElementById('dynamicContent');
+    dc.style.display = 'block';
+    const rootLanding = document.getElementById('rootLanding');
+    if (rootLanding) rootLanding.style.display = 'none';
+
     dc.innerHTML = `<div class="quiz-grid">${[1,2,3].map(()=>`<div class="skeleton" style="height:180px;border-radius:16px;"></div>`).join('')}</div>`;
 
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -1380,28 +1419,84 @@ async function loadFolderContent(catId) {
     const subs  = node ? (node.children || []) : [];
 
     let quizzes = [];
+    let questionsData = null;
+
     try {
         const res = await fetch(`/api/admin/categories/${catId}/quizzes`,
             { headers: { Authorization: 'Bearer ' + token } });
         if (res.ok) quizzes = await res.json();
     } catch (_) {}
 
-    renderFolderContent(dc, subs, quizzes, catId);
+    try {
+        const qRes = await fetch(`/api/admin/categories/${catId}/questions?page=${currentQuestionPage}&size=${currentQuestionSize}`,
+            { headers: { Authorization: 'Bearer ' + token } });
+        if (qRes.ok) questionsData = await qRes.json();
+    } catch (_) {}
+
+    renderFolderContent(dc, subs, quizzes, questionsData, catId);
 }
 
-function renderFolderContent(container, subs, quizzes, parentId) {
+function renderFolderContent(container, subs, quizzes, questionsData, parentId) {
     let html = '';
 
     // Quizzes
     if (quizzes.length > 0) {
-        html += `<p class="section-title"><i class="bi bi-file-earmark-text me-1"></i> Đề thi / Quiz (${quizzes.length})</p>`;
-        html += `<div class="quiz-grid">`;
+        html += `<p class="section-title fw-bold" style="font-size:1.1rem;margin-top:10px;"><i class="bi bi-file-earmark-text me-1"></i> Đề thi / Quiz (${quizzes.length})</p>`;
+        html += `<div class="quiz-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; margin-bottom:24px;">`;
         quizzes.forEach(q => { html += quizCardHtml(q); });
         html += `</div>`;
     }
 
+    // Questions (if present)
+    if (questionsData && questionsData.totalElements > 0) {
+        html += `<p class="section-title fw-bold" style="font-size:1.1rem;margin-top:20px;border-top:1px solid #e2e8f0;padding-top:20px;"><i class="bi bi-patch-check me-1"></i> Danh sách câu hỏi (${questionsData.totalElements})</p>`;
+        html += `<div class="question-list" style="display:flex; flex-direction:column; gap:16px; margin-bottom:24px;">`;
+        questionsData.content.forEach(q => {
+            let typeLabel = q.type === 'SINGLE_CHOICE' ? 'Một đáp án' : (q.type === 'MULTIPLE_CHOICE' ? 'Nhiều đáp án' : 'Điền khuyết');
+            let levelLabel = q.level === 'EASY' ? 'Dễ' : (q.level === 'MEDIUM' ? 'Trung bình' : 'Khó');
+
+            let answersPreviewHtml = '';
+            if (q.answers && q.answers.length > 0) {
+                answersPreviewHtml = `
+                    <div class="ans-preview" style="display:grid;grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top:12px;">
+                        ${q.answers.map((a, idx) => `
+                            <div class="ans-item ${a.isCorrect ? 'correct' : ''}" style="background:${a.isCorrect ? '#f0fdf4' : '#f8fafc'}; border:1px solid ${a.isCorrect ? '#bbf7d0' : '#e2e8f0'}; border-radius:12px; padding:10px 14px; font-size:0.9rem; color:${a.isCorrect ? '#15803d' : '#334155'}; font-weight:${a.isCorrect ? '600' : '400'}; display:flex; align-items:center; gap:8px;">
+                                <i class="bi bi-${a.isCorrect ? 'check-circle-fill text-success' : 'circle'}"></i>
+                                <span>${String.fromCharCode(65 + idx)}. ${esc(a.text)}</span>
+                            </div>
+                        `).join('')}
+                    </div>`;
+            }
+
+            html += `
+                <div class="question-card" style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:20px; box-shadow:0 4px 12px rgba(0,0,0,0.03); transition:all 0.2s;">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="badge-row" style="display:flex; gap:8px; flex-wrap:wrap;">
+                            <span class="q-badge" style="background:#f1f5f9; color:#475569; border-radius:8px; padding:4px 10px; font-size:0.78rem; font-weight:600;"><i class="bi bi-patch-check"></i> ${typeLabel}</span>
+                            <span class="q-badge" style="background:#f1f5f9; color:#475569; border-radius:8px; padding:4px 10px; font-size:0.78rem; font-weight:600;"><i class="bi bi-graph-up"></i> ${levelLabel}</span>
+                        </div>
+                        <div class="text-muted small">Người gửi: <strong>${esc(q.creatorName || 'N/A')}</strong></div>
+                    </div>
+                    <div class="q-text" style="font-size:1rem; font-weight:600; color:#1e293b; margin:10px 0;">${esc(q.text)}</div>
+                    ${answersPreviewHtml}
+                    <div class="d-flex justify-content-end gap-2 mt-3 pt-2" style="border-top:1px dashed #e2e8f0;">
+                        <button class="btn btn-sm btn-outline-primary fw-semibold" style="border-radius:10px; padding:6px 14px; font-size:0.85rem;" onclick="openMoveQuestionModal(${q.id})">
+                            <i class="bi bi-folder-symlink-fill"></i> Chuyển danh mục
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger fw-semibold" style="border-radius:10px; padding:6px 14px; font-size:0.85rem;" onclick="confirmDeleteQuestion(${q.id})">
+                            <i class="bi bi-trash3-fill"></i> Xóa câu hỏi
+                        </button>
+                    </div>
+                </div>`;
+        });
+        html += `</div>`;
+
+        // Pagination for questions
+        html += renderQuestionsPagination(questionsData);
+    }
+
     // Empty
-    if (quizzes.length === 0 && subs.length === 0) {
+    if (quizzes.length === 0 && subs.length === 0 && (!questionsData || questionsData.totalElements === 0)) {
         html = `<div class="empty-root">
             <div class="empty-root-icon"><i class="bi bi-file-earmark-x"></i></div>
             <h3>Thư mục trống</h3>
@@ -1413,6 +1508,149 @@ function renderFolderContent(container, subs, quizzes, parentId) {
     }
 
     container.innerHTML = html;
+}
+
+function renderQuestionsPagination(data) {
+    if (!data || data.totalPages <= 1) return '';
+
+    let pagesHtml = '';
+    const maxVisible = 6;
+    const startPage = Math.max(0, data.number - Math.floor(maxVisible / 2));
+    const endPage = Math.min(data.totalPages - 1, startPage + maxVisible - 1);
+
+    pagesHtml += `<div class="d-flex flex-column align-items-center justify-content-center gap-2 mt-4 pt-3 border-top" style="border-top: 1px solid #e2e8f0 !important;">`;
+    pagesHtml += `<div class="text-muted small mb-1">Hiển thị ${data.number * data.size + 1} đến ${Math.min((data.number + 1) * data.size, data.totalElements)} trong tổng số ${data.totalElements} câu hỏi</div>`;
+    
+    pagesHtml += `<nav><ul class="pagination pagination-sm mb-1 gap-1">`;
+
+    // First page
+    if (startPage > 0) {
+        pagesHtml += `<li class="page-item"><button class="btn btn-sm btn-outline-secondary px-3" onclick="goToQuestionsPage(0)">1</button></li>`;
+        if (startPage > 1) {
+            pagesHtml += `<li class="page-item disabled"><span class="btn btn-sm btn-light px-3" style="cursor:default">...</span></li>`;
+        }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        pagesHtml += `<li class="page-item"><button class="btn btn-sm ${i === data.number ? 'btn-primary active' : 'btn-outline-secondary'} px-3" onclick="goToQuestionsPage(${i})">${i + 1}</button></li>`;
+    }
+
+    // Last page
+    if (endPage < data.totalPages - 1) {
+        if (endPage < data.totalPages - 2) {
+            pagesHtml += `<li class="page-item disabled"><span class="btn btn-sm btn-light px-3" style="cursor:default">...</span></li>`;
+        }
+        pagesHtml += `<li class="page-item"><button class="btn btn-sm btn-outline-secondary px-3" onclick="goToQuestionsPage(${data.totalPages - 1})">${data.totalPages}</button></li>`;
+    }
+
+    pagesHtml += `</ul></nav>`;
+
+    // Page jump input
+    pagesHtml += `
+        <div class="d-flex align-items-center gap-2" style="font-size: 0.85rem;">
+            <span class="text-muted fw-bold">Đi đến trang:</span>
+            <input type="number" id="jumpToPageInput" class="form-control form-control-sm text-center" style="width:55px; height:32px; border-radius:8px;" min="1" max="${data.totalPages}" value="${data.number + 1}">
+            <button class="btn btn-sm btn-secondary fw-bold" style="height:32px; border-radius:8px; padding:0 12px" onclick="jumpToQuestionsPage(${data.totalPages})">Đến</button>
+        </div>`;
+
+    pagesHtml += `</div>`;
+    return pagesHtml;
+}
+
+function goToQuestionsPage(page) {
+    loadFolderContent(activeFolderId, page);
+}
+
+function jumpToQuestionsPage(totalPages) {
+    const input = document.getElementById('jumpToPageInput');
+    let val = parseInt(input.value);
+    if (isNaN(val) || val < 1 || val > totalPages) {
+        alert('Số trang nhập vào không hợp lệ!');
+        return;
+    }
+    loadFolderContent(activeFolderId, val - 1);
+}
+
+function flattenTreeForSelect(nodes, level = 0, output = []) {
+    nodes.forEach(n => {
+        output.push({ id: n.id, name: ' '.repeat(level * 4).replace(/ /g, '&nbsp;') + n.name });
+        if (n.children && n.children.length > 0) {
+            flattenTreeForSelect(n.children, level + 1, output);
+        }
+    });
+    return output;
+}
+
+function openMoveQuestionModal(questionId) {
+    document.getElementById('moveQuestionId').value = questionId;
+
+    const select = document.getElementById('moveCategorySelect');
+    select.innerHTML = '<option value="">-- Chọn danh mục công khai --</option>';
+    
+    const flatList = flattenTreeForSelect(TREE_DATA);
+    flatList.forEach(c => {
+        select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
+    });
+
+    const modal = new bootstrap.Modal(document.getElementById('moveQuestionModal'));
+    modal.show();
+}
+
+async function doMoveQuestion() {
+    const questionId = document.getElementById('moveQuestionId').value;
+    const catId = document.getElementById('moveCategorySelect').value;
+    if (!catId) {
+        alert('Vui lòng chọn danh mục đích!');
+        return;
+    }
+
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    try {
+        const res = await fetch(`/api/admin/questions/${questionId}/move?categoryId=${catId}`, {
+            method: 'PUT',
+            headers: { Authorization: 'Bearer ' + token }
+        });
+        if (res.ok) {
+            const modalEl = document.getElementById('moveQuestionModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+            showToast('Thành công', 'Đã chuyển danh mục cho câu hỏi.', 'success');
+            loadFolderContent(activeFolderId, currentQuestionPage);
+        } else {
+            alert('Có lỗi xảy ra khi chuyển danh mục!');
+        }
+    } catch (_) {
+        alert('Có lỗi kết nối!');
+    }
+}
+
+let questionToDelete = null;
+function confirmDeleteQuestion(questionId) {
+    questionToDelete = questionId;
+    const modal = new bootstrap.Modal(document.getElementById('deleteQuestionModal'));
+    modal.show();
+}
+
+async function doDeleteQuestion() {
+    if (!questionToDelete) return;
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    try {
+        const res = await fetch(`/api/admin/questions/${questionToDelete}`, {
+            method: 'DELETE',
+            headers: { Authorization: 'Bearer ' + token }
+        });
+        if (res.ok) {
+            const modalEl = document.getElementById('deleteQuestionModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+            showToast('Thành công', 'Đã xóa câu hỏi khỏi hệ thống.', 'success');
+            loadFolderContent(activeFolderId, currentQuestionPage);
+        } else {
+            alert('Có lỗi xảy ra khi xóa câu hỏi!');
+        }
+    } catch (_) {
+        alert('Có lỗi kết nối!');
+    }
 }
 
 function quizCardHtml(q) {

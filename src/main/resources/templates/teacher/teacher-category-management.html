@@ -941,7 +941,7 @@
                     </div>
                 </div>
                 <div style="padding: 10px 14px 0px;">
-                    <input type="text" id="treeSearchInput" class="form-control" placeholder="Tìm kiếm thư mục..."
+                    <input type="text" id="treeSearchInput" class="form-control" placeholder="Tìm kiếm thư mục..." autocomplete="off"
                         style="font-size:0.85rem; border-radius:10px; border-color:#e2e8f0; padding:6px 12px;">
                 </div>
                 <div class="tree-scroll" id="treeScroll">
@@ -1128,17 +1128,6 @@
                 const res = await fetch(api, { headers: { Authorization: 'Bearer ' + token } });
                 if (!res.ok) throw new Error('Lỗi tải danh mục');
                 TREE_DATA = await res.json();
-
-                // Auto-expand all folders on first load so the tree structure is fully visible
-                if (expandedNodes.size === 0 && TREE_DATA.length > 0) {
-                    const expandAll = (nodes) => {
-                        nodes.forEach(n => {
-                            expandedNodes.add(n.id);
-                            if (n.children && n.children.length > 0) expandAll(n.children);
-                        });
-                    };
-                    expandAll(TREE_DATA);
-                }
 
                 renderTree(TREE_DATA);
                 restoreTreeState();

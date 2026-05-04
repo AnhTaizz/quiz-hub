@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QuizHub | Ngân hàng Câu hỏi</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Nunito+Sans:wght@700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard-layout.css}">
+
+    <style>
+        /* ══ Custom Premium Visuals ══ */
+        :root {
+            --primary-gradient: linear-gradient(135deg, #4338ca, #6366f1);
+            --secondary-gradient: linear-gradient(135deg, #f59e0b, #d97706);
+            --bg-glass: rgba(255, 255, 255, 0.85);
+            --border-color: #e2e8f0;
+            --text-dark: #1e1b4b;
+            --text-muted: #64748b;
+        }
+
+        .page-title-box {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-family: 'Nunito Sans', sans-serif;
+            font-weight: 900;
+            font-size: 1.75rem;
+            color: var(--text-dark);
+            margin: 0;
+        }
+
+        .page-sub {
+            color: var(--text-muted);
+            font-size: .9rem;
+            margin: 2px 0 0;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-premium {
+            background: var(--primary-gradient);
+            color: #fff;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 10px 24px;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(67, 56, 202, 0.35);
+            transition: all 0.3s ease;
+        }
+
+        .btn-premium:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(67, 56, 202, 0.45);
+            color: #fff;
+        }
+
+        /* Tabs styling */
+        .tab-box {
+            display: flex;
+            background: #f1f5f9;
+            padding: 5px;
+            border-radius: 14px;
+            margin-bottom: 24px;
+            gap: 6px;
+        }
+
+        .tab-item {
+            flex: 1;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: .9rem;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--text-muted);
+            background: transparent;
+            transition: all .2s;
+        }
+
+        .tab-item.active {
+            background: #fff;
+            color: #4338ca;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, .08);
+        }
+
+        /* Filters shell */
+        .filter-shell {
+            background: #fff;
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
+            padding: 18px 24px;
+            margin-bottom: 24px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            align-items: end;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+        }
+
+        .filter-group label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-ctrl {
+            border-radius: 12px;
+            border: 1.5px solid var(--border-color);
+            padding: 9px 14px;
+            font-size: .92rem;
+            transition: all .2s;
+            background-color: #f8fafc;
+        }
+
+        .filter-ctrl:focus {
+            border-color: #4338ca;
+            box-shadow: 0 0 0 3px rgba(67, 56, 202, .1);
+            outline: none;
+            background-color: #fff;
+        }
+
+        .category-selectable-name {
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .category-selectable-name:hover {
+            background: #e0e7ff;
+            color: #4338ca !important;
+        }
+        .folder-toggle {
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: transform 0.2s;
+        }
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        /* Listing panel */
+        .list-shell {
+            background: #fff;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            padding: 24px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.04);
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .question-card {
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 18px 24px;
+            background: #fff;
+            margin-bottom: 16px;
+            transition: all .25s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .question-card::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary-gradient);
+            opacity: 0;
+            transition: opacity .2s;
+        }
+
+        .question-card:hover {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            border-color: #c7d2fe;
+            transform: translateY(-1px);
+        }
+
+        .question-card:hover::after {
+            opacity: 1;
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .badge-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .q-badge {
+            font-size: .75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .q-badge-type { background: #dbeafe; color: #1d4ed8; }
+        .q-badge-level { background: #fef3c7; color: #d97706; }
+        .q-badge-cat { background: #f1f5f9; color: #475569; }
+
+        .q-badge-status-private { background: #fee2e2; color: #dc2626; }
+        .q-badge-status-pending { background: #ffedd5; color: #ea580c; }
+        .q-badge-status-public { background: #dcfce7; color: #15803d; }
+
+        .q-text {
+            font-weight: 700;
+            color: var(--text-dark);
+            font-size: 1.05rem;
+            line-height: 1.45;
+            margin: 4px 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .ans-preview {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 12px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .ans-item {
+            font-size: .88rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .ans-item i {
+            font-size: .85rem;
+            flex-shrink: 0;
+        }
+
+        .ans-item.correct {
+            color: #10b981;
+            font-weight: 700;
+        }
+
+        .ans-item.correct i {
+            color: #10b981;
+        }
+
+        .card-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            border-top: 1px dashed #f1f5f9;
+            padding-top: 12px;
+            margin-top: 4px;
+        }
+
+        .btn-action {
+            padding: 7px 14px;
+            border-radius: 10px;
+            font-size: .82rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all .2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .btn-act-edit { background: #eff6ff; color: #2563eb; }
+        .btn-act-edit:hover { background: #2563eb; color: #fff; }
+
+        .btn-act-share { background: #fef3c7; color: #d97706; }
+        .btn-act-share:hover { background: #d97706; color: #fff; }
+
+        .btn-act-del { background: #fef2f2; color: #dc2626; }
+        .btn-act-del:hover { background: #dc2626; color: #fff; }
+
+        /* Empty block */
+        .empty-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 15px;
+            color: var(--text-muted);
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            color: #818cf8;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+            margin-bottom: 6px;
+        }
+
+        .empty-block h3 {
+            font-family: 'Nunito Sans', sans-serif;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        /* Modals style */
+        .modal-content {
+            border-radius: 20px;
+            border: none;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.12);
+            background: #ffffff;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            background: var(--primary-gradient);
+            padding: 20px 28px;
+            border: none;
+        }
+
+        .modal-header .modal-title {
+            font-family: 'Nunito Sans', sans-serif;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .modal-body {
+            padding: 28px;
+        }
+
+        .fc {
+            border-radius: 12px;
+            border: 1.5px solid var(--border-color);
+            padding: 11px 16px;
+            font-size: .95rem;
+            transition: all .2s;
+            width: 100%;
+            background-color: #fafafa;
+        }
+
+        .fc:focus {
+            border-color: #4338ca;
+            box-shadow: 0 0 0 3px rgba(67, 56, 202, .1);
+            outline: none;
+            background-color: #fff;
+        }
+
+        /* Modal footer buttons */
+        .modal-footer {
+            border: none;
+            padding: 0 28px 24px;
+            gap: 12px;
+        }
+
+        /* Dinamic Answer Shell */
+        .answer-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .answer-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f8fafc;
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border-color);
+            transition: all 0.2s;
+        }
+
+        .answer-row.correct-ans {
+            border-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .ans-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 0.95rem;
+            padding: 8px 4px;
+        }
+
+        .ans-input:focus {
+            outline: none;
+        }
+
+        .ans-toggle {
+            cursor: pointer;
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
+        }
+
+        .btn-add-ans {
+            background: #e0e7ff;
+            color: #4338ca;
+            font-weight: 700;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 10px;
+            font-size: .85rem;
+            cursor: pointer;
+            transition: all .2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-add-ans:hover {
+            background: #4338ca;
+            color: #fff;
+        }
+
+        /* Toast styling */
+        #toast-wrap {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast-card {
+            background: #1e1b4b;
+            color: #fff;
+            border-radius: 14px;
+            padding: 14px 20px;
+            font-size: .9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, .2);
+            animation: slideIn .3s ease forwards;
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+
+        @keyframes slideIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .toast-card.success i { color: #4ade80; }
+        .toast-card.error i { color: #f87171; }
+    </style>
+</head>
+
+<body>
+    <script>
+        (function() {
+            if (localStorage.getItem('sidebar-collapsed') === 'true') {
+                document.body.classList.add('sidebar-collapsed');
+            }
+        })();
+    </script>
+
+    <!-- Sidebar Fragment -->
+    <aside th:replace="~{layout/sidebar :: teacher-sidebar('questions')}"></aside>
+
+    <!-- Header Fragment -->
+    <header th:replace="~{layout/header :: teacher-header}"></header>
+
+    <main id="main-content">
+        <div class="page-title-box">
+            <div>
+                <h1 class="page-title">Ngân hàng Câu hỏi</h1>
+                <p class="page-sub">Quản lý và soạn thảo câu hỏi trắc nghiệm của bạn</p>
+            </div>
+            <div class="action-btns">
+                <button class="btn-premium" onclick="showCreateModal()">
+                    <i class="bi bi-plus-circle-fill"></i> Soạn câu hỏi mới
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabs Box -->
+        <div class="tab-box">
+            <button class="tab-item active" id="tab-mine" onclick="switchTab('mine')">
+                <i class="bi bi-person-fill"></i> Câu hỏi của tôi
+            </button>
+            <button class="tab-item" id="tab-public" onclick="switchTab('public')">
+                <i class="bi bi-globe2"></i> Kho hệ thống
+            </button>
+        </div>
+
+        <!-- Filters Block -->
+        <div class="filter-shell">
+            <div class="filter-group">
+                <label><i class="bi bi-search me-1"></i> Từ khóa tìm kiếm</label>
+                <input type="text" id="filter-keyword" class="form-control filter-ctrl" placeholder="Tìm tên câu hỏi..." oninput="triggerSearch()" autocomplete="off">
+            </div>
+            <div class="filter-group">
+                <label><i class="bi bi-folder2-open me-1"></i> Danh mục</label>
+                <div class="d-flex gap-1 align-items-center">
+                    <input type="text" id="filter-category-display" class="form-control filter-ctrl cursor-pointer bg-white" placeholder="Tất cả danh mục" readonly onclick="openCategoryModal()" style="cursor: pointer;">
+                    <input type="hidden" id="filter-category" value="">
+                    <button type="button" class="btn btn-outline-danger btn-sm p-2" id="clear-cat-btn" style="display: none; border-radius: 12px; height: 42px; width: 42px;" onclick="clearCategorySelection()">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="filter-group">
+                <label><i class="bi bi-tags-fill me-1"></i> Loại câu hỏi</label>
+                <select id="filter-type" class="form-select filter-ctrl" onchange="triggerSearch()">
+                    <option value="">-- Tất cả các loại --</option>
+                    <option value="SINGLE_CHOICE">Trắc nghiệm 1 đáp án</option>
+                    <option value="MULTIPLE_CHOICE">Trắc nghiệm nhiều đáp án</option>
+                    <option value="FILL_IN_BLANK">Điền khuyết</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label><i class="bi bi-bar-chart-fill me-1"></i> Độ khó</label>
+                <select id="filter-level" class="form-select filter-ctrl">
+                    <option value="">-- Tất cả mức độ --</option>
+                    <option value="EASY">Dễ (Easy)</option>
+                    <option value="MEDIUM">Trung bình (Medium)</option>
+                    <option value="HARD">Khó (Hard)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Questions Listing Panel -->
+        <div class="list-shell">
+            <div id="questions-container" class="flex-grow-1">
+                <!-- Ajax loading output -->
+            </div>
+
+            <!-- Pagination Bar -->
+            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top flex-wrap gap-2" id="pagination-shell" style="display:none !important;">
+                <div class="text-muted small" id="pagination-info">Hiển thị 1 đến 10 trong tổng số 0 câu hỏi</div>
+                <div class="d-flex flex-column align-items-end gap-2">
+                    <nav>
+                        <ul class="pagination pagination-sm mb-0 gap-1" id="pagination-list"></ul>
+                    </nav>
+                    <div id="pagination-jump-area"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Create/Edit Modal -->
+    <div class="modal fade" id="questionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="questionModalLabel"><i class="bi bi-pencil-square me-2"></i>Thêm Câu hỏi mới</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="question-form" autocomplete="off">
+                        <input type="hidden" id="q-id">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label class="form-label fw-bold text-dark">Nội dung câu hỏi <span class="text-danger">*</span></label>
+                                <textarea id="q-text" class="form-control fc" rows="3" placeholder="Nhập nội dung câu hỏi..." required></textarea>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold text-dark">Loại câu hỏi <span class="text-danger">*</span></label>
+                                <select id="q-type" class="form-select fc" required onchange="adaptAnswerFormat()">
+                                    <option value="SINGLE_CHOICE">Trắc nghiệm 1 đáp án</option>
+                                    <option value="MULTIPLE_CHOICE">Trắc nghiệm nhiều đáp án</option>
+                                    <option value="FILL_IN_BLANK">Điền khuyết</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold text-dark">Độ khó <span class="text-danger">*</span></label>
+                                <select id="q-level" class="form-select fc">
+                                    <option value="EASY">Dễ (Easy)</option>
+                                    <option value="MEDIUM" selected>Trung bình (Medium)</option>
+                                    <option value="HARD">Khó (Hard)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold text-dark">Danh mục</label>
+                                <div class="d-flex gap-1 align-items-center">
+                                    <input type="text" id="q-category-display" class="form-control filter-ctrl cursor-pointer bg-white" placeholder="-- Chọn danh mục --" readonly onclick="openModalCategorySelector()" style="cursor: pointer;">
+                                    <input type="hidden" id="q-category" value="">
+                                    <button type="button" class="btn btn-outline-danger btn-sm p-2" id="clear-q-cat-btn" style="display: none; border-radius: 12px; height: 42px; width: 42px;" onclick="clearQuestionCategorySelection()">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="col-12 mt-4">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-list-check me-2"></i>Các đáp án lựa chọn</h6>
+                                    <button type="button" class="btn-add-ans" onclick="addNewAnswerRow()">
+                                        <i class="bi bi-plus-lg"></i> Thêm đáp án
+                                    </button>
+                                </div>
+
+                                <div id="answer-list" class="answer-list">
+                                    <!-- Answers dynamically loaded via adaptAnswerFormat -->
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal" style="border-radius:12px; padding:10px 20px;">Hủy</button>
+                    <button type="button" class="btn fw-bold btn-premium" onclick="saveQuestion()" style="border-radius:12px; padding:10px 24px;">
+                        <i class="bi bi-check-circle-fill me-1"></i> Lưu câu hỏi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details View Modal -->
+    <div class="modal fade" id="viewDetailModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header" style="background: linear-gradient(135deg, #1d4ed8, #4338ca);">
+                    <h5 class="modal-title"><i class="bi bi-eye-fill me-2"></i>Chi tiết câu hỏi</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="detail-body">
+                    <!-- Loaded dynamically via js -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal" style="border-radius: 12px; padding: 10px 24px;">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Share Question Confirm Modal -->
+    <div class="modal fade" id="shareConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
+                <div class="modal-header fw-bold" style="background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; border-top-left-radius: 20px; border-top-right-radius: 20px;">
+                    <h5 class="modal-title"><i class="bi bi-share-fill me-2"></i>Chia sẻ Câu hỏi</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <i class="bi bi-patch-question text-primary" style="font-size: 3.5rem;"></i>
+                    <h5 class="fw-bold mt-3 text-dark">Bạn có chắc chắn muốn gửi yêu cầu chia sẻ?</h5>
+                    <p class="text-muted small">Câu hỏi này sẽ được gửi lên hệ thống công khai để quản trị viên duyệt.</p>
+                </div>
+                <div class="modal-footer p-3 bg-light" style="border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
+                    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal" style="border-radius:12px; padding:10px 24px;">Hủy</button>
+                    <button type="button" class="btn btn-primary fw-bold" id="btnConfirmShare" style="border-radius:12px; padding:10px 24px;">Đồng ý</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Question Confirm Modal -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
+                <div class="modal-header fw-bold" style="background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; border-top-left-radius: 20px; border-top-right-radius: 20px;">
+                    <h5 class="modal-title"><i class="bi bi-trash3-fill me-2"></i>Xóa Câu hỏi</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <i class="bi bi-exclamation-triangle text-danger" style="font-size: 3.5rem;"></i>
+                    <h5 class="fw-bold mt-3 text-dark">Bạn có chắc chắn muốn xóa câu hỏi này?</h5>
+                    <p class="text-muted small">Hành động này không thể hoàn tác, hãy cân nhắc kỹ.</p>
+                </div>
+                <div class="modal-footer p-3 bg-light" style="border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
+                    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal" style="border-radius:12px; padding:10px 24px;">Hủy</button>
+                    <button type="button" class="btn btn-danger fw-bold" id="btnConfirmDelete" style="border-radius:12px; padding:10px 24px;">Xóa</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+    <!-- Category Explorer Modal -->
+    <div class="modal fade" id="categoryExplorerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
+                <div class="modal-header fw-bold" style="background: linear-gradient(135deg, #4f46e5, #3730a3); color: #fff; border-top-left-radius: 20px; border-top-right-radius: 20px;">
+                    <h5 class="modal-title"><i class="bi bi-folder2-open me-2"></i>Chọn Danh mục</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4" style="max-height: 450px; overflow-y: auto;">
+                    <p class="text-muted small mb-3"><i class="bi bi-info-circle me-1"></i> Bấm vào biểu tượng mũi tên để mở rộng, bấm vào tên danh mục để chọn.</p>
+                    <div id="category-tree-container">
+                        <!-- Tree rendered here dynamically via JS -->
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; background: #f8fafc;">
+                    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal" style="border-radius: 12px; padding: 10px 24px;">Hủy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Component -->
+    <div id="toast-wrap"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const myCategories = /*[[${myCategories}]]*/ [];
+        const publicCategories = /*[[${publicCategories}]]*/ [];
+        /*]]>*/
+    </script>
+    <script>
+        let currentTab = 'mine'; // 'mine' | 'public'
+        let page = 0;
+        let size = 10;
+        let sortBy = 'id';
+        let sortDir = 'desc';
+
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+
+        function renderTreeNodes(categories) {
+            if (!categories || categories.length === 0) return '';
+            
+            return `<ul class="list-unstyled ps-3 mt-1">
+                ${categories.map(cat => {
+                    const hasChildren = cat.children && cat.children.length > 0;
+                    const toggleHtml = hasChildren 
+                        ? `<i class="bi bi-chevron-right me-1 text-primary folder-toggle" onclick="toggleFolderNode(event, this)"></i>` 
+                        : `<i class="bi bi-dot me-1 text-muted"></i>`;
+                    
+                    const childrenHtml = hasChildren 
+                        ? `<div class="children-node" style="display: none;">${renderTreeNodes(cat.children)}</div>` 
+                        : '';
+                    
+                    return `
+                        <li class="mb-2">
+                            <div class="d-flex align-items-center gap-2 category-node-row">
+                                ${toggleHtml}
+                                <span class="category-selectable-name text-dark fw-semibold" onclick="selectCategoryFromTree(${cat.id}, '${escapeHTML(cat.name)}')">
+                                    <i class="bi ${hasChildren ? 'bi-folder-fill text-warning' : 'bi-folder text-secondary'}"></i>
+                                    ${escapeHTML(cat.name)}
+                                </span>
+                            </div>
+                            ${childrenHtml}
+                        </li>
+                    `;
+                }).join('')}
+            </ul>`;
+        }
+
+        function toggleFolderNode(e, el) {
+            e.stopPropagation();
+            const childrenDiv = el.closest('li').querySelector('.children-node');
+            if (childrenDiv) {
+                const isHidden = childrenDiv.style.display === 'none';
+                childrenDiv.style.display = isHidden ? 'block' : 'none';
+                el.classList.toggle('bi-chevron-right', !isHidden);
+                el.classList.toggle('bi-chevron-down', isHidden);
+            }
+        }
+
+        let categorySelectTarget = 'filter'; // 'filter' or 'question'
+
+        function openCategoryModal(target = 'filter') {
+            categorySelectTarget = target;
+            const container = document.getElementById('category-tree-container');
+            container.innerHTML = '';
+
+            const myTreeHtml = renderTreeNodes(myCategories);
+            const publicTreeHtml = renderTreeNodes(publicCategories);
+
+            let finalHtml = '';
+            if (target === 'filter') {
+                finalHtml += `
+                    <div class="mb-3">
+                        <div class="d-flex align-items-center gap-2 category-node-row">
+                            <span class="category-selectable-name text-danger fw-semibold" onclick="selectCategoryFromTree(-1, 'Chưa phân mục')">
+                                <i class="bi bi-folder-x"></i> Câu hỏi chưa phân mục
+                            </span>
+                        </div>
+                    </div>`;
+            }
+
+            if (myTreeHtml) {
+                finalHtml += `
+                    <div class="mb-3">
+                        <div class="fw-bold text-primary mb-2"><i class="bi bi-person-fill"></i> Danh mục của tôi</div>
+                        ${myTreeHtml}
+                    </div>`;
+            }
+
+
+
+            if (!finalHtml) {
+                finalHtml = `<div class="text-muted text-center my-4">Không có danh mục nào</div>`;
+            }
+
+            container.innerHTML = finalHtml;
+            const modal = new bootstrap.Modal(document.getElementById('categoryExplorerModal'));
+            modal.show();
+        }
+
+        function openModalCategorySelector() {
+            openCategoryModal('question');
+        }
+
+        function selectCategoryFromTree(id, name) {
+            if (categorySelectTarget === 'filter') {
+                document.getElementById('filter-category').value = id;
+                document.getElementById('filter-category-display').value = name;
+                document.getElementById('clear-cat-btn').style.display = 'inline-block';
+            } else {
+                document.getElementById('q-category').value = id;
+                document.getElementById('q-category-display').value = name;
+                document.getElementById('clear-q-cat-btn').style.display = 'inline-block';
+            }
+
+            const modalEl = document.getElementById('categoryExplorerModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+            if (categorySelectTarget === 'filter') {
+                triggerSearch();
+            }
+        }
+
+        function clearCategorySelection() {
+            document.getElementById('filter-category').value = '';
+            document.getElementById('filter-category-display').value = '';
+            document.getElementById('clear-cat-btn').style.display = 'none';
+            triggerSearch();
+        }
+
+        function clearQuestionCategorySelection() {
+            document.getElementById('q-category').value = '';
+            document.getElementById('q-category-display').value = '';
+            document.getElementById('clear-q-cat-btn').style.display = 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            adaptAnswerFormat();
+            fetchQuestions();
+
+            // Toggle sidebar functionality
+            const toggleBtn = document.querySelector('.toggle-btn');
+            const body = document.querySelector('body');
+
+            if(toggleBtn) {
+                toggleBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    body.classList.toggle('sidebar-collapsed');
+                    localStorage.setItem('sidebar-collapsed', body.classList.contains('sidebar-collapsed'));
+                });
+            }
+        });
+
+        function switchTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+            if (tab === 'mine') {
+                document.getElementById('tab-mine').classList.add('active');
+            } else {
+                document.getElementById('tab-public').classList.add('active');
+            }
+            page = 0;
+            fetchQuestions();
+        }
+
+        function triggerSearch() {
+            page = 0;
+            fetchQuestions();
+        }
+
+        async function fetchQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = `
+                <div class="text-center my-5 py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="text-muted mt-2">Đang tải danh sách câu hỏi...</p>
+                </div>`;
+
+            const keyword = document.getElementById('filter-keyword').value.trim();
+            const categoryId = document.getElementById('filter-category').value;
+            const type = document.getElementById('filter-type').value;
+            const level = document.getElementById('filter-level').value;
+
+            let url = `/api/teacher/questions?isPublicTab=${currentTab === 'public'}&page=${page}&size=${size}&sortBy=${sortBy}&sortDir=${sortDir}`;
+            if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+            if (categoryId) url += `&categoryId=${categoryId}`;
+            if (type) url += `&type=${type}`;
+
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Không thể lấy danh sách câu hỏi');
+                }
+
+                const data = await response.json();
+                renderQuestions(data.content);
+                renderPagination(data);
+            } catch (err) {
+                showToast(err.message, 'error');
+                container.innerHTML = `
+                    <div class="text-center my-5 py-5 text-danger">
+                        <i class="bi bi-exclamation-triangle-fill fs-1"></i>
+                        <h4 class="mt-2">Đã có lỗi xảy ra</h4>
+                        <p class="text-muted">${err.message}</p>
+                    </div>`;
+            }
+        }
+
+        function renderQuestions(items) {
+            const container = document.getElementById('questions-container');
+            if (!items || items.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-block">
+                        <div class="empty-icon"><i class="bi bi-folder-x"></i></div>
+                        <h3>Chưa có câu hỏi nào</h3>
+                        <p>Danh sách câu hỏi của bạn đang trống. Hãy soạn câu hỏi mới ngay!</p>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = items.map(q => {
+                let statusBadge = '';
+                if (q.questionStatus === 'PRIVATE') {
+                    statusBadge = `<span class="q-badge q-badge-status-private"><i class="bi bi-lock-fill"></i> Cá nhân</span>`;
+                } else if (q.questionStatus === 'PENDING') {
+                    statusBadge = `<span class="q-badge q-badge-status-pending"><i class="bi bi-clock-fill"></i> Đang duyệt</span>`;
+                } else {
+                    statusBadge = `<span class="q-badge q-badge-status-public"><i class="bi bi-globe2"></i> Công khai</span>`;
+                }
+
+                let typeLabel = q.type === 'SINGLE_CHOICE' ? 'Một đáp án' : (q.type === 'MULTIPLE_CHOICE' ? 'Nhiều đáp án' : 'Điền khuyết');
+                let catLabel = q.categoryName ? q.categoryName : 'Chưa phân mục';
+                let levelLabel = q.level === 'EASY' ? 'Dễ' : (q.level === 'MEDIUM' ? 'Trung bình' : 'Khó');
+
+                let actionHtml = '';
+                if (currentTab === 'mine') {
+                    actionHtml = `
+                        <div class="card-actions">
+                            <button class="btn-action btn-act-edit" onclick="viewDetail(${q.id}, true)">
+                                <i class="bi bi-pencil-square"></i> Sửa
+                            </button>
+                            ${q.questionStatus === 'PRIVATE' ? `
+                            <button class="btn-action btn-act-share" onclick="requestShare(${q.id})">
+                                <i class="bi bi-share-fill"></i> Chia sẻ
+                            </button>
+                            ` : ''}
+                            <button class="btn-action btn-act-del" onclick="deleteQuestion(${q.id})">
+                                <i class="bi bi-trash-fill"></i> Xóa
+                            </button>
+                        </div>`;
+                } else {
+                    actionHtml = `
+                        <div class="card-actions">
+                            <button class="btn-action btn-act-edit" style="background: #f1f5f9; color:#475569;" onclick="viewDetail(${q.id}, false)">
+                                <i class="bi bi-eye-fill"></i> Chi tiết
+                            </button>
+                        </div>`;
+                }
+
+                let answersPreviewHtml = '';
+                if (q.answers && q.answers.length > 0) {
+                    answersPreviewHtml = `
+                        <div class="ans-preview">
+                            ${q.answers.map((a, idx) => `
+                                <div class="ans-item ${a.isCorrect ? 'correct' : ''}">
+                                    <i class="bi bi-${a.isCorrect ? 'check-circle-fill' : 'circle'}"></i>
+                                    <span>${String.fromCharCode(65 + idx)}. ${escapeHTML(a.text)}</span>
+                                </div>
+                            `).join('')}
+                        </div>`;
+                }
+
+                return `
+                    <div class="question-card">
+                        <div class="card-top">
+                            <div class="badge-row">
+                                <span class="q-badge q-badge-type"><i class="bi bi-patch-check"></i> ${typeLabel}</span>
+                                <span class="q-badge q-badge-level"><i class="bi bi-graph-up"></i> ${levelLabel}</span>
+                                <span class="q-badge q-badge-cat"><i class="bi bi-folder-fill"></i> ${catLabel}</span>
+                                ${statusBadge}
+                            </div>
+                            <div class="text-muted small">ID: #${q.id}</div>
+                        </div>
+                        <div class="q-text">${escapeHTML(q.text)}</div>
+                        ${answersPreviewHtml}
+                        ${actionHtml}
+                    </div>`;
+            }).join('');
+        }
+
+        function renderPagination(data) {
+            const shell = document.getElementById('pagination-shell');
+            const info = document.getElementById('pagination-info');
+            const list = document.getElementById('pagination-list');
+            const jumpArea = document.getElementById('pagination-jump-area');
+
+            if (!data || data.totalElements === 0) {
+                shell.style.display = 'none';
+                return;
+            }
+
+            shell.style.setProperty('display', 'flex', 'important');
+            info.innerText = `Hiển thị ${data.number * data.size + 1} đến ${Math.min((data.number + 1) * data.size, data.totalElements)} trong tổng số ${data.totalElements} câu hỏi`;
+
+            let pages = [];
+            const maxVisible = 6;
+            const startPage = Math.max(0, data.number - Math.floor(maxVisible / 2));
+            const endPage = Math.min(data.totalPages - 1, startPage + maxVisible - 1);
+
+            // First page button
+            if (startPage > 0) {
+                pages.push(`<li class="page-item">
+                    <button class="page-link px-3" onclick="goToPage(0)">1</button>
+                </li>`);
+                if (startPage > 1) {
+                    pages.push(`<li class="page-item disabled"><span class="page-link px-3">...</span></li>`);
+                }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                pages.push(`<li class="page-item ${i === data.number ? 'active' : ''}">
+                    <button class="page-link px-3" onclick="goToPage(${i})">${i + 1}</button>
+                </li>`);
+            }
+
+            // Last page button
+            if (endPage < data.totalPages - 1) {
+                if (endPage < data.totalPages - 2) {
+                    pages.push(`<li class="page-item disabled"><span class="page-link px-3">...</span></li>`);
+                }
+                pages.push(`<li class="page-item">
+                    <button class="page-link px-3" onclick="goToPage(${data.totalPages - 1})">${data.totalPages}</button>
+                </li>`);
+            }
+
+            list.innerHTML = pages.join('');
+
+            // Page jump input area below
+            if (jumpArea) {
+                jumpArea.innerHTML = `
+                    <div class="d-flex align-items-center gap-2 mt-1" style="font-size: 0.82rem;">
+                        <span class="text-muted fw-bold">Đi đến trang:</span>
+                        <input type="number" id="goToPageInput" class="form-control form-control-sm text-center" 
+                               style="width: 60px; height: 32px; border-radius: 8px; font-weight: bold;" 
+                               min="1" max="${data.totalPages}" value="${data.number + 1}"
+                               onkeydown="if(event.key === 'Enter'){ const p = parseInt(this.value); if(!isNaN(p) && p >= 1 && p <= ${data.totalPages}){ goToPage(p - 1); } }">
+                        <button class="btn btn-sm btn-outline-primary fw-bold" style="height:32px; border-radius: 8px;"
+                                onclick="const p = parseInt(document.getElementById('goToPageInput').value); if(!isNaN(p) && p >= 1 && p <= ${data.totalPages}){ goToPage(p - 1); }">
+                            Đến
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function goToPage(p) {
+            page = p;
+            fetchQuestions();
+        }
+
+        function showCreateModal() {
+            document.getElementById('questionModalLabel').innerHTML = '<i class="bi bi-plus-circle-fill me-2"></i>Soạn câu hỏi mới';
+            document.getElementById('q-id').value = '';
+            document.getElementById('q-text').value = '';
+            document.getElementById('q-type').value = 'SINGLE_CHOICE';
+            document.getElementById('q-level').value = 'MEDIUM';
+            document.getElementById('q-category').value = '';
+            document.getElementById('q-category-display').value = '';
+            document.getElementById('clear-q-cat-btn').style.display = 'none';
+
+            adaptAnswerFormat();
+            const modal = new bootstrap.Modal(document.getElementById('questionModal'));
+            modal.show();
+        }
+
+        function adaptAnswerFormat() {
+            const type = document.getElementById('q-type').value;
+            const wrapper = document.getElementById('answer-list');
+            
+            // Lấy tất cả đáp án hiện tại nếu có
+            const currentAnswers = [];
+            const rows = wrapper.querySelectorAll('.answer-row');
+            rows.forEach((row, idx) => {
+                const text = row.querySelector('.ans-input')?.value || '';
+                const toggle = row.querySelector('.ans-toggle');
+                let isCorrect = false;
+                if (toggle) {
+                    if (toggle.type === 'radio' || toggle.type === 'checkbox') {
+                        isCorrect = toggle.checked;
+                    } else {
+                        isCorrect = true;
+                    }
+                }
+                currentAnswers.push({ text, isCorrect });
+            });
+
+            wrapper.innerHTML = '';
+
+            // Nếu chưa có đáp án nào (VD: tạo mới lần đầu) -> Khởi tạo mặc định
+            if (currentAnswers.length === 0) {
+                if (type === 'SINGLE_CHOICE') {
+                    for (let i = 0; i < 4; i++) {
+                        currentAnswers.push({ text: '', isCorrect: i === 0 });
+                    }
+                } else if (type === 'MULTIPLE_CHOICE') {
+                    for (let i = 0; i < 4; i++) {
+                        currentAnswers.push({ text: '', isCorrect: i < 2 });
+                    }
+                } else if (type === 'FILL_IN_BLANK') {
+                    currentAnswers.push({ text: '', isCorrect: true });
+                }
+            } else {
+                // Nếu chuyển sang SINGLE_CHOICE và chưa có radio nào được tích, tích cái đầu tiên
+                if (type === 'SINGLE_CHOICE') {
+                    const hasCorrect = currentAnswers.some(a => a.isCorrect);
+                    if (!hasCorrect && currentAnswers[0]) currentAnswers[0].isCorrect = true;
+                    
+                    // Nếu có nhiều hơn 1 cái đúng, chỉ giữ lại cái đầu tiên đúng
+                    let found = false;
+                    currentAnswers.forEach(a => {
+                        if (a.isCorrect) {
+                            if (!found) found = true;
+                            else a.isCorrect = false;
+                        }
+                    });
+                } else if (type === 'FILL_IN_BLANK') {
+                    // Tất cả đáp án điền khuyết mặc định là đúng
+                    currentAnswers.forEach(a => a.isCorrect = true);
+                }
+            }
+
+            // Gắn lại vào wrapper
+            currentAnswers.forEach(ans => {
+                wrapper.appendChild(createAnswerRow(type, ans.text, ans.isCorrect));
+            });
+            syncSelectedStyles();
+        }
+
+        function createAnswerRow(type, textValue = '', isChecked = false) {
+            const div = document.createElement('div');
+            div.className = `answer-row ${isChecked ? 'correct-ans' : ''}`;
+
+            let toggleHtml = '';
+            if (type === 'SINGLE_CHOICE') {
+                toggleHtml = `<input type="radio" name="correct-ans" class="ans-toggle" ${isChecked ? 'checked' : ''} onchange="syncSelectedStyles()">`;
+            } else if (type === 'MULTIPLE_CHOICE') {
+                toggleHtml = `<input type="checkbox" class="ans-toggle" ${isChecked ? 'checked' : ''} onchange="syncSelectedStyles()">`;
+            } else if (type === 'FILL_IN_BLANK') {
+                toggleHtml = `<input type="hidden" class="ans-toggle" value="true">`;
+            }
+
+            div.innerHTML = `
+                ${toggleHtml}
+                <input type="text" class="ans-input" value="${escapeHTML(textValue)}" placeholder="Nhập đáp án..." autocomplete="off" required oninput="syncSelectedStyles()">
+                <button type="button" class="btn btn-sm text-danger border-0 p-1" onclick="this.parentElement.remove(); syncSelectedStyles()">
+                    <i class="bi bi-x-circle fs-5"></i>
+                </button>
+            `;
+            return div;
+        }
+
+        function addNewAnswerRow() {
+            const type = document.getElementById('q-type').value;
+            const wrapper = document.getElementById('answer-list');
+            wrapper.appendChild(createAnswerRow(type, '', false));
+        }
+
+        function syncSelectedStyles() {
+            const type = document.getElementById('q-type').value;
+            const rows = document.querySelectorAll('#answer-list .answer-row');
+            rows.forEach(row => {
+                const toggle = row.querySelector('.ans-toggle');
+                if (type === 'SINGLE_CHOICE') {
+                    if (toggle && toggle.checked) {
+                        row.classList.add('correct-ans');
+                    } else {
+                        row.classList.remove('correct-ans');
+                    }
+                } else if (type === 'MULTIPLE_CHOICE') {
+                    if (toggle && toggle.checked) {
+                        row.classList.add('correct-ans');
+                    } else {
+                        row.classList.remove('correct-ans');
+                    }
+                } else {
+                    row.classList.add('correct-ans');
+                }
+            });
+        }
+
+        async function saveQuestion() {
+            const id = document.getElementById('q-id').value;
+            const text = document.getElementById('q-text').value.trim();
+            const type = document.getElementById('q-type').value;
+            const level = document.getElementById('q-level').value;
+            const categoryId = document.getElementById('q-category').value;
+
+            if (!text) {
+                showToast('Vui lòng nhập nội dung câu hỏi!', 'error');
+                return;
+            }
+
+            const answersData = [];
+            const rows = document.querySelectorAll('#answer-list .answer-row');
+            if (rows.length === 0) {
+                showToast('Vui lòng thêm ít nhất một đáp án!', 'error');
+                return;
+            }
+
+            let correctCount = 0;
+            rows.forEach(row => {
+                const ansText = row.querySelector('.ans-input').value.trim();
+                const toggle = row.querySelector('.ans-toggle');
+                let isCorrect = false;
+
+                if (type === 'SINGLE_CHOICE') {
+                    isCorrect = toggle && toggle.checked;
+                } else if (type === 'MULTIPLE_CHOICE') {
+                    isCorrect = toggle && toggle.checked;
+                } else {
+                    isCorrect = true;
+                }
+
+                if (isCorrect) correctCount++;
+                if (ansText) {
+                    answersData.push({ text: ansText, isCorrect: isCorrect });
+                }
+            });
+
+            if (answersData.length < rows.length) {
+                showToast('Vui lòng điền nội dung đầy đủ cho các đáp án!', 'error');
+                return;
+            }
+
+            // Client-side validations mapping exact validations from QuestionServiceImpl.java
+            if (type === 'SINGLE_CHOICE' && (answersData.length < 2 || correctCount !== 1)) {
+                showToast('Trắc nghiệm 1 đáp án phải có ít nhất 2 lựa chọn và có đúng 1 đáp án đúng!', 'error');
+                return;
+            }
+            if (type === 'MULTIPLE_CHOICE' && (answersData.length < 2 || correctCount < 2)) {
+                showToast('Trắc nghiệm nhiều đáp án phải có ít nhất 2 lựa chọn và >= 2 đáp án đúng!', 'error');
+                return;
+            }
+            if (type === 'FILL_IN_BLANK' && correctCount < 1) {
+                showToast('Điền khuyết phải có ít nhất 1 đáp án đúng!', 'error');
+                return;
+            }
+
+            const payload = {
+                text: text,
+                type: type,
+                level: level,
+                categoryId: categoryId ? parseInt(categoryId) : null,
+                answers: answersData
+            };
+
+            let method = id ? 'PUT' : 'POST';
+            let url = id ? `/api/teacher/questions/${id}` : `/api/teacher/questions`;
+
+            try {
+                const res = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    let errMsg = 'Không thể lưu câu hỏi. Vui lòng kiểm tra lại dữ liệu!';
+                    try {
+                        const errJson = await res.json();
+                        if (errJson.message) errMsg = errJson.message;
+                    } catch (e) {}
+                    throw new Error(errMsg);
+                }
+
+                showToast(id ? 'Cập nhật câu hỏi thành công!' : 'Tạo câu hỏi mới thành công!', 'success');
+                const modalEl = document.getElementById('questionModal');
+                bootstrap.Modal.getInstance(modalEl).hide();
+                fetchQuestions();
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        async function viewDetail(qId, canEdit) {
+            try {
+                const res = await fetch(`/api/teacher/questions/${qId}`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) throw new Error('Không tìm thấy dữ liệu câu hỏi');
+                const q = await res.json();
+
+                if (canEdit) {
+                    // Populate Form and switch to Edit state
+                    document.getElementById('questionModalLabel').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Chỉnh sửa câu hỏi';
+                    document.getElementById('q-id').value = q.id;
+                    document.getElementById('q-text').value = q.text;
+                    document.getElementById('q-type').value = q.type;
+                    document.getElementById('q-level').value = q.level;
+                    document.getElementById('q-category').value = q.categoryId ? q.categoryId : '';
+                    document.getElementById('q-category-display').value = q.categoryName ? q.categoryName : '';
+                    document.getElementById('clear-q-cat-btn').style.display = q.categoryId ? 'inline-block' : 'none';
+
+                    const wrapper = document.getElementById('answer-list');
+                    wrapper.innerHTML = '';
+                    if (q.answers && q.answers.length > 0) {
+                        q.answers.forEach(a => {
+                            wrapper.appendChild(createAnswerRow(q.type, a.text, a.isCorrect));
+                        });
+                    } else {
+                        adaptAnswerFormat();
+                    }
+
+                    const modal = new bootstrap.Modal(document.getElementById('questionModal'));
+                    modal.show();
+                } else {
+                    // Show in detail viewer modal
+                    let typeLabel = q.type === 'SINGLE_CHOICE' ? 'Một đáp án' : (q.type === 'MULTIPLE_CHOICE' ? 'Nhiều đáp án' : 'Điền khuyết');
+                    let catLabel = q.categoryName ? q.categoryName : 'Chưa phân mục';
+                    let levelLabel = q.level === 'EASY' ? 'Dễ' : (q.level === 'MEDIUM' ? 'Trung bình' : 'Khó');
+
+                    let detailsHtml = `
+                        <div class="badge-row mb-3">
+                            <span class="q-badge q-badge-type"><i class="bi bi-patch-check"></i> ${typeLabel}</span>
+                            <span class="q-badge q-badge-level"><i class="bi bi-graph-up"></i> ${levelLabel}</span>
+                            <span class="q-badge q-badge-cat"><i class="bi bi-folder-fill"></i> ${catLabel}</span>
+                        </div>
+                        <div class="mb-4">
+                            <h5 class="fw-bold text-dark">${escapeHTML(q.text)}</h5>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-check-all me-1"></i>Danh sách đáp án:</h6>
+                        <div class="ans-preview">
+                            ${q.answers.map((a, idx) => `
+                                <div class="ans-item ${a.isCorrect ? 'correct' : ''} fs-5 py-1">
+                                    <i class="bi bi-${a.isCorrect ? 'check-circle-fill' : 'circle'}"></i>
+                                    <span>${String.fromCharCode(65 + idx)}. ${escapeHTML(a.text)}</span>
+                                </div>
+                            `).join('')}
+                        </div>`;
+
+                    document.getElementById('detail-body').innerHTML = detailsHtml;
+                    const viewModal = new bootstrap.Modal(document.getElementById('viewDetailModal'));
+                    viewModal.show();
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        function requestShare(qId) {
+            const modalEl = document.getElementById('shareConfirmModal');
+            const modal = new bootstrap.Modal(modalEl);
+            document.getElementById('btnConfirmShare').onclick = async function() {
+                try {
+                    const response = await fetch(`/api/teacher/questions/${qId}/share`, {
+                        method: 'PUT',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Yêu cầu chia sẻ thất bại!');
+                    }
+
+                    showToast('Đã gửi yêu cầu chia sẻ lên hệ thống thành công!', 'success');
+                    modal.hide();
+                    fetchQuestions();
+                } catch (err) {
+                    showToast(err.message, 'error');
+                }
+            };
+            modal.show();
+        }
+
+        function deleteQuestion(qId) {
+            const modalEl = document.getElementById('deleteConfirmModal');
+            const modal = new bootstrap.Modal(modalEl);
+            document.getElementById('btnConfirmDelete').onclick = async function() {
+                try {
+                    const response = await fetch(`/api/teacher/questions/${qId}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Xóa câu hỏi thất bại!');
+                    }
+
+                    showToast('Xóa câu hỏi thành công!', 'success');
+                    modal.hide();
+                    fetchQuestions();
+                } catch (err) {
+                    showToast(err.message, 'error');
+                }
+            };
+            modal.show();
+        }
+
+        function showToast(msg, type = 'success') {
+            const wrap = document.getElementById('toast-wrap');
+            const card = document.createElement('div');
+            card.className = `toast-card ${type}`;
+            card.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle-fill' : 'exclamation-circle-fill'}"></i> <span>${msg}</span>`;
+
+            wrap.appendChild(card);
+            setTimeout(() => { card.remove(); }, 3500);
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+    </script>
+</body>
+
+</html>

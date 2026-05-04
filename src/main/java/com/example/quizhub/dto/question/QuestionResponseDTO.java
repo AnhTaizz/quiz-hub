@@ -30,6 +30,7 @@ public class QuestionResponseDTO {
     // Chỉ lấy thông tin cơ bản của creator, không dùng cả entity User
     Long creatorId;
     String creatorEmail;
+    String creatorName;
 
     // Chỉ lấy thông tin cơ bản của category
     Long categoryId;

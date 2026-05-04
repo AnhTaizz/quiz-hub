@@ -19,10 +19,22 @@ public interface QuestionMapper {
     // Question -> QuestionResponseDTO
     @Mapping(source = "creator.id",       target = "creatorId")
     @Mapping(source = "creator.email",    target = "creatorEmail")
+    @Mapping(source = "creator.fullName", target = "creatorName")
     @Mapping(source = "category.id",      target = "categoryId")
-    @Mapping(source = "category.name",    target = "categoryName")
+    @Mapping(target = "categoryName",     expression = "java(buildCategoryPath(question.getCategory()))")
     @Mapping(source = "questionStatus",   target = "questionStatus")
     QuestionResponseDTO toResponseDTO(Question question);
+
+    default String buildCategoryPath(com.example.quizhub.entity.Category category) {
+        if (category == null) return null;
+        java.util.List<String> path = new java.util.ArrayList<>();
+        com.example.quizhub.entity.Category current = category;
+        while (current != null) {
+            path.add(0, current.getName());
+            current = current.getParent();
+        }
+        return String.join(" > ", path);
+    }
 
     // List<Question> -> List<QuestionResponseDTO>
     List<QuestionResponseDTO> toResponseList(List<Question> questions);

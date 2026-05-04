@@ -565,6 +565,9 @@
             display: flex;
             gap: 8px;
             flex-wrap: wrap;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-right: 4px;
         }
 
         .range-btn {
@@ -1244,7 +1247,7 @@
                 return;
             }
 
-            for (let i = 0; i < Math.min(count, 12); i++) {
+            for (let i = 0; i < count; i++) {
                 const start = i * chunkSize + 1;
                 const end = Math.min((i + 1) * chunkSize, total);
                 const btn = document.createElement('button');
@@ -1287,13 +1290,22 @@
             const displayMode = document.getElementById('selectDisplayMode').value;
 
             let startQ = 1;
+            let endQ = currentPracticeTotalQuestions;
             if (currentRangeMode === 'quick') {
                 const activeRange = document.querySelector('.range-btn.active');
                 if (activeRange) {
                     startQ = parseInt(activeRange.dataset.start) || 1;
+                    endQ = parseInt(activeRange.dataset.end) || startQ;
                 }
             } else {
                 startQ = parseInt(document.getElementById('customStartQuestion').value) || 1;
+                endQ = parseInt(document.getElementById('customEndQuestion').value) || startQ;
+            }
+
+            const maxLimit = endQ - startQ + 1;
+            if (limit > maxLimit) {
+                showToast(`Bạn chỉ được chọn tối đa ${maxLimit} câu hỏi trong dải đã chọn!`, 'err');
+                return;
             }
 
             const offset = startQ - 1;
@@ -1369,13 +1381,22 @@
                 return;
             }
             let startQ = 1;
+            let endQ = currentPracticeTotalQuestions;
             if (currentRangeMode === 'quick') {
                 const activeRange = document.querySelector('.range-btn.active');
                 if (activeRange) {
                     startQ = parseInt(activeRange.dataset.start) || 1;
+                    endQ = parseInt(activeRange.dataset.end) || startQ;
                 }
             } else {
                 startQ = parseInt(document.getElementById('customStartQuestion').value) || 1;
+                endQ = parseInt(document.getElementById('customEndQuestion').value) || startQ;
+            }
+
+            const maxLimit = endQ - startQ + 1;
+            if (limit > maxLimit) {
+                showToast(`Bạn chỉ được chọn tối đa ${maxLimit} câu hỏi trong dải đã chọn!`, 'err');
+                return;
             }
 
             const offset = startQ - 1;

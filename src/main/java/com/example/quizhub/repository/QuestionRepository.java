@@ -19,32 +19,45 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     List<Question> findByCreatorId(Long creatorId);
 
     List<Question> findByCategoryId(Long categoryId);
+    Page<Question> findByCategoryId(Long categoryId, Pageable pageable);
 
     List<Question> findByType(QuestionType type);
 
     List<Question> findByQuestionStatus(QuestionStatus status);
 
-    // 1. Kho Riêng: Lấy câu hỏi của cá nhân (Truyền List chứa PRIVATE và PENDING vào để tránh lỗi Enum)
-    @Query("SELECT q FROM Question q " +
+    // 1. Kho Riêng: Lấy câu hỏi của cá nhân (Chỉ lấy các câu hỏi không phải DELETED)
+    @Query(value = "SELECT q FROM Question q " +
            "WHERE q.creator.id = :userId " +
-           "AND q.questionStatus IN :statuses " +
-           "AND (:categoryId IS NULL OR q.category.id = :categoryId) " +
+           "AND q.questionStatus != com.example.quizhub.entity.enums.QuestionStatus.DELETED " +
+           "AND (:useCategoryFilter = false OR (-1 IN :categoryIds AND q.category IS NULL) OR q.category.id IN :categoryIds) " +
            "AND (:type IS NULL OR q.type = :type) " +
-           "AND (:keyword IS NULL OR LOWER(q.text) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+           "AND (:keyword IS NULL OR LOWER(CAST(q.text AS string)) LIKE :keyword)",
+           countQuery = "SELECT COUNT(q) FROM Question q " +
+           "WHERE q.creator.id = :userId " +
+           "AND q.questionStatus != com.example.quizhub.entity.enums.QuestionStatus.DELETED " +
+           "AND (:useCategoryFilter = false OR (-1 IN :categoryIds AND q.category IS NULL) OR q.category.id IN :categoryIds) " +
+           "AND (:type IS NULL OR q.type = :type) " +
+           "AND (:keyword IS NULL OR LOWER(CAST(q.text AS string)) LIKE :keyword)")
     Page<Question> searchMyQuestion(@Param("userId") Long userId,
-                                     @Param("categoryId") Long categoryId,
+                                     @Param("useCategoryFilter") boolean useCategoryFilter,
+                                     @Param("categoryIds") List<Long> categoryIds,
                                      @Param("type") QuestionType type,
                                      @Param("keyword") String keyword,
-                                     @Param("statuses") List<QuestionStatus> statuses,
                                      Pageable pageable);
 
     // 2. Kho Chung: Lấy câu hỏi đã được Public của hệ thống
-    @Query("SELECT q FROM Question q " +
+    @Query(value = "SELECT q FROM Question q " +
            "WHERE q.questionStatus = :status " +
-           "AND (:categoryId IS NULL OR q.category.id = :categoryId) " +
+           "AND (:useCategoryFilter = false OR (-1 IN :categoryIds AND q.category IS NULL) OR q.category.id IN :categoryIds) " +
            "AND (:type IS NULL OR q.type = :type) " +
-           "AND (:keyword IS NULL OR LOWER(q.text) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    Page<Question> searchPublicQuestion(@Param("categoryId") Long categoryId,
+           "AND (:keyword IS NULL OR LOWER(CAST(q.text AS string)) LIKE :keyword)",
+           countQuery = "SELECT COUNT(q) FROM Question q " +
+           "WHERE q.questionStatus = :status " +
+           "AND (:useCategoryFilter = false OR (-1 IN :categoryIds AND q.category IS NULL) OR q.category.id IN :categoryIds) " +
+           "AND (:type IS NULL OR q.type = :type) " +
+           "AND (:keyword IS NULL OR LOWER(CAST(q.text AS string)) LIKE :keyword)")
+    Page<Question> searchPublicQuestion(@Param("useCategoryFilter") boolean useCategoryFilter,
+                                         @Param("categoryIds") List<Long> categoryIds,
                                          @Param("type") QuestionType type,
                                          @Param("keyword") String keyword,
                                          @Param("status") QuestionStatus status,
@@ -55,6 +68,12 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
             + "FROM Quiz q JOIN q.questions quest "
             + "WHERE quest.id = :questionId")
     boolean isQuestionUsedInQuiz(@Param("questionId") Long questionId);
+
+    // Kiểm tra câu hỏi đã được luyện tập chưa
+    @Query("SELECT CASE WHEN COUNT(pd) > 0 THEN true ELSE false END "
+            + "FROM PracticeDetail pd "
+            + "WHERE pd.question.id = :questionId")
+    boolean isQuestionUsedInPractice(@Param("questionId") Long questionId);
 
     // Tìm các câu hỏi đang chờ duyệt để Admin xử lý
     Page<Question> findByQuestionStatus(QuestionStatus status, Pageable pageable);
@@ -74,6 +93,6 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     @Query(value = "SELECT * FROM _question WHERE category_id IN :categoryIds AND approval_status = 'PUBLIC' ORDER BY id ASC LIMIT :limit OFFSET :offset", nativeQuery = true)
     List<Question> findRandomPublicQuestionsByCategories(@Param("categoryIds") List<Long> categoryIds, @Param("limit") int limit, @Param("offset") int offset);
 
-    @Query("SELECT COUNT(q) FROM Question q WHERE q.category.id IN :categoryIds AND q.questionStatus = com.example.quizhub.entity.enums.QuestionStatus.PUBLIC")
-    long countPublicQuestionsByCategories(@Param("categoryIds") List<Long> categoryIds);
+    @Query("SELECT COUNT(q) FROM Question q WHERE q.category.id IN :categoryIds AND q.questionStatus = :status")
+    long countPublicQuestionsByCategories(@Param("categoryIds") List<Long> categoryIds, @Param("status") QuestionStatus status);
 }

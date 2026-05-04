@@ -28,4 +28,9 @@ public class AdminHomeController {
     public String adminReports(Model model) {
         return "admin/admin-reports";
     }
+
+    @GetMapping("/moderation")
+    public String adminModeration(Model model) {
+        return "admin/admin-moderation";
+    }
 }
