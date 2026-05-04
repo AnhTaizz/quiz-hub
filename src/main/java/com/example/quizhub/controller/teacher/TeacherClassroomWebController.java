@@ -28,6 +28,10 @@ public class TeacherClassroomWebController {
     private final UserRepository userRepository;
     private final ClassroomService classroomService;
     private final ClassJoiningRepository classJoiningRepository;
+    private final com.example.quizhub.repository.QuizAssigningRepository quizAssigningRepository;
+    private final com.example.quizhub.repository.QuizRepository quizRepository;
+    private final com.example.quizhub.repository.ClassTopicRepository classTopicRepository;
+    private final com.example.quizhub.repository.CategoryRepository categoryRepository;
 
     @GetMapping
     public String classroomPage(Model model) {
@@ -103,5 +107,35 @@ public class TeacherClassroomWebController {
             }
         }
         return "redirect:/teacher/classrooms/" + id + "/members";
+    }
+
+    @GetMapping("/{id}")
+    @org.springframework.transaction.annotation.Transactional
+    public String classroomDetailPage(@PathVariable Long id, Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof User user) {
+            Classroom classroom = classroomRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Classroom not found"));
+
+            // Check if user is the creator of the classroom
+            if (!classroom.getCreator().getId().equals(user.getId())) {
+                return "redirect:/teacher/classrooms";
+            }
+
+            List<com.example.quizhub.entity.QuizAssigning> assignedQuizzes = quizAssigningRepository.findByClassroomId(id);
+            List<com.example.quizhub.entity.Quiz> quizzes = quizRepository.findByCreatorIdAndIsEnableTrue(user.getId());
+            List<com.example.quizhub.entity.ClassTopic> topics = classTopicRepository.findByClassroomId(id);
+            List<com.example.quizhub.entity.Category> categories = categoryRepository.findAllByCreatorIdWithParent(user.getId());
+
+            model.addAttribute("classroom", classroom);
+            model.addAttribute("assignedQuizzes", assignedQuizzes);
+            model.addAttribute("quizzes", quizzes);
+            model.addAttribute("topics", topics);
+            model.addAttribute("categories", categories);
+            model.addAttribute("today", java.time.LocalDate.now());
+            model.addAttribute("nextWeek", java.time.LocalDate.now().plusDays(7));
+            model.addAttribute("currentUser", user);
+        }
+        return "teacher/teacher-classroom-detail";
     }
 }

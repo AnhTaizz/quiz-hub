@@ -16,6 +16,7 @@ public class QuizAssigningResponseDTO {
     Integer maxAttempt;
     boolean questionShuffle;
     boolean answerShuffle;
+    Boolean showAnswer;
     Integer durationInMins;
     LocalDate startDate;
     LocalDate dueDate;

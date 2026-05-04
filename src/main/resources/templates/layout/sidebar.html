@@ -24,10 +24,7 @@
 
         <div class="menu-title">Thư viện dữ liệu</div>
         <ul class="nav-menu">
-            <li><a href="/teacher/categories/public" th:classappend="${activeItem == 'categories-public' ? 'active' : ''}" data-title="Danh mục công khai">
-                <i class="bi bi-folder-fill"></i> <span>Danh mục công khai</span>
-            </a></li>
-            <li><a href="/teacher/categories/mine" th:classappend="${activeItem == 'categories-mine' ? 'active' : ''}" data-title="Danh mục của tôi">
+            <li><a href="/teacher/categories?type=mine" th:classappend="${activeItem == 'categories-mine' ? 'active' : ''}" data-title="Danh mục của tôi">
                 <i class="bi bi-folder-fill"></i> <span>Danh mục của tôi</span>
             </a></li>
             <li><a href="/teacher/questions" th:classappend="${activeItem == 'questions' ? 'active' : ''}" data-title="Ngân hàng câu hỏi">
@@ -49,18 +46,18 @@
 
         <div class="menu-title">Thư viện cá nhân</div>
         <ul class="nav-menu">
-            <li><a href="/student/my-question-bank" th:classappend="${activeItem == 'myquizzes' ? 'active' : ''}" data-title="Đề thi của tôi"><i class="bi bi-file-earmark-text-fill"></i> <span>Đề thi của tôi</span></a></li>
             <li>
-                <a href="/student/categories?type=public" th:classappend="${activeItem == 'categories-public' ? 'active' : ''}" data-title="Danh mục công khai">
-                    <i class="bi bi-globe2"></i> <span>Danh mục công khai</span>
+                <a href="/student/categories?type=public" th:classappend="${activeItem == 'categories-public' ? 'active' : ''}" data-title="Thư viện đề thi">
+                    <i class="bi bi-globe2"></i> <span>Thư viện đề thi</span>
                 </a>
             </li>
             <li>
-                <a href="/student/categories?type=mine" th:classappend="${activeItem == 'categories-mine' ? 'active' : ''}" data-title="Danh mục cá nhân">
-                    <i class="bi bi-folder-fill"></i> <span>Danh mục cá nhân</span>
+                <a href="/student/categories?type=mine" th:classappend="${activeItem == 'categories-mine' ? 'active' : ''}" data-title="Đề thi của tôi">
+                    <i class="bi bi-folder-fill"></i> <span>Đề thi của tôi</span>
                 </a>
             </li>
-            <li><a href="/student/questions" th:classappend="${activeItem == 'questions' ? 'active' : ''}" data-title="Tạo câu hỏi"><i class="bi bi-pencil-square"></i> <span>Tạo câu hỏi</span></a></li>
+            <li><a href="/student/questions" th:classappend="${activeItem == 'questions' ? 'active' : ''}" data-title="Tự tạo câu hỏi"><i class="bi bi-pencil-square"></i> <span>Tự tạo câu hỏi</span></a></li>
+            <li><a href="/student/quizzes/create" th:classappend="${activeItem == 'create-quiz' ? 'active' : ''}" data-title="Tự tạo đề luyện tập"><i class="bi bi-file-earmark-plus"></i> <span>Tự tạo đề luyện tập</span></a></li>
         </ul>
     </aside>
 </body>

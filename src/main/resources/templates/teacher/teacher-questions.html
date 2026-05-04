@@ -727,25 +727,10 @@
     </div>
 
     <!-- Category Explorer Modal -->
-    <div class="modal fade" id="categoryExplorerModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
-                <div class="modal-header fw-bold" style="background: linear-gradient(135deg, #4f46e5, #3730a3); color: #fff; border-top-left-radius: 20px; border-top-right-radius: 20px;">
-                    <h5 class="modal-title"><i class="bi bi-folder2-open me-2"></i>Chọn Danh mục</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4" style="max-height: 450px; overflow-y: auto;">
-                    <p class="text-muted small mb-3"><i class="bi bi-info-circle me-1"></i> Bấm vào biểu tượng mũi tên để mở rộng, bấm vào tên danh mục để chọn.</p>
-                    <div id="category-tree-container">
-                        <!-- Tree rendered here dynamically via JS -->
-                    </div>
-                </div>
-                <div class="modal-footer" style="border-bottom-left-radius: 20px; border-bottom-right-radius: 20px; background: #f8fafc;">
-                    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal" style="border-radius: 12px; padding: 10px 24px;">Hủy</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div th:replace="~{fragments/category-explorer :: category-explorer-modal}"></div>
+    <div th:replace="~{fragments/category-explorer :: category-explorer-private-modal}"></div>
+
+
 
     <!-- Toast Component -->
     <div id="toast-wrap"></div>
@@ -811,45 +796,46 @@
 
         function openCategoryModal(target = 'filter') {
             categorySelectTarget = target;
-            const container = document.getElementById('category-tree-container');
-            container.innerHTML = '';
+            const myContainer = document.getElementById('my-category-tree-container');
+            const publicContainer = document.getElementById('public-category-tree-container');
+
+            if (myContainer) myContainer.innerHTML = '';
+            if (publicContainer) publicContainer.innerHTML = '';
 
             const myTreeHtml = renderTreeNodes(myCategories);
             const publicTreeHtml = renderTreeNodes(publicCategories);
 
-            let finalHtml = '';
+            let myHtml = myTreeHtml || '<div class="text-muted text-center my-4">Không có danh mục nào</div>';
             if (target === 'filter') {
-                finalHtml += `
+                myHtml = `
                     <div class="mb-3">
                         <div class="d-flex align-items-center gap-2 category-node-row">
                             <span class="category-selectable-name text-danger fw-semibold" onclick="selectCategoryFromTree(-1, 'Chưa phân mục')">
                                 <i class="bi bi-folder-x"></i> Câu hỏi chưa phân mục
                             </span>
                         </div>
-                    </div>`;
+                    </div>` + myHtml;
             }
 
-            if (myTreeHtml) {
-                finalHtml += `
-                    <div class="mb-3">
-                        <div class="fw-bold text-primary mb-2"><i class="bi bi-person-fill"></i> Danh mục của tôi</div>
-                        ${myTreeHtml}
-                    </div>`;
-            }
+            if (myContainer) myContainer.innerHTML = myHtml;
+            if (publicContainer) publicContainer.innerHTML = publicTreeHtml || '<div class="text-muted text-center my-4">Không có danh mục nào</div>';
 
-
-
-            if (!finalHtml) {
-                finalHtml = `<div class="text-muted text-center my-4">Không có danh mục nào</div>`;
-            }
-
-            container.innerHTML = finalHtml;
-            const modal = new bootstrap.Modal(document.getElementById('categoryExplorerModal'));
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerModal'));
             modal.show();
         }
 
         function openModalCategorySelector() {
-            openCategoryModal('question');
+            categorySelectTarget = 'question';
+            const privateContainer = document.getElementById('private-category-tree-container');
+            if (privateContainer) privateContainer.innerHTML = '';
+
+            const myTreeHtml = renderTreeNodes(myCategories);
+            const myHtml = myTreeHtml || '<div class="text-muted text-center my-4">Không có danh mục nào</div>';
+
+            if (privateContainer) privateContainer.innerHTML = myHtml;
+
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerPrivateModal'));
+            modal.show();
         }
 
         function selectCategoryFromTree(id, name) {
@@ -866,6 +852,10 @@
             const modalEl = document.getElementById('categoryExplorerModal');
             const modal = bootstrap.Modal.getInstance(modalEl);
             if (modal) modal.hide();
+
+            const pModalEl = document.getElementById('categoryExplorerPrivateModal');
+            const pModal = bootstrap.Modal.getInstance(pModalEl);
+            if (pModal) pModal.hide();
 
             if (categorySelectTarget === 'filter') {
                 triggerSearch();

@@ -19,4 +19,5 @@ public interface AttemptRepository extends JpaRepository<Attempt, Long> {
 
     long countByQuizTakingLearnerId(Long learnerId);
     java.util.List<Attempt> findByQuizTakingLearnerId(Long learnerId);
+    long countByQuizTakingIdAndEndedAtIsNotNull(Long quizTakingId);
 }

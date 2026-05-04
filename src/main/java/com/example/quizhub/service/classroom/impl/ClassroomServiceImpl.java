@@ -177,4 +177,50 @@ public class ClassroomServiceImpl implements ClassroomService {
         joining.setStatus(JoinStatus.REJECTED);
         classJoiningRepository.save(joining);
     }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public ClassroomResponseDTO updateClassroom(Long classroomId, ClassroomRequestDTO request, String teacherEmail) {
+        Classroom classroom = classroomRepository.findById(classroomId)
+                .orElseThrow(() -> new AppException(ErrorCode.CLASSROOM_NOT_FOUND));
+
+        if (!classroom.getCreator().getEmail().equals(teacherEmail)) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        classroom.setName(request.getName());
+        classroom.setDescription(request.getDescription());
+        if (request.getRequireApproval() != null) {
+            classroom.setRequireApproval(request.getRequireApproval());
+        }
+        if (request.getImageUrl() != null && !request.getImageUrl().isBlank()) {
+            classroom.setImageUrl(request.getImageUrl());
+        }
+
+        classroomRepository.save(classroom);
+
+        return ClassroomResponseDTO.builder()
+                .id(classroom.getId())
+                .name(classroom.getName())
+                .description(classroom.getDescription())
+                .code(classroom.getCode())
+                .teacherName(classroom.getCreator().getFullName())
+                .createdAt(classroom.getCreatedAt())
+                .build();
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void deleteClassroom(Long classroomId, String teacherEmail) {
+        Classroom classroom = classroomRepository.findById(classroomId)
+                .orElseThrow(() -> new AppException(ErrorCode.CLASSROOM_NOT_FOUND));
+
+        if (!classroom.getCreator().getEmail().equals(teacherEmail)) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        // To delete a classroom completely or mark isEnable = false:
+        classroom.setIsEnable(false);
+        classroomRepository.save(classroom);
+    }
 }

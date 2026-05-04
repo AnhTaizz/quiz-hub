@@ -28,6 +28,8 @@ public class QuizSummaryDTO {
     int questionCount;
     String creatorName;
     String categoryName;
+    String takingStatus; // NOT_STARTED, IN_PROGRESS, COMPLETED
+    String attemptInfo;  // e.g. "Lần làm: 2"
 
     public QuizSummaryDTO(Quiz quiz) {
         this.id = quiz.getId();

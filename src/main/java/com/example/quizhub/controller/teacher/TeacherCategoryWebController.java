@@ -22,22 +22,9 @@ public class TeacherCategoryWebController {
 
     private final CategoryService categoryService;
 
-    @GetMapping("/public")
-    public String getPublicCategoryPage(Model model) {
-        model.addAttribute("categoryType", "public");
-        return "teacher/teacher-category-management";
-    }
-
-    @GetMapping("/mine")
-    public String getMineCategoryPage(Model model) {
-        model.addAttribute("categoryType", "mine");
-        return "teacher/teacher-category-management";
-    }
-
-    /** Render trang — dữ liệu được tải qua AJAX từ REST API */
     @GetMapping
-    public String getCategoryPage(Model model) {
-        model.addAttribute("categoryType", "mine");
+    public String getCategoryPage(@RequestParam(value = "type", defaultValue = "mine") String type, Model model) {
+        model.addAttribute("categoryType", type);
         return "teacher/teacher-category-management";
     }
 

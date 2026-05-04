@@ -17,8 +17,8 @@ public class QuizResultResponseDTO {
     private Long attemptId;
     private String quizTitle;
     private BigDecimal score;
-    private int correctNum;
-    private int incorrectNum;
+    private Integer correctNum;
+    private Integer incorrectNum;
     private int totalNum;
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
@@ -34,7 +34,7 @@ public class QuizResultResponseDTO {
         private String type;
         private List<AnswerResultDTO> answers;
         private List<Long> selectedAnswerIds;
-        private boolean isCorrect;
+        private Boolean isCorrect;
     }
 
     @Data
@@ -44,6 +44,6 @@ public class QuizResultResponseDTO {
     public static class AnswerResultDTO {
         private Long answerId;
         private String text;
-        private boolean isCorrect;
+        private Boolean isCorrect;
     }
 }

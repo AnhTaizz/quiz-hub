@@ -34,7 +34,6 @@
                         <li><a class="nav-link" th:classappend="${activePage == 'dashboard' ? 'active' : ''}" th:href="@{/student}">Bảng điều khiển</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'classrooms' ? 'active' : ''}" th:href="@{/student/classrooms}">Lớp học của tôi</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'history' ? 'active' : ''}" th:href="@{/student/history}">Lịch sử làm bài</a></li>
-                        <li><a class="nav-link" th:classappend="${activePage == 'practice_history' ? 'active' : ''}" th:href="@{/student/practice-history}">Lịch sử tự luyện</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'qbank' ? 'active' : ''}" th:href="@{/student/categories(type='public')}">Ngân hàng đề thi</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'myqbank' ? 'active' : ''}" th:href="@{/student/categories(type='mine')}">Đề thi của tôi</a></li>
                     </ul>
@@ -295,7 +294,7 @@
                         <form th:action="@{/student/classrooms/join}" method="POST">
                             <div class="mb-4">
                                 <label class="form-label fw-bold">Mã lớp học <span class="text-danger">*</span></label>
-                                <input type="text" name="code" class="form-control" placeholder="VD: ABC123" required minlength="6" maxlength="8" 
+                                <input type="text" name="code" class="form-control" placeholder="VD: ABC123" required minlength="6" maxlength="8"
                                     style="padding: 14px 20px; border-radius: 14px; border: 2px solid #e2e8f0; font-weight: 600;">
                             </div>
                             <button type="submit" class="btn btn-primary w-100 py-3 rounded-4 fw-bold shadow-sm" style="background: #312e81; border: none;">Xác nhận tham gia</button>

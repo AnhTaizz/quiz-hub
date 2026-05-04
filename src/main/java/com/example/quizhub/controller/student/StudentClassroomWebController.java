@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
@@ -26,6 +27,9 @@ public class StudentClassroomWebController {
 
     private final ClassJoiningRepository classJoiningRepository;
     private final ClassroomService classroomService;
+    private final com.example.quizhub.repository.ClassroomRepository classroomRepository;
+    private final com.example.quizhub.repository.QuizAssigningRepository quizAssigningRepository;
+    private final com.example.quizhub.repository.ClassTopicRepository classTopicRepository;
 
     @GetMapping
     public String listClassrooms(Model model) {
@@ -50,5 +54,32 @@ public class StudentClassroomWebController {
             }
         }
         return "redirect:/student/classrooms";
+    }
+
+    @GetMapping("/{id}")
+    @org.springframework.transaction.annotation.Transactional
+    public String classroomDetailPage(@PathVariable Long id, Model model) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof User user) {
+            // Check if the student is approved to join the class
+            ClassJoining joining = classJoiningRepository.findByClassroomIdAndLearnerId(id, user.getId())
+                    .orElse(null);
+
+            if (joining == null || joining.getStatus() != com.example.quizhub.entity.JoinStatus.APPROVED) {
+                return "redirect:/student/classrooms";
+            }
+
+            com.example.quizhub.entity.Classroom classroom = classroomRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Classroom not found"));
+
+            List<com.example.quizhub.entity.QuizAssigning> assignedQuizzes = quizAssigningRepository.findByClassroomId(id);
+            List<com.example.quizhub.entity.ClassTopic> topics = classTopicRepository.findByClassroomId(id);
+
+            model.addAttribute("classroom", classroom);
+            model.addAttribute("assignedQuizzes", assignedQuizzes);
+            model.addAttribute("topics", topics);
+            model.addAttribute("currentUser", user);
+        }
+        return "student/student-classroom-detail";
     }
 }

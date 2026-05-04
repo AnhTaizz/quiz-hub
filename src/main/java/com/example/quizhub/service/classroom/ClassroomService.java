@@ -21,4 +21,8 @@ public interface ClassroomService {
     void approveJoinRequest(Long joiningId, String teacherEmail);
 
     void rejectJoinRequest(Long joiningId, String teacherEmail);
+
+    ClassroomResponseDTO updateClassroom(Long classroomId, ClassroomRequestDTO request, String teacherEmail);
+
+    void deleteClassroom(Long classroomId, String teacherEmail);
 }

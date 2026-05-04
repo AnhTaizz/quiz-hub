@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tạo Đề Thi | QuizHub</title>
+    <title>Soạn Đề Thi | QuizHub</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Nunito+Sans:wght@700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -11,42 +12,41 @@
     <link rel="stylesheet" th:href="@{/css/dashboard-layout.css}">
     <style>
         body { background: #f8fafc; font-family: 'Inter', sans-serif; color: #334155; }
-        .page-title { font-family: 'Nunito Sans', sans-serif; font-weight: 800; font-size: 1.75rem; color: #0f172a; margin: 0; }
-        .card-panel { background: #fff; border-radius: 16px; border: 1px solid #e2e8f0; padding: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); height: 100%; display: flex; flex-direction: column; }
-        .fc { border-radius: 12px; border: 1.5px solid #e2e8f0; padding: 12px; font-size: 0.95rem; font-weight: 500; width: 100%; transition: border-color 0.2s; }
+        .page-title { font-family: 'Nunito Sans', sans-serif; font-weight: 900; font-size: 1.75rem; color: #1e1b4b; margin: 0; }
+        .card-panel { background: #fff; border-radius: 20px; border: 1px solid #e2e8f0; padding: 24px; box-shadow: 0 4px 25px rgba(0, 0, 0, 0.03); height: 100%; display: flex; flex-direction: column; }
+        .fc { border-radius: 12px; border: 1.5px solid #e2e8f0; padding: 11px 14px; font-size: 0.92rem; font-weight: 500; width: 100%; transition: all 0.2s ease; }
         .fc:focus { border-color: #4f46e5; outline: none; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
-        .question-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; margin-bottom: 12px; transition: all 0.2s; cursor: pointer; }
-        .question-card:hover { border-color: #cbd5e1; background: #f8fafc; }
-        .question-card.selected { border-color: #4f46e5; background: #eff6ff; }
+        .question-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; margin-bottom: 12px; transition: all 0.22s; cursor: pointer; position: relative; }
+        .question-card:hover { border-color: #a5b4fc; background: #fcfdff; transform: translateY(-2px); }
+        .question-card.selected { border-color: #4f46e5; background: #eff6ff; box-shadow: 0 4px 15px rgba(67, 56, 202, 0.08); }
         .qbadge { font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; }
         .qbadge-type { background: #e0e7ff; color: #4338ca; }
         .qbadge-level { background: #ede9fe; color: #7c3aed; }
-        .right-scroller { max-height: 550px; overflow-y: auto; padding-right: 4px; }
-        .right-scroller::-webkit-scrollbar { width: 5px; }
-        .right-scroller::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .right-scroller { max-height: 520px; overflow-y: auto; padding-right: 4px; }
+        .btn-submit-quiz { background: linear-gradient(135deg, #4f46e5, #4338ca); color: #fff; border: none; border-radius: 12px; padding: 10px 24px; font-weight: 700; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25); transition: all 0.2s ease; }
+        .btn-submit-quiz:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(79, 70, 229, 0.35); }
         #toastWrap { position: fixed; top: 22px; right: 22px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
-        .toast-msg { background: #1e1b4b; color: #fff; border-radius: 14px; padding: 12px 18px; font-weight: 600; font-size: 0.88rem; display: flex; align-items: center; gap: 9px; box-shadow: 0 8px 24px rgba(0,0,0,0.18); opacity: 0; transform: translateX(16px); transition: all 0.3s ease; }
+        .toast-msg { background: #1e1b4b; color: #fff; border-radius: 14px; padding: 12px 18px; font-weight: 600; font-size: 0.88rem; display: flex; align-items: center; gap: 9px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18); opacity: 0; transform: translateX(16px); transition: all 0.3s ease; }
         .toast-msg.show { opacity: 1; transform: translateX(0); }
-        .toast-msg.ok i { color: #4ade80; }
-        .toast-msg.err i { color: #fb7185; }
+        .category-selectable-name:hover { color: #4338ca !important; text-decoration: underline; cursor: pointer; }
     </style>
 </head>
-<body>
-    <header th:replace="~{layout/header :: student-header}"></header>
 
-    <main class="container py-4" style="margin-top: 80px;">
-        <!-- Hidden input storing info from Thymeleaf -->
+<body>
+    <header th:replace="~{layout/header :: student-header(activePage='myqbank')}"></header>
+
+    <main id="main-content" class="container" style="padding-top: 100px; padding-bottom: 50px;">
         <input type="hidden" id="quizIdInput" th:value="${quizId}">
         <input type="hidden" id="categoryIdInput" th:value="${categoryId}">
 
         <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
             <div>
-                <h1 class="page-title"><i class="bi bi-file-earmark-plus-fill text-indigo me-2"></i>Soạn Đề Thi Mới</h1>
-                <p class="text-muted mb-0">Tạo đề thi thủ công bằng cách chọn các câu hỏi từ kho cá nhân.</p>
+                <h1 class="page-title"><i class="bi bi-file-earmark-plus-fill me-2" style="color: #4338ca;"></i>Soạn Đề Thi</h1>
+                <p class="text-muted small">Tạo lộ trình ôn tập cá nhân chuyên nghiệp.</p>
             </div>
             <div class="d-flex gap-2">
-                <a href="/student/categories/mine" class="btn btn-light fw-bold" style="border-radius:12px; padding:10px 24px;"><i class="bi bi-arrow-left"></i> Trở về</a>
-                <button type="button" class="btn btn-primary fw-bold" onclick="saveQuiz()" style="border-radius:12px; padding:10px 24px; background:linear-gradient(135deg, #4f46e5, #7c3aed); border:none;"><i class="bi bi-floppy-fill me-1"></i> Lưu Đề Thi</button>
+                <a href="/student/categories/mine" class="btn btn-light fw-bold rounded-4 px-4 border"><i class="bi bi-arrow-left"></i> Trở về</a>
+                <button type="button" class="btn btn-submit-quiz" onclick="saveQuiz()"><i class="bi bi-floppy-fill me-1"></i> Lưu Đề Thi</button>
             </div>
         </div>
 
@@ -54,38 +54,40 @@
             <!-- Left: Metadata Panel -->
             <div class="col-lg-5">
                 <div class="card-panel">
-                    <h5 class="fw-bold mb-3 text-indigo"><i class="bi bi-info-circle me-1"></i> 1. Thông tin Đề thi</h5>
+                    <h5 class="fw-bold mb-3" style="color: #1e1b4b;"><i class="bi bi-info-circle-fill me-1 text-primary"></i> 1. Thông tin Đề thi</h5>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted mb-1">Tiêu đề đề thi <span class="text-danger">*</span></label>
-                        <input type="text" id="quiz-title" class="fc" placeholder="Ví dụ: Kiểm tra giữa kỳ môn Tiếng Anh" required autocomplete="off">
+                        <label class="form-label small fw-bold mb-1">Tiêu đề đề thi <span class="text-danger">*</span></label>
+                        <input type="text" id="quiz-title" class="fc" placeholder="Ví dụ: Ôn tập môn Toán chương 1" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted mb-1">Mô tả (Ngắn gọn)</label>
-                        <textarea id="quiz-desc" class="fc" rows="3" placeholder="Ví dụ: Ôn tập kiến thức bài 1 đến bài 5..." autocomplete="off"></textarea>
+                        <label class="form-label small fw-bold mb-1">Mô tả đề thi</label>
+                        <textarea id="quiz-desc" class="fc" rows="3" placeholder="Ghi chú nội dung đề thi..."></textarea>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted mb-1">Chọn Danh mục Lưu Trữ <span class="text-danger">*</span></label>
-                        <select id="quiz-category" class="form-select fc" required>
-                            <option value="">-- Chọn danh mục --</option>
-                        </select>
+                        <label class="form-label small fw-bold mb-1">Danh mục lưu trữ <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="text" id="quiz-category-display" class="form-control fc bg-white cursor-pointer" placeholder="Chọn danh mục..." readonly onclick="openCategoryTreePicker('quiz')" style="border-radius:12px 0 0 12px;">
+                            <button type="button" class="btn btn-outline-secondary" onclick="openCategoryTreePicker('quiz')" style="border-radius: 0 12px 12px 0;"><i class="bi bi-folder-fill"></i></button>
+                        </div>
+                        <input type="hidden" id="quiz-category">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-muted mb-1">Ảnh đại diện đề thi (URL)</label>
-                        <input type="text" id="quiz-image" class="fc" placeholder="https://..." autocomplete="off">
+                        <label class="form-label small fw-bold mb-1">Ảnh đại diện (URL)</label>
+                        <input type="text" id="quiz-image" class="fc" placeholder="https://example.com/image.jpg">
                     </div>
                     <div class="row g-2">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold text-muted mb-1">Trạng thái phát hành</label>
-                            <select id="quiz-isDraft" class="form-select fc">
-                                <option value="false" selected>Đã xuất bản (Published)</option>
-                                <option value="true">Bản nháp (Draft)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold text-muted mb-1">Loại đề thi</label>
+                            <label class="form-label small fw-bold mb-1">Loại bài tập</label>
                             <select id="quiz-isExam" class="form-select fc">
                                 <option value="false" selected>Quiz luyện tập</option>
                                 <option value="true">Đề thi (Exam)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label small fw-bold mb-1">Trạng thái</label>
+                            <select id="quiz-isDraft" class="form-select fc">
+                                <option value="false" selected>Xuất bản</option>
+                                <option value="true">Bản nháp</option>
                             </select>
                         </div>
                     </div>
@@ -94,29 +96,62 @@
 
             <!-- Right: Question Selection Panel -->
             <div class="col-lg-7">
-                <div class="card-panel">
-                    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                        <h5 class="fw-bold mb-0 text-indigo"><i class="bi bi-collection-fill me-1"></i> 2. Chọn câu hỏi</h5>
-                        <span class="badge bg-indigo text-white fw-bold px-3 py-2" id="selected-count" style="border-radius:10px; font-size:0.85rem;">Đã chọn 0 câu hỏi</span>
-                    </div>
-
-                    <!-- Search & Filtering in Questions Bank -->
-                    <div class="row g-2 mb-3">
-                        <div class="col-md-12">
-                            <div class="input-group">
-                                <span class="input-group-text bg-white border-end-0" style="border-radius:12px 0 0 12px;"><i class="bi bi-search"></i></span>
-                                <input type="text" id="q-search" class="form-control fc border-start-0" placeholder="Tìm kiếm nội dung..." style="border-radius:0 12px 12px 0;" onkeyup="loadQuestions()">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="right-scroller" id="questions-wrapper">
-                        <!-- Questions populated via JS -->
-                    </div>
-                </div>
+                <div th:replace="~{fragments/quiz-editor :: question-selection-panel}"></div>
             </div>
         </div>
     </main>
+
+    <!-- Modals -->
+    <div th:replace="~{fragments/category-explorer :: category-explorer-modal}"></div>
+    <div th:replace="~{fragments/category-explorer :: category-explorer-private-modal}"></div>
+
+    <div class="modal fade" id="createOnTheFlyQuestionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 24px;">
+                <div class="modal-header border-0 px-4 pt-4">
+                    <h5 class="fw-bold"><i class="bi bi-patch-plus me-2"></i>Tạo câu hỏi trực tiếp</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4">
+                    <form id="flyQuestionForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Nội dung câu hỏi *</label>
+                            <textarea id="fly-text" class="fc" rows="3" required placeholder="Nhập câu hỏi..."></textarea>
+                        </div>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-muted">Loại câu hỏi *</label>
+                                <select id="fly-type" class="fc" onchange="toggleFlyAnswersUI()" required>
+                                    <option value="SINGLE_CHOICE" selected>Một đáp án</option>
+                                    <option value="MULTIPLE_CHOICE">Nhiều đáp án</option>
+                                    <option value="FILL_IN_BLANK">Điền khuyết</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-muted">Mức độ *</label>
+                                <select id="fly-level" class="fc">
+                                    <option value="EASY" selected>Dễ</option>
+                                    <option value="MEDIUM">Trung bình</option>
+                                    <option value="HARD">Khó</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-2">
+                                <label class="form-label fw-bold small text-muted">Đáp án *</label>
+                                <button type="button" class="btn btn-sm btn-link fw-bold text-decoration-none" onclick="addFlyAnswerRow()"><i class="bi bi-plus-lg"></i> Thêm đáp án</button>
+                            </div>
+                            <div id="fly-answers-wrapper"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="button" class="btn btn-primary px-4 fw-bold" onclick="saveFlyQuestion()">Lưu câu hỏi</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div id="toastWrap"></div>
 
@@ -124,53 +159,45 @@
     <script>
         const quizId = document.getElementById('quizIdInput').value;
         const initialCategoryId = document.getElementById('categoryIdInput').value;
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
-        let availableCategories = [];
+        let myCategories = [];
+        let publicCategories = [];
         let questionsList = [];
         let selectedQuestionIds = new Set();
+        let categorySelectTarget = 'quiz';
 
         document.addEventListener('DOMContentLoaded', async () => {
             await fetchCategories();
             if (quizId) {
                 await fetchQuizToEdit();
-            } else {
-                if (initialCategoryId) {
-                    document.getElementById('quiz-category').value = initialCategoryId;
+            } else if (initialCategoryId) {
+                const matched = findCategoryById(myCategories, parseInt(initialCategoryId));
+                if (matched) {
+                    document.getElementById('quiz-category').value = matched.id;
+                    document.getElementById('quiz-category-display').value = matched.name;
                 }
-                await loadQuestions();
+                loadQuestions();
+            } else {
+                loadQuestions();
             }
         });
 
         async function fetchCategories() {
-            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             try {
-                const res = await fetch('/api/student/categories/mine', {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    availableCategories = await res.json();
-                    populateCategorySelect(availableCategories);
-                }
-            } catch (err) {
-                console.error('Lỗi tải danh mục', err);
-            }
-        }
-
-        function populateCategorySelect(nodes, level = 0) {
-            const select = document.getElementById('quiz-category');
-            if (level === 0) select.innerHTML = '<option value="">-- Chọn danh mục --</option>';
-            nodes.forEach(n => {
-                select.innerHTML += `<option value="${n.id}">${'&nbsp;'.repeat(level * 4)}${esc(n.name)}</option>`;
-                if (n.children && n.children.length > 0) {
-                    populateCategorySelect(n.children, level + 1);
-                }
-            });
+                const [m, p] = await Promise.all([
+                    fetch('/api/student/categories/mine', { headers: { Authorization: `Bearer ${token}` } }),
+                    fetch('/api/student/categories/public', { headers: { Authorization: `Bearer ${token}` } })
+                ]);
+                myCategories = await m.json();
+                publicCategories = await p.json();
+            } catch (e) {}
         }
 
         async function fetchQuizToEdit() {
-            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            if (!quizId) return;
             try {
-                const res = await fetch(`/api/student/quizzes/${quizId}`, {
+                const res = await fetch(`/api/student/quiz/${quizId}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -178,99 +205,68 @@
                     document.getElementById('quiz-title').value = q.title || '';
                     document.getElementById('quiz-desc').value = q.description || '';
                     document.getElementById('quiz-image').value = q.imageUrl || '';
-                    document.getElementById('quiz-isDraft').value = String(q.isDraft);
                     document.getElementById('quiz-isExam').value = String(q.isExam);
-                    document.getElementById('quiz-category').value = q.category ? q.category.id : '';
-
-                    if (q.questionIds) {
-                        q.questionIds.forEach(id => selectedQuestionIds.add(id));
-                    } else if (q.questions) {
-                        q.questions.forEach(qi => selectedQuestionIds.add(qi.id));
+                    document.getElementById('quiz-isDraft').value = String(q.isDraft);
+                    if (q.category) {
+                        document.getElementById('quiz-category').value = q.category.id;
+                        document.getElementById('quiz-category-display').value = q.category.name;
                     }
+                    if (q.questionIds) q.questionIds.forEach(id => selectedQuestionIds.add(id));
                     updateSelectedCount();
-                    await loadQuestions();
+                    loadQuestions();
                 }
-            } catch (err) {
-                showToast('Không thể tải thông tin đề thi để sửa', 'err');
-            }
+            } catch (e) {}
         }
 
         async function loadQuestions() {
-            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             const search = document.getElementById('q-search').value;
-
-            const url = `/api/student/questions?keyword=${encodeURIComponent(search)}&page=0&size=150`;
-
+            const source = document.getElementById('q-source').value;
+            const type = document.getElementById('q-type').value;
+            const catId = document.getElementById('q-category-filter').value;
+            
+            const url = `/api/student/questions?keyword=${encodeURIComponent(search)}&type=${type}&isPublicTab=${source === 'public'}${catId ? '&categoryId=' + catId : ''}&size=150`;
             const wrapper = document.getElementById('questions-wrapper');
-            wrapper.innerHTML = `<div class="text-center py-4"><span class="spinner-border text-indigo"></span><p class="text-muted mt-2">Đang tìm kiếm câu hỏi...</p></div>`;
-
+            wrapper.innerHTML = '<div class="text-center py-4"><span class="spinner-border spinner-border-sm text-primary"></span></div>';
             try {
                 const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-                if (res.ok) {
-                    const data = await res.json();
-                    questionsList = data.content || [];
-                    renderQuestions();
-                }
-            } catch (err) {
-                showToast('Lỗi tải danh sách câu hỏi!', 'err');
-            }
+                const data = await res.json();
+                questionsList = data.content || [];
+                filterLocalQuestions();
+            } catch (e) { wrapper.innerHTML = 'Lỗi tải câu hỏi'; }
         }
 
-        function renderQuestions() {
+        function filterLocalQuestions() {
+            const level = document.getElementById('q-level').value;
+            const filtered = questionsList.filter(q => {
+                if (level && q.level !== level) return false;
+                return true;
+            });
+            renderQuestions(filtered);
+        }
+
+        function renderQuestions(list = questionsList) {
             const wrapper = document.getElementById('questions-wrapper');
-            if (questionsList.length === 0) {
-                wrapper.innerHTML = `<p class="text-muted py-4 text-center">Không tìm thấy câu hỏi phù hợp.</p>`;
-                return;
-            }
-
-            wrapper.innerHTML = questionsList.map(q => {
+            if (list.length === 0) { wrapper.innerHTML = '<p class="text-center py-4 text-muted small">Không tìm thấy câu hỏi nào.</p>'; return; }
+            wrapper.innerHTML = list.map(q => {
                 const isSelected = selectedQuestionIds.has(q.id);
-                let typeLabel = q.type === 'SINGLE_CHOICE' ? '1 đáp án' : (q.type === 'MULTIPLE_CHOICE' ? 'Nhiều đáp án' : 'Điền khuyết');
-                let levelLabel = q.level === 'EASY' ? 'Dễ' : (q.level === 'MEDIUM' ? 'Trung bình' : 'Khó');
-
-                let ansHtml = '';
-                if (q.answers && q.answers.length > 0) {
-                    ansHtml = `<div class="ans-list mt-2 bg-light p-2 rounded" style="font-size:0.82rem; border:1px solid #e2e8f0; display:none;" id="ans-${q.id}">
-                        ${q.answers.map((a, idx) => `
-                            <div class="${a.isCorrect ? 'text-success fw-bold' : 'text-muted'}">
-                                ${String.fromCharCode(65 + idx)}. ${esc(a.text)}
-                            </div>`).join('')}
-                    </div>`;
-                }
-
-                return `<div class="question-card ${isSelected ? 'selected' : ''}" onclick="toggleQuestionSelection(${q.id}, event)" style="position: relative;">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <div class="d-flex gap-2">
-                            <span class="qbadge qbadge-type"><i class="bi bi-patch-check"></i> ${typeLabel}</span>
-                            <span class="qbadge qbadge-level"><i class="bi bi-graph-up"></i> ${levelLabel}</span>
+                return `<div class="question-card ${isSelected ? 'selected' : ''}" onclick="toggleQuestionSelection(${q.id})">
+                    <div class="d-flex align-items-center gap-3">
+                        <input type="checkbox" class="form-check-input" ${isSelected ? 'checked' : ''} style="pointer-events:none; width:22px; height:22px;">
+                        <div>
+                            <div class="d-flex gap-2 mb-1">
+                                <span class="qbadge qbadge-type">${q.type === 'SINGLE_CHOICE' ? '1 đáp án' : (q.type === 'MULTIPLE_CHOICE' ? 'Nhiều đáp án' : 'Điền khuyết')}</span>
+                                <span class="qbadge qbadge-level">${q.level === 'EASY' ? 'Dễ' : (q.level === 'MEDIUM' ? 'Trung bình' : 'Khó')}</span>
+                            </div>
+                            <div class="fw-bold small text-dark">${esc(q.text)}</div>
                         </div>
-                        <button type="button" class="btn btn-sm btn-light border p-1" onclick="toggleAnswers(${q.id}); event.stopPropagation();" title="Xem chi tiết câu trả lời" style="border-radius:8px;">
-                            <i class="bi bi-eye"></i>
-                        </button>
-                    </div>
-                    <div class="fw-bold text-dark mt-2 mb-1" style="font-size: 0.95rem;">${esc(q.text)}</div>
-                    ${ansHtml}
-                    <div style="position:absolute; top: 14px; right: 14px;">
-                        <input type="checkbox" class="form-check-input" style="width:20px;height:20px; accent-color:#4f46e5;" ${isSelected ? 'checked' : ''} onclick="event.stopPropagation(); toggleQuestionSelection(${q.id}, event)">
                     </div>
                 </div>`;
             }).join('');
         }
 
-        function toggleAnswers(id) {
-            const el = document.getElementById(`ans-${id}`);
-            if (el) {
-                el.style.display = el.style.display === 'none' ? 'block' : 'none';
-            }
-        }
-
-        function toggleQuestionSelection(id, event) {
-            if (event) event.stopPropagation();
-            if (selectedQuestionIds.has(id)) {
-                selectedQuestionIds.delete(id);
-            } else {
-                selectedQuestionIds.add(id);
-            }
+        function toggleQuestionSelection(id) {
+            if (selectedQuestionIds.has(id)) selectedQuestionIds.delete(id);
+            else selectedQuestionIds.add(id);
             updateSelectedCount();
             renderQuestions();
         }
@@ -280,60 +276,160 @@
         }
 
         async function saveQuiz() {
-            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             const title = document.getElementById('quiz-title').value.trim();
-            const description = document.getElementById('quiz-desc').value.trim();
-            const imageUrl = document.getElementById('quiz-image').value.trim();
             const categoryId = document.getElementById('quiz-category').value;
-            const isDraft = document.getElementById('quiz-isDraft').value === 'true';
-            const isExam = document.getElementById('quiz-isExam').value === 'true';
-
-            if (!title) { showToast('Vui lòng nhập tiêu đề đề thi!', 'err'); return; }
-            if (!categoryId) { showToast('Vui lòng chọn danh mục đề thi!', 'err'); return; }
-            if (selectedQuestionIds.size === 0) { showToast('Hãy chọn ít nhất 1 câu hỏi để tạo đề thi!', 'err'); return; }
+            if (!title || !categoryId) { showToast('Nhập tiêu đề và chọn danh mục!', 'err'); return; }
+            if (selectedQuestionIds.size === 0) { showToast('Hãy chọn ít nhất 1 câu hỏi!', 'err'); return; }
 
             const payload = {
                 title,
-                description,
-                imageUrl,
+                description: document.getElementById('quiz-desc').value.trim(),
+                imageUrl: document.getElementById('quiz-image').value.trim(),
                 categoryId: parseInt(categoryId),
-                isDraft,
-                isExam,
+                isExam: document.getElementById('quiz-isExam').value === 'true',
+                isDraft: document.getElementById('quiz-isDraft').value === 'true',
                 questionIds: Array.from(selectedQuestionIds)
             };
 
-            const url = quizId ? `/api/student/quizzes/${quizId}` : '/api/student/quizzes';
             const method = quizId ? 'PUT' : 'POST';
+            const url = quizId ? `/api/student/quiz/${quizId}` : '/api/student/quiz';
 
             try {
                 const res = await fetch(url, {
-                    method: method,
-                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    method,
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
                     body: JSON.stringify(payload)
                 });
                 if (res.ok) {
-                    showToast(quizId ? 'Cập nhật đề thi thành công!' : 'Tạo đề thi mới thành công!', 'ok');
-                    setTimeout(() => window.location.href = '/student/categories/mine', 1200);
+                    showToast(quizId ? 'Cập nhật thành công!' : 'Lưu đề thi thành công!');
+                    setTimeout(() => window.location.href = '/student/categories/mine', 1000);
                 } else {
-                    const data = await res.json();
-                    showToast(data.message || 'Lỗi khi lưu đề thi', 'err');
+                    const err = await res.json();
+                    showToast(err.message || 'Lỗi lưu đề thi', 'err');
                 }
-            } catch (err) {
-                showToast('Có lỗi xảy ra khi lưu đề thi', 'err');
+            } catch (e) { showToast('Lỗi kết nối!', 'err'); }
+        }
+
+        function openCategoryTreePicker(target) {
+            categorySelectTarget = target;
+            if (target === 'quiz') {
+                const container = document.getElementById('private-category-tree-container');
+                if (container) {
+                    container.innerHTML = renderTreeNodes(myCategories, 'mine');
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerPrivateModal')).show();
+                }
+            } else {
+                // For filtering, show both personal and public tabs
+                const myContainer = document.getElementById('my-category-tree-container');
+                const pubContainer = document.getElementById('public-category-tree-container');
+                if (myContainer) myContainer.innerHTML = renderTreeNodes(myCategories, 'mine');
+                if (pubContainer) pubContainer.innerHTML = renderTreeNodes(publicCategories, 'public');
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerModal')).show();
             }
         }
 
-        function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+        function renderTreeNodes(nodes, source) {
+            if (!nodes || nodes.length === 0) return '<p class="text-center text-muted small py-3">Trống</p>';
+            return `<ul class="list-unstyled ps-3">${nodes.map(n => `
+                <li class="mb-2">
+                    <span class="category-selectable-name text-dark fw-bold small" onclick="selectCategoryFromTree(${n.id}, '${esc(n.name)}', '${source}')">
+                        <i class="bi bi-folder-fill text-warning me-1"></i> ${esc(n.name)}
+                    </span>
+                    ${n.children ? renderTreeNodes(n.children, source) : ''}
+                </li>
+            `).join('')}</ul>`;
+        }
+
+        function selectCategoryFromTree(id, name, source) {
+            if (categorySelectTarget === 'quiz') {
+                document.getElementById('quiz-category').value = id;
+                document.getElementById('quiz-category-display').value = name;
+                bootstrap.Modal.getInstance(document.getElementById('categoryExplorerPrivateModal')).hide();
+            } else {
+                document.getElementById('q-category-filter').value = id;
+                document.getElementById('q-category-filter-display').value = name;
+                document.getElementById('q-source').value = source; // Auto set source
+                bootstrap.Modal.getInstance(document.getElementById('categoryExplorerModal')).hide();
+                loadQuestions();
+            }
+        }
+
+        function clearCategoryFilterSelection() {
+            document.getElementById('q-category-filter').value = '';
+            document.getElementById('q-category-filter-display').value = 'Lọc theo danh mục...';
+            loadQuestions();
+        }
+
+        let flyAnsCounter = 0;
+        function toggleFlyAnswersUI() {
+            const type = document.getElementById('fly-type').value;
+            const wrapper = document.getElementById('fly-answers-wrapper');
+            if (type === 'FILL_IN_BLANK') { wrapper.innerHTML = ''; addFlyAnswerRow('', true); }
+            document.querySelectorAll('.fly-ans-correct').forEach(el => el.style.display = type === 'FILL_IN_BLANK' ? 'none' : 'block');
+        }
+
+        function addFlyAnswerRow(text = '', isCorrect = false) {
+            const wrapper = document.getElementById('fly-answers-wrapper');
+            const type = document.getElementById('fly-type').value;
+            const row = document.createElement('div');
+            row.className = 'd-flex align-items-center gap-2 mb-2 fly-ans-row';
+            row.innerHTML = `
+                <input class="form-check-input fly-ans-correct" type="${type === 'MULTIPLE_CHOICE' ? 'checkbox' : 'radio'}" name="flyAns" ${isCorrect ? 'checked' : ''}>
+                <input type="text" class="form-control rounded-3 fly-ans-text" value="${text}" placeholder="${type === 'FILL_IN_BLANK' ? 'Đáp án đúng...' : 'Nội dung...'}" required>
+                <button type="button" class="btn btn-sm text-danger" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
+            `;
+            wrapper.appendChild(row);
+        }
+
+        async function saveFlyQuestion() {
+            const text = document.getElementById('fly-text').value.trim();
+            const type = document.getElementById('fly-type').value;
+            const catId = document.getElementById('quiz-category').value;
+            if (!text || !catId) { showToast('Nhập nội dung và chọn danh mục trước!', 'err'); return; }
+            const answers = [];
+            document.querySelectorAll('.fly-ans-row').forEach(row => {
+                const aText = row.querySelector('.fly-ans-text').value.trim();
+                const aCorrect = type === 'FILL_IN_BLANK' ? true : row.querySelector('.fly-ans-correct').checked;
+                if (aText) answers.push({ text: aText, isCorrect: aCorrect });
+            });
+            const payload = { categoryId: parseInt(catId), text, type, level: document.getElementById('fly-level').value, answers };
+            try {
+                const res = await fetch('/api/student/questions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+                if (res.ok) {
+                    const newQ = await res.json();
+                    questionsList.unshift(newQ); selectedQuestionIds.add(newQ.id);
+                    updateSelectedCount(); renderQuestions();
+                    bootstrap.Modal.getInstance(document.getElementById('createOnTheFlyQuestionModal')).hide();
+                }
+            } catch (e) { showToast('Lỗi tạo câu hỏi!', 'err'); }
+        }
+
+        function findCategoryById(nodes, id) {
+            for (let n of nodes) {
+                if (n.id === id) return n;
+                if (n.children) {
+                    const c = findCategoryById(n.children, id);
+                    if (c) return c;
+                }
+            }
+            return null;
+        }
 
         function showToast(msg, type = 'ok') {
             const w = document.getElementById('toastWrap');
             const t = document.createElement('div');
-            t.className = `toast-msg ${type}`;
-            t.innerHTML = `<i class="bi ${type === 'ok' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${msg}`;
+            t.className = `toast-msg show ${type}`;
+            t.innerHTML = `<i class="bi ${type === 'ok' ? 'bi-check-circle' : 'bi-x-circle'}"></i> ${msg}`;
             w.appendChild(t);
-            setTimeout(() => t.classList.add('show'), 10);
-            setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3500);
+            setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3000);
         }
+
+        function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
     </script>
 </body>
+
 </html>

@@ -48,6 +48,9 @@ public class QuizAssigning {
     @Column(name = "answer_shuffled")
     Boolean answerShuffled;
 
+    @Column(name = "show_answer")
+    Boolean showAnswer;
+
     @Column(name = "duration_in_mins")
     Integer durationInMins;
 
@@ -61,7 +64,7 @@ public class QuizAssigning {
     @JoinColumn(name = "classroom_id")
     Classroom classroom;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "quiz_id")
     Quiz quiz;
 
@@ -69,7 +72,7 @@ public class QuizAssigning {
     @Column(name = "created_at")
     LocalDateTime createdAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "topic_id")
     private ClassTopic topic; // Có thể null nếu giáo viên không muốn gom vào topic nào
 }

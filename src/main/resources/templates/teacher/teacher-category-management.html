@@ -913,17 +913,6 @@
                 <h1 class="page-title">🗂️ Kho Đề Thi</h1>
                 <p class="page-sub">Quản lý danh mục và đề thi theo kiểu thư mục.</p>
             </div>
-            <!-- Mode switcher -->
-            <div class="mode-tabs" style="max-width:320px;width:100%;">
-                <a href="/teacher/categories/mine" class="mode-tab"
-                    th:classappend="${categoryType == 'mine' ? 'active' : ''}" style="text-decoration: none;">
-                    <i class="bi bi-person-fill"></i> Của tôi
-                </a>
-                <a href="/teacher/categories/public" class="mode-tab"
-                    th:classappend="${categoryType == 'public' ? 'active' : ''}" style="text-decoration: none;">
-                    <i class="bi bi-globe2"></i> Công khai
-                </a>
-            </div>
         </div>
 
         <!-- File Explorer -->
@@ -1420,11 +1409,11 @@
             const actions = OWN_MODE
                 ? `<div class="quiz-actions">
              <a class="qact qact-edit" href="/teacher/quizzes/${q.id}/edit"><i class="bi bi-pencil-square"></i> Sửa</a>
-             <a class="qact qact-view" href="/teacher/quizzes/${q.id}/preview"><i class="bi bi-eye"></i> Xem</a>
+             <a class="qact qact-view" href="javascript:void(0)" onclick="openQuizPreviewModal('${q.id}', event)"><i class="bi bi-eye"></i> Xem</a>
              <button class="qact qact-del" onclick="deleteQuiz('${q.id}')"><i class="bi bi-trash3"></i></button>
            </div>`
                 : `<div class="quiz-actions">
-             <a class="qact qact-view" style="flex:1;" href="/teacher/quizzes/${q.id}/preview"><i class="bi bi-eye"></i> Xem thử</a>
+             <a class="qact qact-view" style="flex:1;" href="javascript:void(0)" onclick="openQuizPreviewModal('${q.id}', event)"><i class="bi bi-eye"></i> Xem thử</a>
            </div>`;
 
             return `<div class="quiz-card">
@@ -1647,6 +1636,55 @@
         }
         function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
         function escJs(s) { return s ? s.replace(/'/g, "\\'").replace(/"/g, '\\"') : ''; }
+
+        async function openQuizPreviewModal(id, event) {
+            if (event) event.preventDefault();
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            try {
+                const res = await fetch(`/api/teacher/quizzes/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const q = await res.json();
+                    document.getElementById('preview-quiz-title').textContent = q.title || 'Chưa có tiêu đề';
+                    document.getElementById('preview-quiz-desc').textContent = q.description || 'Chưa có mô tả.';
+
+                    const container = document.getElementById('preview-quiz-questions');
+                    container.innerHTML = '';
+
+                    const list = q.questions || [];
+                    document.getElementById('preview-quiz-count').textContent = list.length;
+
+                    if (list.length === 0) {
+                        container.innerHTML = `<div class="text-center text-muted py-4">Chưa có câu hỏi nào trong đề.</div>`;
+                    } else {
+                        container.innerHTML = list.map((item, idx) => {
+                            let ansHtml = '';
+                            if (item.answers && item.answers.length > 0) {
+                                ansHtml = item.answers.map((a, i) => `
+                                    <div class="p-2 border rounded mb-2 d-flex align-items-center justify-content-between ${a.isCorrect ? 'bg-success bg-opacity-10 text-success fw-bold' : 'bg-light text-muted'}" style="border-radius:10px; font-size:0.95rem; border:1px solid #e2e8f0 !important;">
+                                        <span>${String.fromCharCode(65 + i)}. ${esc(a.text || '')}</span>
+                                        ${a.isCorrect ? '<i class="bi bi-check-circle-fill ms-2 text-success"></i>' : ''}
+                                    </div>`).join('');
+                            } else {
+                                ansHtml = `<p class="text-muted small">Không có đáp án.</p>`;
+                            }
+
+                            return `<div class="p-3 border rounded-3 bg-white mb-3" style="border-color:#e2e8f0;">
+                                <div class="fw-bold mb-2" style="color: #1e1b4b;">Câu ${idx + 1}: ${esc(item.text || '')}</div>
+                                <div>${ansHtml}</div>
+                            </div>`;
+                        }).join('');
+                    }
+
+                    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('previewQuizModal'));
+                    modal.show();
+                }
+            } catch (err) {
+                console.error('Lỗi tải đề thi', err);
+            }
+        }
+
         function showToast(msg, type = 'ok') {
             const w = document.getElementById('toastWrap');
             const t = document.createElement('div');
@@ -1673,6 +1711,7 @@
             });
         }
     </script>
+    <div th:replace="~{fragments/quiz-preview :: quiz-preview-modal}"></div>
     <div th:replace="~{layout/header :: changePasswordModal}"></div>
     <script th:replace="~{layout/header :: change-password-script}"></script>
 </body>

@@ -33,4 +33,8 @@ public class QuizTaking {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_id")
     Quiz quiz;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigning_id")
+    QuizAssigning quizAssigning;
 }

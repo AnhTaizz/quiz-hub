@@ -51,6 +51,9 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
         if(quizAssigning.getAnswerShuffled() == null){
             quizAssigning.setAnswerShuffled(false);
         }
+        if(quizAssigning.getShowAnswer() == null){
+            quizAssigning.setShowAnswer(true);
+        }
 
         quizAssigning.setClassroom(classroom);
         quizAssigning.setQuiz(quiz);

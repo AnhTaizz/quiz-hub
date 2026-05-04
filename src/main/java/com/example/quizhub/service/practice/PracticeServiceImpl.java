@@ -3,6 +3,7 @@ package com.example.quizhub.service.practice;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -15,12 +16,14 @@ import com.example.quizhub.dto.practice.PracticeDetailResponseDTO;
 import com.example.quizhub.dto.practice.PracticeQuestionResponseDTO;
 import com.example.quizhub.dto.practice.PracticeResultResponseDTO;
 import com.example.quizhub.dto.practice.PracticeStartRequestDTO;
+import com.example.quizhub.dto.practice.PracticeStartResponseDTO;
 import com.example.quizhub.dto.practice.PracticeSubmitRequestDTO;
 import com.example.quizhub.entity.Answer;
 import com.example.quizhub.entity.Category;
 import com.example.quizhub.entity.Practice;
 import com.example.quizhub.entity.PracticeDetail;
 import com.example.quizhub.entity.Question;
+import com.example.quizhub.entity.Quiz;
 import com.example.quizhub.entity.User;
 import com.example.quizhub.entity.enums.QuestionStatus;
 import com.example.quizhub.exception.AppException;
@@ -30,6 +33,7 @@ import com.example.quizhub.repository.CategoryRepository;
 import com.example.quizhub.repository.PracticeDetailRepository;
 import com.example.quizhub.repository.PracticeRepository;
 import com.example.quizhub.repository.QuestionRepository;
+import com.example.quizhub.repository.QuizRepository;
 import com.example.quizhub.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -44,6 +48,7 @@ public class PracticeServiceImpl implements PracticeService {
     private final AnswerRepository answerRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+    private final QuizRepository quizRepository;
 
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -242,6 +247,22 @@ public class PracticeServiceImpl implements PracticeService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<com.example.quizhub.dto.practice.PracticeHistoryResponseDTO> getMyPracticeHistory() {
+        User user = getCurrentUser();
+        List<Practice> practices = practiceRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+
+        return practices.stream().map(p -> com.example.quizhub.dto.practice.PracticeHistoryResponseDTO.builder()
+                .id(p.getId())
+                .categoryId(p.getCategory() != null ? p.getCategory().getId() : null)
+                .categoryName(p.getCategory() != null ? p.getCategory().getName() : "Đề thi cá nhân")
+                .totalQuestions(p.getTotalQuestions())
+                .correctAnswers(p.getCorrectAnswers())
+                .createdAt(p.getCreatedAt())
+                .build()).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public PracticeResultResponseDTO getPracticeDetail(Long practiceId) {
         User user = getCurrentUser();
         Practice practice = practiceRepository.findById(practiceId)
@@ -277,6 +298,40 @@ public class PracticeServiceImpl implements PracticeService {
                         .setScale(1, java.math.RoundingMode.HALF_UP))
                 .createdAt(practice.getCreatedAt())
                 .details(details)
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PracticeStartResponseDTO startPracticeFromQuiz(String quizId) {
+        Quiz quiz = quizRepository.findById(UUID.fromString(quizId))
+                .orElseThrow(() -> new AppException(ErrorCode.QUIZ_NOT_FOUND));
+
+        List<Question> questions = quiz.getQuestions();
+
+        if (questions.isEmpty()) {
+            throw new AppException(ErrorCode.QUESTION_NOT_FOUND);
+        }
+
+        List<PracticeQuestionResponseDTO> questionDTOs = questions.stream().map(q -> {
+            List<PracticeAnswerResponseDTO> answers = q.getAnswers().stream()
+                    .map(a -> new PracticeAnswerResponseDTO(a.getId(), a.getText(), a.getIsCorrect()))
+                    .collect(Collectors.toList());
+
+            return PracticeQuestionResponseDTO.builder()
+                    .id(q.getId())
+                    .text(q.getText())
+                    .type(q.getType())
+                    .level(q.getLevel())
+                    .answers(answers)
+                    .build();
+        }).collect(Collectors.toList());
+
+        return com.example.quizhub.dto.practice.PracticeStartResponseDTO.builder()
+                .questions(questionDTOs)
+                .categoryId(quiz.getCategory() != null ? quiz.getCategory().getId() : null)
+                .categoryName(quiz.getCategory() != null ? quiz.getCategory().getName() : "Đề thi cá nhân")
+                .quizTitle(quiz.getTitle())
                 .build();
     }
 }

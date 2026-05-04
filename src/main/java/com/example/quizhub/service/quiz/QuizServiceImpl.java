@@ -34,6 +34,8 @@ public class QuizServiceImpl implements QuizService {
     private final CategoryRepository categoryRepository;
     private final QuizMapper quizMapper;
     private final QuestionRepository questionRepository;
+    private final com.example.quizhub.repository.QuizTakingRepository quizTakingRepository;
+    private final com.example.quizhub.repository.AttemptRepository attemptRepository;
 
     // Helper
 
@@ -126,12 +128,36 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public List<QuizSummaryDTO> getMyQuizzesByCategoryId(Long categoryId) {
-        Long creatorId = getCurrentUser().getId();
+        User user = getCurrentUser();
         return quizRepository
-                .findByCategoryIdAndCreatorId(categoryId, creatorId)
+                .findByCategoryIdAndCreatorId(categoryId, user.getId())
                 .stream()
-                .map(QuizSummaryDTO::new)
+                .map(q -> mapToSummaryDTO(q, user))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<QuizSummaryDTO> getMyQuizzes() {
+        User user = getCurrentUser();
+        return quizRepository
+                .findByCreatorIdAndIsEnableTrue(user.getId())
+                .stream()
+                .map(q -> mapToSummaryDTO(q, user))
+                .collect(Collectors.toList());
+    }
+
+    private QuizSummaryDTO mapToSummaryDTO(Quiz quiz, User user) {
+        QuizSummaryDTO dto = new QuizSummaryDTO(quiz);
+        
+        // Find personal taking info (where quizAssigning is null)
+        quizTakingRepository.findByLearnerIdAndQuizIdAndQuizAssigningIsNull(user.getId(), quiz.getId())
+                .stream().findFirst().ifPresent(qt -> {
+                    dto.setTakingStatus(qt.getStatus().name());
+                    long attempts = attemptRepository.countByQuizTakingIdAndEndedAtIsNotNull(qt.getId());
+                    dto.setAttemptInfo("Lần làm: " + attempts);
+                });
+        
+        return dto;
     }
 
     @Override

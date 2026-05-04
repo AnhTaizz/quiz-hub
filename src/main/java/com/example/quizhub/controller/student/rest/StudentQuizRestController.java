@@ -4,8 +4,11 @@ import java.security.Principal;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,6 +31,35 @@ public class StudentQuizRestController {
 
     private final QuizTakingService quizTakingService;
     private final UserRepository userRepository;
+    private final com.example.quizhub.service.quiz.QuizService quizService;
+
+    @GetMapping("/mine")
+    public ResponseEntity<java.util.List<com.example.quizhub.dto.quiz.QuizSummaryDTO>> getMyQuizzes() {
+        return ResponseEntity.ok(quizService.getMyQuizzes());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<com.example.quizhub.dto.quiz.QuizResponseDTO> getQuiz(@PathVariable String id) {
+        return ResponseEntity.ok(quizService.getQuizById(id));
+    }
+
+    @PostMapping
+    public ResponseEntity<com.example.quizhub.dto.quiz.QuizResponseDTO> createQuiz(@RequestBody @jakarta.validation.Valid com.example.quizhub.dto.quiz.QuizRequestDTO request) {
+        return ResponseEntity.status(org.springframework.http.HttpStatus.CREATED).body(quizService.createNewQuiz(request));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<com.example.quizhub.dto.quiz.QuizResponseDTO> updateQuiz(
+            @PathVariable String id,
+            @RequestBody @jakarta.validation.Valid com.example.quizhub.dto.quiz.QuizRequestDTO request) {
+        return ResponseEntity.ok(quizService.updateQuiz(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteQuiz(@PathVariable String id) {
+        quizService.deleteQuiz(id);
+        return ResponseEntity.noContent().build();
+    }
 
     @GetMapping("/start")
     public ResponseEntity<QuizTakingResponseDTO> startQuiz(Principal principal, @RequestParam Long assigningId) {
@@ -61,5 +93,23 @@ public class StudentQuizRestController {
     public ResponseEntity<com.example.quizhub.dto.quiztaking.response.QuizResultResponseDTO> getQuizResult(Principal principal, @RequestParam Long attemptId) {
         User user = userRepository.findByEmail(principal.getName()).orElseThrow();
         return ResponseEntity.ok(quizTakingService.getQuizResult(user.getId(), attemptId));
+    }
+
+    @GetMapping("/start-personal")
+    public ResponseEntity<QuizTakingResponseDTO> startPersonalQuiz(Principal principal, @RequestParam String quizId) {
+        User user = userRepository.findByEmail(principal.getName()).orElseThrow();
+        return ResponseEntity.ok(quizTakingService.startPersonalQuizAttempt(user.getId(), quizId));
+    }
+
+    @GetMapping("/history-quiz")
+    public ResponseEntity<java.util.List<com.example.quizhub.dto.quiztaking.response.QuizAttemptSummaryDTO>> getQuizHistory(Principal principal, @RequestParam String quizId) {
+        User user = userRepository.findByEmail(principal.getName()).orElseThrow();
+        return ResponseEntity.ok(quizTakingService.getQuizAttempts(user.getId(), quizId));
+    }
+
+    @GetMapping("/resume")
+    public ResponseEntity<QuizTakingResponseDTO> getQuizState(Principal principal, @RequestParam Long attemptId) {
+        User user = userRepository.findByEmail(principal.getName()).orElseThrow();
+        return ResponseEntity.ok(quizTakingService.getQuizTakingState(user.getId(), attemptId));
     }
 }

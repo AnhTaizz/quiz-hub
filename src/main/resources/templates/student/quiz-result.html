@@ -308,8 +308,18 @@
         function renderSummary(data) {
             document.getElementById('scoreValue').textContent = data.score.toFixed(1);
             document.getElementById('quizTitle').textContent = data.quizTitle;
-            document.getElementById('correctCount').textContent = data.correctNum;
-            document.getElementById('incorrectCount').textContent = data.incorrectNum;
+            
+            if (data.correctNum !== null) {
+                document.getElementById('correctCount').textContent = data.correctNum;
+            } else {
+                document.getElementById('correctCount').parentElement.style.display = 'none';
+            }
+
+            if (data.incorrectNum !== null) {
+                document.getElementById('incorrectCount').textContent = data.incorrectNum;
+            } else {
+                document.getElementById('incorrectCount').parentElement.style.display = 'none';
+            }
 
             const start = new Date(data.startedAt);
             const end = new Date(data.endedAt);
@@ -327,27 +337,40 @@
                 const card = document.createElement('div');
                 card.className = 'q-result-card';
                 
-                const badge = q.correct ? 
-                    '<span class="q-badge badge-correct"><i class="bi bi-check-circle-fill me-1"></i>Chính xác</span>' : 
-                    '<span class="q-badge badge-wrong"><i class="bi bi-x-circle-fill me-1"></i>Chưa chính xác</span>';
+                // If isCorrect is null, teacher has disabled showing answers
+                const canShowResult = q.isCorrect !== null;
+                
+                let badge = '';
+                if (canShowResult) {
+                    badge = q.isCorrect ? 
+                        '<span class="q-badge badge-correct"><i class="bi bi-check-circle-fill me-1"></i>Chính xác</span>' : 
+                        '<span class="q-badge badge-wrong"><i class="bi bi-x-circle-fill me-1"></i>Chưa chính xác</span>';
+                } else {
+                    badge = '<span class="q-badge bg-light text-secondary"><i class="bi bi-info-circle-fill me-1"></i>Đã ghi nhận</span>';
+                }
 
                 let answersHtml = '';
                 q.answers.forEach((ans, i) => {
                     const isSelected = q.selectedAnswerIds.includes(ans.answerId);
-                    const isCorrect = ans.correct;
+                    const isCorrect = ans.isCorrect;
                     
                     let statusClass = '';
                     let iconClass = 'icon-none';
                     let icon = String.fromCharCode(65 + i);
 
-                    if (isCorrect) {
-                        statusClass = 'correct';
-                        iconClass = 'icon-correct';
-                        icon = '<i class="bi bi-check-lg"></i>';
-                    } else if (isSelected && !isCorrect) {
-                        statusClass = 'selected-wrong';
-                        iconClass = 'icon-wrong';
-                        icon = '<i class="bi bi-x-lg"></i>';
+                    if (canShowResult) {
+                        if (isCorrect) {
+                            statusClass = 'correct';
+                            iconClass = 'icon-correct';
+                            icon = '<i class="bi bi-check-lg"></i>';
+                        } else if (isSelected && !isCorrect) {
+                            statusClass = 'selected-wrong';
+                            iconClass = 'icon-wrong';
+                            icon = '<i class="bi bi-x-lg"></i>';
+                        }
+                    } else if (isSelected) {
+                        statusClass = 'bg-light border-primary';
+                        iconClass = 'bg-primary text-white';
                     }
 
                     answersHtml += `

@@ -26,6 +26,31 @@ import lombok.RequiredArgsConstructor;
 public class TeacherClassroomController {
 
     private final ClassroomService classroomService;
+    private final com.example.quizhub.repository.ClassroomRepository classroomRepository;
+    private final com.example.quizhub.repository.UserRepository userRepository;
+    private final com.example.quizhub.repository.ClassJoiningRepository classJoiningRepository;
+    private final com.example.quizhub.repository.QuizTakingRepository quizTakingRepository;
+    private final com.example.quizhub.repository.AttemptRepository attemptRepository;
+    private final com.example.quizhub.repository.QuizAssigningRepository quizAssigningRepository;
+
+    @GetMapping
+    public ResponseEntity<List<ClassroomResponseDTO>> getMyClassrooms(Principal principal) {
+        com.example.quizhub.entity.User user = userRepository.findByEmail(principal.getName()).orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(401).build();
+        }
+        List<ClassroomResponseDTO> list = classroomRepository.findByCreatorId(user.getId()).stream()
+            .map(c -> ClassroomResponseDTO.builder()
+                .id(c.getId())
+                .name(c.getName())
+                .description(c.getDescription())
+                .code(c.getCode())
+                .teacherName(user.getFullName())
+                .createdAt(c.getCreatedAt())
+                .build())
+            .toList();
+        return ResponseEntity.ok(list);
+    }
 
     @PostMapping
     public ResponseEntity<ClassroomResponseDTO> createClassroom(
@@ -50,5 +75,73 @@ public class TeacherClassroomController {
 
         classroomService.removeStudentFromClass(classroomId, studentId, principal.getName());
         return ResponseEntity.ok("Đã kích học sinh khỏi lớp!");
+    }
+
+    @GetMapping("/assigned-quizzes/{assigningId}/grades")
+    public ResponseEntity<List<com.example.quizhub.dto.classroom.response.GradeResponseDTO>> getGradesByAssignment(
+            Principal principal,
+            @PathVariable Long assigningId) {
+        
+        com.example.quizhub.entity.QuizAssigning assigning = quizAssigningRepository.findById(assigningId)
+                .orElseThrow(() -> new RuntimeException("Assignment not found"));
+        
+        List<com.example.quizhub.entity.ClassJoining> members = classJoiningRepository.findByClassroomIdAndStatus(
+                assigning.getClassroom().getId(), com.example.quizhub.entity.JoinStatus.APPROVED);
+        
+        List<com.example.quizhub.dto.classroom.response.GradeResponseDTO> list = members.stream().map(cj -> {
+            com.example.quizhub.entity.User student = cj.getLearner();
+            List<com.example.quizhub.entity.QuizTaking> takings = quizTakingRepository.findByLearnerIdAndQuizAssigningId(
+                    student.getId(), assigningId);
+            
+            java.math.BigDecimal highestScore = null;
+            int attemptCount = 0;
+            String status = "Chưa bắt đầu";
+            
+            if (!takings.isEmpty()) {
+                com.example.quizhub.entity.QuizTaking taking = takings.get(0);
+                if (taking.getStatus() == com.example.quizhub.entity.enums.TakingStatus.IN_PROGRESS) {
+                    status = "Đang làm bài";
+                } else if (taking.getStatus() == com.example.quizhub.entity.enums.TakingStatus.COMPLETED) {
+                    status = "Đã nộp bài";
+                }
+                
+                List<com.example.quizhub.entity.Attempt> attempts = attemptRepository.findByQuizTakingId(taking.getId());
+                attemptCount = attempts.size();
+                for (com.example.quizhub.entity.Attempt att : attempts) {
+                    if (att.getResult() != null) {
+                        if (highestScore == null || att.getResult().compareTo(highestScore) > 0) {
+                            highestScore = att.getResult();
+                        }
+                    }
+                }
+            }
+            
+            return com.example.quizhub.dto.classroom.response.GradeResponseDTO.builder()
+                    .studentId(student.getId())
+                    .fullName(student.getFullName())
+                    .email(student.getEmail())
+                    .highestScore(highestScore)
+                    .attemptCount(attemptCount)
+                    .status(status)
+                    .build();
+        }).toList();
+        
+        return ResponseEntity.ok(list);
+    }
+
+    @org.springframework.web.bind.annotation.PutMapping("/{classroomId}")
+    public ResponseEntity<com.example.quizhub.dto.classroom.response.ClassroomResponseDTO> updateClassroom(
+            Principal principal,
+            @PathVariable Long classroomId,
+            @RequestBody @jakarta.validation.Valid com.example.quizhub.dto.classroom.request.ClassroomRequestDTO request) {
+        return ResponseEntity.ok(classroomService.updateClassroom(classroomId, request, principal.getName()));
+    }
+
+    @org.springframework.web.bind.annotation.DeleteMapping("/{classroomId}")
+    public ResponseEntity<Void> deleteClassroom(
+            Principal principal,
+            @PathVariable Long classroomId) {
+        classroomService.deleteClassroom(classroomId, principal.getName());
+        return ResponseEntity.noContent().build();
     }
 }

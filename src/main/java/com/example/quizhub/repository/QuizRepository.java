@@ -12,6 +12,8 @@ public interface QuizRepository extends JpaRepository<Quiz, UUID> {
 
     List<Quiz> findByCreatorId(Long creatorId);
 
+    List<Quiz> findByCreatorIdAndIsEnableTrue(Long creatorId);
+
     List<Quiz> findByIsDraftFalseAndIsEnableTrue();
 
     List<Quiz> findByIsExamTrue();

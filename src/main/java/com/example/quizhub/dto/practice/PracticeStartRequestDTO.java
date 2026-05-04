@@ -16,7 +16,7 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PracticeStartRequestDTO {
-    
+
     @NotNull(message = "Category ID is required")
     Long categoryId;
 
