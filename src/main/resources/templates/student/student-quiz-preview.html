@@ -23,7 +23,7 @@
     </style>
 </head>
 <body>
-    <header th:replace="~{layout/header :: student-header}"></header>
+    <header th:replace="~{layout/header :: student-header(activePage='myqbank')}"></header>
 
     <main class="container py-4" style="margin-top: 80px;">
         <input type="hidden" id="quizIdInput" th:value="${quizId}">
@@ -73,7 +73,7 @@
         async function loadQuizDetails() {
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             try {
-                const res = await fetch(`/api/student/quizzes/${quizId}`, {
+                const res = await fetch(`/api/student/quiz/${quizId}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (res.ok) {

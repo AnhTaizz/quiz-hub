@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.quizhub.dto.practice.PracticeQuestionResponseDTO;
 import com.example.quizhub.dto.practice.PracticeResultResponseDTO;
 import com.example.quizhub.dto.practice.PracticeStartRequestDTO;
+import com.example.quizhub.dto.practice.PracticeStartResponseDTO;
 import com.example.quizhub.dto.practice.PracticeSubmitRequestDTO;
 import com.example.quizhub.service.practice.PracticeService;
 
@@ -53,12 +54,20 @@ public class StudentPracticeRestController {
 
     @GetMapping("/history")
     public ResponseEntity<List<com.example.quizhub.dto.practice.PracticeHistoryResponseDTO>> getPracticeHistory(
-            @RequestParam("categoryId") Long categoryId) {
-        return ResponseEntity.ok(practiceService.getPracticeHistory(categoryId));
+            @RequestParam(value = "categoryId", required = false) Long categoryId) {
+        if (categoryId != null) {
+            return ResponseEntity.ok(practiceService.getPracticeHistory(categoryId));
+        }
+        return ResponseEntity.ok(practiceService.getMyPracticeHistory());
     }
 
     @GetMapping("/history/detail")
     public ResponseEntity<PracticeResultResponseDTO> getPracticeDetail(@RequestParam("id") Long id) {
         return ResponseEntity.ok(practiceService.getPracticeDetail(id));
+    }
+
+    @GetMapping("/start-quiz")
+    public ResponseEntity<PracticeStartResponseDTO> startPracticeFromQuiz(@RequestParam("quizId") String quizId) {
+        return ResponseEntity.ok(practiceService.startPracticeFromQuiz(quizId));
     }
 }

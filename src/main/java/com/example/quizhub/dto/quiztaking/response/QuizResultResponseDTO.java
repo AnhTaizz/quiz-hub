@@ -17,8 +17,8 @@ public class QuizResultResponseDTO {
     private Long attemptId;
     private String quizTitle;
     private BigDecimal score;
-    private int correctNum;
-    private int incorrectNum;
+    private Integer correctNum;
+    private Integer incorrectNum;
     private int totalNum;
     private LocalDateTime startedAt;
     private LocalDateTime endedAt;
@@ -36,8 +36,7 @@ public class QuizResultResponseDTO {
         private List<AnswerResultDTO> answers;
         private List<Long> selectedAnswerIds;
         private String selectedText;
-        @com.fasterxml.jackson.annotation.JsonProperty("isCorrect")
-        private boolean isCorrect;
+        private Boolean isCorrect;
     }
 
     @Data
@@ -47,7 +46,6 @@ public class QuizResultResponseDTO {
     public static class AnswerResultDTO {
         private Long answerId;
         private String text;
-        @com.fasterxml.jackson.annotation.JsonProperty("isCorrect")
-        private boolean isCorrect;
+        private Boolean isCorrect;
     }
 }

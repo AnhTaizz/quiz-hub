@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>QuizHub | Danh mục cá nhân</title>
+    <title>Thư Viện Học Tập | QuizHub</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,1244 +15,338 @@
     <link rel="stylesheet" th:href="@{/css/dashboard-layout.css}">
 
     <style>
-        /* ══════════════════════════════════════════════
-           FILE EXPLORER LAYOUT
-        ══════════════════════════════════════════════ */
-        .explorer-shell { display: flex; min-height: calc(100vh - 120px); border-radius: 20px; border: 1px solid #e2e8f0; background: #fff; overflow: hidden; box-shadow: 0 4px 30px rgba(0,0,0,0.05); }
-
-        /* ── Tree Panel (left) ── */
-        .tree-panel { width: 280px; min-width: 220px; border-right: 1px solid #f1f5f9; display: flex; flex-direction: column; background: #fafafa; flex-shrink: 0; }
-        .tree-header { padding: 18px 16px 10px; border-bottom: 1px solid #f1f5f9; }
-        .tree-header-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; margin: 0; }
-        .tree-scroll { flex: 1; padding: 8px; }
-        .tree-scroll::-webkit-scrollbar { width: 4px; }
-        .tree-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
-
-        .tree-node { user-select: none; }
-        .tree-row { display: flex; align-items: center; gap: 6px; padding: 7px 10px; border-radius: 10px; cursor: pointer; font-size: 0.87rem; font-weight: 600; color: #475569; transition: all 0.15s; border: 1px solid transparent; }
-        .tree-row:hover { background: #f1f5f9; }
-        .tree-row.active { background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; border-color: transparent; box-shadow: 0 3px 12px rgba(79,70,229,0.3); }
-        .tree-row.active .tree-icon, .tree-row.active .tree-arrow { color: rgba(255,255,255,0.8); }
-        .tree-row.active .tree-count { background: rgba(255,255,255,0.2); color: #fff; }
-        .tree-arrow { font-size: 0.7rem; color: #cbd5e1; transition: transform 0.2s; width: 12px; flex-shrink: 0; }
-        .tree-arrow.open { transform: rotate(90deg); }
-        .tree-icon { font-size: 1rem; color: #f59e0b; flex-shrink: 0; }
-        .tree-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .tree-count { font-size: 0.7rem; font-weight: 700; background: #f1f5f9; color: #64748b; padding: 2px 7px; border-radius: 20px; min-width: 22px; text-align: center; }
-        .tree-children { padding-left: 16px; display: none; }
-        .tree-children.open { display: block; }
-
-        /* ── Content Panel (right) ── */
-        .content-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
-        .explorer-toolbar { display: flex; align-items: center; gap: 10px; padding: 12px 20px; border-bottom: 1px solid #f1f5f9; background: #fff; flex-wrap: wrap; }
-        .breadcrumb-nav { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; overflow: hidden; }
-        .bc-item { font-size: 0.85rem; font-weight: 700; color: #94a3b8; cursor: pointer; white-space: nowrap; transition: color 0.15s; }
-        .bc-item:hover { color: #4f46e5; }
-        .bc-item.active { color: #1e1b4b; cursor: default; }
-
-        .bc-sep { color: #cbd5e1; font-size: 0.75rem; position: relative; padding: 0 4px; }
-        .bc-sep-hoverable:hover i { color: #4f46e5; }
-        .bc-dropdown { position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); padding: 6px; z-index: 100; min-width: 180px; display: none; }
-        .bc-dropdown::before { content: ''; position: absolute; top: -5px; left: 50%; transform: translateX(-50%) rotate(45deg); width: 10px; height: 10px; background: #fff; border-left: 1px solid #e2e8f0; border-top: 1px solid #e2e8f0; }
-        .bc-dropdown.show { display: block; animation: dropDownFade 0.2s ease; }
-        @keyframes dropDownFade { from { opacity: 0; transform: translate(-50%, -10px); } to { opacity: 1; transform: translate(-50%, 0); } }
-        .bc-dropdown-item { padding: 8px 12px; font-size: 0.85rem; font-weight: 600; color: #475569; border-radius: 8px; cursor: pointer; transition: all 0.15s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
-        .bc-dropdown-item:hover { background: #f1f5f9; color: #4f46e5; }
-        .bc-dropdown-item.active { background: #e0e7ff; color: #4f46e5; }
-
-        .toolbar-actions { display: flex; gap: 8px; flex-shrink: 0; }
-        .btn-toolbar { display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 10px; font-weight: 700; font-size: 0.82rem; border: none; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
-        .btn-new-folder { background: #ede9fe; color: #7c3aed; }
-        .btn-new-folder:hover { background: #7c3aed; color: #fff; }
-        .btn-new-quiz { background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; }
-        .btn-new-quiz:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(79,70,229,0.35); }
-
-        .content-scroll { flex: 1; padding: 20px; }
-        .content-scroll::-webkit-scrollbar { width: 5px; }
-        .content-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
-
-        /* ── Folder grid (sub-categories) ── */
-        .section-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; margin-bottom: 12px; }
-        .folder-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; margin-bottom: 28px; }
-        .folder-card { display: flex; flex-direction: column; align-items: center; padding: 18px 12px 14px; border-radius: 16px; border: 1px solid #f1f5f9; cursor: pointer; transition: all 0.22s; background: #fafafa; position: relative; text-align: center; gap: 10px; }
-        .folder-card:hover { border-color: #c4b5fd; background: #fff; box-shadow: 0 6px 20px rgba(124,58,237,0.1); transform: translateY(-2px); }
-        .folder-card-icon { font-size: 2.2rem; line-height: 1; }
-        .folder-card-name { font-weight: 700; font-size: 0.85rem; color: #334155; line-height: 1.3; word-break: break-word; }
-        .folder-card-meta { font-size: 0.75rem; color: #94a3b8; font-weight: 600; }
-        .folder-card-actions { display: none; position: absolute; top: 8px; right: 8px; gap: 4px; }
-        .folder-card:hover .folder-card-actions { display: flex; }
-        .folder-act-btn { width: 26px; height: 26px; border-radius: 8px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; transition: all 0.15s; }
-        .folder-act-btn.edit { background: #dbeafe; color: #2563eb; }
-        .folder-act-btn.edit:hover { background: #2563eb; color: #fff; }
-        .folder-act-btn.del { background: #fee2e2; color: #dc2626; }
-        .folder-act-btn.del:hover { background: #dc2626; color: #fff; }
-
-        /* ── Quiz cards ── */
-        .quiz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 16px; }
-        .quiz-card { border-radius: 16px; border: 1px solid #e2e8f0; padding: 18px; background: #fff; transition: all 0.25s; display: flex; flex-direction: column; position: relative; overflow: hidden; }
-        .quiz-card::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #4f46e5, #7c3aed); opacity: 0; transition: opacity 0.2s; }
-        .quiz-card:hover { box-shadow: 0 10px 30px rgba(0,0,0,0.07); border-color: #c4b5fd; transform: translateY(-2px); }
-        .quiz-card:hover::after { opacity: 1; }
-        .quiz-badge-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
-        .qbadge { font-size: 0.7rem; font-weight: 700; padding: 3px 9px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; }
-        .qbadge-exam { background: #fef3c7; color: #d97706; }
-        .qbadge-quiz { background: #dbeafe; color: #1d4ed8; }
-        .qbadge-draft { background: #f1f5f9; color: #94a3b8; }
-        .qbadge-pub { background: #dcfce7; color: #15803d; }
-        .quiz-title { font-family: 'Nunito Sans', sans-serif; font-weight: 800; font-size: 1rem; color: #1e1b4b; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .quiz-desc { font-size: 0.82rem; color: #64748b; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; flex: 1; }
-        .quiz-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 14px; }
-        .chip { font-size: 0.75rem; font-weight: 600; background: #f8fafc; border: 1px solid #e2e8f0; padding: 3px 9px; border-radius: 8px; display: inline-flex; align-items: center; gap: 4px; color: #64748b; }
-        .btn-start { width: 100%; padding: 10px; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; border: none; border-radius: 12px; font-weight: 700; font-size: 0.88rem; display: flex; align-items: center; justify-content: center; gap: 7px; cursor: pointer; transition: all 0.2s; margin-top: auto; }
-        .btn-start:hover { opacity: 0.88; box-shadow: 0 6px 18px rgba(79,70,229,0.3); }
-        .quiz-owner-actions { display: flex; gap: 8px; margin-top: 10px; }
-        .qact-btn { flex: 1; padding: 7px 8px; border-radius: 10px; font-weight: 600; font-size: 0.78rem; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.2s; text-decoration: none; }
-        .qact-edit { background: #eff6ff; color: #2563eb; }
-        .qact-edit:hover { background: #2563eb; color: #fff; }
-        .qact-del { background: #fef2f2; color: #dc2626; flex: 0 0 36px; }
-        .qact-del:hover { background: #dc2626; color: #fff; }
-
-        /* ── Empty states ── */
-        .empty-root {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100%; gap: 15px; color: #94a3b8; text-align: center; padding: 40px 20px;
+        :root {
+            --primary-gradient: linear-gradient(135deg, #4338ca, #6366f1);
+            --sidebar-width: 320px;
+            --border-color: #e2e8f0;
+            --bg-light: #f8fafc;
         }
-        .empty-root-icon {
-            width: 80px; height: 80px; border-radius: 50%; background: #f8fafc;
-            display: flex; align-items: center; justify-content: center; font-size: 2.5rem;
-            color: #818cf8; margin-bottom: 5px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+
+        body { background: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
+
+        .explorer-container { display: flex; height: calc(100vh - 70px); margin-top: 70px; }
+
+        /* Sidebar Tree */
+        .explorer-sidebar { width: var(--sidebar-width); background: var(--bg-light); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border-color); background: #fff; }
+        .tree-container { flex: 1; overflow-y: auto; padding: 15px; }
+
+        .tree-node {
+            padding: 10px 14px; border-radius: 12px; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; gap: 10px; margin-bottom: 4px;
+            color: #475569; font-weight: 600; font-size: 0.92rem; position: relative;
         }
-        .empty-root h3 { font-family: 'Nunito Sans', sans-serif; font-weight: 800; color: #1e293b; margin: 0; font-size: 1.3rem; }
-        .empty-root p { margin: 0; font-size: 0.95rem; max-width: 400px; line-height: 1.5; }
-        .skeleton { animation: shimmer 1.5s infinite; background: linear-gradient(90deg,#f4f4f4 25%,#eaeaea 50%,#f4f4f4 75%); background-size:200% 100%; border-radius:12px; }
-        @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+        .tree-node:hover { background: #fff; color: #4338ca; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        .tree-node.active { background: #eef2ff; color: #4338ca; box-shadow: inset 0 0 0 1px #c7d2fe; }
+        .tree-node i.folder-icon { color: #f59e0b; font-size: 1.2rem; }
+        .btn-add-sub { position: absolute; right: 12px; opacity: 0; transition: 0.2s; color: #4338ca; }
+        .tree-node:hover .btn-add-sub { opacity: 1; }
 
-        /* ── Modals ── */
-        .modal-content { border-radius: 20px; border: none; box-shadow: 0 20px 50px rgba(0,0,0,0.12); }
-        .modal-hdr { font-family: 'Nunito Sans', sans-serif; font-weight: 900; color: #1e1b4b; }
-        .fc { border-radius: 12px; border: 1.5px solid #e2e8f0; padding: 10px 14px; font-size: 0.92rem; transition: border-color 0.2s; }
-        .fc:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124,58,237,0.1); }
-        .btn-submit { background: linear-gradient(135deg,#4f46e5,#7c3aed); color:#fff; border:none; padding:10px 24px; border-radius:12px; font-weight:700; }
-        .btn-submit:hover { opacity:0.88; color:#fff; }
+        /* Content Area */
+        .explorer-content { flex: 1; overflow-y: auto; padding: 35px 50px; background: #fff; }
+        .content-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; border-bottom: 1px solid #f1f5f9; padding-bottom: 25px; }
+        .folder-title { font-family: 'Nunito Sans', sans-serif; font-weight: 900; font-size: 2.2rem; color: #1e1b4b; margin: 0; }
 
-        /* Toast */
-        #toastWrap { position:fixed; top:22px; right:22px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
-        .toast-msg { background:#1e1b4b; color:#fff; border-radius:14px; padding:12px 18px; font-weight:600; font-size:0.88rem; display:flex; align-items:center; gap:9px; box-shadow:0 8px 24px rgba(0,0,0,0.18); opacity:0; transform:translateX(16px); transition:all 0.3s ease; pointer-events:none; }
-        .toast-msg.show { opacity:1; transform:translateX(0); }
-        .toast-msg.ok i { color:#4ade80; }
-        .toast-msg.err i { color:#fb7185; }
+        /* Toggle Buttons on the Right */
+        .header-actions-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 15px; }
+        .context-toggle { display: flex; background: #f1f5f9; padding: 4px; border-radius: 12px; gap: 2px; }
+        .tab-btn { padding: 7px 18px; border-radius: 9px; font-weight: 700; font-size: 0.82rem; border: none; cursor: pointer; transition: 0.2s; color: #64748b; background: transparent; }
+        .tab-btn.active { background: #fff; color: #4338ca; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
 
-        /* Resize handle */
-        .resize-handle { width: 4px; cursor: col-resize; background: transparent; transition: background 0.2s; flex-shrink: 0; }
-        .resize-handle:hover { background: #c4b5fd; }
+        /* ULTRA PREMIUM QUIZ CARD */
+        .quiz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 30px; }
+        .up-card {
+            background: #fff; border-radius: 28px; border: 1px solid #eef2ff; overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; flex-direction: column; position: relative;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.04);
+        }
+        .up-card:hover { transform: translateY(-10px); box-shadow: 0 25px 50px -12px rgba(67, 56, 202, 0.12); border-color: #c7d2fe; }
+        
+        .up-card-banner {
+            height: 160px; background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            display: flex; align-items: center; justify-content: center; position: relative;
+        }
+        .up-card-banner i { font-size: 4.5rem; color: #e2e8f0; transition: 0.3s; }
+        .up-card:hover .up-card-banner i { color: #6366f1; transform: scale(1.1) rotate(-5deg); }
+        
+        .up-badge {
+            position: absolute; top: 15px; left: 15px; padding: 6px 14px; border-radius: 12px;
+            font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .badge-quiz { background: #fff; color: #4338ca; }
+        .badge-exam { background: #fef3c7; color: #d97706; }
 
-        /* ══ Inline tree action buttons (VS Code style) ══ */
-        .tree-row-actions { display: none; align-items: center; gap: 3px; flex-shrink: 0; margin-left: 2px; }
-        .tree-row:hover .tree-row-actions { display: flex; }
-        .tree-row.active .tree-row-actions { display: flex; }
-        .tree-act-btn { width: 22px; height: 22px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; background: rgba(255,255,255,0.15); color: inherit; transition: background 0.15s; flex-shrink: 0; }
-        .tree-row:not(.active) .tree-act-btn { background: #ede9fe; color: #7c3aed; }
-        .tree-row:not(.active) .tree-act-btn:hover { background: #4338ca; color: #fff; }
-        .tree-row.active .tree-act-btn:hover { background: rgba(255,255,255,0.3); }
-        .tree-row:hover .tree-count { display: none; }
-        .tree-row.active .tree-count { display: none; }
+        .up-card-body { padding: 25px; flex: 1; }
+        .up-q-title { font-weight: 800; font-size: 1.3rem; color: #0f172a; margin-bottom: 12px; line-height: 1.3; }
+        .up-q-meta { display: flex; gap: 20px; color: #64748b; font-size: 0.85rem; font-weight: 600; margin-bottom: 20px; }
 
-        /* Drag and Drop */
-        .tree-row.dragging { opacity: 0.5; }
-        .tree-row.drag-over { border: 1px dashed #4338ca !important; background: #e0e7ff !important; }
-        .tree-hdr.drag-over { background: #e0e7ff; }
+        .up-card-actions {
+            display: grid; grid-template-columns: 1fr 45px 45px; gap: 10px;
+            padding: 0 25px 25px;
+        }
+        .btn-play-up {
+            background: var(--primary-gradient); color: #fff; border-radius: 14px; border: none;
+            font-weight: 800; font-size: 0.9rem; padding: 12px; transition: 0.3s;
+            box-shadow: 0 8px 20px -6px rgba(67, 56, 202, 0.4);
+        }
+        .btn-play-up:hover { transform: scale(1.03); opacity: 0.95; }
+        .btn-opt-up {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px;
+            color: #64748b; display: flex; align-items: center; justify-content: center; transition: 0.2s;
+        }
+        .btn-opt-up:hover { border-color: #4338ca; color: #4338ca; background: #fff; }
 
-        /* Answer formatting for question creation */
-        .answer-row { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 12px; transition: all 0.2s ease; background: #fff; margin-bottom: 8px; }
-        .answer-row:hover { border-color: #cbd5e1; }
-        .answer-row.correct-ans { border-color: #10b981; background: #f0fdf4; }
-        .ans-input { flex: 1; border: none; background: transparent; font-size: 0.92rem; outline: none; font-weight: 600; color: #1e293b; }
-        .ans-toggle { width: 20px; height: 20px; accent-color: #10b981; cursor: pointer; flex-shrink: 0; }
+        /* Question List View */
+        .q-item-up {
+            background: #fff; border: 1px solid #f1f5f9; border-radius: 20px; padding: 22px 30px;
+            margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;
+            transition: 0.3s;
+        }
+        .q-item-up:hover { border-color: #c7d2fe; box-shadow: 0 10px 25px rgba(0,0,0,0.03); }
 
-        .qbadge-type { background: #e0e7ff; color: #4338ca; }
-        .qbadge-level { background: #ede9fe; color: #7c3aed; }
-        .qbadge-cat { background: #f1f5f9; color: #475569; }
-        .question-card { border-radius: 16px; border: 1px solid #e2e8f0; padding: 18px; background: #fff; transition: all 0.25s; display: flex; flex-direction: column; position: relative; overflow: hidden; margin-bottom: 12px; }
-        .question-card:hover { box-shadow: 0 10px 30px rgba(0,0,0,0.05); border-color: #c4b5fd; transform: translateY(-2px); }
-        .question-actions { display: flex; gap: 8px; margin-top: 10px; border-top: 1px solid #f1f5f9; padding-top: 10px; }
+        .btn-premium { background: var(--primary-gradient); color: #fff; font-weight: 800; border-radius: 14px; padding: 12px 26px; border: none; display: inline-flex; align-items: center; gap: 10px; font-size: 0.95rem; text-decoration: none; box-shadow: 0 10px 20px -8px rgba(67, 56, 202, 0.4); }
+        .btn-premium:hover { transform: translateY(-3px); color: #fff; opacity: 0.95; }
     </style>
 </head>
 
 <body>
+    <header th:replace="~{layout/header :: student-header(activePage='myqbank')}"></header>
 
-<header th:replace="~{layout/header :: student-header(activePage='myqbank')}"></header>
-
-<main class="container" style="padding-top: 100px; padding-bottom: 50px;">
-    <!-- Page title bar -->
-    <div class="d-flex align-items-center justify-content-between mb-3" style="padding: 0 4px;">
-        <div>
-            <h1 style="font-family:'Nunito Sans',sans-serif;font-weight:900;font-size:1.8rem;color:#1e1b4b;margin:0;">🗂️ Danh mục cá nhân</h1>
-            <p style="color:#64748b;font-size:0.9rem;margin:2px 0 0;">Quản lý và tổ chức các đề thi của riêng bạn theo thư mục.</p>
-        </div>
-    </div>
-
-    <!-- File Explorer Shell -->
-    <div class="explorer-shell">
-        <!-- Left Tree Panel -->
-        <div class="tree-panel" id="treePanel">
-            <div class="tree-header d-flex align-items-center justify-content-between"
-                 ondragover="handleDragOver(event)"
-                 ondragleave="handleDragLeave(event)"
-                 ondrop="handleDrop(event, null)">
-                <p class="tree-header-title mb-0">Danh mục của tôi</p>
-                <button class="btn btn-sm btn-outline-primary p-1 border-0" title="Thêm danh mục" onclick="openCategoryModal(null)" style="border-radius: 8px;">
-                    <i class="bi bi-plus-square-fill fs-5"></i>
+    <div class="explorer-container">
+        <!-- Sidebar -->
+        <aside class="explorer-sidebar">
+            <div class="sidebar-header">
+                <div class="position-relative">
+                    <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+                    <input type="text" id="treeSearch" class="form-control ps-5" style="border-radius:14px; padding:10px;" placeholder="Tìm nhanh thư mục..." oninput="handleSearchTree()">
+                </div>
+            </div>
+            <div class="tree-container" id="treeRoot"></div>
+            <div class="p-3 border-top bg-white">
+                <button class="btn btn-light w-100 rounded-4 fw-bold p-3" style="border: 1px dashed #cbd5e1;" onclick="openCreateModal(null)">
+                    <i class="bi bi-folder-plus me-2"></i> Thư mục gốc
                 </button>
             </div>
-            <div style="padding: 10px 14px 0px;">
-                <input type="text" id="treeSearchInput" class="form-control" placeholder="Tìm kiếm thư mục..." style="font-size:0.85rem; border-radius:10px; border-color:#e2e8f0; padding:6px 12px;">
-            </div>
-            <div class="tree-scroll" id="treeScroll">
-                <div style="padding:8px;">
-                    <div class="skeleton" style="height:36px;margin-bottom:6px;"></div>
-                    <div class="skeleton" style="height:36px;margin-bottom:6px;opacity:.7;"></div>
-                    <div class="skeleton" style="height:36px;opacity:.4;"></div>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="explorer-content">
+            <div class="content-header">
+                <div>
+                    <div class="small text-muted fw-800 mb-2 ls-1" id="pathText">LIBRARY / DASHBOARD</div>
+                    <h1 class="folder-title" id="currentName">Tất cả kho</h1>
                 </div>
-            </div>
-        </div>
-
-        <!-- Resize handle -->
-        <div class="resize-handle" id="resizeHandle"></div>
-
-        <!-- Right Content Panel -->
-        <div class="content-panel">
-            <div class="explorer-toolbar">
-                <div class="breadcrumb-nav" id="breadcrumb">
-                    <span class="bc-item active" onclick="navigateToRoot()">
-                        <i class="bi bi-house-fill"></i> Gốc
-                    </span>
-                </div>
-                <div class="toolbar-actions" id="toolbarActions" style="display:none;">
-                    <button class="btn-toolbar btn-new-folder" id="btnNewSub" onclick="openCategoryModal(null)">
-                        <i class="bi bi-folder-plus"></i> Thêm thư mục con
-                    </button>
-                    <button class="btn-toolbar btn-new-quiz" id="btnNewQuiz" onclick="openQuizCreate()">
-                        <i class="bi bi-file-earmark-plus"></i> Thêm đề thi
-                    </button>
-                    <button class="btn-toolbar btn-view-questions" id="btnAddQuestion" onclick="openNewQuestionModal()">
-                        <i class="bi bi-plus-lg"></i> Thêm câu hỏi
-                    </button>
-                </div>
-            </div>
-
-            <!-- Content scroll -->
-            <div class="content-scroll" id="contentScroll">
-                <div class="empty-root" id="rootLanding">
-                    <i class="bi bi-folder2-open" style="color:#c4b5fd;"></i>
-                    <h3>Chọn thư mục</h3>
-                    <p>Chọn một thư mục bên trái, hoặc tạo danh mục mới để tổ chức đề thi.</p>
-                </div>
-                <div id="dynamicContent" style="display:none;"></div>
-            </div>
-        </div>
-    </div>
-</main>
-
-<!-- Create/Edit Category Modal -->
-<div class="modal fade" id="catModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0 pt-4 pb-0 px-4">
-                <h5 class="modal-hdr" id="catModalTitle">Tạo danh mục mới</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body px-4 py-3">
-                <input type="hidden" id="catEditId">
-                <input type="hidden" id="catParentId">
-                <div class="mb-3">
-                    <label class="form-label fw-semibold" style="color:#475569;">Tên danh mục <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control fc" id="catNameInput" placeholder="VD: Toán học, Tiếng Anh...">
-                </div>
-                <div class="mb-3">
-                    <label class="form-label fw-semibold" style="color:#475569;">Mô tả</label>
-                    <textarea class="form-control fc" id="catDescInput" rows="2" placeholder="Ghi chú..."></textarea>
-                </div>
-            </div>
-            <div class="modal-footer border-0 pb-4 px-4">
-                <button class="btn btn-light" data-bs-dismiss="modal" style="border-radius:10px;font-weight:600;">Hủy</button>
-                <button class="btn btn-submit" onclick="submitCategory()">Lưu</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Delete Category Confirm Modal -->
-<div class="modal fade" id="delCatModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content text-center p-4">
-            <div style="font-size:2.5rem;margin-bottom:8px;">🗑️</div>
-            <h6 class="fw-bold mb-1">Xóa danh mục?</h6>
-            <p class="text-muted small mb-3">Các danh mục con sẽ bị tách ra khỏi danh mục này. Không thể hoàn tác.</p>
-            <input type="hidden" id="delCatId">
-            <div class="d-flex gap-2">
-                <button class="btn btn-light w-50" data-bs-dismiss="modal" style="border-radius:10px;font-weight:600;">Hủy</button>
-                <button class="btn btn-danger w-50" onclick="confirmDeleteCat()" style="border-radius:10px;">Xóa</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Create/Edit Question Modal for Student -->
-<div class="modal fade" id="questionModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content" style="box-shadow: 0 10px 25px rgba(0,0,0,0.15);">
-            <div class="modal-header border-0 pt-4 pb-0 px-4">
-                <h5 class="modal-hdr" id="questionModalLabel">Soạn câu hỏi mới</h5>
-                <button type="button" class="btn-close" onclick="closeQuestionModal()"></button>
-            </div>
-            <div class="modal-body px-4 py-3">
-                <form id="question-form" onsubmit="event.preventDefault()" autocomplete="off">
-                    <input type="hidden" id="q-id">
-                    <input type="hidden" id="q-category">
-                    <div class="row g-3">
-                        <div class="col-12">
-                            <label class="form-label fw-bold" style="color:#475569;">Nội dung câu hỏi <span class="text-danger">*</span></label>
-                            <textarea id="q-text" class="form-control fc" rows="3" placeholder="Nhập nội dung câu hỏi..." required></textarea>
-                        </div>
-                        <div class="col-md-12">
-                            <label class="form-label fw-bold" style="color:#475569;">Loại câu hỏi <span class="text-danger">*</span></label>
-                            <select id="q-type" class="form-select fc" required onchange="adaptAnswerFormat()">
-                                <option value="SINGLE_CHOICE">Trắc nghiệm 1 đáp án</option>
-                                <option value="MULTIPLE_CHOICE">Trắc nghiệm nhiều đáp án</option>
-                                <option value="FILL_IN_BLANK">Điền khuyết</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6" style="display: none;">
-                            <label class="form-label fw-bold" style="color:#475569;">Độ khó <span class="text-danger">*</span></label>
-                            <select id="q-level" class="form-select fc">
-                                <option value="EASY">Dễ (Easy)</option>
-                                <option value="MEDIUM" selected>Trung bình (Medium)</option>
-                                <option value="HARD">Khó (Hard)</option>
-                            </select>
-                        </div>
-
-                        <div class="col-12 mt-4">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="fw-bold mb-0" style="color:#1e1b4b;"><i class="bi bi-list-check me-2"></i>Các đáp án lựa chọn</h6>
-                                <button type="button" class="btn btn-sm btn-outline-primary fw-bold" onclick="addNewAnswerRow()">
-                                    <i class="bi bi-plus-lg"></i> Thêm đáp án
-                                </button>
-                            </div>
-
-                            <div id="answer-list" class="d-flex flex-column gap-2">
-                                <!-- Answers dynamically loaded via adaptAnswerFormat -->
-                            </div>
-                        </div>
+                <div class="header-actions-wrap">
+                    <div class="action-btns mb-2">
+                        <button class="btn-icon" id="btnEditCat" style="display:none;" onclick="openEditModal()"><i class="bi bi-pencil"></i></button>
+                        <button class="btn-icon text-danger" id="btnDeleteCat" style="display:none;" onclick="deleteFolder()"><i class="bi bi-trash"></i></button>
+                        <a href="/student/quiz/create" id="btnCreateQuiz" class="btn-premium">
+                            <i class="bi bi-magic"></i> Tạo đề thi mới
+                        </a>
                     </div>
-                </form>
+                    <div class="context-toggle">
+                        <button class="tab-btn active" id="tab-quiz" onclick="switchContext('quiz')">Đề thi</button>
+                        <button class="tab-btn" id="tab-question" onclick="switchContext('question')">Câu hỏi</button>
+                    </div>
+                </div>
             </div>
-            <div class="modal-footer border-0 pb-4 px-4">
-                <button type="button" class="btn btn-light" onclick="closeQuestionModal()" style="border-radius:10px; font-weight:600;">Hủy</button>
-                <button type="button" class="btn btn-submit" onclick="saveQuestion()">Lưu câu hỏi</button>
-            </div>
-        </div>
+
+            <div id="contentList" class="mt-2"></div>
+        </main>
     </div>
-</div>
 
-<div id="toastWrap"></div>
+    <!-- Fragments -->
+    <div th:replace="~{fragments/category-explorer :: category-create-modal}"></div>
+    <div th:replace="~{fragments/category-explorer :: category-explorer-private-modal}"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script th:src="@{/js/script.js}"></script>
-<script>
-const CAT_API     = '/api/student/categories/mine';
-const QUIZ_SUFFIX = '/quizzes/mine';
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        let TREE_DATA = [];
+        let ALL_QUIZZES = [];
+        let ALL_QUESTIONS = [];
+        let currentFolderId = null;
+        let currentContext = 'quiz';
 
-let TREE_DATA = [];
-let navStack  = [];
-let expandedNodes = new Set();
-let searchTerm = '';
-let draggedNodeId = null;
-let currentFolderId = null;
-let CURRENT_QUESTIONS = [];
-
-function getPathToNode(nodes, targetId, currentPath = []) {
-    for (const n of nodes) {
-        const path = [...currentPath, { id: n.id, name: n.name }];
-        if (n.id === targetId) return path;
-        if (n.children) {
-            const found = getPathToNode(n.children, targetId, path);
-            if (found) return found;
-        }
-    }
-    return null;
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    initResize();
-    loadTree();
-
-    const searchInput = document.getElementById('treeSearchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', e => {
-            searchTerm = e.target.value.trim().toLowerCase();
-            renderTree(TREE_DATA);
-            restoreTreeState();
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadData();
+            renderSidebarTree();
+            loadFolder(null);
         });
-    }
 
-    document.addEventListener('click', () => {
-        document.querySelectorAll('.bc-dropdown').forEach(d => d.classList.remove('show'));
-    });
-});
-
-async function loadTree() {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    try {
-        const res = await fetch(CAT_API, { headers: { Authorization: 'Bearer ' + token } });
-        if (!res.ok) throw new Error('Lỗi tải danh mục');
-        TREE_DATA = await res.json();
-        renderTree(TREE_DATA);
-    } catch (e) {
-        document.getElementById('treeScroll').innerHTML =
-            `<div style="padding:16px;color:#94a3b8;text-align:center;font-size:0.85rem;"><i class="bi bi-wifi-off d-block mb-2" style="font-size:1.5rem;"></i>${e.message}</div>`;
-    }
-}
-
-function renderTree(nodes) {
-    const wrap = document.getElementById('treeScroll');
-    if (!nodes || nodes.length === 0) {
-        wrap.innerHTML = `<div style="padding:24px 10px;text-align:center;color:#94a3b8;">
-            <i class="bi bi-folder-plus d-block mb-3" style="font-size:2.5rem;color:#c4b5fd;"></i>
-            <h6 style="color:#475569;font-weight:700;margin-bottom:8px;">Chưa có danh mục</h6>
-            <p style="font-size:0.8rem;margin-bottom:16px;">Tạo thư mục đầu tiên để lưu trữ đề thi.</p>
-            <button class="btn-toolbar btn-new-folder" style="margin:0 auto;" onclick="openCategoryModal(null)"><i class="bi bi-plus-lg"></i> Thêm mới</button>
-        </div>`;
-        return;
-    }
-    try {
-        wrap.innerHTML = `<div style="padding:6px;">${nodes.map(n => treeNodeHtml(n)).join('')}</div>`;
-    } catch (err) {
-        console.error(err);
-        wrap.innerHTML = `<div class="text-danger p-3">${err.message}</div>`;
-    }
-}
-
-function treeNodeHtml(node) {
-    if (!node) return '';
-    const nodeName = node.name || '';
-    const match = searchTerm === '' || nodeName.toLowerCase().includes(searchTerm);
-    let childrenHtml = '';
-    let hasMatchingChild = false;
-
-    if (Array.isArray(node.children) && node.children.length > 0) {
-        const childHtmls = node.children.map(c => treeNodeHtml(c)).filter(h => h !== '');
-        if (childHtmls.length > 0) {
-            hasMatchingChild = true;
-            childrenHtml = childHtmls.join('');
-        }
-    }
-
-    if (searchTerm !== '' && !match && !hasMatchingChild) {
-        return '';
-    }
-
-    const isForceOpen = searchTerm !== '' && hasMatchingChild;
-    const isNodeOpen = isForceOpen || expandedNodes.has(node.id);
-
-    const hasKids = Array.isArray(node.children) && node.children.length > 0;
-    const arrow = hasKids
-        ? `<i class="bi bi-chevron-right tree-arrow ${isNodeOpen ? 'open' : ''}" id="arr-${node.id}"></i>`
-        : `<span style="width:12px;display:inline-block;"></span>`;
-
-    const finalKidsHtml = (searchTerm !== '') ? childrenHtml : (Array.isArray(node.children) ? node.children.map(c => treeNodeHtml(c)).join('') : '');
-    const kids = finalKidsHtml !== ''
-        ? `<div class="tree-children ${isNodeOpen ? 'open' : ''}" id="kids-${node.id}">${finalKidsHtml}</div>`
-        : '';
-
-    const total = calcTotal(node);
-
-    const actions = `
-        <span class="tree-row-actions" onclick="event.stopPropagation()">
-            <button class="tree-act-btn" title="Thêm thư mục con" onclick="openCategoryModal(${node.id})"><i class="bi bi-folder-plus"></i></button>
-            <button class="tree-act-btn" title="Sửa danh mục" onclick="openEditCategoryModal(${node.id})"><i class="bi bi-pencil-fill"></i></button>
-            <button class="tree-act-btn" title="Xóa danh mục" onclick="openDeleteCatModal(${node.id})"><i class="bi bi-trash3-fill"></i></button>
-        </span>`;
-
-    let displayName = esc(nodeName);
-    if (searchTerm !== '' && match) {
-        const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
-        displayName = esc(nodeName).replace(regex, '<mark style="background:#fef08a;padding:0 2px;border-radius:3px;color:#1e1b4b;">$1</mark>');
-    }
-
-    return `<div class="tree-node">
-        <div class="tree-row" id="tr-${node.id}"
-            draggable="true"
-            ondragstart="handleDragStart(event, ${node.id})"
-            ondragover="handleDragOver(event)"
-            ondragleave="handleDragLeave(event)"
-            ondrop="handleDrop(event, ${node.id})"
-            onclick="treeClick(${node.id}, event)">
-            ${arrow}
-            <i class="bi bi-folder-fill tree-icon"></i>
-            <span class="tree-label">${displayName}</span>
-            <span class="tree-count">${total}</span>
-            ${actions}
-        </div>
-        ${kids}
-    </div>`;
-}
-
-function calcTotal(node) {
-    if (!node) return 0;
-    let t = node.quizCount || 0;
-    if (Array.isArray(node.children)) {
-        node.children.forEach(c => {
-            t += calcTotal(c);
-        });
-    }
-    return t;
-}
-
-function treeClick(id, e) {
-    const node = findNode(TREE_DATA, id);
-    const name = node ? node.name : '';
-    navigateTo(id, name);
-    const kids = document.getElementById('kids-' + id);
-    const arr  = document.getElementById('arr-' + id);
-    if (kids) {
-        if (kids.classList.contains('open')) {
-            kids.classList.remove('open');
-            if (arr) arr.classList.remove('open');
-            expandedNodes.delete(id);
-        } else {
-            kids.classList.add('open');
-            if (arr) arr.classList.add('open');
-            expandedNodes.add(id);
-        }
-    }
-    e.stopPropagation();
-}
-
-function setTreeActive(id) {
-    document.querySelectorAll('.tree-row').forEach(r => r.classList.remove('active'));
-    const el = document.getElementById('tr-' + id);
-    if (el) {
-        el.classList.add('active');
-        el.scrollIntoView({ block: 'nearest' });
-    }
-}
-
-function restoreTreeState() {
-    expandedNodes.forEach(id => {
-        const kids = document.getElementById('kids-' + id);
-        const arr  = document.getElementById('arr-'  + id);
-        if (kids) kids.classList.add('open');
-        if (arr) arr.classList.add('open');
-    });
-    if (navStack.length > 0) {
-        setTreeActive(navStack[navStack.length - 1].id);
-    }
-}
-
-function navigateToRoot() {
-    navStack = [];
-    setTreeActive(null);
-    document.getElementById('breadcrumb').innerHTML = `<span class="bc-item active"><i class="bi bi-house-fill"></i> Gốc</span>`;
-    document.getElementById('toolbarActions').style.display = 'none';
-    document.getElementById('dynamicContent').style.display = 'none';
-    document.getElementById('rootLanding').style.display = 'flex';
-}
-
-function navigateTo(id, name) {
-    const path = getPathToNode(TREE_DATA, id);
-    if (path) {
-        navStack = path;
-        path.forEach(p => expandedNodes.add(p.id));
-    } else {
-        if (!name) {
-            const node = findNode(TREE_DATA, id);
-            name = node ? node.name : 'Danh mục';
-        }
-        navStack = [{ id, name }];
-    }
-    setTreeActive(id);
-    renderBreadcrumb();
-    loadFolderContent(id);
-    document.getElementById('rootLanding').style.display = 'none';
-    document.getElementById('dynamicContent').style.display = 'block';
-    document.getElementById('toolbarActions').style.display = 'flex';
-    document.getElementById('btnNewSub').onclick = () => openCategoryModal(id);
-    document.getElementById('btnNewQuiz').onclick = () => openQuizCreate(id);
-}
-
-function navigateFromBreadcrumb(idx) {
-    if (idx < 0) { navigateToRoot(); return; }
-    const item = navStack[idx];
-    navigateTo(item.id, item.name);
-}
-
-function renderBreadcrumb() {
-    const bc = document.getElementById('breadcrumb');
-    let html = `<span class="bc-item" onclick="navigateToRoot()"><i class="bi bi-house-fill"></i> Gốc</span>`;
-    navStack.forEach((item, i) => {
-        const parentId = i > 0 ? navStack[i-1].id : null;
-        const siblings = getChildrenOf(parentId);
-
-        let siblingHtml = '';
-        let hasSiblings = siblings && siblings.length > 1;
-        if (hasSiblings) {
-            siblingHtml = `<div class="bc-dropdown" onclick="event.stopPropagation()">
-                ${siblings.map(s => `<div class="bc-dropdown-item ${s.id === item.id ? 'active' : ''}" onclick="navigateTo(${s.id}, '${escJs(s.name)}')">${esc(s.name)}</div>`).join('')}
-            </div>`;
+        async function loadData() {
+            try {
+                const [resCat, resQuiz, resQues] = await Promise.all([
+                    fetch('/api/student/categories/mine', { headers: { Authorization: 'Bearer ' + token } }),
+                    fetch('/api/student/quiz/mine', { headers: { Authorization: 'Bearer ' + token } }),
+                    fetch('/api/student/questions?size=200', { headers: { Authorization: 'Bearer ' + token } })
+                ]);
+                TREE_DATA = await resCat.json();
+                ALL_QUIZZES = await resQuiz.json();
+                const qData = await resQues.json();
+                ALL_QUESTIONS = qData.content || [];
+            } catch (e) { }
         }
 
-        html += `<span class="bc-sep ${hasSiblings ? 'bc-sep-hoverable' : ''}" ${hasSiblings ? 'style="cursor:pointer;" onclick="toggleBcDropdown(event, this)"' : ''}>
-            <i class="bi bi-chevron-right"></i>
-            ${siblingHtml}
-        </span>`;
-
-        if (i < navStack.length - 1) {
-            html += `<span class="bc-item" onclick="navigateFromBreadcrumb(${i})">${esc(item.name)}</span>`;
-        } else {
-            html += `<span class="bc-item active">${esc(item.name)}</span>`;
-        }
-    });
-    bc.innerHTML = html;
-}
-
-function getChildrenOf(parentId) {
-    if (!parentId) return TREE_DATA;
-    const parent = findNode(TREE_DATA, parentId);
-    return parent ? parent.children : [];
-}
-
-function toggleBcDropdown(e, el) {
-    e.stopPropagation();
-    document.querySelectorAll('.bc-dropdown').forEach(d => {
-        if (d !== el.querySelector('.bc-dropdown')) d.classList.remove('show');
-    });
-    const dropdown = el.querySelector('.bc-dropdown');
-    if (dropdown) dropdown.classList.toggle('show');
-}
-
-async function loadFolderContent(catId) {
-    currentFolderId = catId;
-    const dc = document.getElementById('dynamicContent');
-    dc.innerHTML = `<div class="quiz-grid">${[1,2,3].map(()=>`<div class="skeleton" style="height:200px;border-radius:16px;"></div>`).join('')}</div>`;
-
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    const node = findNode(TREE_DATA, catId);
-    const subCats = node ? (node.children || []) : [];
-    let quizzes = [];
-    CURRENT_QUESTIONS = [];
-
-    try {
-        const [resQuiz, resQuest] = await Promise.all([
-            fetch(`/api/student/categories/${catId}${QUIZ_SUFFIX}`, { headers: { Authorization: 'Bearer ' + token } }),
-            fetch(`/api/student/questions?categoryId=${catId}`, { headers: { Authorization: 'Bearer ' + token } })
-        ]);
-        if (resQuiz.ok) quizzes = await resQuiz.json();
-        if (resQuest.ok) {
-            const data = await resQuest.json();
-            CURRENT_QUESTIONS = data.content || [];
-        }
-    } catch (_) {}
-
-    renderFolderContent(dc, subCats, quizzes, catId);
-}
-
-function renderFolderContent(container, subCats, quizzes, parentId) {
-    let html = '';
-    
-    if (quizzes.length === 0 && CURRENT_QUESTIONS.length === 0) {
-        html = `<div class="empty-root text-center py-5">
-            <div class="empty-root-icon mb-3"><i class="bi bi-folder-x fs-1 text-muted"></i></div>
-            <h4 class="text-secondary fw-bold">Thư mục trống</h4>
-            <p class="text-muted">Không có đề thi hoặc câu hỏi nào trong danh mục này.</p>
-        </div>`;
-    } else {
-        if (quizzes.length > 0) {
-            html += `<p class="section-title"><i class="bi bi-file-earmark-text me-1"></i> Đề thi (${quizzes.length})</p><div class="quiz-grid">`;
-            quizzes.forEach(q => { html += quizCardHtml(q); });
-            html += `</div>`;
-        }
-
-        html += `
-            <div class="questions-filter-bar d-flex gap-2 flex-wrap mb-3 align-items-center mt-4">
-                <div class="flex-grow-1">
-                    <p class="section-title mb-0"><i class="bi bi-patch-question-fill me-1"></i> Câu hỏi (${CURRENT_QUESTIONS.length})</p>
-                </div>
-                <div class="d-flex gap-2 align-items-center">
-                    <input type="text" id="questSearch" class="form-control" placeholder="Tìm kiếm câu hỏi..." style="width: 220px; font-size: 0.85rem; border-radius: 10px;" oninput="filterLocalQuestions()">
-                    <select id="questTypeSelect" class="form-select" style="width: 160px; font-size: 0.85rem; border-radius: 10px;" onchange="filterLocalQuestions()">
-                        <option value="">Tất cả các loại</option>
-                        <option value="SINGLE_CHOICE">Một đáp án</option>
-                        <option value="MULTIPLE_CHOICE">Nhiều đáp án</option>
-                        <option value="FILL_IN_BLANK">Điền khuyết</option>
-                    </select>
-                </div>
-            </div>
-            <div id="questionsListWrapper" class="row g-3"></div>
-        `;
-    }
-    
-    container.innerHTML = html;
-    if (CURRENT_QUESTIONS.length > 0) {
-        filterLocalQuestions();
-    }
-}
-
-function quizCardHtml(q) {
-    const typeBadge = q.isExam ? `<span class="qbadge qbadge-exam"><i class="bi bi-mortarboard-fill"></i> Đề thi</span>` : `<span class="qbadge qbadge-quiz"><i class="bi bi-journal-check"></i> Quiz</span>`;
-    const statusBadge = q.isDraft ? `<span class="qbadge qbadge-draft"><i class="bi bi-cone-striped"></i> Bản nháp</span>` : `<span class="qbadge qbadge-pub"><i class="bi bi-check-circle-fill"></i> Đã xuất bản</span>`;
-
-    return `<div class="quiz-card">
-        <div class="quiz-badge-row">${typeBadge}${statusBadge}</div>
-        <h3 class="quiz-title">${esc(q.title) || '(Chưa có tiêu đề)'}</h3>
-        <p class="quiz-desc">${esc(q.description) || '<span style="color:#cbd5e1;font-style:italic;">Chưa có mô tả.</span>'}</p>
-        <div class="quiz-chips">
-            <span class="chip"><i class="bi bi-list-check text-success"></i> ${q.questionCount} câu</span>
-        </div>
-        <button class="btn-start" onclick="startAttempt('${q.id}','${esc(q.title)}',this)">
-            <i class="bi bi-play-fill"></i> Luyện tập ngay
-        </button>
-        <div class="quiz-owner-actions">
-            <a class="qact-btn qact-edit" href="/student/quizzes/${q.id}/edit"><i class="bi bi-pencil-square"></i> Sửa</a>
-            <button class="qact-btn qact-del" onclick="deleteQuiz('${q.id}')"><i class="bi bi-trash3"></i></button>
-        </div>
-    </div>`;
-}
-
-function openCategoryModal(parentId) {
-    document.getElementById('catEditId').value = '';
-    document.getElementById('catParentId').value = parentId || '';
-    document.getElementById('catModalTitle').textContent = parentId ? 'Tạo thư mục con' : 'Tạo danh mục mới';
-    document.getElementById('catNameInput').value = '';
-    document.getElementById('catDescInput').value = '';
-    bootstrap.Modal.getOrCreateInstance(document.getElementById('catModal')).show();
-}
-
-function openEditCategoryModal(id) {
-    const node = findNode(TREE_DATA, id);
-    if (!node) return;
-    document.getElementById('catEditId').value = node.id;
-    document.getElementById('catParentId').value = node.parentId || '';
-    document.getElementById('catModalTitle').textContent = 'Sửa danh mục';
-    document.getElementById('catNameInput').value = node.name || '';
-    document.getElementById('catDescInput').value = node.description || '';
-    bootstrap.Modal.getOrCreateInstance(document.getElementById('catModal')).show();
-}
-
-async function submitCategory() {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    const editId = document.getElementById('catEditId').value;
-    const parentId = document.getElementById('catParentId').value;
-    const name = document.getElementById('catNameInput').value.trim();
-    const desc = document.getElementById('catDescInput').value.trim();
-
-    if (!name) { showToast('Vui lòng nhập tên danh mục!', 'err'); return; }
-
-    const isEdit = !!editId;
-    const url = isEdit ? `/api/student/categories/${editId}` : '/api/student/categories';
-    const method = isEdit ? 'PUT' : 'POST';
-
-    try {
-        const res = await fetch(url, {
-            method, headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, description: desc, parentId: parentId ? parseInt(parentId) : null, isPublic: false })
-        });
-        if (!res.ok) throw new Error('Lỗi');
-        bootstrap.Modal.getInstance(document.getElementById('catModal')).show();
-        bootstrap.Modal.getInstance(document.getElementById('catModal')).hide();
-        showToast(isEdit ? 'Đã cập nhật danh mục!' : 'Tạo danh mục thành công!', 'ok');
-        if (parentId) expandedNodes.add(parseInt(parentId));
-        await loadTree();
-        restoreTreeState();
-        if (parentId) {
-            const parentNode = findNode(TREE_DATA, parseInt(parentId));
-            if (parentNode) navigateTo(parentNode.id, parentNode.name);
-        } else if (navStack.length > 0) {
-            loadFolderContent(navStack[navStack.length-1].id);
-        } else {
-             navigateToRoot();
-        }
-    } catch (e) { showToast(e.message, 'err'); }
-}
-
-function openDeleteCatModal(id) {
-    document.getElementById('delCatId').value = id;
-    bootstrap.Modal.getOrCreateInstance(document.getElementById('delCatModal')).show();
-}
-
-async function confirmDeleteCat() {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    const id = document.getElementById('delCatId').value;
-    try {
-        const res = await fetch(`/api/student/categories/${id}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
-        if (!res.ok) { const e = await res.json(); throw new Error(e.message || 'Lỗi'); }
-        showToast('Xóa danh mục thành công!', 'ok');
-        bootstrap.Modal.getInstance(document.getElementById('delCatModal')).hide();
-        const curId = navStack.length > 0 ? String(navStack[navStack.length - 1].id) : null;
-        if (curId === String(id)) navStack.pop();
-        await loadTree();
-        restoreTreeState();
-        if (navStack.length > 0) {
-            const cur = navStack[navStack.length - 1];
-            setTreeActive(cur.id);
-            renderBreadcrumb();
-            loadFolderContent(cur.id);
-        } else {
-            navigateToRoot();
-        }
-    } catch (e) { showToast(e.message, 'err'); }
-}
-
-function openQuizCreate(categoryId) {
-    window.location.href = `/student/quizzes/create${categoryId ? '?categoryId=' + categoryId : ''}`;
-}
-
-async function startAttempt(quizId, title, btn) {
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    const orig = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang tạo...';
-    try {
-        const res = await fetch('/api/student/attempts/start', {
-            method: 'POST', headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ quizId })
-        });
-        if (!res.ok) throw new Error('Lỗi');
-        const data = await res.json();
-        showToast(`🎯 Bắt đầu: "${title}"`, 'ok');
-        if (data.attemptId) setTimeout(() => window.location.href = `/student/attempts/${data.attemptId}`, 900);
-        else { btn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Đã tạo!'; btn.style.background = '#10b981'; }
-    } catch (e) { showToast(e.message, 'err'); btn.disabled = false; btn.innerHTML = orig; }
-}
-
-async function deleteQuiz(id) {
-    if (!confirm('Xóa đề thi này?')) return;
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    try {
-        const res = await fetch(`/api/student/quizzes/${id}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
-        if (!res.ok) throw new Error('Lỗi xóa');
-        showToast('Đã xóa đề thi!', 'ok');
-        if (navStack.length > 0) loadFolderContent(navStack[navStack.length - 1].id);
-    } catch (e) { showToast(e.message, 'err'); }
-}
-
-function findNode(nodes, id) {
-    for (const n of nodes) {
-        if (n.id === id) return n;
-        if (n.children) { const f = findNode(n.children, id); if (f) return f; }
-    }
-    return null;
-}
-
-function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
-function escJs(s) { return s ? s.replace(/'/g, "\\'").replace(/"/g, '\\"') : ''; }
-
-function showToast(msg, type = 'ok') {
-    const w = document.getElementById('toastWrap');
-    const t = document.createElement('div');
-    t.className = `toast-msg ${type}`;
-    t.innerHTML = `<i class="bi ${type === 'ok' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${msg}`;
-    w.appendChild(t);
-    setTimeout(() => t.classList.add('show'), 10);
-    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3500);
-}
-
-function initResize() {
-    const handle = document.getElementById('resizeHandle');
-    const panel  = document.getElementById('treePanel');
-    let dragging = false, startX, startW;
-    handle.addEventListener('mousedown', e => {
-        dragging = true; startX = e.clientX; startW = panel.offsetWidth;
-        document.body.style.cursor = 'col-resize'; document.body.style.userSelect = 'none';
-    });
-    document.addEventListener('mousemove', e => {
-        if (!dragging) return;
-        panel.style.width = Math.max(160, Math.min(400, startW + e.clientX - startX)) + 'px';
-    });
-    document.addEventListener('mouseup', () => {
-        dragging = false; document.body.style.cursor = ''; document.body.style.userSelect = '';
-    });
-}
-
-function handleDragStart(e, id) {
-    draggedNodeId = id;
-    e.dataTransfer.effectAllowed = 'move';
-    setTimeout(() => e.target.classList.add('dragging'), 0);
-}
-
-function handleDragOver(e) {
-    e.preventDefault();
-    e.currentTarget.classList.add('drag-over');
-    e.dataTransfer.dropEffect = 'move';
-}
-
-function handleDragLeave(e) {
-    e.currentTarget.classList.remove('drag-over');
-}
-
-async function handleDrop(e, targetId) {
-    e.stopPropagation();
-    e.preventDefault();
-    e.currentTarget.classList.remove('drag-over');
-
-    const el = document.querySelector('.tree-row.dragging');
-    if (el) el.classList.remove('dragging');
-
-    if (!draggedNodeId || draggedNodeId === targetId) return;
-
-    const draggedNode = findNode(TREE_DATA, draggedNodeId);
-    if (!draggedNode) return;
-
-    let newParentId = targetId;
-
-    if (targetId !== null) {
-        if (isDescendant(draggedNode, targetId)) {
-            showToast('Không thể di chuyển danh mục vào bên trong thư mục con của nó!', 'err');
-            return;
-        }
-
-        const rect = e.currentTarget.getBoundingClientRect();
-        const offsetY = e.clientY - rect.top;
-        if (offsetY < rect.height * 0.25 || offsetY > rect.height * 0.75) {
-            const targetNode = findNode(TREE_DATA, targetId);
-            if (targetNode) {
-                newParentId = targetNode.parentId || null;
+        function renderSidebarTree(nodes = null, container = null, level = 0) {
+            if (!container) {
+                container = document.getElementById('treeRoot');
+                container.innerHTML = `<div class="tree-node ${currentFolderId === null ? 'active' : ''}" onclick="loadFolder(null)"><i class="bi bi-grid-fill text-primary"></i> Tất cả kho</div>`;
+                nodes = TREE_DATA;
             }
-        }
-    }
-
-    if (draggedNodeId === newParentId) return;
-
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    try {
-        const payload = {
-            name: draggedNode.name,
-            description: draggedNode.description || '',
-            parentId: newParentId,
-            isPublic: false
-        };
-        const res = await fetch(`/api/student/categories/${draggedNodeId}`, {
-            method: 'PUT',
-            headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        if (!res.ok) throw new Error('Di chuyển danh mục thất bại!');
-
-        showToast('Đã di chuyển danh mục!', 'ok');
-        if (newParentId) expandedNodes.add(newParentId);
-        await loadTree();
-        restoreTreeState();
-
-        if (newParentId) {
-            const parentNode = findNode(TREE_DATA, newParentId);
-            if (parentNode) navigateTo(parentNode.id, parentNode.name);
-        } else {
-            navigateToRoot();
-        }
-    } catch (err) {
-        showToast(err.message, 'err');
-    } finally {
-        draggedNodeId = null;
-    }
-}
-
-function isDescendant(parent, childId) {
-    if (parent.id === childId) return true;
-    if (!parent.children) return false;
-    for (const child of parent.children) {
-        if (isDescendant(child, childId)) return true;
-    }
-    return false;
-}
-
-function filterLocalQuestions() {
-    const qText = document.getElementById('questSearch')?.value.trim().toLowerCase() || '';
-    const qType = document.getElementById('questTypeSelect')?.value || '';
-    
-    const filtered = CURRENT_QUESTIONS.filter(q => {
-        const textMatch = !qText || q.text.toLowerCase().includes(qText);
-        const typeMatch = !qType || q.type === qType;
-        return textMatch && typeMatch;
-    });
-    
-    const wrapper = document.getElementById('questionsListWrapper');
-    if (!wrapper) return;
-    
-    if (filtered.length === 0) {
-        wrapper.innerHTML = `
-            <div class="text-center p-4 text-muted col-12">
-                <i class="bi bi-patch-question mb-2" style="font-size:2.5rem;"></i>
-                <p class="fw-bold mb-0">Không tìm thấy câu hỏi nào phù hợp.</p>
-            </div>`;
-        return;
-    }
-    
-    let html = '';
-    filtered.forEach(q => {
-        let typeLabel = q.type === 'SINGLE_CHOICE' ? 'Một đáp án' : (q.type === 'MULTIPLE_CHOICE' ? 'Nhiều đáp án' : 'Điền khuyết');
-        
-        html += `
-        <div class="col-md-6">
-            <div class="card h-100 border-0 p-3 shadow-sm" style="border-radius:12px; background: #fafafa; border: 1px solid #f1f5f9; transition: all 0.2s;">
-                <div class="d-flex gap-2 flex-wrap mb-2">
-                    <span class="badge bg-primary bg-opacity-10 text-primary px-2 py-1" style="font-size:0.75rem;">
-                        <i class="bi bi-patch-check me-1"></i>${typeLabel}
-                    </span>
-                </div>
-                <h6 class="fw-bold mb-2 text-dark" style="font-size: 0.95rem; min-height: 40px;">${esc(q.text)}</h6>
-                <div class="small text-muted flex-grow-1">
-                    ${q.answers ? q.answers.map((a, idx) => `
-                        <div class="d-flex align-items-center mb-1 ${a.isCorrect ? 'text-success fw-bold' : ''}">
-                            <i class="bi bi-${a.isCorrect ? 'check-circle-fill' : 'circle'} me-2"></i> ${esc(a.text)}
-                        </div>
-                    `).join('') : ''}
-                </div>
-                <div class="d-flex justify-content-end gap-2 mt-3 pt-2 border-top">
-                    <button class="btn btn-sm btn-outline-primary" onclick="openEditQuestionModal(${q.id})">
-                        <i class="bi bi-pencil me-1"></i>Sửa
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteQuestion(${q.id})">
-                        <i class="bi bi-trash3 me-1"></i>Xóa
-                    </button>
-                </div>
-            </div>
-        </div>`;
-    });
-    wrapper.innerHTML = html;
-}
-
-function openNewQuestionModal() {
-    document.getElementById('q-id').value = '';
-    document.getElementById('q-category').value = currentFolderId || '';
-    document.getElementById('q-text').value = '';
-    document.getElementById('q-type').value = 'SINGLE_CHOICE';
-    document.getElementById('q-level').value = 'MEDIUM';
-    
-    document.getElementById('answer-list').innerHTML = '';
-    
-    document.getElementById('questionModalLabel').textContent = 'Soạn câu hỏi mới';
-    adaptAnswerFormat();
-    
-    bootstrap.Modal.getOrCreateInstance(document.getElementById('questionModal')).show();
-}
-
-function closeQuestionModal() {
-    bootstrap.Modal.getInstance(document.getElementById('questionModal')).hide();
-    if (currentFolderId) { loadFolderContent(currentFolderId); }
-}
-
-function openEditQuestionModal(qId) {
-    document.getElementById('q-id').value = qId;
-    document.getElementById('q-category').value = currentFolderId || '';
-    document.getElementById('questionModalLabel').textContent = 'Chỉnh sửa câu hỏi';
-    
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    fetch(`/api/student/questions/${qId}`, {
-        headers: { 'Authorization': 'Bearer ' + token }
-    }).then(res => res.json()).then(q => {
-        document.getElementById('q-text').value = q.text || '';
-        document.getElementById('q-type').value = q.type || 'SINGLE_CHOICE';
-        document.getElementById('q-level').value = q.level || 'MEDIUM';
-
-        const wrapper = document.getElementById('answer-list');
-        wrapper.innerHTML = '';
-        if (q.answers && q.answers.length > 0) {
-            q.answers.forEach(a => {
-                wrapper.appendChild(createAnswerRow(q.type, a.text, a.isCorrect));
-            });
-        } else {
-            adaptAnswerFormat();
-        }
-        syncSelectedStyles();
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('questionModal')).show();
-    }).catch(err => {
-        showToast(err.message, 'err');
-    });
-}
-
-function adaptAnswerFormat() {
-    const type = document.getElementById('q-type').value;
-    const wrapper = document.getElementById('answer-list');
-
-    const currentAnswers = [];
-    const rows = wrapper.querySelectorAll('.answer-row');
-    rows.forEach(row => {
-        const text = row.querySelector('.ans-input')?.value || '';
-        const toggle = row.querySelector('.ans-toggle');
-        let isCorrect = false;
-        if (toggle) {
-            isCorrect = toggle.type === 'radio' || toggle.type === 'checkbox' ? toggle.checked : true;
-        }
-        currentAnswers.push({ text, isCorrect });
-    });
-
-    wrapper.innerHTML = '';
-
-    if (currentAnswers.length === 0) {
-        if (type === 'SINGLE_CHOICE') {
-            for (let i = 0; i < 4; i++) currentAnswers.push({ text: '', isCorrect: i === 0 });
-        } else if (type === 'MULTIPLE_CHOICE') {
-            for (let i = 0; i < 4; i++) currentAnswers.push({ text: '', isCorrect: i < 2 });
-        } else if (type === 'FILL_IN_BLANK') {
-            currentAnswers.push({ text: '', isCorrect: true });
-        }
-    } else {
-        if (type === 'SINGLE_CHOICE') {
-            const hasCorrect = currentAnswers.some(a => a.isCorrect);
-            if (!hasCorrect && currentAnswers[0]) currentAnswers[0].isCorrect = true;
-            let found = false;
-            currentAnswers.forEach(a => {
-                if (a.isCorrect) {
-                    if (!found) found = true;
-                    else a.isCorrect = false;
+            nodes.forEach(n => {
+                const row = document.createElement('div');
+                row.className = `tree-node ${currentFolderId === n.id ? 'active' : ''}`;
+                row.style.paddingLeft = (level * 20 + 14) + 'px';
+                row.innerHTML = `
+                    <i class="bi bi-folder-fill folder-icon"></i>
+                    <span class="text-truncate">${esc(n.name)}</span>
+                    <i class="bi bi-plus-circle-fill btn-add-sub" onclick="event.stopPropagation(); openCreateModal(${n.id})"></i>
+                `;
+                row.onclick = () => loadFolder(n.id);
+                container.appendChild(row);
+                if (n.children) {
+                    const wrap = document.createElement('div');
+                    renderSidebarTree(n.children, wrap, level + 1);
+                    container.appendChild(wrap);
                 }
             });
-        } else if (type === 'FILL_IN_BLANK') {
-            currentAnswers.forEach(a => a.isCorrect = true);
         }
-    }
 
-    currentAnswers.forEach(ans => {
-        wrapper.appendChild(createAnswerRow(type, ans.text, ans.isCorrect));
-    });
-    syncSelectedStyles();
-}
+        function loadFolder(id) {
+            currentFolderId = id;
+            document.querySelectorAll('.tree-node').forEach(el => el.classList.remove('active'));
+            document.getElementById('treeRoot').innerHTML = '';
+            renderSidebarTree();
 
-function createAnswerRow(type, textValue = '', isChecked = false) {
-    const div = document.createElement('div');
-    div.className = `answer-row d-flex align-items-center gap-2 border p-2 rounded bg-light ${isChecked ? 'correct-ans border-success bg-success bg-opacity-10' : ''}`;
+            const folder = id ? findCategory(TREE_DATA, id) : null;
+            document.getElementById('currentName').textContent = folder ? folder.name : 'Tất cả kho';
+            document.getElementById('pathText').textContent = folder ? `LIBRARY / ${folder.name.toUpperCase()}` : 'LIBRARY / DASHBOARD';
+            
+            document.getElementById('btnEditCat').style.display = id ? 'block' : 'none';
+            document.getElementById('btnDeleteCat').style.display = id ? 'block' : 'none';
+            document.getElementById('btnCreateQuiz').href = `/student/quiz/create${id ? '?categoryId=' + id : ''}`;
 
-    let toggleHtml = '';
-    if (type === 'SINGLE_CHOICE') {
-        toggleHtml = `<input type="radio" name="correct-ans" class="ans-toggle form-check-input ms-2" ${isChecked ? 'checked' : ''} onchange="syncSelectedStyles()">`;
-    } else if (type === 'MULTIPLE_CHOICE') {
-        toggleHtml = `<input type="checkbox" class="ans-toggle form-check-input ms-2" ${isChecked ? 'checked' : ''} onchange="syncSelectedStyles()">`;
-    } else if (type === 'FILL_IN_BLANK') {
-        toggleHtml = `<input type="hidden" class="ans-toggle" value="true">`;
-    }
+            refreshContent();
+        }
 
-    div.innerHTML = `
-        ${toggleHtml}
-        <input type="text" class="ans-input form-control border-0 bg-transparent flex-grow-1" value="${esc(textValue)}" placeholder="Nhập đáp án..." required oninput="syncSelectedStyles()">
-        <button type="button" class="btn btn-sm text-danger border-0 p-1 me-2" onclick="this.parentElement.remove(); syncSelectedStyles()">
-            <i class="bi bi-x-circle fs-5"></i>
-        </button>
-    `;
-    return div;
-}
+        function switchContext(ctx) {
+            currentContext = ctx;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`tab-${ctx}`).classList.add('active');
+            refreshContent();
+        }
 
-function addNewAnswerRow() {
-    const type = document.getElementById('q-type').value;
-    const wrapper = document.getElementById('answer-list');
-    wrapper.appendChild(createAnswerRow(type, '', false));
-}
-
-function syncSelectedStyles() {
-    const type = document.getElementById('q-type').value;
-    const rows = document.querySelectorAll('#answer-list .answer-row');
-    rows.forEach(row => {
-        const toggle = row.querySelector('.ans-toggle');
-        if (type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE') {
-            if (toggle && toggle.checked) {
-                row.classList.add('correct-ans', 'border-success', 'bg-success', 'bg-opacity-10');
+        function refreshContent() {
+            const container = document.getElementById('contentList');
+            if (currentContext === 'quiz') {
+                const list = ALL_QUIZZES.filter(q => currentFolderId === null || q.categoryId === currentFolderId);
+                renderQuizGrid(list);
             } else {
-                row.classList.remove('correct-ans', 'border-success', 'bg-success', 'bg-opacity-10');
+                const list = ALL_QUESTIONS.filter(q => currentFolderId === null || q.categoryId === currentFolderId);
+                renderQuestionList(list);
             }
-        } else {
-            row.classList.add('correct-ans', 'border-success', 'bg-success', 'bg-opacity-10');
-        }
-    });
-}
-
-async function saveQuestion() {
-    const id = document.getElementById('q-id').value;
-    const text = document.getElementById('q-text').value.trim();
-    const type = document.getElementById('q-type').value;
-    const level = document.getElementById('q-level').value;
-    const categoryId = document.getElementById('q-category').value;
-
-    if (!text) { showToast('Vui lòng nhập nội dung câu hỏi!', 'err'); return; }
-
-    const answersData = [];
-    const rows = document.querySelectorAll('#answer-list .answer-row');
-    if (rows.length === 0) { showToast('Vui lòng thêm ít nhất một đáp án!', 'err'); return; }
-
-    let correctCount = 0;
-    rows.forEach(row => {
-        const ansText = row.querySelector('.ans-input').value.trim();
-        const toggle = row.querySelector('.ans-toggle');
-        let isCorrect = false;
-
-        if (type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE') {
-            isCorrect = toggle && toggle.checked;
-        } else {
-            isCorrect = true;
         }
 
-        if (isCorrect) correctCount++;
-        if (ansText) {
-            answersData.push({ text: ansText, isCorrect: isCorrect });
+        function renderQuizGrid(list) {
+            const container = document.getElementById('contentList');
+            if (list.length === 0) { container.innerHTML = `<div class="empty-state"><i class="bi bi-inbox"></i>Chưa có đề thi nào.</div>`; return; }
+            container.innerHTML = `<div class="quiz-grid">` + list.map(q => `
+                <div class="up-card">
+                    <div class="up-card-banner">
+                        <span class="up-badge ${q.isExam ? 'badge-exam' : 'badge-quiz'}">${q.isExam ? 'Đề thi' : 'Luyện tập'}</span>
+                        <i class="bi ${q.isExam ? 'bi-mortarboard' : 'bi-journal-code'}"></i>
+                    </div>
+                    <div class="up-card-body">
+                        <h3 class="up-q-title text-truncate" title="${esc(q.title)}">${esc(q.title)}</h3>
+                        <div class="up-q-meta">
+                            <span><i class="bi bi-layers-fill me-1"></i> ${q.questionCount} câu</span>
+                            <span><i class="bi bi-folder2-open me-1"></i> ${esc(q.categoryName || 'Gốc')}</span>
+                        </div>
+                    </div>
+                    <div class="up-card-actions">
+                        <button class="btn-play-up" onclick="startQuiz('${q.id}')">LÀM BÀI NGAY</button>
+                        <a href="/student/quiz/${q.id}/edit" class="btn-opt-up" title="Sửa"><i class="bi bi-pencil-fill"></i></a>
+                        <button class="btn-opt-up text-danger" title="Xóa" onclick="deleteQuiz('${q.id}')"><i class="bi bi-trash-fill"></i></button>
+                    </div>
+                </div>
+            `).join('') + `</div>`;
         }
-    });
 
-    if (answersData.length < rows.length) { showToast('Vui lòng điền nội dung đầy đủ cho các đáp án!', 'err'); return; }
+        function renderQuestionList(list) {
+            const container = document.getElementById('contentList');
+            if (list.length === 0) { container.innerHTML = `<div class="empty-state"><i class="bi bi-question-diamond"></i>Chưa có câu hỏi nào.</div>`; return; }
+            container.innerHTML = list.map(q => `
+                <div class="q-item-up">
+                    <div class="d-flex align-items-center gap-4 overflow-hidden">
+                        <div class="btn-icon bg-indigo-subtle border-0" style="width:50px; height:50px; border-radius:14px;"><i class="bi bi-chat-left-dots-fill text-indigo"></i></div>
+                        <div class="text-truncate">
+                            <div class="fw-bold text-dark" style="font-size:1.1rem;">${esc(q.text)}</div>
+                            <div class="small text-muted fw-800 text-uppercase ls-1">${q.type} • ${q.level} • ${esc(q.categoryName || 'CHƯA PHÂN LOẠI')}</div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn-icon" title="Sửa"><i class="bi bi-pencil-fill"></i></button>
+                        <button class="btn-icon text-danger" title="Xóa"><i class="bi bi-trash-fill"></i></button>
+                    </div>
+                </div>
+            `).join('');
+        }
 
-    if (type === 'SINGLE_CHOICE' && (answersData.length < 2 || correctCount !== 1)) {
-        showToast('Trắc nghiệm 1 đáp án phải có ít nhất 2 lựa chọn và có đúng 1 đáp án đúng!', 'err'); return;
-    }
-    if (type === 'MULTIPLE_CHOICE' && (answersData.length < 2 || correctCount < 2)) {
-        showToast('Trắc nghiệm nhiều đáp án phải có ít nhất 2 lựa chọn và >= 2 đáp án đúng!', 'err'); return;
-    }
-    if (type === 'FILL_IN_BLANK' && correctCount < 1) {
-        showToast('Điền khuyết phải có ít nhất 1 đáp án đúng!', 'err'); return;
-    }
+        function openCreateModal(parentId) {
+            document.getElementById('categoryCreateId').value = '';
+            document.getElementById('categoryCreateName').value = '';
+            document.getElementById('categoryCreateDesc').value = '';
+            document.getElementById('categoryCreateParentId').value = parentId || '';
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryCreateModal')).show();
+        }
 
-    const payload = {
-        text: text,
-        type: type,
-        level: level,
-        categoryId: categoryId ? parseInt(categoryId) : null,
-        answers: answersData
-    };
-
-    let method = id ? 'PUT' : 'POST';
-    let url = id ? `/api/student/questions/${id}` : '/api/student/questions';
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-
-    try {
-        const res = await fetch(url, {
-            method: method,
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify(payload)
-        });
-
-        if (!res.ok) {
-            let errMsg = 'Không thể lưu câu hỏi. Vui lòng kiểm tra lại!';
+        async function submitCategoryCreateForm() {
+            const id = document.getElementById('categoryCreateId').value;
+            const name = document.getElementById('categoryCreateName').value.trim();
+            const parentId = document.getElementById('categoryCreateParentId').value;
+            const payload = { name, parentId: parentId ? parseInt(parentId) : null, isPublic: false };
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `/api/student/categories/${id}` : '/api/student/categories';
             try {
-                const errJson = await res.json();
-                if (errJson.message) errMsg = errJson.message;
-            } catch (_) {}
-            throw new Error(errMsg);
+                const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify(payload) });
+                if (res.ok) {
+                    bootstrap.Modal.getInstance(document.getElementById('categoryCreateModal')).hide();
+                    await loadData();
+                    loadFolder(currentFolderId);
+                }
+            } catch (e) { }
         }
 
-        showToast(id ? 'Cập nhật câu hỏi thành công!' : 'Tạo câu hỏi mới thành công!', 'ok');
-        closeQuestionModal();
-    } catch (err) {
-        showToast(err.message, 'err');
-    }
-}
+        function findCategory(nodes, id) {
+            for (const n of nodes) {
+                if (n.id === id) return n;
+                if (n.children) {
+                    const found = findCategory(n.children, id);
+                    if (found) return found;
+                }
+            }
+            return null;
+        }
 
-async function deleteQuestion(qId) {
-    if (!confirm('Bạn có chắc chắn muốn xóa câu hỏi này?')) return;
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    try {
-        const res = await fetch(`/api/student/questions/${qId}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
-        if (!res.ok) throw new Error('Xóa câu hỏi thất bại!');
-        showToast('Xóa câu hỏi thành công!', 'ok');
-        if (currentFolderId) { loadFolderContent(currentFolderId); }
-    } catch (err) {
-        showToast(err.message, 'err');
-    }
-}
-</script>
+        function startQuiz(id) {
+            fetch(`/api/student/quiz/start-personal?quizId=${id}`, { headers: { Authorization: 'Bearer ' + token } })
+                .then(res => res.json())
+                .then(data => window.location.href = `/student/quiz/play?attemptId=${data.attemptId}`);
+        }
+
+        async function deleteQuiz(id) {
+            if (!confirm('Xác nhận xóa đề thi?')) return;
+            try {
+                const res = await fetch(`/api/student/quiz/${id}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
+                if (res.ok) { await loadData(); refreshContent(); }
+            } catch (e) { }
+        }
+
+        function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+    </script>
 </body>
+
 </html>

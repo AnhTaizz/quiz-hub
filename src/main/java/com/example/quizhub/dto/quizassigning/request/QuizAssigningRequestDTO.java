@@ -20,6 +20,7 @@ public class QuizAssigningRequestDTO {
     Integer maxAttempt;
     Boolean questionShuffled;
     Boolean answerShuffled;
+    Boolean showAnswer;
 
     @NotNull(message = "Thời gian làm bài không được để trống")
     Integer durationInMins;

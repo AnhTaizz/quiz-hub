@@ -1,6 +1,7 @@
 package com.example.quizhub.repository;
 
 import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -12,5 +13,6 @@ public interface PracticeRepository extends JpaRepository<Practice, Long> {
     List<Practice> findTop10ByOrderByCreatedAtDesc();
     long countByUserId(Long userId);
     List<Practice> findByUserId(Long userId);
+    List<Practice> findByUserIdOrderByCreatedAtDesc(Long userId);
 }
 

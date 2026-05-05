@@ -16,6 +16,11 @@ import lombok.RequiredArgsConstructor;
 @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
 public class TeacherQuizWebController {
 
+    @GetMapping
+    public String getQuizzesPage() {
+        return "teacher/teacher-quizzes";
+    }
+
     @GetMapping("/create")
     public String getCreateQuizPage(@RequestParam(required = false) Long categoryId, Model model) {
         model.addAttribute("categoryId", categoryId);

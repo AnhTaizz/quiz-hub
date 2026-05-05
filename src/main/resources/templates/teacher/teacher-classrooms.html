@@ -65,11 +65,11 @@
                 </div>
                 <div class="class-body">
                     <span class="class-code" th:text="${classroom.code}">CODE123</span>
-                    <a th:href="@{'/teacher/classrooms/' + ${classroom.id}}" class="class-name" th:text="${classroom.name}">Lớp học</a>
+                    <a th:href="@{'/teacher/classrooms/' + ${classroom.id}}" class="class-name stretched-link" th:text="${classroom.name}">Lớp học</a>
                     <p class="class-desc" th:text="${classroom.description}">Mô tả lớp học...</p>
                     <div class="class-footer">
-                        <div class="text-muted small"><i class="bi bi-people me-1"></i> Thành viên</div>
-                        <a th:href="@{'/teacher/classrooms/' + ${classroom.id} + '/members'}" class="btn-manage stretched-link">Quản lý <i class="bi bi-chevron-right"></i></a>
+                        <a th:href="@{'/teacher/classrooms/' + ${classroom.id} + '/members'}" class="text-muted small d-inline-block" style="position: relative; z-index: 2; text-decoration: none;"><i class="bi bi-people me-1"></i> Thành viên</a>
+                        <a th:href="@{'/teacher/classrooms/' + ${classroom.id} + '/members'}" class="btn-manage" style="position: relative; z-index: 2;">Thành viên <i class="bi bi-chevron-right"></i></a>
                     </div>
                 </div>
             </div>

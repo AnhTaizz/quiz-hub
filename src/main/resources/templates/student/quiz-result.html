@@ -312,7 +312,8 @@
                 document.getElementById('resultLoading').style.display = 'none';
 
             } catch (error) {
-                alert(error.message);
+                console.error(error);
+                alert("Lỗi khi tải kết quả.");
                 window.location.href = '/student';
             }
         }
@@ -320,8 +321,18 @@
         function renderSummary(data) {
             document.getElementById('scoreValue').textContent = data.score.toFixed(1);
             document.getElementById('quizTitle').textContent = data.quizTitle;
-            document.getElementById('correctCount').textContent = data.correctNum;
-            document.getElementById('incorrectCount').textContent = data.incorrectNum;
+            
+            if (data.correctNum !== null) {
+                document.getElementById('correctCount').textContent = data.correctNum;
+            } else {
+                document.getElementById('correctCount').parentElement.style.display = 'none';
+            }
+
+            if (data.incorrectNum !== null) {
+                document.getElementById('incorrectCount').textContent = data.incorrectNum;
+            } else {
+                document.getElementById('incorrectCount').parentElement.style.display = 'none';
+            }
 
             const start = new Date(data.startedAt);
             const end = new Date(data.endedAt);
@@ -339,15 +350,20 @@
                 const card = document.createElement('div');
                 card.className = 'q-result-card';
                 
+                const canShowResult = q.isCorrect !== null;
                 const hasAnswered = q.type === 'FILL_IN_BLANK' ? (q.selectedText && q.selectedText.trim() !== '') : (q.selectedAnswerIds && q.selectedAnswerIds.length > 0);
                 
                 let badge = '';
-                if (q.isCorrect) {
-                    badge = '<span class="q-badge badge-correct"><i class="bi bi-check-circle-fill me-1"></i>Chính xác</span>';
-                } else if (!hasAnswered) {
-                    badge = '<span class="q-badge badge-warning text-dark border-warning"><i class="bi bi-exclamation-circle-fill me-1"></i>Chưa trả lời</span>';
+                if (canShowResult) {
+                    if (q.isCorrect) {
+                        badge = '<span class="q-badge badge-correct"><i class="bi bi-check-circle-fill me-1"></i>Chính xác</span>';
+                    } else if (!hasAnswered) {
+                        badge = '<span class="q-badge badge-warning text-dark border-warning"><i class="bi bi-exclamation-circle-fill me-1"></i>Chưa trả lời</span>';
+                    } else {
+                        badge = '<span class="q-badge badge-wrong"><i class="bi bi-x-circle-fill me-1"></i>Chưa chính xác</span>';
+                    }
                 } else {
-                    badge = '<span class="q-badge badge-wrong"><i class="bi bi-x-circle-fill me-1"></i>Chưa chính xác</span>';
+                    badge = '<span class="q-badge bg-light text-secondary"><i class="bi bi-info-circle-fill me-1"></i>Đã ghi nhận</span>';
                 }
 
                 let answersHtml = '';
@@ -355,17 +371,25 @@
                     const studentText = q.selectedText || '(Trống)';
                     const correctAnswers = q.answers.filter(a => a.isCorrect).map(a => a.text).join(', ');
                     
+                    let statusClass = '';
+                    let iconClass = 'icon-none';
+                    let icon = '<i class="bi bi-pencil-fill"></i>';
+
+                    if (canShowResult) {
+                        statusClass = q.isCorrect ? 'correct' : 'selected-wrong';
+                        iconClass = q.isCorrect ? 'icon-correct' : 'icon-wrong';
+                        icon = `<i class="bi ${q.isCorrect ? 'bi-check-lg' : 'bi-x-lg'}"></i>`;
+                    }
+
                     answersHtml = `
-                        <div class="ans-opt ${q.isCorrect ? 'correct' : 'selected-wrong'}">
-                            <div class="opt-icon ${q.isCorrect ? 'icon-correct' : 'icon-wrong'}">
-                                <i class="bi ${q.isCorrect ? 'bi-check-lg' : 'bi-x-lg'}"></i>
-                            </div>
+                        <div class="ans-opt ${statusClass}">
+                            <div class="opt-icon ${iconClass}">${icon}</div>
                             <div>
                                 <div class="small text-muted fw-bold">Câu trả lời của bạn:</div>
                                 <div class="fw-bold">${studentText}</div>
                             </div>
                         </div>
-                        ${!q.isCorrect ? `
+                        ${canShowResult && !q.isCorrect ? `
                         <div class="ans-opt correct mt-2">
                             <div class="opt-icon icon-correct"><i class="bi bi-check-lg"></i></div>
                             <div>
@@ -383,14 +407,19 @@
                         let iconClass = 'icon-none';
                         let icon = String.fromCharCode(65 + i);
 
-                        if (isCorrect) {
-                            statusClass = 'correct';
-                            iconClass = 'icon-correct';
-                            icon = '<i class="bi bi-check-lg"></i>';
-                        } else if (isSelected && !isCorrect) {
-                            statusClass = 'selected-wrong';
-                            iconClass = 'icon-wrong';
-                            icon = '<i class="bi bi-x-lg"></i>';
+                        if (canShowResult) {
+                            if (isCorrect) {
+                                statusClass = 'correct';
+                                iconClass = 'icon-correct';
+                                icon = '<i class="bi bi-check-lg"></i>';
+                            } else if (isSelected && !isCorrect) {
+                                statusClass = 'selected-wrong';
+                                iconClass = 'icon-wrong';
+                                icon = '<i class="bi bi-x-lg"></i>';
+                            }
+                        } else if (isSelected) {
+                            statusClass = 'bg-light border-primary';
+                            iconClass = 'bg-primary text-white';
                         }
 
                         answersHtml += `

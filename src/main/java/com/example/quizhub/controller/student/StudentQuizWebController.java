@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import lombok.RequiredArgsConstructor;
 
 @Controller
-@RequestMapping("/student/quizzes")
+@RequestMapping("/student/quiz")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('STUDENT')")
 public class StudentQuizWebController {
@@ -32,5 +32,18 @@ public class StudentQuizWebController {
     public String getPreviewQuizPage(@PathVariable String id, Model model) {
         model.addAttribute("quizId", id);
         return "student/student-quiz-preview";
+    }
+
+    @GetMapping("/play")
+    public String getPlayQuizPage(@RequestParam(required = false) Long attemptId, @RequestParam(required = false) Long quizId, Model model) {
+        model.addAttribute("attemptId", attemptId);
+        model.addAttribute("quizId", quizId);
+        return "student/quiz-play-student";
+    }
+
+    @GetMapping("/result")
+    public String getResultQuizPage(@RequestParam Long attemptId, Model model) {
+        model.addAttribute("attemptId", attemptId);
+        return "student/quiz-result";
     }
 }

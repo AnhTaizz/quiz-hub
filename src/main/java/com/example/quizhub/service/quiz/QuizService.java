@@ -21,6 +21,9 @@ public interface QuizService {
     /** Quiz cá nhân của user hiện tại trong 1 danh mục */
     List<QuizSummaryDTO> getMyQuizzesByCategoryId(Long categoryId);
 
+    /** Toàn bộ Quiz cá nhân của user hiện tại */
+    List<QuizSummaryDTO> getMyQuizzes();
+
     /** Generate quiz from a category's public questions */
     QuizResponseDTO generateQuizFromCategory(com.example.quizhub.dto.quiz.QuizGenerateRequestDTO request);
 }

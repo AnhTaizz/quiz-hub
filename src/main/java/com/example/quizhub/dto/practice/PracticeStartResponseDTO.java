@@ -2,9 +2,6 @@ package com.example.quizhub.dto.practice;
 
 import java.util.List;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,11 +16,9 @@ import lombok.experimental.FieldDefaults;
 @AllArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class PracticeSubmitRequestDTO {
-
-    @NotNull(message = "Category ID is required")
+public class PracticeStartResponseDTO {
+    List<PracticeQuestionResponseDTO> questions;
     Long categoryId;
-
-    @NotEmpty(message = "Answers list cannot be empty")
-    List<@Valid PracticeAnswerRequestDTO> answers;
+    String categoryName;
+    String quizTitle;
 }

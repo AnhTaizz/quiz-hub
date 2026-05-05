@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import com.example.quizhub.dto.quiz.QuizRequestDTO;
 import com.example.quizhub.dto.quiz.QuizResponseDTO;
+import com.example.quizhub.dto.quiz.QuizSummaryDTO;
 import com.example.quizhub.service.quiz.QuizService;
 
 import jakarta.validation.Valid;
@@ -26,6 +28,11 @@ import lombok.RequiredArgsConstructor;
 public class TeacherQuizController {
 
     private final QuizService quizService;
+
+    @GetMapping("/mine")
+    public ResponseEntity<List<QuizSummaryDTO>> getMyQuizzes() {
+        return ResponseEntity.ok(quizService.getMyQuizzes());
+    }
 
     @PostMapping
     public ResponseEntity<QuizResponseDTO> createQuiz(@RequestBody @Valid QuizRequestDTO request){
