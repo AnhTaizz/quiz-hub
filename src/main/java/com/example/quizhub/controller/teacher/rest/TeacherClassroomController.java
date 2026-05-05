@@ -40,15 +40,15 @@ public class TeacherClassroomController {
             return ResponseEntity.status(401).build();
         }
         List<ClassroomResponseDTO> list = classroomRepository.findByCreatorId(user.getId()).stream()
-            .map(c -> ClassroomResponseDTO.builder()
-                .id(c.getId())
-                .name(c.getName())
-                .description(c.getDescription())
-                .code(c.getCode())
-                .teacherName(user.getFullName())
-                .createdAt(c.getCreatedAt())
-                .build())
-            .toList();
+                .map(c -> ClassroomResponseDTO.builder()
+                        .id(c.getId())
+                        .name(c.getName())
+                        .description(c.getDescription())
+                        .code(c.getCode())
+                        .teacherName(user.getFullName())
+                        .createdAt(c.getCreatedAt())
+                        .build())
+                .toList();
         return ResponseEntity.ok(list);
     }
 
@@ -81,31 +81,33 @@ public class TeacherClassroomController {
     public ResponseEntity<List<com.example.quizhub.dto.classroom.response.GradeResponseDTO>> getGradesByAssignment(
             Principal principal,
             @PathVariable Long assigningId) {
-        
+
         com.example.quizhub.entity.QuizAssigning assigning = quizAssigningRepository.findById(assigningId)
                 .orElseThrow(() -> new RuntimeException("Assignment not found"));
-        
+
         List<com.example.quizhub.entity.ClassJoining> members = classJoiningRepository.findByClassroomIdAndStatus(
                 assigning.getClassroom().getId(), com.example.quizhub.entity.JoinStatus.APPROVED);
-        
+
         List<com.example.quizhub.dto.classroom.response.GradeResponseDTO> list = members.stream().map(cj -> {
             com.example.quizhub.entity.User student = cj.getLearner();
-            List<com.example.quizhub.entity.QuizTaking> takings = quizTakingRepository.findByLearnerIdAndQuizAssigningId(
-                    student.getId(), assigningId);
-            
+            java.util.Optional<com.example.quizhub.entity.QuizTaking> takingOpt = quizTakingRepository
+                    .findByLearnerIdAndQuizAssigningId(
+                            student.getId(), assigningId);
+
             java.math.BigDecimal highestScore = null;
             int attemptCount = 0;
             String status = "Chưa bắt đầu";
-            
-            if (!takings.isEmpty()) {
-                com.example.quizhub.entity.QuizTaking taking = takings.get(0);
+
+            if (takingOpt.isPresent()) {
+                com.example.quizhub.entity.QuizTaking taking = takingOpt.get();
                 if (taking.getStatus() == com.example.quizhub.entity.enums.TakingStatus.IN_PROGRESS) {
                     status = "Đang làm bài";
                 } else if (taking.getStatus() == com.example.quizhub.entity.enums.TakingStatus.COMPLETED) {
                     status = "Đã nộp bài";
                 }
-                
-                List<com.example.quizhub.entity.Attempt> attempts = attemptRepository.findByQuizTakingId(taking.getId());
+
+                List<com.example.quizhub.entity.Attempt> attempts = attemptRepository
+                        .findByQuizTakingId(taking.getId());
                 attemptCount = attempts.size();
                 for (com.example.quizhub.entity.Attempt att : attempts) {
                     if (att.getResult() != null) {
@@ -115,7 +117,7 @@ public class TeacherClassroomController {
                     }
                 }
             }
-            
+
             return com.example.quizhub.dto.classroom.response.GradeResponseDTO.builder()
                     .studentId(student.getId())
                     .fullName(student.getFullName())
@@ -125,7 +127,7 @@ public class TeacherClassroomController {
                     .status(status)
                     .build();
         }).toList();
-        
+
         return ResponseEntity.ok(list);
     }
 

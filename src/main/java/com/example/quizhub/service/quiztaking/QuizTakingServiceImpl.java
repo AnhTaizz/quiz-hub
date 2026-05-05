@@ -62,19 +62,20 @@ public class QuizTakingServiceImpl implements QuizTakingService {
     @Transactional
     public QuizTakingResponseDTO startQuizAttempt(Long studentId, Long quizAssigningId) {
         User student = userRepository.findById(studentId)
-                        .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         QuizAssigning quizAssigning = quizAssigningRepository.findById(quizAssigningId)
-                        .orElseThrow(() -> new AppException(ErrorCode.QUIZ_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.QUIZ_NOT_FOUND));
 
         Quiz quiz = quizAssigning.getQuiz();
         QuizTaking quizTaking = quizTakingRepository.findByLearnerIdAndQuizAssigningId(studentId, quizAssigningId)
-                                    .orElseGet(() -> quizTakingRepository.save(QuizTaking.builder()
-                                                         .isAssigned(true)
-                                                         .status(TakingStatus.NOT_STARTED)
-                                                         .quiz(quiz)
-                                                         .quizAssigning(quizAssigning)
-                                                         .learner(student)
-                                                         .build()));
+                .stream().findFirst()
+                .orElseGet(() -> quizTakingRepository.save(QuizTaking.builder()
+                        .isAssigned(true)
+                        .status(TakingStatus.NOT_STARTED)
+                        .quiz(quiz)
+                        .quizAssigning(quizAssigning)
+                        .learner(student)
+                        .build()));
 
         // Check quiz schedule
         LocalDateTime now = LocalDateTime.now();
@@ -87,7 +88,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
 
         // Find existing attempts
         List<Attempt> attempts = attemptRepository.findByQuizTakingId(quizTaking.getId());
-        
+
         // Find unfinished attempt to resume
         Attempt attempt = attempts.stream()
                 .filter(a -> a.getEndedAt() == null)
@@ -106,10 +107,10 @@ public class QuizTakingServiceImpl implements QuizTakingService {
             }
 
             attempt = Attempt.builder()
-                .quizTaking(quizTaking)
-                .startedAt(LocalDateTime.now())
-                .totalQuestNum(quiz.getQuestions().size())
-                .build();
+                    .quizTaking(quizTaking)
+                    .startedAt(LocalDateTime.now())
+                    .totalQuestNum(quiz.getQuestions().size())
+                    .build();
             attempt = attemptRepository.save(attempt);
             quizTaking.setStatus(TakingStatus.IN_PROGRESS);
             quizTakingRepository.save(quizTaking);
@@ -118,55 +119,53 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         java.util.Random random = new java.util.Random(attempt.getId());
 
         List<QuestionTakingResponseDTO> questionDTOs = quiz.getQuestions().stream()
-                    .map(question -> {
-                        List<AnswerTakingResponseDTO> answerDTOs = question.getAnswers().stream()
-                                                     .map(ans -> new AnswerTakingResponseDTO(
-                                                                 ans.getId(),
-                                                                 ans.getText()))
-                                                     .collect(Collectors.toList());
+                .map(question -> {
+                    List<AnswerTakingResponseDTO> answerDTOs = question.getAnswers().stream()
+                            .map(ans -> new AnswerTakingResponseDTO(
+                                    ans.getId(),
+                                    ans.getText()))
+                            .collect(Collectors.toList());
 
-                        if(Boolean.TRUE.equals(quizAssigning.getAnswerShuffled())){
-                            Collections.shuffle(answerDTOs, random);
-                        }
+                    if (Boolean.TRUE.equals(quizAssigning.getAnswerShuffled())) {
+                        Collections.shuffle(answerDTOs, random);
+                    }
 
-                        return new QuestionTakingResponseDTO(
+                    return new QuestionTakingResponseDTO(
                             question.getId(),
                             question.getText(),
                             question.getType(),
                             question.getLevel(),
-                            answerDTOs
-                        );
-                    })
-                    .collect(Collectors.toList());
+                            answerDTOs);
+                })
+                .collect(Collectors.toList());
 
-        if(Boolean.TRUE.equals(quizAssigning.getQuestionShuffled())){
+        if (Boolean.TRUE.equals(quizAssigning.getQuestionShuffled())) {
             Collections.shuffle(questionDTOs, random);
         }
 
         // Fetch saved answers for this attempt
         List<UserAttemptAnswer> savedAnswers = userAttemptAnswerRepository.findByAttemptId(attempt.getId());
-        
+
         java.util.Map<Long, List<Long>> selectedAnswers = savedAnswers.stream()
                 .filter(uaa -> uaa.getAnswer() != null)
                 .collect(Collectors.groupingBy(
                         uaa -> uaa.getQuestion().getId(),
-                        Collectors.mapping(uaa -> uaa.getAnswer().getId(), Collectors.toList())
-                ));
+                        Collectors.mapping(uaa -> uaa.getAnswer().getId(), Collectors.toList())));
 
         java.util.Map<Long, String> selectedTexts = savedAnswers.stream()
                 .filter(uaa -> uaa.getSelectedText() != null)
                 .collect(Collectors.toMap(
                         uaa -> uaa.getQuestion().getId(),
                         UserAttemptAnswer::getSelectedText,
-                        (existing, replacement) -> existing
-                ));
+                        (existing, replacement) -> existing));
 
         return QuizTakingResponseDTO.builder()
                 .attemptId(attempt.getId())
                 .quizTitle(quiz.getTitle())
                 .durationInMins(quizAssigning.getDurationInMins())
                 .startedAt(attempt.getStartedAt())
-                .startedAtMillis(attempt.getStartedAt().atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli())
+                .startedAtMillis(
+                        attempt.getStartedAt().atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli())
                 .questions(questionDTOs)
                 .selectedAnswers(selectedAnswers)
                 .selectedTexts(selectedTexts)
