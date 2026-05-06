@@ -13,11 +13,14 @@ public interface CategoryMapper {
     // Category entity -> CategoryResponseDTO (map đơn lẻ, không xây cây children)
     @Mapping(source = "parent.id", target = "parentId")
     @Mapping(target = "children",  ignore = true)
+    @Mapping(target = "isOwner",   ignore = true)
+    @Mapping(target = "quizCount", ignore = true)
     CategoryResponseDTO toResponseDTO(Category category);
 
-    // CategoryRequestDTO -> Category (bỏ qua parent/children vì service tự set)
+    // CategoryRequestDTO -> Category (bỏ qua parent/children/creator vì service tự set)
     @Mapping(target = "id",       ignore = true)
     @Mapping(target = "parent",   ignore = true)
     @Mapping(target = "children", ignore = true)
+    @Mapping(target = "creator",  ignore = true)
     Category toEntity(CategoryRequestDTO request);
 }

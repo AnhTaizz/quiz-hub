@@ -15,6 +15,8 @@ public interface QuizAssigningMapper {
     @Mapping(source = "quiz.title", target = "quizTitle")
     @Mapping(source = "topic.id", target = "topicId")
     @Mapping(source = "topic.name", target = "topicName")
+    @Mapping(source = "questionShuffled", target = "questionShuffle")
+    @Mapping(source = "answerShuffled", target = "answerShuffle")
     QuizAssigningResponseDTO toResponseDTO(QuizAssigning quizAssigning);
 
     @Mapping(target = "id", ignore = true)
