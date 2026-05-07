@@ -1,6 +1,4 @@
-package com.example.quizhub.service.quizassigning;
-
-import java.time.LocalDate;
+package com.example.quizhub.service.quiz.impl;
 
 import org.springframework.stereotype.Service;
 
@@ -16,6 +14,7 @@ import com.example.quizhub.repository.ClassTopicRepository;
 import com.example.quizhub.repository.ClassroomRepository;
 import com.example.quizhub.repository.QuizAssigningRepository;
 import com.example.quizhub.repository.QuizRepository;
+import com.example.quizhub.service.quiz.QuizAssigningService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -36,11 +35,29 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
                             .orElseThrow(() -> new AppException(ErrorCode.QUIZ_NOT_FOUND));
 
         QuizAssigning quizAssigning = quizAssigningMapper.toEntity(request);
+        
         if(quizAssigning.getStartDate() == null){
             quizAssigning.setStartDate(java.time.LocalDateTime.now());
         }
         if(quizAssigning.getDueDate() == null){
             quizAssigning.setDueDate(java.time.LocalDateTime.now().plusDays(7));
+        }
+
+        // Validation logic
+        if (quizAssigning.getDueDate().isBefore(quizAssigning.getStartDate()) || 
+            quizAssigning.getDueDate().isEqual(quizAssigning.getStartDate())) {
+            throw new AppException(ErrorCode.INVALID_DATE_RANGE);
+        }
+
+        if (quizAssigning.getDurationInMins() != null) {
+            if (quizAssigning.getDurationInMins() <= 0) {
+                throw new AppException(ErrorCode.INVALID_DURATION);
+            }
+            
+            long windowMinutes = java.time.Duration.between(quizAssigning.getStartDate(), quizAssigning.getDueDate()).toMinutes();
+            if (quizAssigning.getDurationInMins() > windowMinutes) {
+                throw new AppException(ErrorCode.INVALID_DURATION);
+            }
         }
         if(quizAssigning.getMaxAttempt() == null){
             quizAssigning.setMaxAttempt(1);

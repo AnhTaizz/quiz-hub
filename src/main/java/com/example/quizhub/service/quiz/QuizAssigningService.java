@@ -1,4 +1,4 @@
-package com.example.quizhub.service.quizassigning;
+package com.example.quizhub.service.quiz;
 
 import com.example.quizhub.dto.quizassigning.request.QuizAssigningRequestDTO;
 import com.example.quizhub.dto.quizassigning.response.QuizAssigningResponseDTO;

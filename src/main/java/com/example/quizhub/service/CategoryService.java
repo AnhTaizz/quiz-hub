@@ -1,4 +1,4 @@
-package com.example.quizhub.service.category;
+package com.example.quizhub.service;
 
 import java.util.List;
 
@@ -22,4 +22,6 @@ public interface CategoryService {
     CategoryResponseDTO updateCategory(Long id, CategoryRequestDTO request);
 
     void deleteCategory(Long id);
+
+    List<Long> getAllDescendantIds(Long categoryId);
 }

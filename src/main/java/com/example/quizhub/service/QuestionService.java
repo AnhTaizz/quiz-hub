@@ -1,9 +1,13 @@
-package com.example.quizhub.service.question;
+package com.example.quizhub.service;
+
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 
 import com.example.quizhub.dto.question.QuestionRequestDTO;
 import com.example.quizhub.dto.question.QuestionResponseDTO;
+import com.example.quizhub.entity.enums.QuestionLevel;
+import com.example.quizhub.entity.enums.QuestionStatus;
 import com.example.quizhub.entity.enums.QuestionType;
 
 public interface QuestionService {
@@ -31,13 +35,36 @@ public interface QuestionService {
                                                    String sortBy,
                                                    String sortDir);
 
+    Page<QuestionResponseDTO> searchQuestions(QuestionStatus status,
+                                              Long categoryId,
+                                              QuestionType type,
+                                              QuestionLevel level,
+                                              String keyword,
+                                              String creatorName,
+                                              int page,
+                                              int size,
+                                              String sortBy,
+                                              String sortDir);
+
     //Teacher share question
     void requestShareQuestion(Long questionId, Long teacherId);
+
+    void bulkRequestShareQuestions(List<Long> questionIds, Long teacherId);
+
+    void bulkRequestShareAllQuestions(Long teacherId, Long categoryId, QuestionType type, String keyword);
 
     //Admin
     void approveQuestion(Long questionId, Long categoryId);
 
+    void bulkApproveQuestions(List<Long> questionIds, Long categoryId);
+
+    void bulkApproveAllQuestions(Long targetCategoryId, Long filterCategoryId, QuestionType type, QuestionLevel level, String keyword, String creatorName);
+
     void rejectQuestion(Long questionId);
+        
+    void bulkRejectQuestions(List<Long> questionIds);
+
+    void bulkRejectAllQuestions(Long filterCategoryId, QuestionType type, QuestionLevel level, String keyword, String creatorName);
 
     void deleteQuestionByAdmin(Long questionId);
 

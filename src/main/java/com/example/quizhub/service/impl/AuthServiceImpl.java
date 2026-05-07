@@ -1,13 +1,8 @@
-package com.example.quizhub.service.auth.impl;
+package com.example.quizhub.service.impl;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
-
-import com.example.quizhub.entity.enums.Role;
-import com.example.quizhub.exception.AppException;
-import com.example.quizhub.exception.ErrorCode;
 
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -17,14 +12,17 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.example.quizhub.dto.auth.response.AuthResponse;
 import com.example.quizhub.dto.auth.request.AuthRequest;
 import com.example.quizhub.dto.auth.request.RegisterRequest;
 import com.example.quizhub.dto.auth.request.ResetPasswordRequest;
+import com.example.quizhub.dto.auth.response.AuthResponse;
 import com.example.quizhub.entity.User;
+import com.example.quizhub.entity.enums.Role;
+import com.example.quizhub.exception.AppException;
+import com.example.quizhub.exception.ErrorCode;
 import com.example.quizhub.repository.UserRepository;
 import com.example.quizhub.security.JwtService;
-import com.example.quizhub.service.auth.AuthService;
+import com.example.quizhub.service.AuthService;
 
 import lombok.RequiredArgsConstructor;
 

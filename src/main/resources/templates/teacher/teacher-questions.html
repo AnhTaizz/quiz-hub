@@ -299,6 +299,37 @@
             margin-top: 4px;
         }
 
+        /* Bulk actions bar */
+        .bulk-actions-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 12px 24px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            height: 0;
+            overflow: hidden;
+            margin-top: -20px;
+        }
+
+        .bulk-actions-bar.active {
+            opacity: 1;
+            visibility: visible;
+            height: auto;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .question-card.selected {
+            background: #f0f7ff;
+            border-color: #3b82f6;
+        }
+
         .btn-action {
             padding: 7px 14px;
             border-radius: 10px;
@@ -580,6 +611,28 @@
 
         <!-- Questions Listing Panel -->
         <div class="list-shell">
+            <!-- Bulk Actions Bar -->
+            <div id="bulk-selection-bar" class="bulk-actions-bar">
+                <div class="d-flex flex-column">
+                    <div class="d-flex align-items-center">
+                        <div class="form-check me-3">
+                            <input class="form-check-input" type="checkbox" id="selectAllQuestions" onchange="toggleSelectAll(this)">
+                            <label class="form-check-label fw-bold ms-2" for="selectAllQuestions">Chọn tất cả</label>
+                        </div>
+                        <span id="selected-count-badge" class="badge bg-primary rounded-pill">0 đã chọn</span>
+                    </div>
+                    <div id="select-all-all-area" class="mt-1 small" style="display: none; padding-left: 32px; color: #1e40af;"></div>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-warning fw-bold px-3 py-2" style="border-radius: 10px;" onclick="confirmBulkShare()">
+                        <i class="bi bi-share-fill me-1"></i> Chia sẻ hàng loạt
+                    </button>
+                    <button class="btn btn-sm btn-light fw-bold px-3 py-2" style="border-radius: 10px;" onclick="clearSelection()">
+                        Hủy
+                    </button>
+                </div>
+            </div>
+
             <div id="questions-container" class="flex-grow-1">
                 <!-- Ajax loading output -->
             </div>
@@ -726,9 +779,30 @@
 
     </div>
 
-    <!-- Category Explorer Modal -->
-    <div th:replace="~{fragments/category-explorer :: category-explorer-modal}"></div>
-    <div th:replace="~{fragments/category-explorer :: category-explorer-private-modal}"></div>
+    <!-- Bulk Share Confirm Modal -->
+    <div class="modal fade" id="bulkShareConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 40px rgba(0,0,0,0.15);">
+                <div class="modal-header fw-bold" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border-top-left-radius: 20px; border-top-right-radius: 20px;">
+                    <h5 class="modal-title"><i class="bi bi-share-fill me-2"></i>Chia sẻ hàng loạt</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <i class="bi bi-collection-play text-warning" style="font-size: 3.5rem;"></i>
+                    <h5 class="fw-bold mt-3 text-dark">Gửi yêu cầu chia sẻ <span id="bulk-share-count">0</span> câu hỏi?</h5>
+                    <p class="text-muted small">Các câu hỏi này sẽ được gửi lên hệ thống công khai để quản trị viên duyệt.</p>
+                </div>
+                <div class="modal-footer p-3 bg-light" style="border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
+                    <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal" style="border-radius:12px; padding:10px 24px;">Hủy</button>
+                    <button type="button" class="btn btn-warning fw-bold text-white" onclick="executeBulkShare()" style="border-radius:12px; padding:10px 24px;">Đồng ý</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/category-explorer-public :: category-explorer-public-modal}"></div>
+    <div th:replace="~{fragments/category-explorer-private :: category-explorer-private-modal}"></div>
+    <div th:replace="~{fragments/category-explorer-private :: category-create-modal}"></div>
 
 
 
@@ -748,6 +822,7 @@
         let size = 10;
         let sortBy = 'id';
         let sortDir = 'desc';
+        let lastTotalElements = 0;
 
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
@@ -796,32 +871,31 @@
 
         function openCategoryModal(target = 'filter') {
             categorySelectTarget = target;
-            const myContainer = document.getElementById('my-category-tree-container');
-            const publicContainer = document.getElementById('public-category-tree-container');
-
-            if (myContainer) myContainer.innerHTML = '';
-            if (publicContainer) publicContainer.innerHTML = '';
-
-            const myTreeHtml = renderTreeNodes(myCategories);
-            const publicTreeHtml = renderTreeNodes(publicCategories);
-
-            let myHtml = myTreeHtml || '<div class="text-muted text-center my-4">Không có danh mục nào</div>';
-            if (target === 'filter') {
-                myHtml = `
-                    <div class="mb-3">
-                        <div class="d-flex align-items-center gap-2 category-node-row">
-                            <span class="category-selectable-name text-danger fw-semibold" onclick="selectCategoryFromTree(-1, 'Chưa phân mục')">
-                                <i class="bi bi-folder-x"></i> Câu hỏi chưa phân mục
-                            </span>
-                        </div>
-                    </div>` + myHtml;
+            if (currentTab === 'public') {
+                const publicContainer = document.getElementById('public-category-tree-container');
+                if (publicContainer) {
+                    publicContainer.innerHTML = renderTreeNodes(publicCategories) || '<div class="text-muted text-center my-4">Không có danh mục nào</div>';
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerPublicModal')).show();
+                }
+            } else {
+                const privateContainer = document.getElementById('private-category-tree-container');
+                if (privateContainer) {
+                    let myTreeHtml = renderTreeNodes(myCategories);
+                    let myHtml = myTreeHtml || '<div class="text-muted text-center my-4">Không có danh mục nào</div>';
+                    if (target === 'filter') {
+                        myHtml = `
+                            <div class="mb-3">
+                                <div class="d-flex align-items-center gap-2 category-node-row">
+                                    <span class="category-selectable-name text-danger fw-semibold" onclick="selectCategoryFromTree(-1, 'Câu hỏi chưa phân mục')">
+                                        <i class="bi bi-folder-x"></i> Câu hỏi chưa phân mục
+                                    </span>
+                                </div>
+                            </div>` + myHtml;
+                    }
+                    privateContainer.innerHTML = myHtml;
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerPrivateModal')).show();
+                }
             }
-
-            if (myContainer) myContainer.innerHTML = myHtml;
-            if (publicContainer) publicContainer.innerHTML = publicTreeHtml || '<div class="text-muted text-center my-4">Không có danh mục nào</div>';
-
-            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerModal'));
-            modal.show();
         }
 
         function openModalCategorySelector() {
@@ -849,13 +923,14 @@
                 document.getElementById('clear-q-cat-btn').style.display = 'inline-block';
             }
 
-            const modalEl = document.getElementById('categoryExplorerModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-
-            const pModalEl = document.getElementById('categoryExplorerPrivateModal');
-            const pModal = bootstrap.Modal.getInstance(pModalEl);
-            if (pModal) pModal.hide();
+            const modalIds = ['categoryExplorerModal', 'categoryExplorerPrivateModal', 'categoryExplorerPublicModal'];
+            modalIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    const m = bootstrap.Modal.getInstance(el);
+                    if (m) m.hide();
+                }
+            });
 
             if (categorySelectTarget === 'filter') {
                 triggerSearch();
@@ -906,7 +981,157 @@
 
         function triggerSearch() {
             page = 0;
+            clearSelection();
             fetchQuestions();
+        }
+
+        let selectedIds = [];
+        let isBulkMode = false;
+
+        function toggleSelectAll(el) {
+            const checkboxes = document.querySelectorAll('.question-checkbox');
+            const totalOnPage = checkboxes.length;
+            
+            checkboxes.forEach(cb => {
+                cb.checked = el.checked;
+                const id = parseInt(cb.getAttribute('data-id'));
+                if (el.checked) {
+                    if (!selectedIds.includes(id)) selectedIds.push(id);
+                } else {
+                    selectedIds = selectedIds.filter(sid => sid !== id);
+                }
+            });
+            
+            // Show "Select all results" link if checked
+            const selectAllAllArea = document.getElementById('select-all-all-area');
+            if (el.checked && lastTotalElements > totalOnPage) {
+                selectAllAllArea.innerHTML = `Bạn đã chọn <b>${totalOnPage}</b> câu hỏi trên trang này. <a href="javascript:void(0)" onclick="selectAllResults()" class="fw-bold text-decoration-underline ms-1">Chọn tất cả ${lastTotalElements} câu hỏi?</a>`;
+                selectAllAllArea.style.display = 'block';
+            } else {
+                selectAllAllArea.style.display = 'none';
+            }
+            
+            updateBulkUI();
+        }
+
+        let isSelectAllResults = false;
+        function selectAllResults() {
+            isSelectAllResults = true;
+            document.getElementById('select-all-all-area').innerHTML = `<i class="bi bi-check-circle-fill text-success me-1"></i> Đã chọn tất cả <b>${lastTotalElements}</b> câu hỏi. <a href="javascript:void(0)" onclick="clearSelection()" class="text-danger ms-2">Bỏ chọn</a>`;
+            selectedIds = []; // Clear specific IDs, we'll use filters on backend
+            updateBulkUI();
+        }
+
+        function toggleSelect(id, el) {
+            if (isSelectAllResults && !el.checked) {
+                // If unchecking while "Select All Results" is active,
+                // we'd need to fetch all IDs except this one. 
+                // For simplicity, just revert to selecting all on CURRENT page minus this one.
+                isSelectAllResults = false;
+                selectedIds = [];
+                document.querySelectorAll('.question-checkbox').forEach(cb => {
+                    if (cb.checked) selectedIds.push(parseInt(cb.getAttribute('data-id')));
+                });
+                document.getElementById('select-all-all-area').style.display = 'none';
+                document.getElementById('selectAllQuestions').checked = false;
+            } else if (el.checked) {
+                if (!selectedIds.includes(id)) selectedIds.push(id);
+            } else {
+                selectedIds = selectedIds.filter(sid => sid !== id);
+            }
+            updateBulkUI();
+        }
+
+        function updateBulkUI() {
+            const bar = document.getElementById('bulk-selection-bar');
+            const countBadge = document.getElementById('selected-count-badge');
+
+            const count = isSelectAllResults ? lastTotalElements : selectedIds.length;
+            countBadge.innerText = `${count} đã chọn`;
+
+            if (count > 0 && currentTab === 'mine') {
+                bar.classList.add('active');
+            } else {
+                bar.classList.remove('active');
+            }
+
+            // Sync select all checkbox
+            if (isSelectAllResults) {
+                document.getElementById('selectAllQuestions').checked = true;
+            }
+
+            // Sync card classes
+            document.querySelectorAll('.question-card').forEach(card => {
+                const cb = card.querySelector('.question-checkbox');
+                if (isSelectAllResults) {
+                    if (cb) cb.checked = true;
+                    card.classList.add('selected');
+                } else {
+                    const id = cb ? parseInt(cb.getAttribute('data-id')) : null;
+                    if (id && selectedIds.includes(id)) {
+                        if (cb) cb.checked = true;
+                        card.classList.add('selected');
+                    } else {
+                        if (cb) cb.checked = false;
+                        card.classList.remove('selected');
+                    }
+                }
+            });
+        }
+
+        function clearSelection() {
+            selectedIds = [];
+            isSelectAllResults = false;
+            document.getElementById('selectAllQuestions').checked = false;
+            document.querySelectorAll('.question-checkbox').forEach(cb => cb.checked = false);
+            document.getElementById('select-all-all-area').style.display = 'none';
+            updateBulkUI();
+        }
+
+        function confirmBulkShare() {
+            const count = isSelectAllResults ? lastTotalElements : selectedIds.length;
+            if (count === 0) return;
+            document.getElementById('bulk-share-count').innerText = count;
+            const modal = new bootstrap.Modal(document.getElementById('bulkShareConfirmModal'));
+            modal.show();
+        }
+
+        async function executeBulkShare() {
+            try {
+                let url = `/api/teacher/questions/bulk-share`;
+                let body = JSON.stringify(selectedIds);
+
+                if (isSelectAllResults) {
+                    const keyword = document.getElementById('filter-keyword').value.trim();
+                    const categoryId = document.getElementById('filter-category').value;
+                    const type = document.getElementById('filter-type').value;
+                    
+                    url = `/api/teacher/questions/bulk-share-all?isPublicTab=false`;
+                    if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+                    if (categoryId) url += `&categoryId=${categoryId}`;
+                    if (type) url += `&type=${type}`;
+                    body = null;
+                }
+
+                const res = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: body
+                });
+
+                if (!res.ok) throw new Error('Yêu cầu chia sẻ hàng loạt thất bại!');
+
+                showToast(`Đã gửi yêu cầu chia sẻ thành công!`, 'success');
+                const modalEl = document.getElementById('bulkShareConfirmModal');
+                bootstrap.Modal.getInstance(modalEl).hide();
+                clearSelection();
+                fetchQuestions();
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
         }
 
         async function fetchQuestions() {
@@ -922,7 +1147,7 @@
             const type = document.getElementById('filter-type').value;
             const level = document.getElementById('filter-level').value;
 
-            let url = `/api/teacher/questions?isPublicTab=${currentTab === 'public'}&page=${page}&size=${size}&sortBy=${sortBy}&sortDir=${sortDir}`;
+            url = `/api/teacher/questions?isPublicTab=${currentTab === 'public'}&page=${page}&size=${size}&sortBy=${sortBy}&sortDir=${sortDir}`;
             if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
             if (categoryId) url += `&categoryId=${categoryId}`;
             if (type) url += `&type=${type}`;
@@ -940,8 +1165,11 @@
                 }
 
                 const data = await response.json();
+                lastTotalElements = data.totalElements;
+                // clearSelection(); // Removed to persist selection across pages
                 renderQuestions(data.content);
                 renderPagination(data);
+                updateBulkUI(); // Sync checkboxes with state
             } catch (err) {
                 showToast(err.message, 'error');
                 container.innerHTML = `
@@ -1017,18 +1245,32 @@
                         </div>`;
                 }
 
+                let checkboxHtml = '';
+                if (currentTab === 'mine') {
+                    const isChecked = selectedIds.includes(q.id);
+                    checkboxHtml = `
+                        <div class="form-check" style="margin-top: 4px;">
+                            <input class="form-check-input question-checkbox" type="checkbox" 
+                                data-id="${q.id}" ${isChecked ? 'checked' : ''} 
+                                onchange="toggleSelect(${q.id}, this)">
+                        </div>`;
+                }
+
                 return `
-                    <div class="question-card">
+                    <div class="question-card ${selectedIds.includes(q.id) ? 'selected' : ''}">
                         <div class="card-top">
-                            <div class="badge-row">
-                                <span class="q-badge q-badge-type"><i class="bi bi-patch-check"></i> ${typeLabel}</span>
-                                <span class="q-badge q-badge-level"><i class="bi bi-graph-up"></i> ${levelLabel}</span>
-                                <span class="q-badge q-badge-cat"><i class="bi bi-folder-fill"></i> ${catLabel}</span>
-                                ${statusBadge}
+                            <div class="d-flex align-items-center gap-3">
+                                ${checkboxHtml}
+                                <div class="badge-row">
+                                    <span class="q-badge q-badge-type"><i class="bi bi-patch-check"></i> ${typeLabel}</span>
+                                    <span class="q-badge q-badge-level"><i class="bi bi-graph-up"></i> ${levelLabel}</span>
+                                    <span class="q-badge q-badge-cat"><i class="bi bi-folder-fill"></i> ${catLabel}</span>
+                                    ${statusBadge}
+                                </div>
                             </div>
                             <div class="text-muted small">ID: #${q.id}</div>
                         </div>
-                        <div class="q-text">${escapeHTML(q.text)}</div>
+                        <div class="q-text" onclick="this.parentElement.querySelector('.question-checkbox')?.click()">${escapeHTML(q.text)}</div>
                         ${answersPreviewHtml}
                         ${actionHtml}
                     </div>`;

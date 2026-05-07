@@ -1,6 +1,7 @@
 package com.example.quizhub.security;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.time.LocalDateTime;
 
 import org.springframework.http.MediaType;
@@ -45,7 +46,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             if (query != null && !query.isEmpty()) {
                 returnUrl += "?" + query;
             }
-            response.sendRedirect("/login?returnUrl=" + java.net.URLEncoder.encode(returnUrl, "UTF-8"));
+            response.sendRedirect("/login?returnUrl=" + URLEncoder.encode(returnUrl, "UTF-8"));
         }
     }
 

@@ -1,4 +1,4 @@
-package com.example.quizhub.service.auth;
+package com.example.quizhub.service;
 
 import org.springframework.stereotype.Service;
 
@@ -16,6 +16,6 @@ public interface AuthService {
     void forgotPassword(String email);
 
     void resetPassword(ResetPasswordRequest request);
-    
+
     boolean existsByEmail(String email);
 }

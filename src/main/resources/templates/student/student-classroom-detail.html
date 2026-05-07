@@ -79,15 +79,30 @@
                         <h5 class="fw-black mb-3 assigned-title" style="color:#1e1b4b;" th:text="${assigning.quiz != null ? assigning.quiz.title : 'Đề thi'}">Lập trình Java Căn bản</h5>
                         <div class="mb-3 assigned-meta" style="font-size: 13.5px; color:#475569;">
                             <div class="mb-1"><i class="bi bi-clock me-1 text-primary"></i> <strong>Thời gian:</strong> <span th:text="${assigning.durationInMins}">45</span> phút</div>
-                            <div class="mb-1"><i class="bi bi-calendar-check me-1 text-primary"></i> <strong>Bắt đầu:</strong> <span th:text="${assigning.startDate != null ? #temporals.format(assigning.startDate, 'dd/MM/yyyy') : '--/--/----'}">--</span></div>
-                            <div class="mb-1"><i class="bi bi-calendar-x me-1 text-primary"></i> <strong>Hạn chót:</strong> <span th:text="${assigning.dueDate != null ? #temporals.format(assigning.dueDate, 'dd/MM/yyyy') : '--/--/----'}">--</span></div>
+                            <div class="mb-1"><i class="bi bi-calendar-check me-1 text-primary"></i> <strong>Bắt đầu:</strong> <span th:text="${assigning.startDate != null ? #temporals.format(assigning.startDate, 'dd/MM/yyyy HH:mm') : '--/--/----'}">--</span></div>
+                            <div class="mb-1"><i class="bi bi-calendar-x me-1 text-primary"></i> <strong>Hạn chót:</strong> <span th:text="${assigning.dueDate != null ? #temporals.format(assigning.dueDate, 'dd/MM/yyyy HH:mm') : '--/--/----'}">--</span></div>
                             <div><i class="bi bi-arrow-repeat me-1 text-primary"></i> <strong>Số lần tối đa:</strong> <span th:text="${assigning.maxAttempt}">1</span> lần</div>
                         </div>
                         <div class="border-top pt-3 mt-auto d-flex flex-wrap justify-content-between align-items-center gap-2">
                             <span class="text-muted small"><i class="bi bi-calendar-check me-1"></i> Giao ngày: <span th:text="${assigning.createdAt != null ? #temporals.format(assigning.createdAt, 'dd/MM/yyyy') : '--/--/----'}">--</span></span>
                             
-                            <div class="d-flex gap-2 assigned-actions">
-                                <a th:if="${assigning.quiz != null}" th:href="@{'/student/quiz/play/' + ${assigning.id}}" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold">Làm bài <i class="bi bi-pencil-square ms-1"></i></a>
+                            <div class="d-flex gap-2 assigned-actions" th:with="now=${T(java.time.LocalDateTime).now()}">
+                                <!-- Case 1: Not started yet -->
+                                <button th:if="${assigning.startDate != null && now.isBefore(assigning.startDate)}" class="btn btn-sm btn-secondary rounded-pill px-4 fw-bold" disabled>
+                                    Chưa bắt đầu <i class="bi bi-clock-history ms-1"></i>
+                                </button>
+                                
+                                <!-- Case 2: In progress -->
+                                <a th:if="${assigning.quiz != null && (assigning.startDate == null || !now.isBefore(assigning.startDate)) && (assigning.dueDate == null || !now.isAfter(assigning.dueDate))}" 
+                                   th:href="@{'/student/quiz/play/' + ${assigning.id}}" 
+                                   class="btn btn-sm btn-primary rounded-pill px-4 fw-bold">
+                                    Làm bài <i class="bi bi-pencil-square ms-1"></i>
+                                </a>
+
+                                <!-- Case 3: Ended -->
+                                <button th:if="${assigning.dueDate != null && now.isAfter(assigning.dueDate)}" class="btn btn-sm btn-outline-danger rounded-pill px-4 fw-bold" disabled>
+                                    Đã kết thúc <i class="bi bi-calendar-x ms-1"></i>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -138,6 +153,10 @@
                     const metaEl = el.querySelector('.assigned-meta')?.innerHTML || '';
                     const badgeEl = el.querySelector('.badge-status')?.innerHTML || '';
                     const topicBadgeEl = el.querySelector('.badge.bg-light')?.outerHTML || '';
+
+                    // Since we are in JS, we can't easily use Thymeleaf here, 
+                    // but we already updated the originalActionButtons in the DOM above.
+                    // The el.querySelector('.assigned-actions') will contain the updated button logic (either disabled button or link).
 
                     html += `
                     <div class="card border rounded-3 bg-white p-3 shadow-sm mb-2" style="border-color:#e2e8f0 !important;">

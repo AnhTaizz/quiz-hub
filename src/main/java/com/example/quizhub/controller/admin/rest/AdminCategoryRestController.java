@@ -2,6 +2,7 @@ package com.example.quizhub.controller.admin.rest;
 
 import java.util.List;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -12,12 +13,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.quizhub.dto.category.CategoryRequestDTO;
 import com.example.quizhub.dto.category.CategoryResponseDTO;
-import com.example.quizhub.dto.quiz.QuizSummaryDTO;
-import com.example.quizhub.service.category.CategoryService;
+import com.example.quizhub.dto.question.QuestionResponseDTO;
+import com.example.quizhub.dto.quiz.response.QuizSummaryDTO;
+import com.example.quizhub.entity.enums.QuestionLevel;
+import com.example.quizhub.entity.enums.QuestionStatus;
+import com.example.quizhub.entity.enums.QuestionType;
+import com.example.quizhub.service.CategoryService;
 import com.example.quizhub.service.quiz.QuizService;
 
 import jakarta.validation.Valid;
@@ -31,8 +37,7 @@ public class AdminCategoryRestController {
 
     private final CategoryService categoryService;
     private final QuizService quizService;
-    private final com.example.quizhub.repository.QuestionRepository questionRepository;
-    private final com.example.quizhub.mapper.QuestionMapper questionMapper;
+    private final com.example.quizhub.service.QuestionService questionService;
 
     @GetMapping
     public ResponseEntity<List<CategoryResponseDTO>> getPublicCategories() {
@@ -58,13 +63,18 @@ public class AdminCategoryRestController {
     }
 
     @GetMapping("/{id}/questions")
-    public ResponseEntity<org.springframework.data.domain.Page<com.example.quizhub.dto.question.QuestionResponseDTO>> getQuestionsByCategoryId(
+    public ResponseEntity<Page<QuestionResponseDTO>> getQuestionsByCategoryId(
             @PathVariable Long id,
-            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "0") int page,
-            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "10") int size) {
-        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(page, size, org.springframework.data.domain.Sort.by("id").descending());
-        org.springframework.data.domain.Page<com.example.quizhub.entity.Question> questionPage = questionRepository.findByCategoryId(id, pageable);
-        return ResponseEntity.ok(questionPage.map(questionMapper::toResponseDTO));
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) QuestionType type,
+            @RequestParam(required = false) QuestionLevel level,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "desc") String sortDir) {
+
+        return ResponseEntity.ok(questionService.searchQuestions(
+                QuestionStatus.PUBLIC, id, type, level, keyword, null, page, size, sortBy, sortDir));
     }
 
     @PutMapping("/{id}")

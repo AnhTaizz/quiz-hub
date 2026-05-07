@@ -20,15 +20,20 @@ public interface QuizRepository extends JpaRepository<Quiz, UUID> {
 
     /** Quiz công khai (published) theo danh mục */
     List<Quiz> findByCategoryIdAndIsDraftFalseAndIsEnableTrue(Long categoryId);
+    List<Quiz> findByCategoryIdInAndIsDraftFalseAndIsEnableTrue(List<Long> categoryIds);
 
     /** Quiz của một người dùng cụ thể theo danh mục (bao gồm cả draft) */
     List<Quiz> findByCategoryIdAndCreatorId(Long categoryId, Long creatorId);
+    List<Quiz> findByCategoryIdInAndCreatorId(List<Long> categoryIds, Long creatorId);
 
     /** Đếm quiz công khai theo danh mục (để hiển thị badge count) */
     long countByCategoryIdAndIsDraftFalseAndIsEnableTrue(Long categoryId);
+    long countByCategoryIdInAndIsDraftFalseAndIsEnableTrue(List<Long> categoryIds);
 
     /** Đếm quiz cá nhân theo danh mục */
     long countByCategoryIdAndCreatorId(Long categoryId, Long creatorId);
+    long countByCategoryIdInAndCreatorId(List<Long> categoryIds, Long creatorId);
 
     long countByCategoryId(Long categoryId);
+    long countByCategoryIdIn(List<Long> categoryIds);
 }

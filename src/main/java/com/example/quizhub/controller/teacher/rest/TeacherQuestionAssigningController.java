@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.quizhub.dto.quizassigning.request.QuizAssigningRequestDTO;
 import com.example.quizhub.dto.quizassigning.response.QuizAssigningResponseDTO;
-import com.example.quizhub.service.quizassigning.QuizAssigningService;
+import com.example.quizhub.service.quiz.QuizAssigningService;
 
 import lombok.RequiredArgsConstructor;
 

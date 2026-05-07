@@ -1,4 +1,4 @@
-package com.example.quizhub.service.practice;
+package com.example.quizhub.service;
 
 import java.util.List;
 

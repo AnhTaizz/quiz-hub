@@ -1,4 +1,4 @@
-package com.example.quizhub.service.question;
+package com.example.quizhub.service.impl;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,7 +26,11 @@ import com.example.quizhub.mapper.QuestionMapper;
 import com.example.quizhub.repository.CategoryRepository;
 import com.example.quizhub.repository.QuestionRepository;
 import com.example.quizhub.repository.UserRepository;
+import com.example.quizhub.service.QuestionService;
 import com.example.quizhub.repository.AnswerRepository;
+import com.example.quizhub.entity.enums.QuestionLevel;
+import com.example.quizhub.entity.enums.QuestionStatus;
+import com.example.quizhub.entity.enums.QuestionType;
 
 import lombok.RequiredArgsConstructor;
 
@@ -258,6 +262,38 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
+    public Page<QuestionResponseDTO> searchQuestions(QuestionStatus status, Long categoryId, QuestionType type,
+                                                     QuestionLevel level, String keyword, String creatorName,
+                                                     int page, int size, String sortBy, String sortDir) {
+
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        boolean useCategoryFilter = false;
+        List<Long> categoryIds = new java.util.ArrayList<>();
+        if (categoryId != null) {
+            if (categoryId == -1L) {
+                categoryIds.add(-1L);
+            } else {
+                Category category = categoryRepository.findById(categoryId)
+                        .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+                collectCategoryIds(category, categoryIds);
+            }
+            useCategoryFilter = true;
+        }
+
+        String searchKeyword = (keyword == null || keyword.trim().isEmpty()) ? null : "%" + keyword.trim().toLowerCase() + "%";
+        String searchCreator = (creatorName == null || creatorName.trim().isEmpty()) ? null : "%" + creatorName.trim().toLowerCase() + "%";
+
+        Page<Question> questionPage = questionRepository.searchQuestions(status, useCategoryFilter, categoryIds, type, level, searchKeyword, searchCreator, pageable);
+
+        return questionPage.map(questionMapper::toResponseDTO);
+    }
+
+    @Override
     public QuestionResponseDTO getQuestionById(Long id) {
         Question question = questionRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
@@ -294,6 +330,23 @@ public class QuestionServiceImpl implements QuestionService {
         // Chuyển trạng thái sang PENDING (chưa public ngay)
         question.setQuestionStatus(QuestionStatus.PENDING);
         questionRepository.save(question);
+    }
+
+    @Override
+    @Transactional
+    public void bulkRequestShareQuestions(List<Long> questionIds, Long teacherId) {
+        if (questionIds == null || questionIds.isEmpty()) return;
+        for (Long id : questionIds) {
+            requestShareQuestion(id, teacherId);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void bulkRequestShareAllQuestions(Long teacherId, Long categoryId, QuestionType type, String keyword) {
+        String searchKeyword = (keyword != null && !keyword.isEmpty()) ? "%" + keyword.toLowerCase() + "%" : null;
+        List<Long> ids = questionRepository.findIdsByFilters(teacherId, QuestionStatus.PRIVATE, categoryId, type, searchKeyword);
+        bulkRequestShareQuestions(ids, teacherId);
     }
 
     //Admin duyệt
@@ -340,6 +393,37 @@ public class QuestionServiceImpl implements QuestionService {
         questionRepository.save(originalQuestion);
     }
 
+    @Override
+    @Transactional
+    public void bulkApproveQuestions(List<Long> questionIds, Long categoryId) {
+        if (questionIds == null || questionIds.isEmpty()) return;
+        for (Long id : questionIds) {
+            approveQuestion(id, categoryId);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void bulkApproveAllQuestions(Long targetCategoryId, Long filterCategoryId, QuestionType type, QuestionLevel level, String keyword, String creatorName) {
+        boolean useCategoryFilter = false;
+        List<Long> categoryIds = new java.util.ArrayList<>();
+        if (filterCategoryId != null) {
+            if (filterCategoryId == -1L) {
+                categoryIds.add(-1L);
+            } else {
+                Category category = categoryRepository.findById(filterCategoryId)
+                        .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+                collectCategoryIds(category, categoryIds);
+            }
+            useCategoryFilter = true;
+        }
+
+        String searchKeyword = (keyword != null && !keyword.isEmpty()) ? "%" + keyword.toLowerCase() + "%" : null;
+        String searchCreator = (creatorName != null && !creatorName.isEmpty()) ? "%" + creatorName.toLowerCase() + "%" : null;
+        List<Long> ids = questionRepository.findPendingIdsByFilters(QuestionStatus.PENDING, useCategoryFilter, categoryIds, type, level, searchKeyword, searchCreator);
+        bulkApproveQuestions(ids, targetCategoryId);
+    }
+
     //Admin từ chối
     @Override
     @Transactional
@@ -349,6 +433,37 @@ public class QuestionServiceImpl implements QuestionService {
 
         question.setQuestionStatus(QuestionStatus.PRIVATE);
         questionRepository.save(question);
+    }
+
+    @Override
+    @Transactional
+    public void bulkRejectQuestions(List<Long> questionIds) {
+        if (questionIds == null || questionIds.isEmpty()) return;
+        for (Long id : questionIds) {
+            rejectQuestion(id);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void bulkRejectAllQuestions(Long filterCategoryId, QuestionType type, QuestionLevel level, String keyword, String creatorName) {
+        boolean useCategoryFilter = false;
+        List<Long> categoryIds = new java.util.ArrayList<>();
+        if (filterCategoryId != null) {
+            if (filterCategoryId == -1L) {
+                categoryIds.add(-1L);
+            } else {
+                Category category = categoryRepository.findById(filterCategoryId)
+                        .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+                collectCategoryIds(category, categoryIds);
+            }
+            useCategoryFilter = true;
+        }
+
+        String searchKeyword = (keyword != null && !keyword.isEmpty()) ? "%" + keyword.toLowerCase() + "%" : null;
+        String searchCreator = (creatorName != null && !creatorName.isEmpty()) ? "%" + creatorName.toLowerCase() + "%" : null;
+        List<Long> ids = questionRepository.findPendingIdsByFilters(QuestionStatus.PENDING, useCategoryFilter, categoryIds, type, level, searchKeyword, searchCreator);
+        bulkRejectQuestions(ids);
     }
 
     //Admin xóa

@@ -102,8 +102,9 @@
     </main>
 
     <!-- Modals -->
-    <div th:replace="~{fragments/category-explorer :: category-explorer-modal}"></div>
-    <div th:replace="~{fragments/category-explorer :: category-explorer-private-modal}"></div>
+    <div th:replace="~{fragments/category-explorer-public :: category-explorer-public-modal}"></div>
+    <div th:replace="~{fragments/category-explorer-private :: category-explorer-private-modal}"></div>
+    <div th:replace="~{fragments/category-explorer-private :: category-create-modal}"></div>
 
     <div class="modal fade" id="createOnTheFlyQuestionModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -319,12 +320,21 @@
                     bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerPrivateModal')).show();
                 }
             } else {
-                // For filtering, show both personal and public tabs
-                const myContainer = document.getElementById('my-category-tree-container');
-                const pubContainer = document.getElementById('public-category-tree-container');
-                if (myContainer) myContainer.innerHTML = renderTreeNodes(myCategories, 'mine');
-                if (pubContainer) pubContainer.innerHTML = renderTreeNodes(publicCategories, 'public');
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerModal')).show();
+                // For filter, use modal based on current source
+                const source = document.getElementById('q-source').value;
+                if (source === 'public') {
+                    const pubContainer = document.getElementById('public-category-tree-container');
+                    if (pubContainer) {
+                        pubContainer.innerHTML = renderTreeNodes(publicCategories, 'public');
+                        bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerPublicModal')).show();
+                    }
+                } else {
+                    const myContainer = document.getElementById('private-category-tree-container');
+                    if (myContainer) {
+                        myContainer.innerHTML = renderTreeNodes(myCategories, 'mine');
+                        bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerPrivateModal')).show();
+                    }
+                }
             }
         }
 
@@ -349,7 +359,14 @@
                 document.getElementById('q-category-filter').value = id;
                 document.getElementById('q-category-filter-display').value = name;
                 document.getElementById('q-source').value = source; // Auto set source
-                bootstrap.Modal.getInstance(document.getElementById('categoryExplorerModal')).hide();
+                const modalIds = ['categoryExplorerModal', 'categoryExplorerPrivateModal', 'categoryExplorerPublicModal'];
+                modalIds.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        const m = bootstrap.Modal.getInstance(el);
+                        if (m) m.hide();
+                    }
+                });
                 loadQuestions();
             }
         }

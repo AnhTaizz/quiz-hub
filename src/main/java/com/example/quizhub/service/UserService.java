@@ -1,4 +1,4 @@
-package com.example.quizhub.service.user;
+package com.example.quizhub.service;
 
 import org.springframework.data.domain.Page;
 

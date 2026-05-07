@@ -1,15 +1,16 @@
 package com.example.quizhub.scheduler;
 
-import com.example.quizhub.service.quiztaking.QuizTakingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import com.example.quizhub.service.quiz.QuizTakingService;
+
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class QuizScheduler {
+public class QuizScheduler {    
 
     private final QuizTakingService quizTakingService;
 

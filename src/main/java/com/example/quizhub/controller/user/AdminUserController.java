@@ -18,7 +18,7 @@ import com.example.quizhub.dto.user.request.CreateUserRequest;
 import com.example.quizhub.dto.user.response.UserProfileResponse;
 import com.example.quizhub.dto.user.response.UserResponseDTO;
 import com.example.quizhub.entity.enums.Role;
-import com.example.quizhub.service.user.UserService;
+import com.example.quizhub.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 

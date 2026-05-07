@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.quizhub.dto.category.CategoryResponseDTO;
-import com.example.quizhub.service.category.CategoryService;
+import com.example.quizhub.service.CategoryService;
 
 import lombok.RequiredArgsConstructor;
 

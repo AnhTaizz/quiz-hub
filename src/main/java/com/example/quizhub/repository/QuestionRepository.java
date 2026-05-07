@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.example.quizhub.entity.Question;
+import com.example.quizhub.entity.enums.QuestionLevel;
 import com.example.quizhub.entity.enums.QuestionStatus;
 import com.example.quizhub.entity.enums.QuestionType;
 
@@ -64,6 +65,30 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
                                          @Param("status") QuestionStatus status,
                                          Pageable pageable);
 
+    // 3. Tìm kiếm chung (Dùng cho Admin và các mục lọc nâng cao)
+    @Query(value = "SELECT q FROM Question q " +
+           "WHERE (:status IS NULL OR q.questionStatus = :status) " +
+           "AND (:useCategoryFilter = false OR (-1 IN :categoryIds AND q.category IS NULL) OR q.category.id IN :categoryIds) " +
+           "AND (:type IS NULL OR q.type = :type) " +
+           "AND (:level IS NULL OR q.level = :level) " +
+           "AND (:keyword IS NULL OR LOWER(CAST(q.text AS string)) LIKE :keyword) " +
+           "AND (:creatorName IS NULL OR LOWER(q.creator.fullName) LIKE :creatorName)",
+           countQuery = "SELECT COUNT(q) FROM Question q " +
+           "WHERE (:status IS NULL OR q.questionStatus = :status) " +
+           "AND (:useCategoryFilter = false OR (-1 IN :categoryIds AND q.category IS NULL) OR q.category.id IN :categoryIds) " +
+           "AND (:type IS NULL OR q.type = :type) " +
+           "AND (:level IS NULL OR q.level = :level) " +
+           "AND (:keyword IS NULL OR LOWER(CAST(q.text AS string)) LIKE :keyword) " +
+           "AND (:creatorName IS NULL OR LOWER(q.creator.fullName) LIKE :creatorName)")
+    Page<Question> searchQuestions(@Param("status") QuestionStatus status,
+                                    @Param("useCategoryFilter") boolean useCategoryFilter,
+                                    @Param("categoryIds") List<Long> categoryIds,
+                                    @Param("type") QuestionType type,
+                                    @Param("level") com.example.quizhub.entity.enums.QuestionLevel level,
+                                    @Param("keyword") String keyword,
+                                    @Param("creatorName") String creatorName,
+                                    Pageable pageable);
+
     // Kiểm tra câu hỏi đã nằm trong đề thi nào chưa
     @Query("SELECT CASE WHEN COUNT(q) > 0 THEN true ELSE false END "
             + "FROM Quiz q JOIN q.questions quest "
@@ -88,6 +113,9 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
     @Query("SELECT q.id FROM Question q WHERE q.category.id = :categoryId AND q.questionStatus = :status ORDER BY q.id ASC")
     List<Long> findQuestionIdsByCategoryAndStatus(@Param("categoryId") Long categoryId, @Param("status") QuestionStatus status);
 
+    @Query("SELECT q.id FROM Question q WHERE q.category.id IN :categoryIds AND q.questionStatus = :status ORDER BY q.id ASC")
+    List<Long> findQuestionIdsByCategoryInAndStatus(@Param("categoryIds") List<Long> categoryIds, @Param("status") QuestionStatus status);
+
     @Query(value = "SELECT * FROM _question WHERE category_id = :categoryId AND approval_status = 'PUBLIC' ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
     List<Question> findRandomPublicQuestionsByCategory(@Param("categoryId") Long categoryId, @Param("limit") int limit);
 
@@ -96,4 +124,27 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
 
     @Query("SELECT COUNT(q) FROM Question q WHERE q.category.id IN :categoryIds AND q.questionStatus = :status")
     long countPublicQuestionsByCategories(@Param("categoryIds") List<Long> categoryIds, @Param("status") QuestionStatus status);
+
+    @Query("SELECT q.id FROM Question q " +
+           "WHERE q.creator.id = :teacherId " +
+           "AND q.questionStatus = :status " +
+           "AND (:categoryId IS NULL OR q.category.id = :categoryId) " +
+           "AND (:type IS NULL OR q.type = :type) " +
+           "AND (:keyword IS NULL OR LOWER(CAST(q.text AS string)) LIKE :keyword)")
+    List<Long> findIdsByFilters(@Param("teacherId") Long teacherId, @Param("status") QuestionStatus status, @Param("categoryId") Long categoryId, @Param("type") QuestionType type, @Param("keyword") String keyword);
+
+    @Query("SELECT q.id FROM Question q " +
+           "WHERE q.questionStatus = :status " +
+           "AND (:useCategoryFilter = false OR (-1 IN :categoryIds AND q.category IS NULL) OR q.category.id IN :categoryIds) " +
+           "AND (:type IS NULL OR q.type = :type) " +
+           "AND (:level IS NULL OR q.level = :level) " +
+           "AND (:keyword IS NULL OR LOWER(CAST(q.text AS string)) LIKE :keyword) " +
+           "AND (:creatorName IS NULL OR LOWER(q.creator.fullName) LIKE :creatorName)")
+    List<Long> findPendingIdsByFilters(@Param("status") QuestionStatus status,
+                                       @Param("useCategoryFilter") boolean useCategoryFilter,
+                                       @Param("categoryIds") List<Long> categoryIds,
+                                       @Param("type") QuestionType type,
+                                       @Param("level") QuestionLevel level,
+                                       @Param("keyword") String keyword,
+                                       @Param("creatorName") String creatorName);
 }

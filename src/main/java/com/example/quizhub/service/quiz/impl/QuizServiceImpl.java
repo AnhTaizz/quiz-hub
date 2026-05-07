@@ -1,5 +1,6 @@
-package com.example.quizhub.service.quiz;
+package com.example.quizhub.service.quiz.impl;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -8,9 +9,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.quizhub.dto.quiz.QuizRequestDTO;
-import com.example.quizhub.dto.quiz.QuizResponseDTO;
-import com.example.quizhub.dto.quiz.QuizSummaryDTO;
+import com.example.quizhub.dto.quiz.request.QuizRequestDTO;
+import com.example.quizhub.dto.quiz.request.QuizGenerateRequestDTO;
+import com.example.quizhub.dto.quiz.response.QuizResponseDTO;
+import com.example.quizhub.dto.quiz.response.QuizSummaryDTO;
 import com.example.quizhub.entity.Category;
 import com.example.quizhub.entity.Question;
 import com.example.quizhub.entity.Quiz;
@@ -22,6 +24,8 @@ import com.example.quizhub.repository.CategoryRepository;
 import com.example.quizhub.repository.QuestionRepository;
 import com.example.quizhub.repository.QuizRepository;
 import com.example.quizhub.repository.UserRepository;
+import com.example.quizhub.service.quiz.QuizService;
+import com.example.quizhub.entity.enums.QuestionStatus;
 
 import lombok.RequiredArgsConstructor;
 
@@ -36,6 +40,7 @@ public class QuizServiceImpl implements QuizService {
     private final QuestionRepository questionRepository;
     private final com.example.quizhub.repository.QuizTakingRepository quizTakingRepository;
     private final com.example.quizhub.repository.AttemptRepository attemptRepository;
+    private final com.example.quizhub.service.CategoryService categoryService;
 
     // Helper
 
@@ -119,8 +124,9 @@ public class QuizServiceImpl implements QuizService {
 
     @Override
     public List<QuizSummaryDTO> getPublicQuizzesByCategoryId(Long categoryId) {
+        List<Long> allIds = categoryService.getAllDescendantIds(categoryId);
         return quizRepository
-                .findByCategoryIdAndIsDraftFalseAndIsEnableTrue(categoryId)
+                .findByCategoryIdInAndIsDraftFalseAndIsEnableTrue(allIds)
                 .stream()
                 .map(QuizSummaryDTO::new)
                 .collect(Collectors.toList());
@@ -129,8 +135,9 @@ public class QuizServiceImpl implements QuizService {
     @Override
     public List<QuizSummaryDTO> getMyQuizzesByCategoryId(Long categoryId) {
         User user = getCurrentUser();
+        List<Long> allIds = categoryService.getAllDescendantIds(categoryId);
         return quizRepository
-                .findByCategoryIdAndCreatorId(categoryId, user.getId())
+                .findByCategoryIdInAndCreatorId(allIds, user.getId())
                 .stream()
                 .map(q -> mapToSummaryDTO(q, user))
                 .collect(Collectors.toList());
@@ -148,7 +155,7 @@ public class QuizServiceImpl implements QuizService {
 
     private QuizSummaryDTO mapToSummaryDTO(Quiz quiz, User user) {
         QuizSummaryDTO dto = new QuizSummaryDTO(quiz);
-        
+
         // Find personal taking info (where quizAssigning is null)
         quizTakingRepository.findByLearnerIdAndQuizIdAndQuizAssigningIsNull(user.getId(), quiz.getId())
                 .stream().findFirst().ifPresent(qt -> {
@@ -156,16 +163,17 @@ public class QuizServiceImpl implements QuizService {
                     long attempts = attemptRepository.countByQuizTakingIdAndEndedAtIsNotNull(qt.getId());
                     dto.setAttemptInfo("Lần làm: " + attempts);
                 });
-        
+
         return dto;
     }
 
     @Override
     @Transactional
-    public QuizResponseDTO generateQuizFromCategory(com.example.quizhub.dto.quiz.QuizGenerateRequestDTO request) {
+    public QuizResponseDTO generateQuizFromCategory(QuizGenerateRequestDTO request) {
         Category category = resolveCategory(request.getCategoryId());
+        List<Long> allIds = categoryService.getAllDescendantIds(request.getCategoryId());
 
-        List<Long> questionIds = questionRepository.findQuestionIdsByCategoryAndStatus(category.getId(), com.example.quizhub.entity.enums.QuestionStatus.PUBLIC);
+        List<Long> questionIds = questionRepository.findQuestionIdsByCategoryInAndStatus(allIds, QuestionStatus.PUBLIC);
         if (questionIds.isEmpty()) {
             throw new AppException(ErrorCode.QUESTION_NOT_FOUND); // No questions available
         }
@@ -173,7 +181,7 @@ public class QuizServiceImpl implements QuizService {
         List<Long> selectedIds;
         if ("RANDOM".equalsIgnoreCase(request.getMethod())) {
             int amount = request.getAmount() != null ? request.getAmount() : 40;
-            java.util.Collections.shuffle(questionIds);
+            Collections.shuffle(questionIds);
             selectedIds = questionIds.stream().limit(amount).collect(Collectors.toList());
         } else if ("RANGE".equalsIgnoreCase(request.getMethod())) {
             int offset = request.getOffset() != null ? request.getOffset() : 0;

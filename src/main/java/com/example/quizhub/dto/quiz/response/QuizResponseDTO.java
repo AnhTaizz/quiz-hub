@@ -1,4 +1,4 @@
-package com.example.quizhub.dto.quiz;
+package com.example.quizhub.dto.quiz.response;
 
 import java.time.LocalDateTime;
 import java.util.List;

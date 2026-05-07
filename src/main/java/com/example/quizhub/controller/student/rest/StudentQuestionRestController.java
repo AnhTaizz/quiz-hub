@@ -14,7 +14,7 @@ import com.example.quizhub.entity.enums.QuestionType;
 import com.example.quizhub.exception.AppException;
 import com.example.quizhub.exception.ErrorCode;
 import com.example.quizhub.repository.UserRepository;
-import com.example.quizhub.service.question.QuestionService;
+import com.example.quizhub.service.QuestionService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

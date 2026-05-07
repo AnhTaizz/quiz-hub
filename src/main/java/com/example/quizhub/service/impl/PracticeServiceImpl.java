@@ -1,4 +1,4 @@
-package com.example.quizhub.service.practice;
+package com.example.quizhub.service.impl;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -35,6 +35,7 @@ import com.example.quizhub.repository.PracticeRepository;
 import com.example.quizhub.repository.QuestionRepository;
 import com.example.quizhub.repository.QuizRepository;
 import com.example.quizhub.repository.UserRepository;
+import com.example.quizhub.service.PracticeService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -316,7 +317,7 @@ public class PracticeServiceImpl implements PracticeService {
                 .map(d -> PracticeDetailResponseDTO.builder()
                         .questionId(d.getQuestion().getId())
                         .questionText(d.getQuestion().getText())
-                        .selectedAnswerIds(d.getSelectedAnswers() != null ? 
+                        .selectedAnswerIds(d.getSelectedAnswers() != null ?
                                 d.getSelectedAnswers().stream().map(Answer::getId).collect(Collectors.toList()) : null)
                         .selectedText(d.getSelectedText())
                         .correctAnswerIds(d.getQuestion().getAnswers().stream()

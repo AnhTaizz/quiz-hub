@@ -379,6 +379,56 @@
         }
         .category-tree-node:hover { background: #f1f5f9; color: var(--blue); }
         .category-tree-node.selected { background: rgba(37, 99, 235, 0.1); color: var(--blue); font-weight: 700; }
+
+        /* Bulk actions styling */
+        .bulk-actions-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            opacity: 0;
+            visibility: hidden;
+            height: 0;
+            overflow: hidden;
+            margin: 0;
+        }
+        .bulk-actions-bar.active {
+            opacity: 1;
+            visibility: visible;
+            height: auto;
+            margin-bottom: 20px;
+            background: #eff6ff;
+            border-color: #bfdbfe;
+        }
+
+        .form-check-input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            border-color: #cbd5e1;
+        }
+        .form-check-input:checked {
+            background-color: var(--blue);
+            border-color: var(--blue);
+        }
+
+        .q-selection-box {
+            display: flex;
+            align-items: center;
+            padding-right: 15px;
+            border-right: 1px solid var(--border);
+            margin-right: 15px;
+        }
+
+        .question-card.selected {
+            background: #f0f7ff;
+            border-color: #3b82f6;
+        }
     </style>
 </head>
 
@@ -463,7 +513,74 @@
             <p>Admin phê duyệt hoặc từ chối các câu hỏi đang chờ kiểm duyệt và gán vào danh mục hệ thống</p>
         </div>
 
+        <!-- Filter Bar -->
+        <div class="dashboard-card mb-4" style="padding: 20px;">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" id="filter-keyword" class="form-control border-start-0" placeholder="Tìm kiếm nội dung câu hỏi..." oninput="debounceFetch()">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-person text-muted"></i></span>
+                        <input type="text" id="filter-creator" class="form-control border-start-0" placeholder="Tìm theo giáo viên..." oninput="debounceFetch()">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <select id="filter-type" class="form-select" onchange="fetchPendingQuestions()">
+                        <option value="">-- Loại câu hỏi --</option>
+                        <option value="SINGLE_CHOICE">Một đáp án</option>
+                        <option value="MULTIPLE_CHOICE">Nhiều đáp án</option>
+                        <option value="FILL_IN_BLANK">Điền khuyết</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <select id="filter-level" class="form-select" onchange="fetchPendingQuestions()">
+                        <option value="">-- Mức độ --</option>
+                        <option value="EASY">Dễ</option>
+                        <option value="MEDIUM">Trung bình</option>
+                        <option value="HARD">Khó</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select id="filter-category" class="form-select" onchange="fetchPendingQuestions()">
+                        <option value="">-- Tất cả danh mục --</option>
+                        <!-- Populated by JS -->
+                    </select>
+                </div>
+                <div class="col-md-1">
+                    <button class="btn btn-outline-secondary w-100" onclick="resetFilters()" title="Làm mới">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <div class="dashboard-card">
+            <!-- Bulk Selection Bar -->
+            <div id="bulk-selection-bar" class="bulk-actions-bar">
+                    <div class="d-flex flex-column">
+                        <div class="d-flex align-items-center">
+                            <div class="form-check me-3">
+                                <input class="form-check-input" type="checkbox" id="selectAllQuestions" onchange="toggleSelectAll(this)">
+                                <label class="form-check-label fw-bold ms-2" for="selectAllQuestions">Chọn tất cả</label>
+                            </div>
+                            <span id="selected-count-badge" class="badge bg-primary rounded-pill">0 đã chọn</span>
+                        </div>
+                        <div id="select-all-all-area" class="mt-1 small" style="display: none; padding-left: 32px; color: #1e40af;"></div>
+                    </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-sm btn-success fw-bold px-3 py-2" style="border-radius: 10px;" onclick="openBulkApproveModal()">
+                        <i class="bi bi-check-circle-fill me-1"></i> Duyệt nhanh
+                    </button>
+                    <button class="btn btn-sm btn-danger fw-bold px-3 py-2" style="border-radius: 10px;" onclick="confirmBulkReject()">
+                        <i class="bi bi-x-circle-fill me-1"></i> Từ chối nhanh
+                    </button>
+                </div>
+            </div>
+
             <div id="questions-container">
                 <!-- Ajax loading output -->
             </div>
@@ -556,8 +673,12 @@
     <script>
         let page = 0;
         let size = 10;
+        let lastTotalElements = 0;
         let selectedQuestionId = null;
         let publicCategories = [];
+        let selectedIds = [];
+        let isSelectAllResults = false;
+        let isBulkMode = false;
 
         document.addEventListener('DOMContentLoaded', () => {
             const toggleBtn = document.getElementById('sidebarToggle');
@@ -577,10 +698,27 @@
                 const res = await fetch('/api/admin/categories');
                 if (res.ok) {
                     publicCategories = await res.json();
+                    populateCategoryFilter(publicCategories);
                 }
             } catch (err) {
                 console.error(err);
             }
+        }
+
+        function populateCategoryFilter(categories, level = 0) {
+            const select = document.getElementById('filter-category');
+            if (level === 0) {
+                select.innerHTML = '<option value="">-- Tất cả danh mục --</option>';
+            }
+            categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.id;
+                option.innerText = '—'.repeat(level) + ' ' + cat.name;
+                select.appendChild(option);
+                if (cat.children && cat.children.length > 0) {
+                    populateCategoryFilter(cat.children, level + 1);
+                }
+            });
         }
 
         async function fetchPendingQuestions() {
@@ -591,13 +729,29 @@
                     <p class="text-muted mt-2">Đang tải danh sách câu hỏi chờ duyệt...</p>
                 </div>`;
 
+            const keyword = document.getElementById('filter-keyword').value;
+            const creator = document.getElementById('filter-creator').value;
+            const type = document.getElementById('filter-type').value;
+            const level = document.getElementById('filter-level').value;
+            const categoryId = document.getElementById('filter-category').value;
+
+            let url = `/api/admin/questions/pending?page=${page}&size=${size}`;
+            if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+            if (creator) url += `&creatorName=${encodeURIComponent(creator)}`;
+            if (type) url += `&type=${type}`;
+            if (level) url += `&level=${level}`;
+            if (categoryId) url += `&categoryId=${categoryId}`;
+
             try {
-                const res = await fetch(`/api/admin/questions/pending?page=${page}&size=${size}`);
+                const res = await fetch(url);
                 if (!res.ok) throw new Error('Không thể lấy danh sách câu hỏi');
 
                 const data = await res.json();
+                lastTotalElements = data.totalElements;
+                // selectedIds = []; // Removed to persist selection
                 renderQuestions(data.content);
                 renderPagination(data);
+                updateBulkUI();
             } catch (err) {
                 showToast(err.message, 'error');
                 container.innerHTML = `
@@ -639,28 +793,36 @@
                         </div>`;
                 }
 
+                const isChecked = isSelectAllResults || selectedIds.includes(q.id);
                 return `
-                    <div class="question-card">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="badge-row">
-                                <span class="q-badge q-badge-type"><i class="bi bi-patch-check"></i> ${typeLabel}</span>
-                                <span class="q-badge q-badge-level"><i class="bi bi-graph-up"></i> ${levelLabel}</span>
-                                <span class="q-badge q-badge-status-pending"><i class="bi bi-clock-fill"></i> Đang chờ duyệt</span>
+                    <div class="question-card ${isChecked ? 'selected' : ''}" id="q-card-${q.id}">
+                        <div class="d-flex align-items-start">
+                            <div class="q-selection-box mt-1">
+                                <input class="form-check-input q-checkbox" type="checkbox" value="${q.id}" ${isChecked ? 'checked' : ''} onchange="toggleQuestionSelection(${q.id}, this)">
                             </div>
-                            <div class="text-muted small d-flex flex-column align-items-end">
-                                <div>Người gửi: <strong>${escapeHTML(q.creatorName || 'N/A')}</strong></div>
-                                <div>Danh mục gốc: <strong class="text-primary">${escapeHTML(q.categoryName || 'Chưa phân mục')}</strong></div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="badge-row">
+                                        <span class="q-badge q-badge-type"><i class="bi bi-patch-check"></i> ${typeLabel}</span>
+                                        <span class="q-badge q-badge-level"><i class="bi bi-graph-up"></i> ${levelLabel}</span>
+                                        <span class="q-badge q-badge-status-pending"><i class="bi bi-clock-fill"></i> Đang chờ duyệt</span>
+                                    </div>
+                                    <div class="text-muted small d-flex flex-column align-items-end">
+                                        <div>Người gửi: <strong>${escapeHTML(q.creatorName || 'N/A')}</strong></div>
+                                        <div>Danh mục gốc: <strong class="text-primary">${escapeHTML(q.categoryName || 'Chưa phân mục')}</strong></div>
+                                    </div>
+                                </div>
+                                <div class="q-text" onclick="this.parentElement.parentElement.querySelector('.q-checkbox').click()">${escapeHTML(q.text)}</div>
+                                ${answersHtml}
+                                <div class="card-actions">
+                                    <button class="btn-action btn-act-approve" onclick="openApproveModal(${q.id})">
+                                        <i class="bi bi-check-circle-fill"></i> Duyệt
+                                    </button>
+                                    <button class="btn-action btn-act-reject" onclick="rejectQuestion(${q.id})">
+                                        <i class="bi bi-x-circle-fill"></i> Từ chối
+                                    </button>
+                                </div>
                             </div>
-                        </div>
-                        <div class="q-text">${escapeHTML(q.text)}</div>
-                        ${answersHtml}
-                        <div class="card-actions">
-                            <button class="btn-action btn-act-approve" onclick="openApproveModal(${q.id})">
-                                <i class="bi bi-check-circle-fill"></i> Duyệt
-                            </button>
-                            <button class="btn-action btn-act-reject" onclick="rejectQuestion(${q.id})">
-                                <i class="bi bi-x-circle-fill"></i> Từ chối
-                            </button>
                         </div>
                     </div>`;
             }).join('');
@@ -704,8 +866,190 @@
             fetchPendingQuestions();
         }
 
+        let debounceTimer;
+        function debounceFetch() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                page = 0;
+                fetchPendingQuestions();
+            }, 500);
+        }
+
+        function resetFilters() {
+            document.getElementById('filter-keyword').value = '';
+            document.getElementById('filter-creator').value = '';
+            document.getElementById('filter-type').value = '';
+            document.getElementById('filter-level').value = '';
+            document.getElementById('filter-category').value = '';
+            page = 0;
+            fetchPendingQuestions();
+        }
+
+        function toggleQuestionSelection(id, checkbox) {
+            const card = document.getElementById(`q-card-${id}`);
+            if (isSelectAllResults && !checkbox.checked) {
+                isSelectAllResults = false;
+                selectedIds = [];
+                document.querySelectorAll('.q-checkbox').forEach(cb => {
+                    if (cb.checked) selectedIds.push(parseInt(cb.value));
+                });
+                document.getElementById('select-all-all-area').style.display = 'none';
+                document.getElementById('selectAllQuestions').checked = false;
+            } else if (checkbox.checked) {
+                if (!selectedIds.includes(id)) selectedIds.push(id);
+                if (card) card.classList.add('selected');
+            } else {
+                selectedIds = selectedIds.filter(item => item !== id);
+                if (card) card.classList.remove('selected');
+                document.getElementById('selectAllQuestions').checked = false;
+            }
+            updateBulkUI();
+        }
+
+        function toggleSelectAll(checkbox) {
+            const checkboxes = document.querySelectorAll('.q-checkbox');
+            const totalOnPage = checkboxes.length;
+            
+            checkboxes.forEach(cb => {
+                cb.checked = checkbox.checked;
+                const id = parseInt(cb.value);
+                const card = document.getElementById(`q-card-${id}`);
+                if (checkbox.checked) {
+                    if (!selectedIds.includes(id)) selectedIds.push(id);
+                    if (card) card.classList.add('selected');
+                } else {
+                    selectedIds = selectedIds.filter(sid => sid !== id);
+                    if (card) card.classList.remove('selected');
+                }
+            });
+
+            const selectAllAllArea = document.getElementById('select-all-all-area');
+            if (checkbox.checked && lastTotalElements > totalOnPage) {
+                selectAllAllArea.innerHTML = `Bạn đã chọn <b>${totalOnPage}</b> câu hỏi trên trang này. <a href="javascript:void(0)" onclick="selectAllResults()" class="fw-bold text-decoration-underline ms-1">Chọn tất cả ${lastTotalElements} câu hỏi?</a>`;
+                selectAllAllArea.style.display = 'block';
+            } else {
+                selectAllAllArea.style.display = 'none';
+            }
+            
+            updateBulkUI();
+        }
+
+        function selectAllResults() {
+            isSelectAllResults = true;
+            document.getElementById('select-all-all-area').innerHTML = `<i class="bi bi-check-circle-fill text-success me-1"></i> Đã chọn tất cả <b>${lastTotalElements}</b> câu hỏi. <a href="javascript:void(0)" onclick="clearSelection()" class="text-danger ms-2">Bỏ chọn</a>`;
+            selectedIds = [];
+            updateBulkUI();
+        }
+
+        function updateBulkUI() {
+            const bar = document.getElementById('bulk-selection-bar');
+            const countBadge = document.getElementById('selected-count-badge');
+
+            const count = isSelectAllResults ? lastTotalElements : selectedIds.length;
+            countBadge.innerText = `${count} đã chọn`;
+
+            if (count > 0) {
+                bar.classList.add('active');
+            } else {
+                bar.classList.remove('active');
+            }
+
+            if (isSelectAllResults) {
+                document.getElementById('selectAllQuestions').checked = true;
+            }
+
+            document.querySelectorAll('.question-card').forEach(card => {
+                const cb = card.querySelector('.q-checkbox');
+                if (isSelectAllResults) {
+                    if (cb) cb.checked = true;
+                    card.classList.add('selected');
+                } else {
+                    const id = cb ? parseInt(cb.value) : null;
+                    if (id && selectedIds.includes(id)) {
+                        if (cb) cb.checked = true;
+                        card.classList.add('selected');
+                    } else {
+                        if (cb) cb.checked = false;
+                        card.classList.remove('selected');
+                    }
+                }
+            });
+        }
+
+        function clearSelection() {
+            selectedIds = [];
+            isSelectAllResults = false;
+            document.getElementById('selectAllQuestions').checked = false;
+            document.querySelectorAll('.q-checkbox').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.question-card').forEach(card => card.classList.remove('selected'));
+            document.getElementById('select-all-all-area').style.display = 'none';
+            updateBulkUI();
+        }
+
+        function openBulkApproveModal() {
+            const count = isSelectAllResults ? lastTotalElements : selectedIds.length;
+            if (count === 0) {
+                showToast('Vui lòng chọn ít nhất một câu hỏi!', 'error');
+                return;
+            }
+            isBulkMode = true;
+            document.getElementById('selected-cat-id').value = '';
+            renderTree(publicCategories);
+
+            const modal = new bootstrap.Modal(document.getElementById('approveModal'));
+            modal.show();
+        }
+
+        async function confirmBulkReject() {
+            const count = isSelectAllResults ? lastTotalElements : selectedIds.length;
+            if (count === 0) {
+                showToast('Vui lòng chọn ít nhất một câu hỏi!', 'error');
+                return;
+            }
+
+            if (!confirm(`Bạn có chắc chắn muốn từ chối ${count} câu hỏi đã chọn?`)) return;
+
+            try {
+                let url, options;
+                if (isSelectAllResults) {
+                    const keyword = document.getElementById('filter-keyword').value;
+                    const creator = document.getElementById('filter-creator').value;
+                    const type = document.getElementById('filter-type').value;
+                    const level = document.getElementById('filter-level').value;
+                    const categoryId = document.getElementById('filter-category').value;
+                    url = `/api/admin/questions/bulk-reject-all?`;
+                    if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+                    if (creator) url += `&creatorName=${encodeURIComponent(creator)}`;
+                    if (type) url += `&type=${type}`;
+                    if (level) url += `&level=${level}`;
+                    if (categoryId) url += `&categoryId=${categoryId}`;
+                    options = { method: 'PUT' };
+                } else {
+                    url = '/api/admin/questions/bulk-reject';
+                    options = {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(selectedIds)
+                    };
+                }
+
+                const res = await fetch(url, options);
+
+                if (res.ok) {
+                    showToast(`Đã từ chối ${count} câu hỏi thành công!`, 'success');
+                    clearSelection();
+                    fetchPendingQuestions();
+                } else {
+                    showToast('Có lỗi xảy ra khi từ chối hàng loạt!', 'error');
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
         function openApproveModal(questionId) {
             selectedQuestionId = questionId;
+            isBulkMode = false;
             document.getElementById('selected-cat-id').value = '';
             renderTree(publicCategories);
 
@@ -759,13 +1103,39 @@
             }
 
             try {
-                const res = await fetch(`/api/admin/questions/${selectedQuestionId}/approve?categoryId=${categoryId}`, {
-                    method: 'PUT'
-                });
+                let url, options;
+                if (isSelectAllResults) {
+                    const keyword = document.getElementById('filter-keyword').value;
+                    const creator = document.getElementById('filter-creator').value;
+                    const type = document.getElementById('filter-type').value;
+                    const level = document.getElementById('filter-level').value;
+                    const filterCategoryId = document.getElementById('filter-category').value;
+                    url = `/api/admin/questions/bulk-approve-all?categoryId=${categoryId}`;
+                    if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+                    if (creator) url += `&creatorName=${encodeURIComponent(creator)}`;
+                    if (type) url += `&type=${type}`;
+                    if (level) url += `&level=${level}`;
+                    if (filterCategoryId) url += `&filterCategoryId=${filterCategoryId}`;
+                    options = { method: 'PUT' };
+                } else if (isBulkMode) {
+                    url = `/api/admin/questions/bulk-approve?categoryId=${categoryId}`;
+                    options = {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(selectedIds)
+                    };
+                } else {
+                    url = `/api/admin/questions/${selectedQuestionId}/approve?categoryId=${categoryId}`;
+                    options = { method: 'PUT' };
+                }
+
+                const res = await fetch(url, options);
 
                 if (res.ok) {
-                    showToast('Đã duyệt câu hỏi thành công!', 'success');
+                    const count = isSelectAllResults ? lastTotalElements : (isBulkMode ? selectedIds.length : 1);
+                    showToast(`Đã duyệt ${count} câu hỏi thành công!`, 'success');
                     bootstrap.Modal.getInstance(document.getElementById('approveModal')).hide();
+                    clearSelection();
                     fetchPendingQuestions();
                 } else {
                     showToast('Có lỗi xảy ra khi duyệt câu hỏi!', 'error');

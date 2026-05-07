@@ -15,7 +15,7 @@ import com.example.quizhub.entity.enums.QuestionType;
 import com.example.quizhub.exception.AppException;
 import com.example.quizhub.exception.ErrorCode;
 import com.example.quizhub.repository.UserRepository;
-import com.example.quizhub.service.question.QuestionService;
+import com.example.quizhub.service.QuestionService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -86,9 +86,25 @@ public class TeacherQuestionController {
     }
 
     // MỚI THÊM: API xin chia sẻ (Xin Public)
+    // MỚI THÊM: API xin chia sẻ (Xin Public)
     @PutMapping("/{id}/share")
     public ResponseEntity<String> requestShareQuestion(@PathVariable Long id) {
         questionService.requestShareQuestion(id, getCurrentUserId());
         return ResponseEntity.ok("Question has been submitted for approval");
+    }
+
+    @PutMapping("/bulk-share")
+    public ResponseEntity<String> bulkRequestShareQuestions(@RequestBody java.util.List<Long> ids) {
+        questionService.bulkRequestShareQuestions(ids, getCurrentUserId());
+        return ResponseEntity.ok("Questions have been submitted for approval");
+    }
+
+    @PutMapping("/bulk-share-all")
+    public ResponseEntity<String> bulkRequestShareAllQuestions(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) QuestionType type,
+            @RequestParam(required = false) String keyword) {
+        questionService.bulkRequestShareAllQuestions(getCurrentUserId(), categoryId, type, keyword);
+        return ResponseEntity.ok("All matching questions have been submitted for approval");
     }
 }
