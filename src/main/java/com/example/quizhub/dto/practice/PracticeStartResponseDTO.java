@@ -18,6 +18,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PracticeStartResponseDTO {
     List<PracticeQuestionResponseDTO> questions;
+    Long practiceId;
     Long categoryId;
     String categoryName;
     String quizTitle;

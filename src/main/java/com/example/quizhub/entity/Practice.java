@@ -56,6 +56,16 @@ public class Practice {
     @Column(name = "created_at")
     LocalDateTime createdAt;
 
-    @OneToMany(mappedBy = "practice", cascade = jakarta.persistence.CascadeType.ALL, fetch = FetchType.LAZY)
+    @Column(name = "practice_limit")
+    Integer practiceLimit;
+
+    @Column(name = "practice_offset")
+    Integer practiceOffset;
+
+    @Column(name = "is_completed")
+    @Builder.Default
+    Boolean isCompleted = false;
+
+    @OneToMany(mappedBy = "practice", cascade = jakarta.persistence.CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     List<PracticeDetail> details;
 }

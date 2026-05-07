@@ -1328,9 +1328,11 @@
                     const err = await res.json().catch(() => ({}));
                     throw new Error(err.message || 'Không thể tạo bài luyện tập');
                 }
-                const questions = await res.json();
+                const data = await res.json();
                 // Save everything to sessionStorage for the play page
-                sessionStorage.setItem('practice_questions', JSON.stringify(questions));
+                sessionStorage.setItem('practice_questions', JSON.stringify(data.questions));
+                sessionStorage.setItem('practice_id', data.practiceId);
+                sessionStorage.setItem('practice_offset', offset);
                 sessionStorage.setItem('practice_category_id', currentPracticeCategoryId);
                 sessionStorage.setItem('practice_category_name', document.getElementById('practiceCatName').textContent);
                 sessionStorage.setItem('practice_settings', JSON.stringify({ showAnswer, shuffle, displayMode }));

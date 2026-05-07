@@ -435,7 +435,40 @@
         .error-title { font-size: 24px; font-weight: 800; color: #1e293b; margin-bottom: 12px; }
         .error-msg { color: #64748b; font-size: 16px; margin-bottom: 30px; line-height: 1.6; }
         .btn-back { background: #312e81; color: #fff; border: none; padding: 14px 32px; border-radius: 50px; font-weight: 700; font-size: 16px; transition: all 0.3s ease; text-decoration: none; display: inline-block; }
-        .btn-back:hover { background: #1e1b4b; transform: translateY(-2px); box-shadow: 0 10px 20px rgba(49, 46, 129, 0.2); color: #fff; }
+        .btn-back:hover { background: #1e1b4b; transform: translateY(-5px); box-shadow: 0 10px 20px rgba(49, 46, 129, 0.2); color: #fff; }
+
+        /* Fullscreen Enforcement Styles */
+        #fullscreenOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(10px);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+        }
+        .fs-card {
+            max-width: 500px;
+            padding: 40px;
+            background: #fff;
+            border-radius: 30px;
+            color: #1e293b;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        }
+        .fs-icon {
+            font-size: 4rem;
+            color: #4f46e5;
+            margin-bottom: 20px;
+            animation: pulse-purple 2s infinite;
+        }
+        @keyframes pulse-purple {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body th:data-assigning-id="${quizId}">
@@ -443,6 +476,23 @@
     <div id="pageLoading">
         <div class="loader-spinner mb-3"></div>
         <p class="fw-bold text-muted">Đang thiết lập phòng thi...</p>
+    </div>
+
+    <!-- Fullscreen Enforcement Overlay -->
+    <div id="fullscreenOverlay" style="display: none;">
+        <div class="fs-card">
+            <div class="fs-icon">
+                <i class="bi bi-fullscreen"></i>
+            </div>
+            <h3 class="fw-bold mb-3">Yêu cầu Toàn màn hình</h3>
+            <p class="text-muted mb-4" id="fsMessage">
+                Để đảm bảo tính công bằng, bài thi yêu cầu hoạt động ở chế độ toàn màn hình. 
+                Bạn sẽ không thể làm bài nếu thoát chế độ này.
+            </p>
+            <button class="btn btn-primary btn-lg rounded-pill px-5 fw-bold" onclick="requestFullScreen()">
+                Bắt đầu / Quay lại phòng thi
+            </button>
+        </div>
     </div>
 
     <header class="exam-header">
@@ -686,6 +736,9 @@
 
                 document.getElementById('examTitle').textContent = quizData.quizTitle;
                 document.getElementById('pageLoading').style.display = 'none';
+
+                // Check for fullscreen after loading
+                checkFullScreen();
 
             } catch (error) {
                 console.error(error);
@@ -1025,6 +1078,39 @@
                 logViolation('TAB_CLOSE', true);
             }
         });
+
+        // Fullscreen Enforcement Logic
+        function checkFullScreen() {
+            if (!document.fullscreenElement && isMonitoring) {
+                document.getElementById('fullscreenOverlay').style.display = 'flex';
+                document.getElementById('fsMessage').innerHTML = `
+                    <span class="text-danger fw-bold">Phát hiện hành động thoát toàn màn hình!</span><br>
+                    Để đảm bảo tính công bằng, vui lòng quay lại chế độ toàn màn hình để tiếp tục làm bài.
+                `;
+                return false;
+            }
+            return true;
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement && isMonitoring) {
+                logViolation('FULLSCREEN_EXIT');
+                checkFullScreen();
+            } else if (document.fullscreenElement) {
+                document.getElementById('fullscreenOverlay').style.display = 'none';
+            }
+        });
+
+        function requestFullScreen() {
+            const elem = document.documentElement;
+            if (elem.requestFullscreen) {
+                elem.requestFullscreen();
+            } else if (elem.webkitRequestFullscreen) { /* Safari */
+                elem.webkitRequestFullscreen();
+            } else if (elem.msRequestFullscreen) { /* IE11 */
+                elem.msRequestFullscreen();
+            }
+        }
 
         async function logViolation(code, isBeacon = false) {
             if(!quizData || !quizData.attemptId) return;

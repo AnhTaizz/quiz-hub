@@ -2,6 +2,7 @@ package com.example.quizhub.service.practice;
 
 import java.util.List;
 
+import com.example.quizhub.dto.practice.PracticeAnswerRequestDTO;
 import com.example.quizhub.dto.practice.PracticeHistoryResponseDTO;
 import com.example.quizhub.dto.practice.PracticeQuestionResponseDTO;
 import com.example.quizhub.dto.practice.PracticeResultResponseDTO;
@@ -11,7 +12,11 @@ import com.example.quizhub.dto.practice.PracticeSubmitRequestDTO;
 
 public interface PracticeService {
 
-    List<PracticeQuestionResponseDTO> startPractice(PracticeStartRequestDTO request);
+    PracticeStartResponseDTO startPractice(PracticeStartRequestDTO request);
+    
+    void saveAnswer(Long practiceId, PracticeAnswerRequestDTO answerRequest);
+
+    void resetPractice(Long categoryId, Integer limit, Integer offset);
 
     List<PracticeQuestionResponseDTO> previewPractice(PracticeStartRequestDTO request);
 

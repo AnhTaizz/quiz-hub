@@ -34,22 +34,16 @@
 
             <div class="hero-content d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4">
                 <div>
-                    <h1 class="hero-title">Chào buổi sáng, <span
+                    <h1 class="hero-title"><span th:text="${greeting}">Chào buổi sáng</span>, <span
                             th:text="${currentUser != null ? currentUser.fullName : 'Học sinh'}">Học sinh</span>
                         👋
                     </h1>
-                    <p class="hero-subtitle">Mọi thứ đang đi đúng hướng! Bạn có <strong th:text="${pendingCount != null ? pendingCount : 0}">0</strong> bài kiểm tra sắp đến
+                    <p class="hero-subtitle">Mọi thứ đang đi đúng hướng! Bạn có <strong th:text="${pendingThisWeekCount != null ? pendingThisWeekCount : 0}">0</strong> bài kiểm tra sắp đến
                         hạn trong tuần này. Hãy hoàn thành sớm để giữ vững phong độ nhé.</p>
 
                     <div class="hero-stats-row">
                         <div class="hero-stat-glass">
                             <i class="bi bi-check2-circle text-success"></i> Đã làm: <span th:text="${totalCompleted != null ? totalCompleted : 0}">0</span> Bài thi
-                        </div>
-                        <div class="hero-stat-glass">
-                            <i class="bi bi-star-fill text-warning"></i> Điểm TB: <span th:text="${avgScore != null ? avgScore : '0.0'}">0.0</span>/10
-                        </div>
-                        <div class="hero-stat-glass">
-                            <i class="bi bi-lightning-charge-fill text-info"></i> Trạng thái: <span th:text="${pendingCount > 0 ? 'Cần cố gắng' : 'Đã hoàn thành'}">Cần cố gắng</span>
                         </div>
                     </div>
                 </div>

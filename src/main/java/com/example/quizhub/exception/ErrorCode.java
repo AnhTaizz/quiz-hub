@@ -43,7 +43,8 @@ public enum ErrorCode {
     PRACTICE_NOT_FOUND(1027, "Practice not found", HttpStatus.NOT_FOUND),
     MAX_ATTEMPTS_REACHED(1028, "You have reached the maximum number of attempts for this quiz", HttpStatus.BAD_REQUEST),
     QUIZ_EXPIRED(1029, "The quiz has already ended", HttpStatus.BAD_REQUEST),
-    QUIZ_NOT_STARTED(1030, "The quiz has not started yet", HttpStatus.BAD_REQUEST);
+    QUIZ_NOT_STARTED(1030, "The quiz has not started yet", HttpStatus.BAD_REQUEST),
+    PRACTICE_ALREADY_SUBMITTED(1031, "Practice already submitted", HttpStatus.BAD_REQUEST);
 
     final int code;
     final String message;

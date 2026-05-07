@@ -24,6 +24,8 @@ public class PracticeSubmitRequestDTO {
     @NotNull(message = "Category ID is required")
     Long categoryId;
 
+    Long practiceId;
+
     @NotEmpty(message = "Answers list cannot be empty")
     List<@Valid PracticeAnswerRequestDTO> answers;
 }

@@ -27,4 +27,8 @@ public class PracticeQuestionResponseDTO {
     
     // Hidden answers without isCorrect
     List<PracticeAnswerResponseDTO> answers;
+
+    List<Long> selectedAnswerIds;
+    String selectedText;
+    Boolean isCorrect;
 }

@@ -14,5 +14,9 @@ public interface PracticeRepository extends JpaRepository<Practice, Long> {
     long countByUserId(Long userId);
     List<Practice> findByUserId(Long userId);
     List<Practice> findByUserIdOrderByCreatedAtDesc(Long userId);
+    java.util.Optional<Practice> findFirstByUserIdAndCategoryIdAndPracticeLimitAndPracticeOffsetAndIsCompletedFalseOrderByCreatedAtDesc(
+            Long userId, Long categoryId, Integer practiceLimit, Integer practiceOffset);
+    List<Practice> findByUserIdAndCategoryIdAndIsCompletedTrueOrderByCreatedAtDesc(Long userId, Long categoryId);
+    List<Practice> findByUserIdAndIsCompletedTrueOrderByCreatedAtDesc(Long userId);
 }
 

@@ -87,7 +87,16 @@
                             <span class="text-muted small"><i class="bi bi-calendar-check me-1"></i> Giao ngày: <span th:text="${assigning.createdAt != null ? #temporals.format(assigning.createdAt, 'dd/MM/yyyy') : '--/--/----'}">--</span></span>
                             
                             <div class="d-flex gap-2 assigned-actions">
-                                <a th:if="${assigning.quiz != null}" th:href="@{'/student/quiz/play/' + ${assigning.id}}" class="btn btn-sm btn-primary rounded-pill px-4 fw-bold">Làm bài <i class="bi bi-pencil-square ms-1"></i></a>
+                                <th:block th:if="${assigning.quiz != null}">
+                                    <!-- Chỉ hiển thị nút Làm bài nếu đã đến giờ (hoặc không có ngày bắt đầu) -->
+                                    <a th:if="${assigning.startDate == null || !assigning.startDate.isAfter(now)}" 
+                                       th:href="@{'/student/quiz/play/' + ${assigning.id}}" 
+                                       class="btn btn-sm btn-primary rounded-pill px-4 fw-bold">Làm bài <i class="bi bi-pencil-square ms-1"></i></a>
+                                    
+                                    <!-- Hiển thị nút Chưa bắt đầu nếu chưa đến giờ -->
+                                    <button th:if="${assigning.startDate != null && assigning.startDate.isAfter(now)}" 
+                                            class="btn btn-sm btn-secondary rounded-pill px-4 fw-bold" disabled>Chưa bắt đầu <i class="bi bi-clock-history ms-1"></i></button>
+                                </th:block>
                             </div>
                         </div>
                     </div>

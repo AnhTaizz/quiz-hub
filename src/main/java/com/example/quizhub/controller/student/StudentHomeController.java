@@ -92,6 +92,10 @@ public class StudentHomeController {
 
             // Filter and map to dashboard-friendly structure
             List<QuizDashboardInfo> dashboardQuizzes = new ArrayList<>();
+            int pendingThisWeekCount = 0;
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime nextWeek = now.plusDays(7);
+
             for (QuizAssigning assigning : rawAssignedQuizzes) {
                 QuizTaking taking = quizTakingRepository
                         .findByLearnerIdAndQuizAssigningId(student.getId(), assigning.getId())
@@ -105,7 +109,6 @@ public class StudentHomeController {
                 int max = assigning.getMaxAttempt() != null ? assigning.getMaxAttempt() : 0;
                 boolean hasAttemptsLeft = (max == 0) || (attemptsMade < max);
 
-                LocalDateTime now = LocalDateTime.now();
                 boolean isExpired = assigning.getDueDate() != null && now.isAfter(assigning.getDueDate());
                 boolean isUpcoming = assigning.getStartDate() != null && now.isBefore(assigning.getStartDate());
 
@@ -116,16 +119,31 @@ public class StudentHomeController {
                     info.setAttemptsLeft(max == 0 ? -1 : (max - attemptsMade));
                     info.setHasStarted(attemptsMade > 0);
                     dashboardQuizzes.add(info);
+
+                    // Count for 'this week' message
+                    if (assigning.getDueDate() != null && assigning.getDueDate().isBefore(nextWeek)) {
+                        pendingThisWeekCount++;
+                    }
                 }
             }
 
             model.addAttribute("totalCompleted", totalCompleted);
-            model.addAttribute("avgScore", avgScore);
             model.addAttribute("assignedQuizzes", dashboardQuizzes);
             model.addAttribute("pendingCount", dashboardQuizzes.size());
+            model.addAttribute("pendingThisWeekCount", pendingThisWeekCount);
+            model.addAttribute("greeting", getGreeting());
         }
 
         return "student/student-home";
+    }
+
+    private String getGreeting() {
+        int hour = LocalDateTime.now().getHour();
+        if (hour >= 5 && hour < 11) return "Chào buổi sáng";
+        if (hour >= 11 && hour < 13) return "Chào buổi trưa";
+        if (hour >= 13 && hour < 18) return "Chào buổi chiều";
+        if (hour >= 18 && hour < 24) return "Chào buổi tối";
+        return "Chào buổi đêm";
     }
 
     // Helper class for dashboard

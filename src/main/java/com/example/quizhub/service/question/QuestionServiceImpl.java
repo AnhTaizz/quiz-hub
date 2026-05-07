@@ -27,6 +27,8 @@ import com.example.quizhub.repository.CategoryRepository;
 import com.example.quizhub.repository.QuestionRepository;
 import com.example.quizhub.repository.UserRepository;
 import com.example.quizhub.repository.AnswerRepository;
+import com.example.quizhub.service.notification.NotificationService;
+import com.example.quizhub.entity.enums.NotificationType;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,6 +41,7 @@ public class QuestionServiceImpl implements QuestionService {
     private final CategoryRepository categoryRepository;
     private final AnswerRepository answerRepository;
     private final QuestionMapper questionMapper;
+    private final NotificationService notificationService;
 
     // Business Logic
     private void validateQuestionLogic(QuestionType type, List<AnswerCreationRequestDTO> answers) {
@@ -338,6 +341,15 @@ public class QuestionServiceImpl implements QuestionService {
         // Chuyển trạng thái của câu hỏi gốc về PRIVATE
         originalQuestion.setQuestionStatus(QuestionStatus.PRIVATE);
         questionRepository.save(originalQuestion);
+
+        // Tạo thông báo cho giáo viên
+        notificationService.createNotification(
+                originalQuestion.getCreator().getId(),
+                "Câu hỏi được phê duyệt",
+                "Câu hỏi \"" + originalQuestion.getText() + "\" của bạn đã được Admin phê duyệt vào kho chung.",
+                NotificationType.QUESTION_APPROVED,
+                "/teacher/questions"
+        );
     }
 
     //Admin từ chối
@@ -349,6 +361,15 @@ public class QuestionServiceImpl implements QuestionService {
 
         question.setQuestionStatus(QuestionStatus.PRIVATE);
         questionRepository.save(question);
+
+        // Tạo thông báo cho giáo viên
+        notificationService.createNotification(
+                question.getCreator().getId(),
+                "Câu hỏi bị từ chối",
+                "Câu hỏi \"" + question.getText() + "\" của bạn đã bị Admin từ chối chia sẻ.",
+                NotificationType.QUESTION_REJECTED,
+                "/teacher/questions"
+        );
     }
 
     //Admin xóa
