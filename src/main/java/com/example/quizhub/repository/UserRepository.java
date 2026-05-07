@@ -9,6 +9,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.example.quizhub.entity.enums.Role;
+
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -21,9 +24,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE " +
            "(:role IS NULL OR u.role = :role) AND " +
            "(LOWER(u.email) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :keyword, '%')))")
-    Page<User> searchUsers(@Param("keyword") String keyword, @Param("role") com.example.quizhub.entity.enums.Role role, Pageable pageable);
+    Page<User> searchUsers(@Param("keyword") String keyword, @Param("role") Role role, Pageable pageable);
 
-    long countByRole(com.example.quizhub.entity.enums.Role role);
+    long countByRole(Role role);
 
-    java.util.List<User> findTop5ByOrderByIdDesc();
+    List<User> findTop5ByOrderByIdDesc();
 }

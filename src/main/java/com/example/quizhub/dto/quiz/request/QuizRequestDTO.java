@@ -1,4 +1,4 @@
-package com.example.quizhub.dto.quiz;
+package com.example.quizhub.dto.quiz.request;
 
 import java.util.List;
 

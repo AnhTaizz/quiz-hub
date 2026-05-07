@@ -422,11 +422,11 @@
                         <div class="row g-3 mb-3">
                             <div class="col-6">
                                 <label class="form-label fw-bold">Ngày mở đề</label>
-                                <input type="date" id="assignStartDate" name="startDate" class="form-control rounded-3" required>
+                                <input type="datetime-local" id="assignStartDate" name="startDate" class="form-control rounded-3" required>
                             </div>
                             <div class="col-6">
                                 <label class="form-label fw-bold">Hạn chót</label>
-                                <input type="date" id="assignDueDate" name="dueDate" class="form-control rounded-3" required>
+                                <input type="datetime-local" id="assignDueDate" name="dueDate" class="form-control rounded-3" required>
                             </div>
                         </div>
                         <div class="mb-3">
@@ -644,15 +644,18 @@
             const year = now.getFullYear();
             const month = String(now.getMonth() + 1).padStart(2, '0');
             const day = String(now.getDate()).padStart(2, '0');
-
+            const nowStr = `${year}-${month}-${day}T${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            
             const due = new Date();
             due.setDate(now.getDate() + 7);
+            due.setHours(23, 59, 0, 0); // Default to end of day for due date
             const dYear = due.getFullYear();
             const dMonth = String(due.getMonth() + 1).padStart(2, '0');
             const dDay = String(due.getDate()).padStart(2, '0');
+            const dueStr = `${dYear}-${dMonth}-${dDay}T23:59`;
 
-            document.getElementById('assignStartDate').value = `${year}-${month}-${day}`;
-            document.getElementById('assignDueDate').value = `${dYear}-${dMonth}-${dDay}`;
+            document.getElementById('assignStartDate').value = nowStr;
+            document.getElementById('assignDueDate').value = dueStr;
 
             // Fetch classrooms
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -695,6 +698,22 @@
                     data[key] = value;
                 }
             });
+
+            // Validation
+            const start = new Date(data.startDate);
+            const due = new Date(data.dueDate);
+            const duration = parseInt(data.durationInMins);
+
+            if (due <= start) {
+                alert('Thời gian kết thúc phải sau thời gian bắt đầu!');
+                return;
+            }
+
+            const windowMins = (due - start) / (1000 * 60);
+            if (duration > windowMins) {
+                alert(`Thời gian làm bài (${duration} phút) không được vượt quá khoảng thời gian mở đề (${Math.floor(windowMins)} phút)!`);
+                return;
+            }
 
             if (!data.questionShuffled) data.questionShuffled = false;
             if (!data.answerShuffled) data.answerShuffled = false;

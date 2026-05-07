@@ -1,4 +1,4 @@
-package com.example.quizhub.service.category;
+package com.example.quizhub.service.impl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +22,7 @@ import com.example.quizhub.repository.CategoryRepository;
 import com.example.quizhub.repository.QuestionRepository;
 import com.example.quizhub.repository.QuizRepository;
 import com.example.quizhub.repository.UserRepository;
+import com.example.quizhub.service.CategoryService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -87,7 +88,8 @@ public class CategoryServiceImpl implements CategoryService {
 
     private void attachPublicQuizCount(List<CategoryResponseDTO> dtos) {
         for (CategoryResponseDTO dto : dtos) {
-            long count = quizRepository.countByCategoryIdAndIsDraftFalseAndIsEnableTrue(dto.getId());
+            List<Long> allIds = getAllDescendantIds(dto.getId());
+            long count = quizRepository.countByCategoryIdInAndIsDraftFalseAndIsEnableTrue(allIds);
             dto.setQuizCount(count);
             if (dto.getChildren() != null) attachPublicQuizCount(dto.getChildren());
         }
@@ -95,7 +97,8 @@ public class CategoryServiceImpl implements CategoryService {
 
     private void attachMyQuizCount(List<CategoryResponseDTO> dtos, Long creatorId) {
         for (CategoryResponseDTO dto : dtos) {
-            long count = quizRepository.countByCategoryIdAndCreatorId(dto.getId(), creatorId);
+            List<Long> allIds = getAllDescendantIds(dto.getId());
+            long count = quizRepository.countByCategoryIdInAndCreatorId(allIds, creatorId);
             dto.setQuizCount(count);
             if (dto.getChildren() != null) attachMyQuizCount(dto.getChildren(), creatorId);
         }
@@ -209,5 +212,23 @@ public class CategoryServiceImpl implements CategoryService {
             }
         }
         categoryRepository.delete(category);
+    }
+
+    @Override
+    public List<Long> getAllDescendantIds(Long categoryId) {
+        List<Long> ids = new ArrayList<>();
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+        collectIds(category, ids);
+        return ids;
+    }
+
+    private void collectIds(Category category, List<Long> ids) {
+        ids.add(category.getId());
+        if (category.getChildren() != null) {
+            for (Category child : category.getChildren()) {
+                collectIds(child, ids);
+            }
+        }
     }
 }

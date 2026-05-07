@@ -2,9 +2,10 @@ package com.example.quizhub.service.quiz;
 
 import java.util.List;
 
-import com.example.quizhub.dto.quiz.QuizRequestDTO;
-import com.example.quizhub.dto.quiz.QuizResponseDTO;
-import com.example.quizhub.dto.quiz.QuizSummaryDTO;
+import com.example.quizhub.dto.quiz.request.QuizRequestDTO;
+import com.example.quizhub.dto.quiz.response.QuizResponseDTO;
+import com.example.quizhub.dto.quiz.response.QuizSummaryDTO;
+import com.example.quizhub.dto.quiz.request.QuizGenerateRequestDTO;
 
 public interface QuizService {
     QuizResponseDTO createNewQuiz(QuizRequestDTO request);
@@ -25,5 +26,5 @@ public interface QuizService {
     List<QuizSummaryDTO> getMyQuizzes();
 
     /** Generate quiz from a category's public questions */
-    QuizResponseDTO generateQuizFromCategory(com.example.quizhub.dto.quiz.QuizGenerateRequestDTO request);
+    QuizResponseDTO generateQuizFromCategory(QuizGenerateRequestDTO request);
 }

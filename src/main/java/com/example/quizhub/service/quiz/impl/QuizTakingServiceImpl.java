@@ -1,13 +1,15 @@
-package com.example.quizhub.service.quiztaking;
+package com.example.quizhub.service.quiz.impl;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.Random;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,11 +39,14 @@ import com.example.quizhub.repository.QuizTakingRepository;
 import com.example.quizhub.repository.UserAttemptAnswerRepository;
 import com.example.quizhub.repository.QuizRepository;
 import com.example.quizhub.repository.UserRepository;
+import com.example.quizhub.service.quiz.QuizTakingService;
 import com.example.quizhub.repository.ExamViolationRepository;
 import com.example.quizhub.repository.AttemptViolationRepository;
 import com.example.quizhub.entity.AttemptViolation;
 import com.example.quizhub.entity.ExamViolation;
 import com.example.quizhub.dto.quiztaking.request.ViolationRequestDTO;
+import com.example.quizhub.dto.quiztaking.response.QuizAttemptSummaryDTO;
+import com.example.quizhub.dto.quiztaking.request.SaveAnswerRequestDTO;
 
 import lombok.RequiredArgsConstructor;
 
@@ -116,7 +121,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
             quizTakingRepository.save(quizTaking);
         }
 
-        java.util.Random random = new java.util.Random(attempt.getId());
+        Random random = new Random(attempt.getId());
 
         List<QuestionTakingResponseDTO> questionDTOs = quiz.getQuestions().stream()
                 .map(question -> {
@@ -146,13 +151,13 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         // Fetch saved answers for this attempt
         List<UserAttemptAnswer> savedAnswers = userAttemptAnswerRepository.findByAttemptId(attempt.getId());
 
-        java.util.Map<Long, List<Long>> selectedAnswers = savedAnswers.stream()
+        Map<Long, List<Long>> selectedAnswers = savedAnswers.stream()
                 .filter(uaa -> uaa.getAnswer() != null)
                 .collect(Collectors.groupingBy(
                         uaa -> uaa.getQuestion().getId(),
                         Collectors.mapping(uaa -> uaa.getAnswer().getId(), Collectors.toList())));
 
-        java.util.Map<Long, String> selectedTexts = savedAnswers.stream()
+        Map<Long, String> selectedTexts = savedAnswers.stream()
                 .filter(uaa -> uaa.getSelectedText() != null)
                 .collect(Collectors.toMap(
                         uaa -> uaa.getQuestion().getId(),
@@ -165,7 +170,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                 .durationInMins(quizAssigning.getDurationInMins())
                 .startedAt(attempt.getStartedAt())
                 .startedAtMillis(
-                        attempt.getStartedAt().atZone(java.time.ZoneId.systemDefault()).toInstant().toEpochMilli())
+                        attempt.getStartedAt().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli())
                 .questions(questionDTOs)
                 .selectedAnswers(selectedAnswers)
                 .selectedTexts(selectedTexts)
@@ -175,7 +180,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
     @Override
     @Transactional
     public void saveAnswer(Long studentId, Long attemptId, Long questionId,
-            com.example.quizhub.dto.quiztaking.request.SaveAnswerRequestDTO request) {
+            SaveAnswerRequestDTO request) {
         Attempt attempt = attemptRepository.findById(attemptId)
                 .orElseThrow(() -> new AppException(ErrorCode.ATTEMPT_NOT_FOUND));
 
@@ -309,7 +314,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         for (Question question : quiz.getQuestions()) {
             QuestionSubmitRequestDTO qReq = submittedAnswersMap.get(question.getId());
 
-            if (question.getType() == com.example.quizhub.entity.enums.QuestionType.FILL_IN_BLANK) {
+            if (question.getType() == QuestionType.FILL_IN_BLANK) {
                 String studentText = (qReq != null ? qReq.getSelectedText() : "");
                 boolean isCorrect = question.getAnswers().stream()
                         .filter(Answer::getIsCorrect)
@@ -402,7 +407,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                         Collectors.mapping(ua -> ua.getAnswer().getId(), Collectors.toList())));
 
         QuizAssigning assigning = attempt.getQuizTaking().getQuizAssigning();
-        java.util.Random random = new java.util.Random(attempt.getId());
+        Random random = new Random(attempt.getId());
 
         List<QuizResultResponseDTO.QuestionResultDTO> questionResults = quiz.getQuestions().stream()
                 .map(q -> {
@@ -413,7 +418,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                             .findFirst().orElse(null);
 
                     boolean isCorrect = false;
-                    if (q.getType() == com.example.quizhub.entity.enums.QuestionType.FILL_IN_BLANK) {
+                    if (q.getType() == QuestionType.FILL_IN_BLANK) {
                         isCorrect = q.getAnswers().stream()
                                 .filter(Answer::getIsCorrect)
                                 .anyMatch(a -> a.getText().trim()
@@ -436,7 +441,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
 
                     // Shuffle answers if needed
                     if (assigning != null && Boolean.TRUE.equals(assigning.getAnswerShuffled())) {
-                        java.util.Collections.shuffle(answerResults, random);
+                        Collections.shuffle(answerResults, random);
                     }
 
                     return QuizResultResponseDTO.QuestionResultDTO.builder()
@@ -454,7 +459,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
 
         // Shuffle questions if needed
         if (assigning != null && Boolean.TRUE.equals(assigning.getQuestionShuffled())) {
-            java.util.Collections.shuffle(questionResults, random);
+            Collections.shuffle(questionResults, random);
         }
 
         return QuizResultResponseDTO.builder()
@@ -537,7 +542,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<com.example.quizhub.dto.quiztaking.response.QuizAttemptSummaryDTO> getQuizAttempts(Long studentId,
+    public List<QuizAttemptSummaryDTO> getQuizAttempts(Long studentId,
             String quizId) {
         QuizTaking quizTaking = quizTakingRepository
                 .findByLearnerIdAndQuizIdAndIsAssignedFalse(studentId, UUID.fromString(quizId))
@@ -546,7 +551,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
 
         return attemptRepository.findByQuizTakingId(quizTaking.getId()).stream()
                 .filter(a -> a.getEndedAt() != null)
-                .map(a -> com.example.quizhub.dto.quiztaking.response.QuizAttemptSummaryDTO.builder()
+                .map(a -> QuizAttemptSummaryDTO.builder()
                         .id(a.getId())
                         .result(a.getResult())
                         .totalQuestNum(a.getTotalQuestNum())
@@ -577,7 +582,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
     }
 
     private QuizTakingResponseDTO buildQuizTakingResponseDTO(Attempt attempt, Quiz quiz, QuizAssigning quizAssigning) {
-        java.util.Random random = new java.util.Random(attempt.getId());
+        Random random = new Random(attempt.getId());
 
         List<QuestionTakingResponseDTO> questionDTOs = quiz.getQuestions().stream()
                 .map(question -> {

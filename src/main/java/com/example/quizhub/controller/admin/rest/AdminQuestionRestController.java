@@ -1,19 +1,30 @@
 package com.example.quizhub.controller.admin.rest;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.example.quizhub.dto.question.QuestionResponseDTO;
 import com.example.quizhub.entity.Question;
+import com.example.quizhub.entity.enums.QuestionLevel;
 import com.example.quizhub.entity.enums.QuestionStatus;
+import com.example.quizhub.entity.enums.QuestionType;
 import com.example.quizhub.mapper.QuestionMapper;
 import com.example.quizhub.repository.QuestionRepository;
-import com.example.quizhub.service.question.QuestionService;
+import com.example.quizhub.service.QuestionService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,18 +40,18 @@ public class AdminQuestionRestController {
 
     @GetMapping("/pending")
     public ResponseEntity<Page<QuestionResponseDTO>> getPendingQuestions(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) QuestionType type,
+            @RequestParam(required = false) QuestionLevel level,
+            @RequestParam(required = false) String creatorName,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
 
-        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())
-                ? Sort.by(sortBy).ascending()
-                : Sort.by(sortBy).descending();
-
-        Pageable pageable = PageRequest.of(page, size, sort);
-        Page<Question> questionPage = questionRepository.findByQuestionStatus(QuestionStatus.PENDING, pageable);
-        return ResponseEntity.ok(questionPage.map(questionMapper::toResponseDTO));
+        return ResponseEntity.ok(questionService.searchQuestions(
+                QuestionStatus.PENDING, categoryId, type, level, keyword, creatorName, page, size, sortBy, sortDir));
     }
 
     @PutMapping("/{id}/approve")
@@ -54,6 +65,43 @@ public class AdminQuestionRestController {
     @PutMapping("/{id}/reject")
     public ResponseEntity<Void> rejectQuestion(@PathVariable Long id) {
         questionService.rejectQuestion(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/bulk-approve")
+    public ResponseEntity<Void> bulkApprove(
+            @RequestBody List<Long> ids,
+            @RequestParam(required = false) Long categoryId) {
+        questionService.bulkApproveQuestions(ids, categoryId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/bulk-approve-all")
+    public ResponseEntity<Void> bulkApproveAll(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long filterCategoryId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) QuestionType type,
+            @RequestParam(required = false) QuestionLevel level,
+            @RequestParam(required = false) String creatorName) {
+        questionService.bulkApproveAllQuestions(categoryId, filterCategoryId, type, level, keyword, creatorName);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/bulk-reject")
+    public ResponseEntity<Void> bulkReject(@RequestBody List<Long> ids) {
+        questionService.bulkRejectQuestions(ids);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/bulk-reject-all")
+    public ResponseEntity<Void> bulkRejectAll(
+            @RequestParam(required = false) Long filterCategoryId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) QuestionType type,
+            @RequestParam(required = false) QuestionLevel level,
+            @RequestParam(required = false) String creatorName) {
+        questionService.bulkRejectAllQuestions(filterCategoryId, type, level, keyword, creatorName);
         return ResponseEntity.ok().build();
     }
 

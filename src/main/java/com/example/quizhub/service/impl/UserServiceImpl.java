@@ -1,4 +1,4 @@
-package com.example.quizhub.service.user.impl;
+package com.example.quizhub.service.impl;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,7 +17,7 @@ import com.example.quizhub.entity.enums.Role;
 import com.example.quizhub.exception.AppException;
 import com.example.quizhub.exception.ErrorCode;
 import com.example.quizhub.repository.UserRepository;
-import com.example.quizhub.service.user.UserService;
+import com.example.quizhub.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 

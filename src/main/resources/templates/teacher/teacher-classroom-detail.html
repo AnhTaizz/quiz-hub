@@ -24,6 +24,11 @@
         .badge-status { align-self: flex-start; background: rgba(37,99,235,0.05); color: var(--blue); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; margin-bottom: 15px; }
 
         .form-check-input:checked { background-color: var(--blue); border-color: var(--blue); }
+
+        .category-selectable-name { cursor: pointer; padding: 5px 10px; border-radius: 8px; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        .category-selectable-name:hover { background: #e0e7ff; color: #4338ca !important; }
+        .folder-toggle { cursor: pointer; font-size: 0.95rem; transition: transform 0.2s; }
+        .cursor-pointer { cursor: pointer; }
     </style>
 </head>
 <body>
@@ -122,8 +127,8 @@
                 
                 <div class="assigned-meta">
                     <div><i class="bi bi-clock me-1"></i> Thời gian: <strong th:text="${assigning.durationInMins != null ? assigning.durationInMins : 0}">0</strong> phút</div>
-                    <div><i class="bi bi-calendar2-event me-1"></i> Mở đề: <span th:text="${assigning.startDate != null ? assigning.startDate : '--/--/----'}">--/--/----</span></div>
-                    <div><i class="bi bi-calendar2-x me-1"></i> Hạn chót: <span th:text="${assigning.dueDate != null ? assigning.dueDate : '--/--/----'}">--/--/----</span></div>
+                    <div><i class="bi bi-calendar2-event me-1"></i> Mở đề: <span th:text="${assigning.startDate != null ? #temporals.format(assigning.startDate, 'dd/MM/yyyy HH:mm') : '--/--/----'}">--/--/----</span></div>
+                    <div><i class="bi bi-calendar2-x me-1"></i> Hạn chót: <span th:text="${assigning.dueDate != null ? #temporals.format(assigning.dueDate, 'dd/MM/yyyy HH:mm') : '--/--/----'}">--/--/----</span></div>
                     <div><i class="bi bi-arrow-repeat me-1"></i> Số lần làm tối đa: <strong th:text="${assigning.maxAttempt != null ? assigning.maxAttempt : 1}">1</strong> lần</div>
                     <div><i class="bi bi-shuffle me-1"></i> Trộn câu hỏi: <span th:text="${assigning.questionShuffled != null && assigning.questionShuffled ? 'Bật' : 'Tắt'}">Tắt</span> | Trộn đáp án: <span th:text="${assigning.answerShuffled != null && assigning.answerShuffled ? 'Bật' : 'Tắt'}">Tắt</span></div>
                     <div><i class="bi bi-eye me-1"></i> Xem đáp án: <span th:text="${assigning.showAnswer != null && assigning.showAnswer ? 'Cho phép' : 'Ẩn'}">Ẩn</span></div>
@@ -156,10 +161,13 @@
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">Lọc theo danh mục</label>
-                            <select id="categoryFilter" class="form-select rounded-3" onchange="filterQuizzesByCategory(this.value)">
-                                <option value="" selected>-- Tất cả danh mục --</option>
-                                <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}">Danh mục</option>
-                            </select>
+                            <div class="d-flex gap-1 align-items-center">
+                                <input type="text" id="categoryFilterDisplay" class="form-control rounded-3 cursor-pointer bg-white" placeholder="-- Tất cả danh mục --" readonly onclick="openCategoryExplorer()" style="cursor: pointer;">
+                                <input type="hidden" id="categoryFilterValue" value="">
+                                <button type="button" class="btn btn-outline-danger btn-sm p-2" id="clearCatBtn" style="display: none; border-radius: 12px; height: 42px; width: 42px;" onclick="clearCategoryFilter()">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div class="mb-3">
@@ -186,11 +194,11 @@
                         <div class="row g-3 mb-3">
                             <div class="col-6">
                                 <label class="form-label fw-bold">Ngày mở đề</label>
-                                <input type="date" name="startDate" class="form-control rounded-3" th:value="${today}" required>
+                                <input type="datetime-local" name="startDate" class="form-control rounded-3" th:value="${#temporals.format(today, 'yyyy-MM-dd''T''HH:mm')}" required>
                             </div>
                             <div class="col-6">
                                 <label class="form-label fw-bold">Ngày hết hạn</label>
-                                <input type="date" name="dueDate" class="form-control rounded-3" th:value="${nextWeek}" required>
+                                <input type="datetime-local" name="dueDate" class="form-control rounded-3" th:value="${#temporals.format(nextWeek, 'yyyy-MM-dd''T''HH:mm')}" required>
                             </div>
                         </div>
 
@@ -263,20 +271,128 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script th:inline="javascript">
+        /*<![CDATA[*/
+        const myCategories = /*[[${myCategories}]]*/ [];
+        const publicCategories = /*[[${publicCategories}]]*/ [];
+        /*]]>*/
+    </script>
+    <script th:inline="javascript">
+        function renderTreeNodes(categories) {
+            if (!categories || categories.length === 0) return '';
+            
+            return `<ul class="list-unstyled ps-3 mt-1">
+                ${categories.map(cat => {
+                    const hasChildren = cat.children && cat.children.length > 0;
+                    const toggleHtml = hasChildren 
+                        ? `<i class="bi bi-chevron-right me-1 text-primary folder-toggle" onclick="toggleFolderNode(event, this)"></i>` 
+                        : `<i class="bi bi-dot me-1 text-muted"></i>`;
+                    
+                    const childrenHtml = hasChildren 
+                        ? `<div class="children-node" style="display: none;">${renderTreeNodes(cat.children)}</div>` 
+                        : '';
+                    
+                    return `
+                        <li class="mb-2">
+                            <div class="d-flex align-items-center gap-2 category-node-row">
+                                ${toggleHtml}
+                                <span class="category-selectable-name text-dark fw-semibold" onclick="selectCategoryFromTree(${cat.id}, '${esc(cat.name)}')">
+                                    <i class="bi ${hasChildren ? 'bi-folder-fill text-warning' : 'bi-folder text-secondary'}"></i>
+                                    ${esc(cat.name)}
+                                </span>
+                            </div>
+                            ${childrenHtml}
+                        </li>
+                    `;
+                }).join('')}
+            </ul>`;
+        }
+
+        function toggleFolderNode(e, el) {
+            e.stopPropagation();
+            const childrenDiv = el.closest('li').querySelector('.children-node');
+            if (childrenDiv) {
+                const isHidden = childrenDiv.style.display === 'none';
+                childrenDiv.style.display = isHidden ? 'block' : 'none';
+                el.classList.toggle('bi-chevron-right', !isHidden);
+                el.classList.toggle('bi-chevron-down', isHidden);
+            }
+        }
+
+        function openCategoryExplorer() {
+            const privateContainer = document.getElementById('private-category-tree-container');
+            if (privateContainer) {
+                privateContainer.innerHTML = renderTreeNodes(myCategories) || '<div class="text-muted text-center my-4">Không có danh mục nào</div>';
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerPrivateModal')).show();
+            }
+        }
+
+        function selectCategoryFromTree(id, name) {
+            document.getElementById('categoryFilterValue').value = id;
+            document.getElementById('categoryFilterDisplay').value = name;
+            document.getElementById('clearCatBtn').style.display = 'inline-block';
+
+            const modalIds = ['categoryExplorerModal', 'categoryExplorerPrivateModal', 'categoryExplorerPublicModal'];
+            modalIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    const m = bootstrap.Modal.getInstance(el);
+                    if (m) m.hide();
+                }
+            });
+
+            filterQuizzesByCategory(id);
+        }
+
+        function clearCategoryFilter() {
+            document.getElementById('categoryFilterValue').value = '';
+            document.getElementById('categoryFilterDisplay').value = '';
+            document.getElementById('clearCatBtn').style.display = 'none';
+            filterQuizzesByCategory('');
+        }
+
+        function getAllChildIds(catId, categories) {
+            let ids = [parseInt(catId)];
+            const findAndAdd = (list) => {
+                for (let cat of list) {
+                    if (cat.id == catId) {
+                        const addChildren = (children) => {
+                            for (let child of children) {
+                                ids.push(child.id);
+                                if (child.children) addChildren(child.children);
+                            }
+                        };
+                        if (cat.children) addChildren(cat.children);
+                        return true;
+                    }
+                    if (cat.children && findAndAdd(cat.children)) return true;
+                }
+                return false;
+            };
+            findAndAdd(categories);
+            return ids;
+        }
+
         function filterQuizzesByCategory(catId) {
             const select = document.getElementById('quizSelect');
             const options = select.querySelectorAll('option');
 
-            // Reset selection to the placeholder
             select.value = "";
+
+            if (!catId) {
+                options.forEach(opt => opt.style.display = 'block');
+                return;
+            }
+
+            // Get all child IDs recursively
+            const childIds = getAllChildIds(catId, [...myCategories, ...publicCategories]);
 
             options.forEach(opt => {
                 if (opt.value === "") {
                     opt.style.display = 'block';
                     return;
                 }
-                const optCatId = opt.getAttribute('data-category-id');
-                if (!catId || optCatId === catId) {
+                const optCatId = parseInt(opt.getAttribute('data-category-id'));
+                if (childIds.includes(optCatId)) {
                     opt.style.display = 'block';
                 } else {
                     opt.style.display = 'none';
@@ -300,6 +416,22 @@
                     data[key] = value;
                 }
             });
+
+            // Validation
+            const start = new Date(data.startDate);
+            const due = new Date(data.dueDate);
+            const duration = parseInt(data.durationInMins);
+
+            if (due <= start) {
+                alert('Thời gian kết thúc phải sau thời gian bắt đầu!');
+                return;
+            }
+
+            const windowMins = (due - start) / (1000 * 60);
+            if (duration > windowMins) {
+                alert(`Thời gian làm bài (${duration} phút) không được vượt quá khoảng thời gian mở đề (${Math.floor(windowMins)} phút)!`);
+                return;
+            }
 
             if (!data.questionShuffled) data.questionShuffled = false;
             if (!data.answerShuffled) data.answerShuffled = false;
@@ -738,9 +870,13 @@
                 alert('Lỗi kết nối mạng.');
             }
         }
+        function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
     </script>
 
     <div th:replace="~{fragments/quiz-preview :: quiz-preview-modal}"></div>
+    <div th:replace="~{fragments/category-explorer-public :: category-explorer-public-modal}"></div>
+    <div th:replace="~{fragments/category-explorer-private :: category-explorer-private-modal}"></div>
+    <div th:replace="~{fragments/category-explorer-private :: category-create-modal}"></div>
     <div th:replace="~{layout/header :: changePasswordModal}"></div>
     <script th:replace="~{layout/header :: change-password-script}"></script>
 </body>

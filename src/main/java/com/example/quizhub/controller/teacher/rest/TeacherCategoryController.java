@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.quizhub.dto.category.CategoryRequestDTO;
 import com.example.quizhub.dto.category.CategoryResponseDTO;
-import com.example.quizhub.dto.quiz.QuizSummaryDTO;
-import com.example.quizhub.service.category.CategoryService;
+import com.example.quizhub.dto.quiz.response.QuizSummaryDTO;
+import com.example.quizhub.service.CategoryService;
 import com.example.quizhub.service.quiz.QuizService;
 
 import jakarta.validation.Valid;

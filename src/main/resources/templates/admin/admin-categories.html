@@ -1412,7 +1412,49 @@ async function loadFolderContent(catId, page = 0) {
     const rootLanding = document.getElementById('rootLanding');
     if (rootLanding) rootLanding.style.display = 'none';
 
-    dc.innerHTML = `<div class="quiz-grid">${[1,2,3].map(()=>`<div class="skeleton" style="height:180px;border-radius:16px;"></div>`).join('')}</div>`;
+    // Filter values
+    const keyword = document.getElementById('q-filter-keyword')?.value || '';
+    const type = document.getElementById('q-filter-type')?.value || '';
+    const level = document.getElementById('q-filter-level')?.value || '';
+
+    // Render skeleton and filters if not already there
+    if (!document.getElementById('q-filters-container')) {
+        dc.innerHTML = `
+            <div id="q-filters-container" class="dashboard-card mb-4" style="padding: 15px; border-radius: 14px; background: #f8fafc; border: 1px dashed #cbd5e1;">
+                <div class="row g-2">
+                    <div class="col-md-5">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" id="q-filter-keyword" class="form-control border-start-0" placeholder="Tìm câu hỏi..." value="${keyword}" oninput="debounceQFetch()">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="q-filter-type" class="form-select form-select-sm" onchange="loadFolderContent(activeFolderId, 0)">
+                            <option value="">-- Loại --</option>
+                            <option value="SINGLE_CHOICE" ${type==='SINGLE_CHOICE'?'selected':''}>Một đáp án</option>
+                            <option value="MULTIPLE_CHOICE" ${type==='MULTIPLE_CHOICE'?'selected':''}>Nhiều đáp án</option>
+                            <option value="FILL_IN_BLANK" ${type==='FILL_IN_BLANK'?'selected':''}>Điền khuyết</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="q-filter-level" class="form-select form-select-sm" onchange="loadFolderContent(activeFolderId, 0)">
+                            <option value="">-- Mức độ --</option>
+                            <option value="EASY" ${level==='EASY'?'selected':''}>Dễ</option>
+                            <option value="MEDIUM" ${level==='MEDIUM'?'selected':''}>Trung bình</option>
+                            <option value="HARD" ${level==='HARD'?'selected':''}>Khó</option>
+                        </select>
+                    </div>
+                    <div class="col-md-1">
+                        <button class="btn btn-sm btn-outline-secondary w-100" onclick="resetQFilters()" title="Xóa bộ lọc"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div id="q-content-area">
+                <div class="quiz-grid">${[1,2,3].map(()=>`<div class="skeleton" style="height:180px;border-radius:16px;"></div>`).join('')}</div>
+            </div>`;
+    } else {
+        document.getElementById('q-content-area').innerHTML = `<div class="quiz-grid">${[1,2,3].map(()=>`<div class="skeleton" style="height:180px;border-radius:16px;"></div>`).join('')}</div>`;
+    }
 
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     const node  = findNode(TREE_DATA, catId);
@@ -1428,12 +1470,31 @@ async function loadFolderContent(catId, page = 0) {
     } catch (_) {}
 
     try {
-        const qRes = await fetch(`/api/admin/categories/${catId}/questions?page=${currentQuestionPage}&size=${currentQuestionSize}`,
-            { headers: { Authorization: 'Bearer ' + token } });
+        let qUrl = `/api/admin/categories/${catId}/questions?page=${currentQuestionPage}&size=${currentQuestionSize}`;
+        if (keyword) qUrl += `&keyword=${encodeURIComponent(keyword)}`;
+        if (type) qUrl += `&type=${type}`;
+        if (level) qUrl += `&level=${level}`;
+
+        const qRes = await fetch(qUrl, { headers: { Authorization: 'Bearer ' + token } });
         if (qRes.ok) questionsData = await qRes.json();
     } catch (_) {}
 
-    renderFolderContent(dc, subs, quizzes, questionsData, catId);
+    renderFolderContent(document.getElementById('q-content-area'), subs, quizzes, questionsData, catId);
+}
+
+let qDebounceTimer;
+function debounceQFetch() {
+    clearTimeout(qDebounceTimer);
+    qDebounceTimer = setTimeout(() => {
+        loadFolderContent(activeFolderId, 0);
+    }, 500);
+}
+
+function resetQFilters() {
+    document.getElementById('q-filter-keyword').value = '';
+    document.getElementById('q-filter-type').value = '';
+    document.getElementById('q-filter-level').value = '';
+    loadFolderContent(activeFolderId, 0);
 }
 
 function renderFolderContent(container, subs, quizzes, questionsData, parentId) {

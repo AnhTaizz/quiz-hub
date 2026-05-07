@@ -33,5 +33,5 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     long countByIsPublicTrue();
 
-    java.util.List<com.example.quizhub.entity.Category> findTop5ByIsPublicTrueOrderByIdDesc();
+    List<Category> findTop5ByIsPublicTrueOrderByIdDesc();
 }

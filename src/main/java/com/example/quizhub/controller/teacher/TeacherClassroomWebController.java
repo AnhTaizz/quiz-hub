@@ -16,7 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -32,6 +32,7 @@ public class TeacherClassroomWebController {
     private final com.example.quizhub.repository.QuizRepository quizRepository;
     private final com.example.quizhub.repository.ClassTopicRepository classTopicRepository;
     private final com.example.quizhub.repository.CategoryRepository categoryRepository;
+    private final com.example.quizhub.service.CategoryService categoryService;
 
     @GetMapping
     public String classroomPage(Model model) {
@@ -64,7 +65,7 @@ public class TeacherClassroomWebController {
         if (auth != null && auth.getPrincipal() instanceof User user) {
             Classroom classroom = classroomRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Classroom not found"));
-            
+
             // Security check
             if (!classroom.getCreator().getId().equals(user.getId())) {
                 return "redirect:/teacher/classrooms";
@@ -132,8 +133,10 @@ public class TeacherClassroomWebController {
             model.addAttribute("quizzes", quizzes);
             model.addAttribute("topics", topics);
             model.addAttribute("categories", categories);
-            model.addAttribute("today", java.time.LocalDate.now());
-            model.addAttribute("nextWeek", java.time.LocalDate.now().plusDays(7));
+            model.addAttribute("myCategories", categoryService.getMyCategories());
+            model.addAttribute("publicCategories", categoryService.getPublicCategories());
+            model.addAttribute("today", LocalDateTime.now().withSecond(0).withNano(0));
+            model.addAttribute("nextWeek", LocalDateTime.now().plusDays(7).withHour(23).withMinute(59).withSecond(0).withNano(0));
             model.addAttribute("currentUser", user);
         }
         return "teacher/teacher-classroom-detail";

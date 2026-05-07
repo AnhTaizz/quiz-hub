@@ -301,9 +301,9 @@
         </div>
     </main>
 
-    <!-- Popup tree picker for Category selection -->
-    <div th:replace="~{fragments/category-explorer :: category-explorer-modal}"></div>
-    <div th:replace="~{fragments/category-explorer :: category-explorer-private-modal}"></div>
+    <div th:replace="~{fragments/category-explorer-public :: category-explorer-public-modal}"></div>
+    <div th:replace="~{fragments/category-explorer-private :: category-explorer-private-modal}"></div>
+    <div th:replace="~{fragments/category-explorer-private :: category-create-modal}"></div>
 
     <!-- Modal for Previewing the Entire Quiz -->
     <div th:replace="~{fragments/quiz-preview :: quiz-preview-modal}"></div>
@@ -427,7 +427,6 @@
         document.addEventListener('DOMContentLoaded', async () => {
             editModal = new bootstrap.Modal(document.getElementById('editQuestionModal'));
             previewModal = new bootstrap.Modal(document.getElementById('previewQuestionModal'));
-            catPickerModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerModal'));
 
             const toggleBtn = document.querySelector('.toggle-btn');
             if (toggleBtn) {
@@ -492,16 +491,24 @@
                 const privateContainer = document.getElementById('private-category-tree-container');
                 if (privateContainer) {
                     privateContainer.innerHTML = renderTreeNodes(myCategories, 'mine');
-                    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerPrivateModal'));
-                    modal.show();
+                    bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerPrivateModal')).show();
                 }
             } else {
-                const myContainer = document.getElementById('my-category-tree-container');
-                const publicContainer = document.getElementById('public-category-tree-container');
-                if (myContainer) myContainer.innerHTML = renderTreeNodes(myCategories, 'mine');
-                if (publicContainer) publicContainer.innerHTML = renderTreeNodes(publicCategories, 'public');
-                const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerModal'));
-                modal.show();
+                // For filter, check current source
+                const source = document.getElementById('q-source').value;
+                if (source === 'public') {
+                    const publicContainer = document.getElementById('public-category-tree-container');
+                    if (publicContainer) {
+                        publicContainer.innerHTML = renderTreeNodes(publicCategories, 'public');
+                        bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerPublicModal')).show();
+                    }
+                } else {
+                    const privateContainer = document.getElementById('private-category-tree-container');
+                    if (privateContainer) {
+                        privateContainer.innerHTML = renderTreeNodes(myCategories, 'mine');
+                        bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerPrivateModal')).show();
+                    }
+                }
             }
         }
 
@@ -532,7 +539,14 @@
                 document.getElementById('edit-q-category').value = id;
                 document.getElementById('edit-q-category-display').value = name;
             }
-            bootstrap.Modal.getInstance(document.getElementById(categorySelectTarget === 'quiz' || categorySelectTarget === 'question' ? 'categoryExplorerPrivateModal' : 'categoryExplorerModal')).hide();
+            const modalIds = ['categoryExplorerModal', 'categoryExplorerPrivateModal', 'categoryExplorerPublicModal'];
+            modalIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    const m = bootstrap.Modal.getInstance(el);
+                    if (m) m.hide();
+                }
+            });
         }
 
         function clearCategoryFilterSelection() {
@@ -1089,6 +1103,7 @@
                 showToast('Không thể lưu câu hỏi!', 'err');
             }
         }
+        function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
     </script>
 
     <!-- Modal: Tạo câu hỏi thủ công trực tiếp -->

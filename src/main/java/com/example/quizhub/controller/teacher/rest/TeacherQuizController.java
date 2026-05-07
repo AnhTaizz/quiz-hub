@@ -13,9 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import com.example.quizhub.dto.quiz.QuizRequestDTO;
-import com.example.quizhub.dto.quiz.QuizResponseDTO;
-import com.example.quizhub.dto.quiz.QuizSummaryDTO;
+import com.example.quizhub.dto.quiz.request.QuizGenerateRequestDTO;
+import com.example.quizhub.dto.quiz.request.QuizRequestDTO;
+import com.example.quizhub.dto.quiz.response.QuizResponseDTO;
+import com.example.quizhub.dto.quiz.response.QuizSummaryDTO;
 import com.example.quizhub.service.quiz.QuizService;
 
 import jakarta.validation.Valid;
@@ -59,7 +60,7 @@ public class TeacherQuizController {
 
     @PostMapping("/generate-from-category")
     public ResponseEntity<QuizResponseDTO> generateQuizFromCategory(
-            @RequestBody @Valid com.example.quizhub.dto.quiz.QuizGenerateRequestDTO request) {
+            @RequestBody @Valid QuizGenerateRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(quizService.generateQuizFromCategory(request));
     }
 }

@@ -24,14 +24,14 @@ import com.example.quizhub.dto.quiztaking.request.ViolationRequestDTO;
 import com.example.quizhub.dto.quiztaking.response.QuizTakingResponseDTO;
 import com.example.quizhub.dto.quiztaking.response.QuizResultResponseDTO;
 import com.example.quizhub.dto.quiztaking.response.QuizAttemptSummaryDTO;
-import com.example.quizhub.dto.quiz.QuizSummaryDTO;
-import com.example.quizhub.dto.quiz.QuizResponseDTO;
-import com.example.quizhub.dto.quiz.QuizRequestDTO;
+import com.example.quizhub.dto.quiz.response.QuizResponseDTO;
+import com.example.quizhub.dto.quiz.response.QuizSummaryDTO;
+import com.example.quizhub.dto.quiz.request.QuizRequestDTO;
 import com.example.quizhub.entity.Attempt;
 import com.example.quizhub.entity.User;
 import com.example.quizhub.repository.UserRepository;
-import com.example.quizhub.service.quiztaking.QuizTakingService;
 import com.example.quizhub.service.quiz.QuizService;
+import com.example.quizhub.service.quiz.QuizTakingService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -84,18 +84,18 @@ public class StudentQuizRestController {
     public ResponseEntity<Map<String, Object>> submitQuiz(Principal principal, @RequestBody QuizSubmitRequestDTO request) {
         User user = userRepository.findByEmail(principal.getName()).orElseThrow();
         Attempt attempt = quizTakingService.submitQuizAttempt(user.getId(), request);
-        
+
         Map<String, Object> response = new HashMap<>();
         response.put("id", attempt.getId());
         response.put("score", attempt.getResult());
-        
+
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/save-answer")
-    public ResponseEntity<Void> saveAnswer(Principal principal, 
-                                         @RequestParam Long attemptId, 
-                                         @RequestParam Long questionId, 
+    public ResponseEntity<Void> saveAnswer(Principal principal,
+                                         @RequestParam Long attemptId,
+                                         @RequestParam Long questionId,
                                          @RequestBody SaveAnswerRequestDTO request) {
         User user = userRepository.findByEmail(principal.getName()).orElseThrow();
         quizTakingService.saveAnswer(user.getId(), attemptId, questionId, request);

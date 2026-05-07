@@ -16,7 +16,7 @@ import com.example.quizhub.dto.practice.PracticeResultResponseDTO;
 import com.example.quizhub.dto.practice.PracticeStartRequestDTO;
 import com.example.quizhub.dto.practice.PracticeStartResponseDTO;
 import com.example.quizhub.dto.practice.PracticeSubmitRequestDTO;
-import com.example.quizhub.service.practice.PracticeService;
+import com.example.quizhub.service.PracticeService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

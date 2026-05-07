@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.quizhub.dto.auth.request.ChangePasswordRequest;
 import com.example.quizhub.dto.user.request.UpdateProfileRequest;
 import com.example.quizhub.dto.user.response.UserProfileResponse;
-import com.example.quizhub.service.user.UserService;
+import com.example.quizhub.service.UserService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

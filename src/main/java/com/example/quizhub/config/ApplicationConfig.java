@@ -15,7 +15,7 @@ import com.example.quizhub.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @RequiredArgsConstructor
 public class ApplicationConfig {
 

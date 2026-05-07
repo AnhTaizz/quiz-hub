@@ -17,7 +17,7 @@ import com.example.quizhub.security.CustomAccessDeniedHandler;
 
 import lombok.RequiredArgsConstructor;
 
-@Configuration
+@Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
 @EnableMethodSecurity // Cho phép dùng @PreAuthorize trên method level
 @RequiredArgsConstructor

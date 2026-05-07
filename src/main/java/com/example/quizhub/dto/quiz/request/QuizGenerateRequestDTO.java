@@ -1,4 +1,4 @@
-package com.example.quizhub.dto.quiz;
+package com.example.quizhub.dto.quiz.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -23,7 +23,7 @@ public class QuizGenerateRequestDTO {
     String method; // "RANDOM" or "RANGE"
 
     // For RANDOM method
-    Integer amount; 
+    Integer amount;
 
     // For RANGE method
     Integer offset;

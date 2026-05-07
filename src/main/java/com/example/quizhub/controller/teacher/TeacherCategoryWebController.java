@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.quizhub.dto.category.CategoryRequestDTO;
-import com.example.quizhub.service.category.CategoryService;
+import com.example.quizhub.service.CategoryService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
