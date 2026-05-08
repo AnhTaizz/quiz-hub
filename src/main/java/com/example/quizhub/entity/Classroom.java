@@ -3,6 +3,8 @@ package com.example.quizhub.entity;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,6 +31,8 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
 @Table(name = "_classroom")
+@SQLDelete(sql = "UPDATE _classroom SET is_deleted = true WHERE id = ?")
+@Where(clause = "is_deleted = false")
 public class Classroom {
 
     @Id
@@ -63,4 +67,8 @@ public class Classroom {
     @CreationTimestamp
     @Column(name = "created_at")
     LocalDateTime createdAt;
+
+    @Column(name = "is_deleted", nullable = false, columnDefinition = "boolean default false")
+    @Builder.Default
+    Boolean isDeleted = false;
 }

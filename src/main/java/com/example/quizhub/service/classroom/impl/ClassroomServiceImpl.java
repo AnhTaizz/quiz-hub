@@ -219,8 +219,6 @@ public class ClassroomServiceImpl implements ClassroomService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        // To delete a classroom completely or mark isEnable = false:
-        classroom.setIsEnable(false);
-        classroomRepository.save(classroom);
+        classroomRepository.deleteById(classroomId);
     }
 }

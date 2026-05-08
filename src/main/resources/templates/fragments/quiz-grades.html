@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head></head>
+<body>
+
+    <!-- Fragment: Assignment Grades Modal -->
+    <div th:fragment="assignment-grades-modal" class="modal fade" id="gradesModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content" style="border-radius:24px; border:none; box-shadow:0 20px 60px rgba(0,0,0,0.15);">
+                <div class="modal-header border-0 px-4 pt-4">
+                    <div class="d-flex align-items-center">
+                        <div class="grade-icon-box me-3">
+                            <i class="bi bi-trophy-fill text-primary"></i>
+                        </div>
+                        <div>
+                            <h5 class="modal-title fw-bold mb-0" style="color:#1e293b;">Bảng điểm bài tập</h5>
+                            <p class="text-muted small mb-0" id="grades-assignment-title">Đang tải...</p>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 py-3">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle custom-grade-table">
+                            <thead>
+                                <tr>
+                                    <th>Sinh viên</th>
+                                    <th>Email</th>
+                                    <th class="text-center">Số lần làm</th>
+                                    <th class="text-center">Trạng thái</th>
+                                    <th class="text-center">Điểm cao nhất</th>
+                                    <th class="text-end">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="grades-table-body">
+                                <!-- Data will be loaded here via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="grades-empty-state" class="text-center py-5 d-none">
+                        <i class="bi bi-clipboard-x text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+                        <p class="mt-3 text-muted fw-medium">Chưa có dữ liệu điểm cho bài tập này.</p>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal" style="border-radius:12px; padding:10px 24px;">Đóng</button>
+                    <button type="button" class="btn btn-primary fw-bold d-flex align-items-center" onclick="exportGradesToExcel()" style="border-radius:12px; padding:10px 24px;">
+                        <i class="bi bi-file-earmark-excel me-2"></i> Xuất Excel
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .grade-icon-box {
+                width: 48px;
+                height: 48px;
+                background: #eff6ff;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 24px;
+            }
+            .custom-grade-table thead th {
+                background: #f8fafc;
+                color: #64748b;
+                font-weight: 600;
+                text-transform: uppercase;
+                font-size: 11px;
+                letter-spacing: 0.05em;
+                border-top: none;
+                padding: 16px;
+            }
+            .custom-grade-table tbody td {
+                padding: 16px;
+                border-bottom: 1px solid #f1f5f9;
+            }
+            .grade-score {
+                font-weight: 700;
+                color: #2563eb;
+                font-size: 1.1rem;
+            }
+            .status-badge {
+                padding: 6px 12px;
+                border-radius: 20px;
+                font-size: 12px;
+                font-weight: 600;
+                display: inline-block;
+                min-width: 100px;
+            }
+            .status-completed { background: #dcfce7; color: #166534; }
+            .status-inprogress { background: #fef9c3; color: #854d0e; }
+            .status-notstarted { background: #f1f5f9; color: #475569; }
+            
+            .custom-grade-table tbody tr:hover {
+                background-color: #f8fafc;
+            }
+        </style>
+
+        <script th:inline="javascript">
+            // Biến global để lưu modal instance (tránh tạo nhiều instance)
+            let gradesModalInstance = null;
+
+            async function openGradesModal(assigningId, title) {
+                const modalEl = document.getElementById('gradesModal');
+                if (!gradesModalInstance) {
+                    gradesModalInstance = new bootstrap.Modal(modalEl);
+                }
+                
+                document.getElementById('grades-assignment-title').innerText = title || 'Báo cáo chi tiết';
+                const tbody = document.getElementById('grades-table-body');
+                const emptyState = document.getElementById('grades-empty-state');
+                
+                // Show loading
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <div class="mt-2 text-muted small">Đang tải dữ liệu...</div>
+                        </td>
+                    </tr>
+                `;
+                emptyState.classList.add('d-none');
+                
+                gradesModalInstance.show();
+
+                try {
+                    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                    const response = await fetch(`/api/teacher/classrooms/assigned-quizzes/${assigningId}/grades`, {
+                        headers: {
+                            'Authorization': 'Bearer ' + token
+                        }
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        renderGradesData(data);
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Không thể tải dữ liệu điểm. Vui lòng thử lại sau.</td></tr>';
+                    }
+                } catch (error) {
+                    console.error('Error fetching grades:', error);
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-4">Lỗi kết nối máy chủ.</td></tr>';
+                }
+            }
+
+            function renderGradesData(data) {
+                const tbody = document.getElementById('grades-table-body');
+                const emptyState = document.getElementById('grades-empty-state');
+                
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '';
+                    emptyState.classList.remove('d-none');
+                    return;
+                }
+
+                emptyState.classList.add('d-none');
+                tbody.innerHTML = data.map(item => {
+                    let statusClass = 'status-notstarted';
+                    if (item.status === 'Đã nộp bài') statusClass = 'status-completed';
+                    else if (item.status === 'Đang làm bài') statusClass = 'status-inprogress';
+
+                    const score = item.highestScore !== null ? item.highestScore : '-';
+                    const scoreDisplay = item.highestScore !== null ? `<span class="grade-score">${score}</span>` : '<span class="text-muted">_</span>';
+
+                    return `
+                        <tr>
+                            <td>
+                                <div class="fw-bold" style="color:#334155;">${item.fullName}</div>
+                                <div class="text-muted small" style="font-size: 10px;">ID: #${item.studentId}</div>
+                            </td>
+                            <td><span class="text-muted small">${item.email}</span></td>
+                            <td class="text-center fw-medium">${item.attemptCount}</td>
+                            <td class="text-center">
+                                <span class="status-badge ${statusClass}">${item.status}</span>
+                            </td>
+                            <td class="text-center">
+                                ${scoreDisplay}
+                            </td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-light border" style="border-radius:10px; padding: 6px 12px;" onclick="viewDetailedHistory(${item.studentId})">
+                                    <i class="bi bi-search me-1"></i> Lịch sử
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            function exportGradesToExcel() {
+                const title = document.getElementById('grades-assignment-title').innerText;
+                alert('Chức năng xuất Excel cho bài tập "' + title + '" đang được xử lý...');
+                // Implement Excel export logic here (e.g., using SheetJS or server-side export)
+            }
+
+            function viewDetailedHistory(studentId) {
+                // Logic để xem chi tiết các lần làm của sinh viên này
+                console.log('Viewing history for student:', studentId);
+            }
+        </script>
+    </div>
+
+</body>
+</html>

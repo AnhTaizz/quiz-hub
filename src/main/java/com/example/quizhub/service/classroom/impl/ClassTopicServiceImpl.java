@@ -66,7 +66,7 @@ public class ClassTopicServiceImpl implements ClassTopicService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        classTopicRepository.delete(topic);
+        classTopicRepository.deleteById(id);
     }
 
     @Override

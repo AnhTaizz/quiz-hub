@@ -393,7 +393,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         // Logical fix: only show answers if (personal quiz) OR (showAnswer is true AND
         // deadline has passed)
         boolean deadlinePassed = quizAssigning == null || (quizAssigning.getDueDate() != null
-                && quizAssigning.getDueDate().isBefore(java.time.LocalDate.now().atStartOfDay()));
+                && quizAssigning.getDueDate().isBefore(LocalDateTime.now()));
         boolean shouldShowAnswer = quizAssigning == null
                 || (Boolean.TRUE.equals(quizAssigning.getShowAnswer()) && deadlinePassed);
 
@@ -471,7 +471,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                 .totalNum(attempt.getTotalQuestNum())
                 .startedAt(attempt.getStartedAt())
                 .endedAt(attempt.getEndedAt())
-                .questions(questionResults)
+                .questions(shouldShowAnswer ? questionResults : Collections.emptyList())
                 .build();
     }
 

@@ -1,9 +1,10 @@
 package com.example.quizhub.entity;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.Where;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,6 +31,8 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
 @Table(name = "_quiz_assigning")
+@SQLDelete(sql = "UPDATE _quiz_assigning SET is_deleted = true WHERE id = ?")
+@Where(clause = "is_deleted = false")
 public class QuizAssigning {
 
     @Id
@@ -75,4 +78,8 @@ public class QuizAssigning {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "topic_id")
     private ClassTopic topic; // Có thể null nếu giáo viên không muốn gom vào topic nào
+
+    @Column(name = "is_deleted", nullable = false, columnDefinition = "boolean default false")
+    @Builder.Default
+    Boolean isDeleted = false;
 }

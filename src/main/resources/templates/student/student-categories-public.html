@@ -773,7 +773,7 @@
                 html += `<div class="cat-card" style="--bg1:${color.bg1}; --bg2:${color.bg2};" onclick="navigateTo(${cat.id}, '${escJs(cat.name)}')">
             <div class="cat-icon-wrap"><i class="bi ${color.icon}"></i></div>
             <div class="cat-name">${esc(cat.name)}</div>
-            <div class="cat-meta">${total} tài liệu</div>
+            <div class="cat-meta">${getCatMetaLabel(total, cat)}</div>
         </div>`;
             });
             html += `</div>`;
@@ -804,6 +804,12 @@
             let t = node.quizCount || 0;
             if (node.children) node.children.forEach(c => t += calcTotal(c));
             return t;
+        }
+
+        function getCatMetaLabel(total, node) {
+            if (total > 0) return `${total} câu hỏi`;
+            if (node.children && node.children.length > 0) return `${node.children.length} danh mục con`;
+            return 'Trống';
         }
 
         function navigateToRoot() {
@@ -902,7 +908,7 @@
                     html += `<div class="cat-card" style="--bg1:${color.bg1}; --bg2:${color.bg2};" onclick="navigateTo(${cat.id}, '${escJs(cat.name)}')">
                 <div class="cat-icon-wrap"><i class="bi bi-folder-fill"></i></div>
                 <div class="cat-name">${esc(cat.name)}</div>
-                <div class="cat-meta">${total} tài liệu</div>
+                <div class="cat-meta">${getCatMetaLabel(total, cat)}</div>
             </div>`;
                 });
                 html += `</div>`;

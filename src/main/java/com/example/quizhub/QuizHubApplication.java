@@ -7,8 +7,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @SpringBootApplication
 public class QuizHubApplication {
-	public static void main(String[] args) {
-		SpringApplication.run(QuizHubApplication.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(QuizHubApplication.class, args);
+    }
 
 }

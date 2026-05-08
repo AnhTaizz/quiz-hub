@@ -344,6 +344,15 @@
 
         function renderReview(questions) {
             const list = document.getElementById('questionsReviewList');
+            const reviewTitle = document.querySelector('.review-title');
+            
+            if (!questions || questions.length === 0) {
+                list.innerHTML = '';
+                if (reviewTitle) reviewTitle.style.display = 'none';
+                return;
+            }
+            
+            if (reviewTitle) reviewTitle.style.display = 'block';
             list.innerHTML = '';
 
             questions.forEach((q, idx) => {
