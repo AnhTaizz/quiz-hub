@@ -146,4 +146,12 @@ public class TeacherClassroomController {
         classroomService.deleteClassroom(classroomId, principal.getName());
         return ResponseEntity.noContent().build();
     }
+
+    @org.springframework.web.bind.annotation.PostMapping("/{classroomId}/import-students")
+    public ResponseEntity<java.util.Map<String, Object>> importStudents(
+            Principal principal,
+            @PathVariable Long classroomId,
+            @org.springframework.web.bind.annotation.RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        return ResponseEntity.ok(classroomService.importStudentsFromExcel(classroomId, file, principal.getName()));
+    }
 }

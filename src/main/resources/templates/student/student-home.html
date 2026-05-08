@@ -34,11 +34,11 @@
 
             <div class="hero-content d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4">
                 <div>
-                    <h1 class="hero-title">Chào buổi sáng, <span
+                    <h1 class="hero-title"><span th:text="${greeting}">Chào buổi sáng</span>, <span
                             th:text="${currentUser != null ? currentUser.fullName : 'Học sinh'}">Học sinh</span>
                         👋
                     </h1>
-                    <p class="hero-subtitle">Mọi thứ đang đi đúng hướng! Bạn có <strong th:text="${pendingCount != null ? pendingCount : 0}">0</strong> bài kiểm tra sắp đến
+                    <p class="hero-subtitle">Mọi thứ đang đi đúng hướng! Bạn có <strong th:text="${pendingThisWeekCount != null ? pendingThisWeekCount : 0}">0</strong> bài kiểm tra sắp đến
                         hạn trong tuần này. Hãy hoàn thành sớm để giữ vững phong độ nhé.</p>
 
                     <div class="hero-stats-row">
@@ -46,10 +46,10 @@
                             <i class="bi bi-check2-circle text-success"></i> Đã làm: <span th:text="${totalCompleted != null ? totalCompleted : 0}">0</span> Bài thi
                         </div>
                         <div class="hero-stat-glass">
-                            <i class="bi bi-star-fill text-warning"></i> Điểm TB: <span th:text="${avgScore != null ? avgScore : '0.0'}">0.0</span>/10
+                            <i class="bi bi-graph-up text-info"></i> TB Luyện tập: <span th:text="${practiceAvg != null ? practiceAvg : '0.0'}">0.0</span>
                         </div>
                         <div class="hero-stat-glass">
-                            <i class="bi bi-lightning-charge-fill text-info"></i> Trạng thái: <span th:text="${pendingCount > 0 ? 'Cần cố gắng' : 'Đã hoàn thành'}">Cần cố gắng</span>
+                            <i class="bi bi-award text-warning"></i> TB Kiểm tra: <span th:text="${quizAvg != null ? quizAvg : '0.0'}">0.0</span>
                         </div>
                     </div>
                 </div>
@@ -111,7 +111,7 @@
                             </div>
                         </div>
                         <div class="d-flex gap-2">
-                            <a th:if="${info.hasStarted}" th:href="@{/student/quizzes}" class="btn btn-outline-primary rounded-pill px-4 text-nowrap text-decoration-none d-flex align-items-center">
+                            <a th:href="@{'/student/quiz/history/' + ${info.assigning.id}}" class="btn btn-outline-primary rounded-pill px-4 text-nowrap text-decoration-none d-flex align-items-center">
                                 <i class="bi bi-clock-history me-1"></i> 
                                 <span>Lịch sử</span>
                             </a>

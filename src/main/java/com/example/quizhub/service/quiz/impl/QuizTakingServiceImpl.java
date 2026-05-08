@@ -71,6 +71,15 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         QuizAssigning quizAssigning = quizAssigningRepository.findById(quizAssigningId)
                 .orElseThrow(() -> new AppException(ErrorCode.QUIZ_NOT_FOUND));
 
+        // Check quiz schedule
+        LocalDateTime now = LocalDateTime.now();
+        if (quizAssigning.getStartDate() != null && now.isBefore(quizAssigning.getStartDate())) {
+            throw new AppException(ErrorCode.QUIZ_NOT_STARTED);
+        }
+        if (quizAssigning.getDueDate() != null && now.isAfter(quizAssigning.getDueDate())) {
+            throw new AppException(ErrorCode.QUIZ_EXPIRED);
+        }
+
         Quiz quiz = quizAssigning.getQuiz();
         QuizTaking quizTaking = quizTakingRepository.findByLearnerIdAndQuizAssigningId(studentId, quizAssigningId)
                 .stream().findFirst()
@@ -81,15 +90,6 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                         .quizAssigning(quizAssigning)
                         .learner(student)
                         .build()));
-
-        // Check quiz schedule
-        LocalDateTime now = LocalDateTime.now();
-        if (quizAssigning.getStartDate() != null && now.isBefore(quizAssigning.getStartDate())) {
-            throw new AppException(ErrorCode.QUIZ_NOT_STARTED);
-        }
-        if (quizAssigning.getDueDate() != null && now.isAfter(quizAssigning.getDueDate())) {
-            throw new AppException(ErrorCode.QUIZ_EXPIRED);
-        }
 
         // Find existing attempts
         List<Attempt> attempts = attemptRepository.findByQuizTakingId(quizTaking.getId());
@@ -190,6 +190,18 @@ public class QuizTakingServiceImpl implements QuizTakingService {
 
         if (attempt.getEndedAt() != null) {
             throw new AppException(ErrorCode.ATTEMPT_ALREADY_SUBMITTED);
+        }
+
+        // Check schedule if assigned
+        QuizAssigning quizAssigning = attempt.getQuizTaking().getQuizAssigning();
+        if (quizAssigning != null) {
+            LocalDateTime now = LocalDateTime.now();
+            if (quizAssigning.getStartDate() != null && now.isBefore(quizAssigning.getStartDate())) {
+                throw new AppException(ErrorCode.QUIZ_NOT_STARTED);
+            }
+            if (quizAssigning.getDueDate() != null && now.isAfter(quizAssigning.getDueDate())) {
+                throw new AppException(ErrorCode.QUIZ_EXPIRED);
+            }
         }
 
         // Remove old answers for this question in this attempt
@@ -297,6 +309,18 @@ public class QuizTakingServiceImpl implements QuizTakingService {
 
         if (attempt.getEndedAt() != null) {
             throw new AppException(ErrorCode.ATTEMPT_ALREADY_SUBMITTED);
+        }
+
+        // Check schedule if assigned
+        QuizAssigning quizAssigning = attempt.getQuizTaking().getQuizAssigning();
+        if (quizAssigning != null) {
+            LocalDateTime now = LocalDateTime.now();
+            if (quizAssigning.getStartDate() != null && now.isBefore(quizAssigning.getStartDate())) {
+                throw new AppException(ErrorCode.QUIZ_NOT_STARTED);
+            }
+            if (quizAssigning.getDueDate() != null && now.isAfter(quizAssigning.getDueDate())) {
+                throw new AppException(ErrorCode.QUIZ_EXPIRED);
+            }
         }
 
         Quiz quiz = attempt.getQuizTaking().getQuiz();
@@ -486,11 +510,34 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         }
 
         ExamViolation violationType = examViolationRepository.findByViolationCode(request.getViolationCode())
-                .orElseGet(() -> examViolationRepository.save(ExamViolation.builder()
-                        .violationCode(request.getViolationCode())
-                        .severityLevel(1)
-                        .description("Tự động tạo cho mã: " + request.getViolationCode())
-                        .build()));
+                .orElseGet(() -> ExamViolation.builder().violationCode(request.getViolationCode()).build());
+
+        // Cập nhật hoặc thiết lập mức độ và mô tả đúng chuẩn
+        int severity = 1;
+        String desc = violationType.getDescription() != null ? violationType.getDescription() : "Vi phạm: " + request.getViolationCode();
+
+        switch (request.getViolationCode()) {
+            case "FULLSCREEN_EXIT":
+            case "TAB_CLOSE":
+                severity = 3; // Nghiêm trọng
+                desc = (request.getViolationCode().equals("FULLSCREEN_EXIT")) ? "Thoát Toàn màn hình" : "Đóng trình duyệt";
+                break;
+            case "TAB_SWITCH":
+                severity = 2; // Cảnh cáo
+                desc = "Chuyển Tab trình duyệt";
+                break;
+            case "WINDOW_BLUR":
+                severity = 1; // Nhẹ
+                desc = "Rời cửa sổ làm bài";
+                break;
+        }
+
+        // Nếu thông tin cũ khác với thông tin chuẩn mới, hãy cập nhật lại
+        if (violationType.getSeverityLevel() == null || violationType.getSeverityLevel() != severity) {
+            violationType.setSeverityLevel(severity);
+            violationType.setDescription(desc);
+            examViolationRepository.save(violationType);
+        }
 
         AttemptViolation violation = AttemptViolation.builder()
                 .attempt(attempt)
@@ -577,6 +624,17 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         QuizTaking quizTaking = attempt.getQuizTaking();
         Quiz quiz = quizTaking.getQuiz();
         QuizAssigning quizAssigning = quizTaking.getQuizAssigning();
+
+        // Check schedule if assigned
+        if (quizAssigning != null) {
+            LocalDateTime now = LocalDateTime.now();
+            if (quizAssigning.getStartDate() != null && now.isBefore(quizAssigning.getStartDate())) {
+                throw new AppException(ErrorCode.QUIZ_NOT_STARTED);
+            }
+            if (quizAssigning.getDueDate() != null && now.isAfter(quizAssigning.getDueDate())) {
+                throw new AppException(ErrorCode.QUIZ_EXPIRED);
+            }
+        }
 
         return buildQuizTakingResponseDTO(attempt, quiz, quizAssigning);
     }

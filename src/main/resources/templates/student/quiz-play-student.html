@@ -227,38 +227,27 @@
 
         .q-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            max-height: 400px;
-            overflow-y: auto;
+            grid-template-columns: repeat(auto-fill, minmax(38px, 1fr));
+            gap: 10px;
             padding: 5px;
         }
 
-        .q-dot {
-            aspect-ratio: 1;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 2px solid #e2e8f0;
-            background: #fff;
-            color: #64748b;
-        }
+        .q-dot { width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; border: 2px solid #f1f5f9; background: #fff; color: #64748b; }
+        .q-dot:hover { border-color: #4f46e5; color: #4f46e5; }
 
-        .q-dot.active {
-            border-color: var(--exam-accent);
-            color: var(--exam-accent);
-            background: #eef2ff;
-        }
+        .q-dot.active { background: #eef2ff; color: #4f46e5; border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2); }
 
         .q-dot.answered {
             background: var(--exam-accent);
             color: white;
             border-color: var(--exam-accent);
+        }
+
+        .q-dot.answered.active {
+            background: var(--exam-accent);
+            color: white;
+            border-color: var(--exam-accent);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4);
         }
 
         /* ── Question Card ── */
@@ -695,9 +684,12 @@
 
             // Update Nav Buttons
             document.getElementById('btnPrev').disabled = currentIndex === 0;
-            document.getElementById('btnNext').innerHTML = currentIndex === quizData.questions.length - 1 
-                ? 'Câu cuối cùng' 
-                : 'Câu tiếp theo <i class="bi bi-chevron-right"></i>';
+            if (currentIndex === quizData.questions.length - 1) {
+                document.getElementById('btnNext').classList.add('d-none');
+            } else {
+                document.getElementById('btnNext').classList.remove('d-none');
+                document.getElementById('btnNext').innerHTML = 'Câu tiếp theo <i class="bi bi-chevron-right"></i>';
+            }
         }
 
         function renderFullQuiz() {
@@ -730,6 +722,22 @@
                 `;
                 container.appendChild(qDiv);
             });
+
+            // --- Scroll Spy for Full Mode ---
+            if (window.scrollObserver) window.scrollObserver.disconnect();
+            window.scrollObserver = new IntersectionObserver((entries) => {
+                const visibleEntry = entries.find(e => e.isIntersecting);
+                if (visibleEntry) {
+                    const idx = parseInt(visibleEntry.target.id.replace('q-full-', ''));
+                    currentIndex = idx;
+                    renderGrid();
+                    updateStats();
+                }
+            }, {
+                rootMargin: '-10% 0px -80% 0px',
+                threshold: 0
+            });
+            document.querySelectorAll('.full-mode-question').forEach(q => window.scrollObserver.observe(q));
         }
 
         function toggleAnswer(qId, ansId, type) {
@@ -778,7 +786,7 @@
             grid.innerHTML = '';
             quizData.questions.forEach((q, i) => {
                 const dot = document.createElement('div');
-                dot.className = `q-dot ${i === currentIndex && viewMode === 'single' ? 'active' : ''} ${userAnswers[q.id] && userAnswers[q.id].length > 0 ? 'answered' : ''}`;
+                dot.className = `q-dot ${i === currentIndex ? 'active' : ''} ${userAnswers[q.id] && userAnswers[q.id].length > 0 ? 'answered' : ''}`;
                 dot.textContent = i + 1;
                 dot.onclick = () => {
                     currentIndex = i;
@@ -796,7 +804,7 @@
         function updateStats() {
             const total = quizData.questions.length;
             const answered = Object.values(userAnswers).filter(a => a.length > 0).length;
-            document.getElementById('progressText').textContent = `${viewMode === 'single' ? (currentIndex + 1) : 'Toàn bộ'}/${total}`;
+            document.getElementById('progressText').textContent = `${currentIndex + 1}/${total}`;
             document.getElementById('answeredCount').textContent = answered;
             document.getElementById('progressBar').style.width = (answered / total * 100) + '%';
         }

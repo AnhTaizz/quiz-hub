@@ -25,4 +25,6 @@ public interface ClassroomService {
     ClassroomResponseDTO updateClassroom(Long classroomId, ClassroomRequestDTO request, String teacherEmail);
 
     void deleteClassroom(Long classroomId, String teacherEmail);
+    
+    java.util.Map<String, Object> importStudentsFromExcel(Long classroomId, org.springframework.web.multipart.MultipartFile file, String teacherEmail);
 }
