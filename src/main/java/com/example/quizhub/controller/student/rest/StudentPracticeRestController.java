@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.quizhub.dto.practice.PracticeAnswerRequestDTO;
 import com.example.quizhub.dto.practice.PracticeQuestionResponseDTO;
 import com.example.quizhub.dto.practice.PracticeResultResponseDTO;
 import com.example.quizhub.dto.practice.PracticeStartRequestDTO;
@@ -30,9 +31,22 @@ public class StudentPracticeRestController {
     private final PracticeService practiceService;
 
     @PostMapping("/start")
-    public ResponseEntity<List<PracticeQuestionResponseDTO>> startPractice(
+    public ResponseEntity<PracticeStartResponseDTO> startPractice(
             @RequestBody @Valid PracticeStartRequestDTO request) {
         return ResponseEntity.ok(practiceService.startPractice(request));
+    }
+
+    @PostMapping("/save-answer")
+    public ResponseEntity<Void> saveAnswer(@RequestParam("practiceId") Long practiceId,
+            @RequestBody @Valid PracticeAnswerRequestDTO answerRequest) {
+        practiceService.saveAnswer(practiceId, answerRequest);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/reset")
+    public ResponseEntity<Void> resetPractice(@RequestBody @Valid PracticeStartRequestDTO request) {
+        practiceService.resetPractice(request.getCategoryId(), request.getLimit(), request.getOffset());
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/preview")

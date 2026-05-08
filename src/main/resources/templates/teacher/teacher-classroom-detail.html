@@ -141,6 +141,9 @@
                         <button class="btn btn-sm btn-outline-success rounded-pill px-3" th:data-id="${assigning.id}" th:data-title="${assigning.quiz != null ? assigning.quiz.title : 'Đề thi'}" onclick="openGradebookModal(this.getAttribute('data-id'), this.getAttribute('data-title'))">
                             Bảng điểm <i class="bi bi-award ms-1"></i>
                         </button>
+                        <a th:href="@{'/teacher/monitoring/log/' + ${assigning.id}}" class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                            Giám sát <i class="bi bi-eye ms-1"></i>
+                        </a>
                     </div>
                 </div>
             </div>

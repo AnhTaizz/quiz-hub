@@ -79,6 +79,7 @@ public class StudentClassroomWebController {
             model.addAttribute("assignedQuizzes", assignedQuizzes);
             model.addAttribute("topics", topics);
             model.addAttribute("currentUser", user);
+            model.addAttribute("now", java.time.LocalDateTime.now());
         }
         return "student/student-classroom-detail";
     }

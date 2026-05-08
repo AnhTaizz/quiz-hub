@@ -115,6 +115,25 @@
             color: #ef4444;
         }
 
+        .btn-reset {
+            background: #fff;
+            border: 2px solid #e2e8f0;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            color: #64748b;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-reset:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: #f8fafc;
+        }
+
         /* ── Layout ── */
         .practice-container {
             margin-top: 100px;
@@ -134,19 +153,20 @@
 
         .nav-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
             gap: 10px;
             margin-top: 20px;
         }
 
         .nav-dot {
-            aspect-ratio: 1;
+            width: 36px;
+            height: 36px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             cursor: pointer;
             transition: all 0.2s;
             border: 2px solid #f1f5f9;
@@ -695,7 +715,10 @@
             <p class="practice-category" id="topCategoryName">Đang tải...</p>
             <h1 class="practice-session-title">Chế độ Tự Luyện</h1>
         </div>
-        <div class="practice-actions">
+        <div class="practice-actions d-flex gap-2">
+            <button class="btn-reset" onclick="confirmReset()" id="btnReset">
+                <i class="bi bi-arrow-counterclockwise"></i> <span>Làm lại</span>
+            </button>
             <button class="btn-exit" onclick="confirmExit()" id="btnExit">
                 <i class="bi bi-box-arrow-left"></i> <span>Thoát</span>
             </button>
@@ -812,6 +835,27 @@
 
     <div id="toastWrap"></div>
 
+    <!-- Custom Confirm Modal -->
+    <div class="modal fade" id="resetConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 380px;">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 28px; overflow: hidden;">
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-3">
+                        <div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger rounded-circle" style="width: 70px; height: 70px;">
+                            <i class="bi bi-arrow-counterclockwise fs-2"></i>
+                        </div>
+                    </div>
+                    <h4 class="fw-bold text-dark mb-2">Làm lại bài này?</h4>
+                    <p class="text-muted small px-3 mb-0">Tất cả đáp án bạn đã chọn sẽ bị xóa sạch để bạn bắt đầu lại từ đầu. Thao tác này không thể hoàn tác.</p>
+                    <div class="d-flex gap-2 justify-content-center mt-4 pt-2">
+                        <button type="button" class="btn btn-light rounded-pill px-4 fw-bold text-muted border shadow-sm" data-bs-dismiss="modal">Hủy bỏ</button>
+                        <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm" onclick="executeReset()">Xác nhận xóa</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script th:inline="javascript">
         const reviewPracticeId = /*[[${reviewPracticeId}]]*/ null;
@@ -824,6 +868,7 @@
         let categoryName = "";
 
         let currentIndex = 0;
+        let practiceId = null;
         let userAnswers = {}; // questionId -> selectedAnswerId
         let answeredCorrectly = {}; // questionId -> boolean (if showAnswer is on)
         let practiceResult = null; // Store result details for review
@@ -924,14 +969,34 @@
                 const idRaw = sessionStorage.getItem('practice_category_id');
                 categoryId = idRaw ? parseInt(idRaw) : null;
                 categoryName = sessionStorage.getItem('practice_category_name');
+                questions = JSON.parse(rawQ);
+                if (rawS) settings = JSON.parse(rawS);
+                practiceId = sessionStorage.getItem('practice_id');
+
+                // Load progress from questions themselves (newly supported)
+                questions.forEach(q => {
+                    if (q.selectedAnswerIds && q.selectedAnswerIds.length > 0) {
+                        if (q.type === 'MULTIPLE_CHOICE') {
+                            userAnswers[q.id] = q.selectedAnswerIds;
+                        } else if (q.type === 'FILL_IN_BLANK') {
+                            userAnswers[q.id] = q.selectedText;
+                        } else {
+                            userAnswers[q.id] = q.selectedAnswerIds[0];
+                        }
+                    } else if (q.selectedText) {
+                        userAnswers[q.id] = q.selectedText;
+                    }
+                    
+                    if (q.isCorrect !== null) {
+                        answeredCorrectly[q.id] = q.isCorrect;
+                        confirmedAnswers[q.id] = true;
+                    }
+                });
 
                 if (!rawQ || !categoryId) {
                     window.location.href = '/student/categories';
                     return;
                 }
-
-                questions = JSON.parse(rawQ);
-                if (rawS) settings = JSON.parse(rawS);
 
                 // Handle shuffle persistence
                 const isShuffled = sessionStorage.getItem('practice_is_shuffled');
@@ -941,30 +1006,18 @@
                     sessionStorage.setItem('practice_is_shuffled', 'true');
                 }
 
-                // Load saved progress
+                // Load saved progress from local session (if any, overwrites server if newer)
                 const savedAnswers = sessionStorage.getItem('practice_user_answers');
-                if (savedAnswers) userAnswers = JSON.parse(savedAnswers);
+                if (savedAnswers) Object.assign(userAnswers, JSON.parse(savedAnswers));
 
                 const savedCorrectly = sessionStorage.getItem('practice_answered_correctly');
-                if (savedCorrectly) answeredCorrectly = JSON.parse(savedCorrectly);
+                if (savedCorrectly) Object.assign(answeredCorrectly, JSON.parse(savedCorrectly));
 
                 const savedConfirmed = sessionStorage.getItem('practice_confirmed_answers');
-                if (savedConfirmed) confirmedAnswers = JSON.parse(savedConfirmed);
+                if (savedConfirmed) Object.assign(confirmedAnswers, JSON.parse(savedConfirmed));
 
                 document.getElementById('topCategoryName').textContent = categoryName || "Danh mục";
-
                 renderNav();
-
-                // Refresh nav dots status
-                questions.forEach((q, i) => {
-                    const dot = document.getElementById(`nav-${i}`);
-                    if (userAnswers[q.id]) {
-                        dot.classList.add('answered');
-                        if (settings.showAnswer) {
-                            dot.classList.add(answeredCorrectly[q.id] ? 'correct' : 'incorrect');
-                        }
-                    }
-                });
 
                 const savedIndex = sessionStorage.getItem('practice_current_index');
                 const startIndex = savedIndex ? parseInt(savedIndex) : 0;
@@ -973,6 +1026,12 @@
                 // Hide loader
                 const loader = document.getElementById('pageLoading');
                 if (loader) loader.style.display = 'none';
+
+                // Hide reset button if in review mode
+                if (practiceResult) {
+                    const btnReset = document.getElementById('btnReset');
+                    if (btnReset) btnReset.style.display = 'none';
+                }
             } catch (e) {
                 console.error(e);
                 showToast("Lỗi dữ liệu luyện tập", "err");
@@ -1013,6 +1072,8 @@
                         dot.classList.add(answeredCorrectly[q.id] ? 'correct' : 'incorrect');
                     }
                 }
+
+                if (i === currentIndex) dot.classList.add('active');
 
                 dot.onclick = () => showQuestion(i);
                 nav.appendChild(dot);
@@ -1289,6 +1350,32 @@
                 `;
                 list.appendChild(qBlock);
             });
+
+            // --- Scroll Spy Implementation ---
+            if (window.scrollObserver) window.scrollObserver.disconnect();
+            
+            window.scrollObserver = new IntersectionObserver((entries) => {
+                // Find the entry that is most visible or near the top
+                const visibleEntry = entries.find(e => e.isIntersecting);
+                if (visibleEntry) {
+                    const index = parseInt(visibleEntry.target.id.replace('q-block-', ''));
+                    
+                    // Update dots
+                    document.querySelectorAll('.nav-dot').forEach(d => d.classList.remove('active'));
+                    const dot = document.getElementById(`nav-${index}`);
+                    if (dot) dot.classList.add('active');
+                    
+                    currentIndex = index;
+                }
+            }, {
+                // Trigger when the question is roughly in the top 30% of the screen
+                rootMargin: '-10% 0px -80% 0px',
+                threshold: 0
+            });
+
+            document.querySelectorAll('[id^="q-block-"]').forEach(block => {
+                window.scrollObserver.observe(block);
+            });
         }
 
         function selectAnswer(qId, aId, isCorrect, event, index) {
@@ -1340,6 +1427,26 @@
             } else {
                 showQuestion(currentIndex);
             }
+
+            // Persistence on Server
+            if (practiceId) {
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                const val = userAnswers[qId];
+                const dto = { questionId: qId };
+                if (q.type === 'FILL_IN_BLANK') {
+                    dto.selectedText = val || "";
+                } else if (q.type === 'MULTIPLE_CHOICE') {
+                    dto.selectedAnswerIds = Array.isArray(val) ? val : [];
+                } else {
+                    dto.selectedAnswerId = val || null;
+                }
+
+                fetch(`/api/student/practice/save-answer?practiceId=${practiceId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dto)
+                }).catch(err => console.error("Auto-save failed", err));
+            }
         }
 
         function handleFillInput(qId, val, index) {
@@ -1360,6 +1467,16 @@
 
             if (settings.displayMode === 'all') {
                 // If in 'all' mode, we might want to update the dot, but avoid full re-render on every keystroke
+            }
+
+            // Persistence on Server (Debounced would be better, but simple for now)
+            if (practiceId) {
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                fetch(`/api/student/practice/save-answer?practiceId=${practiceId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ questionId: qId, selectedText: val || "" })
+                }).catch(err => console.error("Auto-save failed", err));
             }
         }
 
@@ -1446,7 +1563,7 @@
                 const res = await fetch('/api/student/practice/submit', {
                     method: 'POST',
                     headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ categoryId, answers: answersArray })
+                    body: JSON.stringify({ categoryId, practiceId, answers: answersArray })
                 });
 
                 if (!res.ok) throw new Error("Không thể nộp bài");
@@ -1468,8 +1585,12 @@
             // Update exit button label
             const exitBtn = document.getElementById('btnExit');
             if (exitBtn) {
-                exitBtn.innerHTML = '<i class="bi bi-x-lg"></i> <span>Đóng review</span>';
+                exitBtn.innerHTML = '<i class="bi bi-box-arrow-left"></i> <span>Thoát</span>';
             }
+
+            // Hide reset button
+            const btnReset = document.getElementById('btnReset');
+            if (btnReset) btnReset.style.display = 'none';
 
             // Hide sidebar and question area
             document.querySelector('.col-lg-3').style.display = 'none';
@@ -1529,10 +1650,19 @@
             const card = document.getElementById('resultCard');
             card.style.display = 'none';
 
+            const exitBtn = document.getElementById('btnExit');
+            if (exitBtn) {
+                exitBtn.innerHTML = '<i class="bi bi-x-lg"></i> <span>Đóng review</span>';
+            }
+
             // Show sidebar and expand main content
             document.querySelector('.col-lg-3').style.display = 'block';
             const mainCol = document.querySelector('.col-lg-12');
             if (mainCol) mainCol.className = 'col-lg-9';
+
+            // Hide reset button
+            const btnReset = document.getElementById('btnReset');
+            if (btnReset) btnReset.style.display = 'none';
 
             const area = document.getElementById('questionArea');
             area.style.display = 'block';
@@ -1584,8 +1714,50 @@
                 window.location.href = '/student/categories';
                 return;
             }
-            if (confirm("Bạn có chắc chắn muốn thoát lượt luyện tập này? Kết quả chưa nộp sẽ bị mất.")) {
-                window.location.href = '/student/categories';
+            // User requested to keep progress, so we just exit
+            window.location.href = '/student/categories';
+        }
+
+        function confirmReset() {
+            const modal = new bootstrap.Modal(document.getElementById('resetConfirmModal'));
+            modal.show();
+        }
+
+        async function executeReset() {
+            const modalEl = document.getElementById('resetConfirmModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            const limit = questions.length;
+            const offset = parseInt(sessionStorage.getItem('practice_offset') || 0);
+
+            try {
+                const res = await fetch('/api/student/practice/reset', {
+                    method: 'POST',
+                    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ categoryId, limit, offset })
+                });
+                if (res.ok) {
+                    userAnswers = {};
+                    answeredCorrectly = {};
+                    confirmedAnswers = {};
+                    sessionStorage.removeItem('practice_user_answers');
+                    sessionStorage.removeItem('practice_answered_correctly');
+                    sessionStorage.removeItem('practice_confirmed_answers');
+                    
+                    showToast("Đã làm mới bài tập, hãy bắt đầu lại nhé!", "ok");
+                    
+                    if (settings.displayMode === 'all') {
+                        renderAllQuestions();
+                    }
+                    renderNav();
+                    showQuestion(0);
+                } else {
+                    showToast("Không thể reset bài làm", "err");
+                }
+            } catch (e) {
+                showToast("Lỗi kết nối", "err");
             }
         }
 

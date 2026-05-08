@@ -14,6 +14,7 @@ import java.util.List;
 public interface AttemptRepository extends JpaRepository<Attempt, Long> {
 
     List<Attempt> findByQuizTakingId(Long quizTakingId);
+    List<Attempt> findByQuizTakingIdOrderByStartedAtDesc(Long quizTakingId);
     int countByQuizTakingId(Long quizTakingId);
 
     long countByResultLessThan(BigDecimal score);
@@ -23,7 +24,10 @@ public interface AttemptRepository extends JpaRepository<Attempt, Long> {
     List<Attempt> findTop10ByOrderByStartedAtDesc();
 
     long countByQuizTakingLearnerId(Long learnerId);
+    long countByQuizTakingLearnerIdAndEndedAtIsNotNull(Long learnerId);
     List<Attempt> findByQuizTakingLearnerId(Long learnerId);
+    List<Attempt> findByQuizTakingLearnerIdAndEndedAtIsNotNull(Long learnerId);
+    List<Attempt> findByQuizTakingLearnerIdAndEndedAtIsNotNullOrderByStartedAtDesc(Long learnerId);
 
     @Query("SELECT a FROM Attempt a WHERE a.endedAt IS NULL AND a.quizTaking.quizAssigning.dueDate < :now")
     List<Attempt> findExpiredAttempts(@Param("now") LocalDateTime now);

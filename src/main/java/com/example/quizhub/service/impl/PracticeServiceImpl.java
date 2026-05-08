@@ -67,29 +67,54 @@ public class PracticeServiceImpl implements PracticeService {
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public List<PracticeQuestionResponseDTO> startPractice(PracticeStartRequestDTO request) {
+    @Transactional
+    public PracticeStartResponseDTO startPractice(PracticeStartRequestDTO request) {
+        User user = getCurrentUser();
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
 
         List<Long> categoryIds = new ArrayList<>();
         collectCategoryIds(category, categoryIds);
 
-        // Fetch random questions for these categories
-        List<Question> questions = questionRepository.findRandomPublicQuestionsByCategories(
+        Integer limit = request.getLimit() != null ? request.getLimit() : 10;
+        Integer offset = request.getOffset() != null ? request.getOffset() : 0;
+
+        // Check if there is an ongoing practice for this specific range
+        Practice practice = practiceRepository
+                .findFirstByUserIdAndCategoryIdAndPracticeLimitAndPracticeOffsetAndIsCompletedFalseOrderByCreatedAtDesc(
+                        user.getId(), category.getId(), limit, offset)
+                .orElseGet(() -> {
+                    Practice newPractice = Practice.builder()
+                            .user(user)
+                            .category(category)
+                            .practiceLimit(limit)
+                            .practiceOffset(offset)
+                            .totalQuestions(limit)
+                            .correctAnswers(0)
+                            .isCompleted(false)
+                            .build();
+                    return practiceRepository.save(newPractice);
+                });
+
+        // Fetch questions for these categories
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(offset / limit, limit);
+        List<Question> questions = questionRepository.findPublicQuestionsByCategories(
                 categoryIds,
-                request.getLimit() != null ? request.getLimit() : 10,
-                request.getOffset() != null ? request.getOffset() : 0);
+                pageable);
 
         if (questions.isEmpty()) {
             throw new AppException(ErrorCode.QUESTION_NOT_FOUND);
         }
 
-        // Map to safe DTO without correct answers
-        return questions.stream().map(q -> {
+        // Map to safe DTO with progress
+        List<PracticeQuestionResponseDTO> questionDTOs = questions.stream().map(q -> {
             List<PracticeAnswerResponseDTO> answers = q.getAnswers().stream()
                     .map(a -> new PracticeAnswerResponseDTO(a.getId(), a.getText(), a.getIsCorrect()))
                     .collect(Collectors.toList());
+
+            // Load saved progress for this question
+            PracticeDetail detail = practiceDetailRepository.findByPracticeIdAndQuestionId(practice.getId(), q.getId())
+                    .orElse(null);
 
             return PracticeQuestionResponseDTO.builder()
                     .id(q.getId())
@@ -97,8 +122,111 @@ public class PracticeServiceImpl implements PracticeService {
                     .type(q.getType())
                     .level(q.getLevel())
                     .answers(answers)
+                    .selectedAnswerIds(detail != null && detail.getSelectedAnswers() != null
+                            ? detail.getSelectedAnswers().stream().map(Answer::getId).collect(Collectors.toList())
+                            : null)
+                    .selectedText(detail != null ? detail.getSelectedText() : null)
+                    .isCorrect(detail != null ? detail.getIsCorrect() : null)
                     .build();
         }).collect(Collectors.toList());
+
+        return PracticeStartResponseDTO.builder()
+                .questions(questionDTOs)
+                .practiceId(practice.getId())
+                .categoryId(category.getId())
+                .categoryName(category.getName())
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public void saveAnswer(Long practiceId, PracticeAnswerRequestDTO ansReq) {
+        Practice practice = practiceRepository.findById(practiceId)
+                .orElseThrow(() -> new AppException(ErrorCode.PRACTICE_NOT_FOUND));
+
+        if (Boolean.TRUE.equals(practice.getIsCompleted())) {
+            throw new AppException(ErrorCode.PRACTICE_ALREADY_SUBMITTED);
+        }
+
+        Question question = questionRepository.findById(ansReq.getQuestionId())
+                .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
+
+        PracticeDetail detail = practiceDetailRepository.findByPracticeIdAndQuestionId(practiceId, ansReq.getQuestionId())
+                .orElse(PracticeDetail.builder()
+                        .practice(practice)
+                        .question(question)
+                        .build());
+
+        List<Answer> selectedAnswers = new ArrayList<>();
+        String selectedText = ansReq.getSelectedText();
+        boolean isCorrect = false;
+
+        List<Long> correctAnswerIds = question.getAnswers().stream()
+                .filter(a -> Boolean.TRUE.equals(a.getIsCorrect()))
+                .map(Answer::getId)
+                .collect(Collectors.toList());
+        List<String> correctTexts = question.getAnswers().stream()
+                .filter(a -> Boolean.TRUE.equals(a.getIsCorrect()))
+                .map(Answer::getText)
+                .collect(Collectors.toList());
+
+        switch (question.getType()) {
+            case SINGLE_CHOICE:
+                if (ansReq.getSelectedAnswerId() != null) {
+                    Answer sa = answerRepository.findById(ansReq.getSelectedAnswerId()).orElse(null);
+                    if (sa != null) {
+                        selectedAnswers.add(sa);
+                        if (Boolean.TRUE.equals(sa.getIsCorrect())) {
+                            isCorrect = true;
+                        }
+                    }
+                }
+                break;
+            case MULTIPLE_CHOICE:
+                if (ansReq.getSelectedAnswerIds() != null && !ansReq.getSelectedAnswerIds().isEmpty()) {
+                    List<Answer> sas = answerRepository.findAllById(ansReq.getSelectedAnswerIds());
+                    selectedAnswers.addAll(sas);
+
+                    List<Long> saIds = sas.stream().map(Answer::getId).sorted().collect(Collectors.toList());
+                    List<Long> caIds = correctAnswerIds.stream().sorted().collect(Collectors.toList());
+                    if (saIds.equals(caIds)) {
+                        isCorrect = true;
+                    }
+                }
+                break;
+            case FILL_IN_BLANK:
+                if (selectedText != null && !selectedText.trim().isEmpty()) {
+                    String trimmedSelected = selectedText.trim();
+                    for (String ct : correctTexts) {
+                        if (ct.trim().equalsIgnoreCase(trimmedSelected)) {
+                            isCorrect = true;
+                            break;
+                        }
+                    }
+                }
+                break;
+        }
+
+        detail.setSelectedAnswers(selectedAnswers);
+        detail.setSelectedText(selectedText);
+        detail.setIsCorrect(isCorrect);
+
+        practiceDetailRepository.save(detail);
+    }
+
+    @Override
+    @Transactional
+    public void resetPractice(Long categoryId, Integer limit, Integer offset) {
+        User user = getCurrentUser();
+        Practice practice = practiceRepository
+                .findFirstByUserIdAndCategoryIdAndPracticeLimitAndPracticeOffsetAndIsCompletedFalseOrderByCreatedAtDesc(
+                        user.getId(), categoryId, limit, offset)
+                .orElse(null);
+
+        if (practice != null) {
+            practice.getDetails().clear();
+            practiceRepository.save(practice);
+        }
     }
 
     @Override
@@ -110,10 +238,12 @@ public class PracticeServiceImpl implements PracticeService {
         List<Long> categoryIds = new ArrayList<>();
         collectCategoryIds(category, categoryIds);
 
-        List<Question> questions = questionRepository.findRandomPublicQuestionsByCategories(
+        Integer limit = request.getLimit() != null ? request.getLimit() : 10;
+        Integer offset = request.getOffset() != null ? request.getOffset() : 0;
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(offset / limit, limit);
+        List<Question> questions = questionRepository.findPublicQuestionsByCategories(
                 categoryIds,
-                request.getLimit() != null ? request.getLimit() : 10,
-                request.getOffset() != null ? request.getOffset() : 0);
+                pageable);
 
         if (questions.isEmpty()) {
             throw new AppException(ErrorCode.QUESTION_NOT_FOUND);
@@ -142,19 +272,31 @@ public class PracticeServiceImpl implements PracticeService {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
 
-        int correctCount = 0;
-        int totalQuestions = request.getAnswers().size();
+        // Try to find the existing practice first
+        Integer limit = request.getAnswers().size();
+        Integer offset = 0; // Default if not provided in submit, or we can use practiceId if passed
 
-        // Prepare the parent entity
-        Practice practice = Practice.builder()
-                .user(user)
-                .category(category)
-                .totalQuestions(totalQuestions)
-                .correctAnswers(0)
-                .build();
+        Practice practice;
+        if (request.getPracticeId() != null) {
+            practice = practiceRepository.findById(request.getPracticeId())
+                    .orElseThrow(() -> new AppException(ErrorCode.PRACTICE_NOT_FOUND));
+        } else {
+            practice = practiceRepository
+                .findFirstByUserIdAndCategoryIdAndPracticeLimitAndPracticeOffsetAndIsCompletedFalseOrderByCreatedAtDesc(
+                        user.getId(), category.getId(), limit, offset)
+                .orElseGet(() -> Practice.builder()
+                        .user(user)
+                        .category(category)
+                        .totalQuestions(limit)
+                        .correctAnswers(0)
+                        .isCompleted(false)
+                        .build());
+        }
 
         Practice savedPractice = practiceRepository.save(practice);
         List<PracticeDetailResponseDTO> detailResponses = new ArrayList<>();
+        int correctCount = 0;
+        int totalQuestions = savedPractice.getTotalQuestions();
 
         for (PracticeAnswerRequestDTO ansReq : request.getAnswers()) {
             Question question = questionRepository.findById(ansReq.getQuestionId())
@@ -214,14 +356,16 @@ public class PracticeServiceImpl implements PracticeService {
                 correctCount++;
             }
 
-            // Save detail
-            PracticeDetail detail = PracticeDetail.builder()
-                    .practice(savedPractice)
-                    .question(question)
-                    .selectedAnswers(selectedAnswers)
-                    .selectedText(selectedText)
-                    .isCorrect(isCorrect)
-                    .build();
+            // Save or update detail
+            PracticeDetail detail = practiceDetailRepository.findByPracticeIdAndQuestionId(savedPractice.getId(), question.getId())
+                    .orElse(PracticeDetail.builder()
+                            .practice(savedPractice)
+                            .question(question)
+                            .build());
+            
+            detail.setSelectedAnswers(selectedAnswers);
+            detail.setSelectedText(selectedText);
+            detail.setIsCorrect(isCorrect);
             practiceDetailRepository.save(detail);
 
             // Add to response
@@ -242,6 +386,7 @@ public class PracticeServiceImpl implements PracticeService {
         }
 
         savedPractice.setCorrectAnswers(correctCount);
+        savedPractice.setIsCompleted(true);
         practiceRepository.save(savedPractice);
 
         return PracticeResultResponseDTO.builder()
@@ -272,7 +417,7 @@ public class PracticeServiceImpl implements PracticeService {
     @Transactional(readOnly = true)
     public List<com.example.quizhub.dto.practice.PracticeHistoryResponseDTO> getPracticeHistory(Long categoryId) {
         User user = getCurrentUser();
-        List<Practice> practices = practiceRepository.findByUserIdAndCategoryIdOrderByCreatedAtDesc(user.getId(),
+        List<Practice> practices = practiceRepository.findByUserIdAndCategoryIdAndIsCompletedTrueOrderByCreatedAtDesc(user.getId(),
                 categoryId);
 
         return practices.stream().map(p -> com.example.quizhub.dto.practice.PracticeHistoryResponseDTO.builder()
@@ -289,7 +434,7 @@ public class PracticeServiceImpl implements PracticeService {
     @Transactional(readOnly = true)
     public List<com.example.quizhub.dto.practice.PracticeHistoryResponseDTO> getMyPracticeHistory() {
         User user = getCurrentUser();
-        List<Practice> practices = practiceRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+        List<Practice> practices = practiceRepository.findByUserIdAndIsCompletedTrueOrderByCreatedAtDesc(user.getId());
 
         return practices.stream().map(p -> com.example.quizhub.dto.practice.PracticeHistoryResponseDTO.builder()
                 .id(p.getId())

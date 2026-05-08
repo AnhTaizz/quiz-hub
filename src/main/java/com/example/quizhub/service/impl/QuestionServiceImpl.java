@@ -17,20 +17,19 @@ import com.example.quizhub.entity.Answer;
 import com.example.quizhub.entity.Category;
 import com.example.quizhub.entity.Question;
 import com.example.quizhub.entity.User;
+import com.example.quizhub.entity.enums.NotificationType;
 import com.example.quizhub.entity.enums.QuestionLevel;
 import com.example.quizhub.entity.enums.QuestionStatus;
 import com.example.quizhub.entity.enums.QuestionType;
 import com.example.quizhub.exception.AppException;
 import com.example.quizhub.exception.ErrorCode;
 import com.example.quizhub.mapper.QuestionMapper;
+import com.example.quizhub.repository.AnswerRepository;
 import com.example.quizhub.repository.CategoryRepository;
 import com.example.quizhub.repository.QuestionRepository;
 import com.example.quizhub.repository.UserRepository;
 import com.example.quizhub.service.QuestionService;
-import com.example.quizhub.repository.AnswerRepository;
-import com.example.quizhub.entity.enums.QuestionLevel;
-import com.example.quizhub.entity.enums.QuestionStatus;
-import com.example.quizhub.entity.enums.QuestionType;
+import com.example.quizhub.service.notification.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -43,6 +42,7 @@ public class QuestionServiceImpl implements QuestionService {
     private final CategoryRepository categoryRepository;
     private final AnswerRepository answerRepository;
     private final QuestionMapper questionMapper;
+    private final NotificationService notificationService;
 
     // Business Logic
     private void validateQuestionLogic(QuestionType type, List<AnswerCreationRequestDTO> answers) {
@@ -391,6 +391,15 @@ public class QuestionServiceImpl implements QuestionService {
         // Chuyển trạng thái của câu hỏi gốc về PRIVATE
         originalQuestion.setQuestionStatus(QuestionStatus.PRIVATE);
         questionRepository.save(originalQuestion);
+
+        // Tạo thông báo cho giáo viên
+        notificationService.createNotification(
+                originalQuestion.getCreator().getId(),
+                "Câu hỏi được phê duyệt",
+                "Câu hỏi \"" + originalQuestion.getText() + "\" của bạn đã được Admin phê duyệt vào kho chung.",
+                NotificationType.QUESTION_APPROVED,
+                "/teacher/questions"
+        );
     }
 
     @Override
@@ -433,6 +442,15 @@ public class QuestionServiceImpl implements QuestionService {
 
         question.setQuestionStatus(QuestionStatus.PRIVATE);
         questionRepository.save(question);
+
+        // Tạo thông báo cho giáo viên
+        notificationService.createNotification(
+                question.getCreator().getId(),
+                "Câu hỏi bị từ chối",
+                "Câu hỏi \"" + question.getText() + "\" của bạn đã bị Admin từ chối chia sẻ.",
+                NotificationType.QUESTION_REJECTED,
+                "/teacher/questions"
+        );
     }
 
     @Override
