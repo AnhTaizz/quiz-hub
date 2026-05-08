@@ -17,7 +17,7 @@ spring:
     init:
       mode: always
       encoding: UTF-8
-      data-locations: classpath:data.sql,classpath:test-quiz.sql
+      data-locations: classpath:data.sql
     show-sql: true
     properties:
       hibernate:
@@ -34,6 +34,17 @@ spring:
           auth: true
           starttls:
             enable: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+
 app:
   jwt:
     secret: 6a2f8e1c4b7d9f3a5e2b8c1d4f7a9e3c6b2f8e1c4b7d9f3a5e2b8c1d4f7a9e3c

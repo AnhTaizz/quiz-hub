@@ -153,19 +153,20 @@
 
         .nav-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
             gap: 10px;
             margin-top: 20px;
         }
 
         .nav-dot {
-            aspect-ratio: 1;
+            width: 36px;
+            height: 36px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             cursor: pointer;
             transition: all 0.2s;
             border: 2px solid #f1f5f9;
@@ -1025,6 +1026,12 @@
                 // Hide loader
                 const loader = document.getElementById('pageLoading');
                 if (loader) loader.style.display = 'none';
+
+                // Hide reset button if in review mode
+                if (practiceResult) {
+                    const btnReset = document.getElementById('btnReset');
+                    if (btnReset) btnReset.style.display = 'none';
+                }
             } catch (e) {
                 console.error(e);
                 showToast("Lỗi dữ liệu luyện tập", "err");
@@ -1578,8 +1585,12 @@
             // Update exit button label
             const exitBtn = document.getElementById('btnExit');
             if (exitBtn) {
-                exitBtn.innerHTML = '<i class="bi bi-x-lg"></i> <span>Đóng review</span>';
+                exitBtn.innerHTML = '<i class="bi bi-box-arrow-left"></i> <span>Thoát</span>';
             }
+
+            // Hide reset button
+            const btnReset = document.getElementById('btnReset');
+            if (btnReset) btnReset.style.display = 'none';
 
             // Hide sidebar and question area
             document.querySelector('.col-lg-3').style.display = 'none';
@@ -1639,10 +1650,19 @@
             const card = document.getElementById('resultCard');
             card.style.display = 'none';
 
+            const exitBtn = document.getElementById('btnExit');
+            if (exitBtn) {
+                exitBtn.innerHTML = '<i class="bi bi-x-lg"></i> <span>Đóng review</span>';
+            }
+
             // Show sidebar and expand main content
             document.querySelector('.col-lg-3').style.display = 'block';
             const mainCol = document.querySelector('.col-lg-12');
             if (mainCol) mainCol.className = 'col-lg-9';
+
+            // Hide reset button
+            const btnReset = document.getElementById('btnReset');
+            if (btnReset) btnReset.style.display = 'none';
 
             const area = document.getElementById('questionArea');
             area.style.display = 'block';

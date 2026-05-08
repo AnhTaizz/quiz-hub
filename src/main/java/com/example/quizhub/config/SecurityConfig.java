@@ -14,6 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.example.quizhub.security.JwtAuthenticationEntryPoint;
 import com.example.quizhub.security.JwtAuthenticationFilter;
 import com.example.quizhub.security.CustomAccessDeniedHandler;
+import com.example.quizhub.security.OAuth2AuthenticationSuccessHandler;
 
 import lombok.RequiredArgsConstructor;
 
@@ -27,6 +28,7 @@ public class SecurityConfig {
         private final AuthenticationProvider authenticationProvider;
         private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
         private final CustomAccessDeniedHandler accessDeniedHandler;
+        private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
         private final String[] PUBLIC_ENDPOINT = { "/",
                         "/index.html",
                         "/teacher-category.html",
@@ -34,8 +36,8 @@ public class SecurityConfig {
                         "/js/**",
                         "/images/**",
                         "/assets/**",
-                        "/login", "/register", "/forgot-password",
-                        "/api/auth/register", "/api/auth/login", "/api/auth/check-email",
+                        "/login", "/register", "/forgot-password", "/oauth2-redirect.html", "/oauth2-choose-role.html",
+                        "/api/auth/register", "/api/auth/login", "/api/auth/check-email", "/api/auth/oauth2-register",
                         "/api/auth/forgot-password", "/api/auth/reset-password",
                         "/error", "api/questions/**", "/test/**",
                         "/api/teacher/categories/**", "/api/student/categories/**" };
@@ -66,9 +68,15 @@ public class SecurityConfig {
                                                 // Tất cả request còn lại phải authenticated
                                                 .anyRequest().authenticated())
 
-                                // Stateless session — không lưu session phía server
+                                // Google OAuth2
+                                .oauth2Login(oauth2 -> oauth2
+                                                .loginPage("/login")
+                                                .successHandler(oAuth2AuthenticationSuccessHandler)
+                                )
+
+                                // Cho phép tạo session khi cần thiết (đặc biệt cho luồng OAuth2)
                                 .sessionManagement(session -> session
-                                                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                                                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
 
                                 // Gắn AuthenticationProvider (DaoAuthentication + BCrypt)
                                 .authenticationProvider(authenticationProvider)

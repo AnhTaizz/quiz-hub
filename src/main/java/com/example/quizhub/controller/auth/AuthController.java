@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.quizhub.dto.auth.response.AuthResponse;
 import com.example.quizhub.dto.auth.request.AuthRequest;
+import com.example.quizhub.dto.auth.request.OAuth2RegisterRequest;
 import com.example.quizhub.dto.auth.request.RegisterRequest;
 import com.example.quizhub.dto.auth.request.ResetPasswordRequest;
 import com.example.quizhub.service.auth.AuthService;
@@ -30,6 +31,11 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
         return ResponseEntity.ok(authService.register(registerRequest));
+    }
+
+    @PostMapping("/oauth2-register")
+    public ResponseEntity<AuthResponse> oauth2Register(@Valid @RequestBody OAuth2RegisterRequest oauth2RegisterRequest) {
+        return ResponseEntity.ok(authService.registerOAuth2(oauth2RegisterRequest));
     }
 
     @GetMapping("/check-email")

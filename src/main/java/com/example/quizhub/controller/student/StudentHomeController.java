@@ -48,25 +48,24 @@ public class StudentHomeController {
         User student = userRepository.findByEmail(email).orElse(null);
 
         if (student != null) {
-            long attemptCount = attemptRepository.countByQuizTakingLearnerId(student.getId());
-            long practiceCount = practiceRepository.countByUserId(student.getId());
+            long attemptCount = attemptRepository.countByQuizTakingLearnerIdAndEndedAtIsNotNull(student.getId());
+            long practiceCount = practiceRepository.countByUserIdAndIsCompletedTrue(student.getId());
             long totalCompleted = attemptCount + practiceCount;
 
-            List<Attempt> attempts = attemptRepository.findByQuizTakingLearnerId(student.getId());
-            List<com.example.quizhub.entity.Practice> practices = practiceRepository.findByUserId(student.getId());
+            List<Attempt> completedAttempts = attemptRepository.findByQuizTakingLearnerIdAndEndedAtIsNotNull(student.getId());
+            List<com.example.quizhub.entity.Practice> completedPractices = practiceRepository.findByUserIdAndIsCompletedTrueOrderByCreatedAtDesc(student.getId());
 
-            BigDecimal totalScoreSum = BigDecimal.ZERO;
-            BigDecimal avgScore = BigDecimal.ZERO;
-            int totalCount = attempts.size() + practices.size();
-
-            if (totalCount > 0) {
-                // Sum scores from attempts
-                BigDecimal attemptsSum = attempts.stream()
+            BigDecimal quizAvg = BigDecimal.ZERO;
+            if (!completedAttempts.isEmpty()) {
+                BigDecimal sum = completedAttempts.stream()
                         .map(a -> a.getResult() != null ? a.getResult() : BigDecimal.ZERO)
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
+                quizAvg = sum.divide(BigDecimal.valueOf(completedAttempts.size()), 1, RoundingMode.HALF_UP);
+            }
 
-                // Sum scores from practices (calculate on the fly: correct/total * 10)
-                BigDecimal practicesSum = practices.stream()
+            BigDecimal practiceAvg = BigDecimal.ZERO;
+            if (!completedPractices.isEmpty()) {
+                BigDecimal sum = completedPractices.stream()
                         .map(p -> {
                             if (p.getTotalQuestions() != null && p.getTotalQuestions() > 0) {
                                 double calc = (p.getCorrectAnswers() * 10.0) / p.getTotalQuestions();
@@ -75,9 +74,7 @@ public class StudentHomeController {
                             return BigDecimal.ZERO;
                         })
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-                totalScoreSum = attemptsSum.add(practicesSum);
-                avgScore = totalScoreSum.divide(BigDecimal.valueOf(totalCount), 1, RoundingMode.HALF_UP);
+                practiceAvg = sum.divide(BigDecimal.valueOf(completedPractices.size()), 1, RoundingMode.HALF_UP);
             }
 
             // Get all assigned quizzes from joined classrooms
@@ -101,13 +98,18 @@ public class StudentHomeController {
                         .findByLearnerIdAndQuizAssigningId(student.getId(), assigning.getId())
                         .orElse(null);
 
-                int attemptsMade = 0;
+                int finishedCount = 0;
+                boolean anyAttemptExists = false;
+                boolean hasUnfinished = false;
                 if (taking != null) {
-                    attemptsMade = attemptRepository.countByQuizTakingId(taking.getId());
+                    List<Attempt> attempts = attemptRepository.findByQuizTakingId(taking.getId());
+                    finishedCount = (int) attempts.stream().filter(a -> a.getEndedAt() != null).count();
+                    anyAttemptExists = !attempts.isEmpty();
+                    hasUnfinished = attempts.stream().anyMatch(a -> a.getEndedAt() == null);
                 }
 
                 int max = assigning.getMaxAttempt() != null ? assigning.getMaxAttempt() : 0;
-                boolean hasAttemptsLeft = (max == 0) || (attemptsMade < max);
+                boolean hasAttemptsLeft = (max == 0) || (finishedCount < max);
 
                 boolean isExpired = assigning.getDueDate() != null && now.isAfter(assigning.getDueDate());
                 boolean isUpcoming = assigning.getStartDate() != null && now.isBefore(assigning.getStartDate());
@@ -115,9 +117,10 @@ public class StudentHomeController {
                 if (hasAttemptsLeft && !isExpired && !isUpcoming) {
                     QuizDashboardInfo info = new QuizDashboardInfo();
                     info.setAssigning(assigning);
-                    info.setAttemptsMade(attemptsMade);
-                    info.setAttemptsLeft(max == 0 ? -1 : (max - attemptsMade));
-                    info.setHasStarted(attemptsMade > 0);
+                    info.setAttemptsMade(finishedCount);
+                    info.setAttemptsLeft(max == 0 ? -1 : (max - finishedCount));
+                    info.setHasStarted(anyAttemptExists);
+                    info.setHasUnfinished(hasUnfinished);
                     dashboardQuizzes.add(info);
 
                     // Count for 'this week' message
@@ -128,6 +131,8 @@ public class StudentHomeController {
             }
 
             model.addAttribute("totalCompleted", totalCompleted);
+            model.addAttribute("quizAvg", quizAvg);
+            model.addAttribute("practiceAvg", practiceAvg);
             model.addAttribute("assignedQuizzes", dashboardQuizzes);
             model.addAttribute("pendingCount", dashboardQuizzes.size());
             model.addAttribute("pendingThisWeekCount", pendingThisWeekCount);
@@ -153,6 +158,7 @@ public class StudentHomeController {
         private int attemptsMade;
         private int attemptsLeft; // -1 for unlimited
         private boolean hasStarted;
+        private boolean hasUnfinished;
     }
 
     @GetMapping("/practice-history")
@@ -170,5 +176,39 @@ public class StudentHomeController {
     public String quizResult(@PathVariable Long attemptId, Model model) {
         model.addAttribute("attemptId", attemptId);
         return "student/quiz-result";
+    }
+
+    @GetMapping("/quiz/history/{assigningId}")
+    public String quizHistory(@PathVariable Long assigningId, Model model) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User student = userRepository.findByEmail(email).orElseThrow();
+        
+        QuizAssigning assigning = quizAssigningRepository.findById(assigningId).orElseThrow();
+        QuizTaking taking = quizTakingRepository.findByLearnerIdAndQuizAssigningId(student.getId(), assigningId).orElse(null);
+        
+        List<Attempt> attempts = new ArrayList<>();
+        if (taking != null) {
+            attempts = attemptRepository.findByQuizTakingIdOrderByStartedAtDesc(taking.getId());
+        }
+        
+        model.addAttribute("assigning", assigning);
+        model.addAttribute("attempts", attempts);
+        return "student/student-quiz-history";
+    }
+
+    @GetMapping("/history")
+    public String getHistory(Model model) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User student = userRepository.findByEmail(email).orElseThrow();
+        
+        // Get all finished quiz attempts
+        List<Attempt> quizAttempts = attemptRepository.findByQuizTakingLearnerIdAndEndedAtIsNotNullOrderByStartedAtDesc(student.getId());
+        
+        // Get all finished practice sessions
+        List<com.example.quizhub.entity.Practice> practiceHistory = practiceRepository.findByUserIdAndIsCompletedTrueOrderByCreatedAtDesc(student.getId());
+        
+        model.addAttribute("quizAttempts", quizAttempts);
+        model.addAttribute("practiceHistory", practiceHistory);
+        return "student/student-history";
     }
 }

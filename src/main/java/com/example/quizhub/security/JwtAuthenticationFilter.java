@@ -29,6 +29,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain)
             throws ServletException, IOException {
 
+        if (request.getRequestURI().startsWith("/login/oauth2/")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String jwt = null;
         final String authHeader = request.getHeader("Authorization");
 
@@ -57,7 +62,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (userEmail != null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 
             if (jwtService.isTokenValid(jwt, userDetails)) {

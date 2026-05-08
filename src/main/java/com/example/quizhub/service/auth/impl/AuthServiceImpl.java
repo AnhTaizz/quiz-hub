@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.quizhub.dto.auth.response.AuthResponse;
 import com.example.quizhub.dto.auth.request.AuthRequest;
+import com.example.quizhub.dto.auth.request.OAuth2RegisterRequest;
 import com.example.quizhub.dto.auth.request.RegisterRequest;
 import com.example.quizhub.dto.auth.request.ResetPasswordRequest;
 import com.example.quizhub.entity.User;
@@ -62,6 +63,40 @@ public class AuthServiceImpl implements AuthService {
                 .build();
         userRepository.save(user);
         String token = jwtService.generateToken(user);
+        return AuthResponse.builder()
+                .token(token)
+                .id(user.getId())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .role(user.getRole())
+                .avatarUrl(user.getAvatarUrl())
+                .build();
+    }
+
+    @Override
+    public AuthResponse registerOAuth2(OAuth2RegisterRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new AppException(ErrorCode.USER_EXISTED);
+        }
+
+        Role assignedRole = Role.STUDENT;
+        if ("TEACHER".equalsIgnoreCase(request.getRole())) {
+            assignedRole = Role.TEACHER;
+        }
+
+        User user = User.builder()
+                .email(request.getEmail())
+                .password(passwordEncoder.encode("OAUTH2_USER_DUMMY_PASSWORD_" + System.currentTimeMillis()))
+                .fullName(request.getFullName())
+                .avatarUrl(request.getAvatarUrl())
+                .role(assignedRole)
+                .isEnable(true)
+                .isVerified(true)
+                .build();
+        
+        userRepository.save(user);
+        String token = jwtService.generateToken(user);
+        
         return AuthResponse.builder()
                 .token(token)
                 .id(user.getId())
