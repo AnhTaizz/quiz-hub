@@ -14,6 +14,7 @@ import com.example.quizhub.dto.category.CategoryResponseDTO;
 import com.example.quizhub.entity.Category;
 import com.example.quizhub.entity.Question;
 import com.example.quizhub.entity.User;
+import com.example.quizhub.entity.enums.QuestionStatus;
 import com.example.quizhub.entity.enums.Role;
 import com.example.quizhub.exception.AppException;
 import com.example.quizhub.exception.ErrorCode;
@@ -89,7 +90,8 @@ public class CategoryServiceImpl implements CategoryService {
     private void attachPublicQuizCount(List<CategoryResponseDTO> dtos) {
         for (CategoryResponseDTO dto : dtos) {
             List<Long> allIds = getAllDescendantIds(dto.getId());
-            long count = quizRepository.countByCategoryIdInAndIsDraftFalseAndIsEnableTrue(allIds);
+            // Đối với danh mục công khai, đếm số câu hỏi thay vì số đề thi
+            long count = questionRepository.countPublicQuestionsByCategories(allIds, QuestionStatus.PUBLIC);
             dto.setQuizCount(count);
             if (dto.getChildren() != null) attachPublicQuizCount(dto.getChildren());
         }

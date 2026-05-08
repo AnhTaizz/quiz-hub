@@ -138,7 +138,7 @@
                     <span class="text-muted small"><i class="bi bi-calendar-check me-1"></i> Giao ngày: <span th:text="${assigning.createdAt != null ? #temporals.format(assigning.createdAt, 'dd/MM/yyyy') : '--/--/----'}">--</span></span>
                     <div class="d-flex gap-2">
                         <button th:if="${assigning.quiz != null}" th:data-id="${assigning.quiz.id}" onclick="openQuizPreviewModal(this.getAttribute('data-id'), event)" class="btn btn-sm btn-outline-primary rounded-pill px-3">Xem đề <i class="bi bi-chevron-right ms-1"></i></button>
-                        <button class="btn btn-sm btn-outline-success rounded-pill px-3" th:data-id="${assigning.id}" th:data-title="${assigning.quiz != null ? assigning.quiz.title : 'Đề thi'}" onclick="openGradebookModal(this.getAttribute('data-id'), this.getAttribute('data-title'))">
+                        <button class="btn btn-sm btn-outline-success rounded-pill px-3" th:data-id="${assigning.id}" th:data-title="${assigning.quiz != null ? assigning.quiz.title : 'Đề thi'}" onclick="openGradesModal(this.getAttribute('data-id'), this.getAttribute('data-title'))">
                             Bảng điểm <i class="bi bi-award ms-1"></i>
                         </button>
                         <a th:href="@{'/teacher/monitoring/log/' + ${assigning.id}}" class="btn btn-sm btn-outline-danger rounded-pill px-3">
@@ -237,40 +237,6 @@
         </div>
     </div>
 
-    <!-- Gradebook Modal -->
-    <div class="modal fade" id="gradebookModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 20px;">
-                <div class="modal-header border-0 pb-0 pt-4 px-4">
-                    <div>
-                        <h5 class="modal-title fw-bold" id="gradebookQuizTitle">Bảng điểm đề thi</h5>
-                        <p class="text-muted small mb-0">Xem tiến độ nộp bài và điểm số cao nhất của từng học sinh.</p>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0" style="border-radius: 12px; overflow: hidden;">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Học sinh</th>
-                                    <th>Email</th>
-                                    <th>Trạng thái</th>
-                                    <th>Số lần làm bài</th>
-                                    <th class="text-end">Điểm cao nhất</th>
-                                </tr>
-                            </thead>
-                            <tbody id="gradebookTableBody">
-                                <tr>
-                                    <td colspan="5" class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script th:inline="javascript">
@@ -463,50 +429,6 @@
             });
         }
 
-        function openGradebookModal(assigningId, quizTitle) {
-            document.getElementById('gradebookQuizTitle').innerText = 'Bảng điểm: ' + quizTitle;
-            const tbody = document.getElementById('gradebookTableBody');
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></td></tr>';
-
-            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            
-            fetch('/api/teacher/classrooms/assigned-quizzes/' + assigningId + '/grades', {
-                headers: { Authorization: 'Bearer ' + token }
-            })
-            .then(res => {
-                if (!res.ok) throw new Error('Không thể tải bảng điểm.');
-                return res.json();
-            })
-            .then(data => {
-                if (!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="text-center py-3 text-muted">Chưa có học sinh nào trong lớp.</td></tr>';
-                    return;
-                }
-                tbody.innerHTML = data.map(stu => {
-                    const statusBadge = stu.status === 'Đã nộp bài' 
-                        ? `<span class="badge bg-success rounded-pill px-3">${stu.status}</span>` 
-                        : (stu.status === 'Đang làm bài' 
-                            ? `<span class="badge bg-warning text-dark rounded-pill px-3">${stu.status}</span>` 
-                            : `<span class="badge bg-secondary rounded-pill px-3">${stu.status}</span>`);
-
-                    const score = stu.highestScore != null ? stu.highestScore.toFixed(2) : '--';
-                    
-                    return `
-                    <tr>
-                        <td><strong>${stu.fullName}</strong></td>
-                        <td>${stu.email}</td>
-                        <td>${statusBadge}</td>
-                        <td><span class="badge bg-light text-dark border px-3 rounded-pill">${stu.attemptCount} lần</span></td>
-                        <td class="text-end fw-bold text-primary" style="font-size: 16px;">${score}</td>
-                    </tr>`;
-                }).join('');
-            })
-            .catch(err => {
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-3 text-danger">${err.message}</td></tr>`;
-            });
-
-            bootstrap.Modal.getOrCreateInstance(document.getElementById('gradebookModal')).show();
-        }
 
         function showToast(msg, type = 'ok') {
             const w = document.getElementById('toastWrap') || document.body;
@@ -880,6 +802,7 @@
     <div th:replace="~{fragments/category-explorer-public :: category-explorer-public-modal}"></div>
     <div th:replace="~{fragments/category-explorer-private :: category-explorer-private-modal}"></div>
     <div th:replace="~{fragments/category-explorer-private :: category-create-modal}"></div>
+    <div th:replace="~{fragments/quiz-grades :: assignment-grades-modal}"></div>
     <div th:replace="~{layout/header :: changePasswordModal}"></div>
     <script th:replace="~{layout/header :: change-password-script}"></script>
 </body>
