@@ -12,6 +12,7 @@ services:
       - "5433:5432"
     volumes:
       - pg_data:/var/lib/postgresql/data
+    restart: unless-stopped
 
   quizhub-app:
     build: .
