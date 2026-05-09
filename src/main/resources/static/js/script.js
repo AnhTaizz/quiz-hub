@@ -230,3 +230,26 @@ document.addEventListener('DOMContentLoaded', function () {
         return response;
     };
 });
+
+// ─── Nav Dropdown "Kho của tôi" ─────────────────────────────────
+function toggleNavDropdown(event, el) {
+    event.preventDefault();
+    event.stopPropagation();
+    const li = el.closest('.nav-item-dropdown');
+    const isOpen = li.classList.contains('open');
+
+    // Đóng tất cả các dropdown đang mở khác
+    document.querySelectorAll('.nav-item-dropdown.open').forEach(d => d.classList.remove('open'));
+
+    if (!isOpen) {
+        li.classList.add('open');
+    }
+}
+
+// Đóng dropdown khi click ra ngoài
+document.addEventListener('click', function (e) {
+    if (!e.target.closest('.nav-item-dropdown')) {
+        document.querySelectorAll('.nav-item-dropdown.open').forEach(d => d.classList.remove('open'));
+    }
+});
+

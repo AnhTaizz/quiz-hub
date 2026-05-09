@@ -193,7 +193,58 @@
             background: #f1f5f9; padding: 6px 14px; border-radius: 100px;
             font-size: 0.8rem; font-weight: 700; color: #64748b; display: flex; align-items: center; gap: 6px;
         }
+
+        /* ── Câu hỏi: Filter Bar ── */
+        .qb-filter-shell {
+            background: #fff; border-radius: 16px; border: 1px solid #e2e8f0;
+            padding: 16px 20px; margin-bottom: 20px;
+            display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+        .qb-filter-shell .fg label {
+            font-size: 0.75rem; font-weight: 800; color: #1e1b4b;
+            text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 5px;
+        }
+        .qb-ctrl {
+            width: 100%; border-radius: 10px; border: 1.5px solid #e2e8f0;
+            padding: 8px 12px; font-size: 0.88rem; background: #f8fafc;
+            transition: all 0.2s;
+        }
+        .qb-ctrl:focus { border-color: #4338ca; box-shadow: 0 0 0 3px rgba(67,56,202,0.1); outline: none; background:#fff; }
+        /* ── Câu hỏi: Card ── */
+        .q-card {
+            border: 1px solid #e2e8f0; border-radius: 16px; padding: 18px 22px;
+            background: #fff; margin-bottom: 14px; position: relative; overflow: hidden;
+            transition: all 0.25s; display: flex; flex-direction: column; gap: 10px;
+        }
+        .q-card::before {
+            content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+            background: linear-gradient(180deg, #6366f1, #10b981); opacity: 0; transition: opacity 0.2s;
+        }
+        .q-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.07); border-color: #c7d2fe; transform: translateY(-1px); }
+        .q-card:hover::before { opacity: 1; }
+        .q-card-badges { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; justify-content: space-between; }
+        .q-badge-row { display: flex; gap: 6px; flex-wrap: wrap; }
+        .qb-badge { font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+        .qb-type { background: #dbeafe; color: #1d4ed8; }
+        .qb-level-easy { background: #dcfce7; color: #166534; }
+        .qb-level-medium { background: #fef3c7; color: #92400e; }
+        .qb-level-hard { background: #fee2e2; color: #991b1b; }
+        .qb-cat { background: #f1f5f9; color: #475569; }
+        .q-card-id { font-size: 0.75rem; color: #94a3b8; font-weight: 600; }
+        .q-card-text { font-weight: 700; color: #1e1b4b; font-size: 1rem; line-height: 1.5; }
+        .q-answers { background: #f8fafc; border-radius: 10px; padding: 10px 14px; border: 1px solid #f1f5f9; display: flex; flex-direction: column; gap: 6px; }
+        .q-ans-item { font-size: 0.87rem; color: #64748b; display: flex; align-items: baseline; gap: 8px; }
+        .q-ans-item.correct { color: #10b981; font-weight: 700; }
+        .q-card-actions { display: flex; justify-content: flex-end; gap: 8px; border-top: 1px dashed #f1f5f9; padding-top: 10px; }
+        .qb-btn { padding: 6px 14px; border-radius: 10px; font-size: 0.8rem; font-weight: 700; border: none; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 5px; }
+        .qb-btn-edit { background: #eff6ff; color: #2563eb; }
+        .qb-btn-edit:hover { background: #2563eb; color: #fff; }
+        .qb-btn-del { background: #fef2f2; color: #dc2626; }
+        .qb-btn-del:hover { background: #dc2626; color: #fff; }
+        .qb-pagination { display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid #f1f5f9; flex-wrap: wrap; gap: 8px; }
     </style>
+
 </head>
 
 <body>
@@ -273,6 +324,9 @@
         let currentFolderId = null;
         let currentContext = 'quiz';
         let expandedFolders = new Set();
+        // Question bank state
+        let qbPage = 0, qbSize = 10, qbTotal = 0;
+        let qbKeyword = '', qbType = '', qbLevel = '';
 
         const COVERS = [
             '/images/covers/cover1.png',
@@ -350,7 +404,9 @@
 
         function loadFolder(id) {
             currentFolderId = id;
+            questionCategoryFilter = null; // reset filter chip khi đổi folder
             const folder = id ? findCategory(TREE_DATA, id) : null;
+
             
             // Update active state in sidebar
             renderSidebarTree();
@@ -393,19 +449,143 @@
         }
 
         function refreshContent() {
-            const container = document.getElementById('contentList');
             let quizList = ALL_QUIZZES.filter(q => currentFolderId === null || q.categoryId === currentFolderId);
-            let questionList = ALL_QUESTIONS.filter(q => currentFolderId === null || q.categoryId === currentFolderId);
-
             document.getElementById('statQuizCount').textContent = quizList.length;
-            document.getElementById('statQuestionCount').textContent = questionList.length;
 
             if (currentContext === 'quiz') {
                 renderQuizGrid(quizList);
             } else {
-                renderQuestionList(questionList);
+                qbPage = 0;
+                renderQBankShell();
+                fetchQBank();
             }
         }
+
+        // ── Render vỏ Question Bank (filter bar + container) ──
+        function renderQBankShell() {
+            const showCatFilter = currentFolderId === null;
+            document.getElementById('contentList').innerHTML = `
+                <div class="qb-filter-shell" id="qbFilterShell">
+                    <div class="fg">
+                        <label><i class="bi bi-search me-1"></i> Tìm kiếm</label>
+                        <input type="text" id="qbKeyword" class="qb-ctrl" placeholder="Tìm tên câu hỏi..." oninput="qbSearch()" autocomplete="off" value="${esc(qbKeyword)}">
+                    </div>
+                    <div class="fg">
+                        <label><i class="bi bi-tags-fill me-1"></i> Loại câu hỏi</label>
+                        <select id="qbType" class="qb-ctrl" onchange="qbSearch()">
+                            <option value="">-- Tất cả loại --</option>
+                            <option value="SINGLE_CHOICE" ${qbType==='SINGLE_CHOICE'?'selected':''}>Một đáp án</option>
+                            <option value="MULTIPLE_CHOICE" ${qbType==='MULTIPLE_CHOICE'?'selected':''}>Nhiều đáp án</option>
+                            <option value="FILL_IN_BLANK" ${qbType==='FILL_IN_BLANK'?'selected':''}>Điền khuyết</option>
+                        </select>
+                    </div>
+                    <div class="fg">
+                        <label><i class="bi bi-bar-chart-fill me-1"></i> Độ khó</label>
+                        <select id="qbLevel" class="qb-ctrl" onchange="qbSearch()">
+                            <option value="">-- Tất cả mức --</option>
+                            <option value="EASY" ${qbLevel==='EASY'?'selected':''}>Dễ</option>
+                            <option value="MEDIUM" ${qbLevel==='MEDIUM'?'selected':''}>Trung bình</option>
+                            <option value="HARD" ${qbLevel==='HARD'?'selected':''}>Khó</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="qbList"></div>
+                <div id="qbPagination" class="qb-pagination" style="display:none"></div>
+            `;
+        }
+
+        let qbDebounce = null;
+        function qbSearch() {
+            clearTimeout(qbDebounce);
+            qbDebounce = setTimeout(() => {
+                qbKeyword = document.getElementById('qbKeyword')?.value.trim() || '';
+                qbType    = document.getElementById('qbType')?.value || '';
+                qbLevel   = document.getElementById('qbLevel')?.value || '';
+                qbPage = 0;
+                fetchQBank();
+            }, 350);
+        }
+
+        async function fetchQBank() {
+            const list = document.getElementById('qbList');
+            if (!list) return;
+            list.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="text-muted mt-2 small">Đang tải...</p></div>';
+
+            let url = `/api/student/questions?page=${qbPage}&size=${qbSize}&sortBy=id&sortDir=desc`;
+            if (currentFolderId) url += `&categoryId=${currentFolderId}`;
+            if (qbKeyword)       url += `&keyword=${encodeURIComponent(qbKeyword)}`;
+            if (qbType)          url += `&type=${qbType}`;
+            if (qbLevel)         url += `&level=${qbLevel}`;
+
+            try {
+                const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
+                if (!res.ok) throw new Error('Lỗi tải dữ liệu');
+                const data = await res.json();
+                qbTotal = data.totalElements;
+                document.getElementById('statQuestionCount').textContent = qbTotal;
+                renderQBankCards(data.content);
+                renderQBankPagination(data);
+            } catch (e) {
+                list.innerHTML = `<div class="empty-state"><i class="bi bi-exclamation-triangle text-danger"></i><h3 class="text-danger">Lỗi tải dữ liệu</h3><p>${e.message}</p></div>`;
+            }
+        }
+
+        function renderQBankCards(items) {
+            const list = document.getElementById('qbList');
+            if (!items || items.length === 0) {
+                list.innerHTML = `<div class="empty-state"><i class="bi bi-patch-question"></i><h3>Chưa có câu hỏi nào</h3><p>Hãy tạo câu hỏi mới hoặc thay đổi bộ lọc.</p></div>`;
+                return;
+            }
+
+            const typeLbl = { SINGLE_CHOICE: 'Một đáp án', MULTIPLE_CHOICE: 'Nhiều đáp án', FILL_IN_BLANK: 'Điền khuyết', ESSAY: 'Tự luận' };
+            const levelCls = { EASY: 'qb-level-easy', MEDIUM: 'qb-level-medium', HARD: 'qb-level-hard' };
+            const levelLbl = { EASY: 'Dễ', MEDIUM: 'Trung bình', HARD: 'Khó' };
+
+            list.innerHTML = items.map(q => {
+                const ansHtml = (q.answers && q.answers.length > 0)
+                    ? q.answers.map((a, i) => `<div class="q-ans-item ${a.isCorrect ? 'correct' : ''}">
+                            <i class="bi bi-${a.isCorrect ? 'check-circle-fill' : 'circle'}"></i>
+                            <span>${String.fromCharCode(65+i)}. ${esc(a.text)}</span>
+                        </div>`).join('')
+                    : '<div class="q-ans-item text-muted"><i class="bi bi-dash"></i><span>Chưa có đáp án</span></div>';
+
+                return `<div class="q-card">
+                    <div class="q-card-badges">
+                        <div class="q-badge-row">
+                            <span class="qb-badge qb-type">${typeLbl[q.type] || q.type}</span>
+                            <span class="qb-badge ${levelCls[q.level] || 'qb-level-medium'}">${levelLbl[q.level] || q.level}</span>
+                            ${currentFolderId === null ? `<span class="qb-badge qb-cat"><i class="bi bi-folder me-1"></i>${esc(q.categoryName || 'Chưa phân mục')}</span>` : ''}
+                        </div>
+                        <span class="q-card-id">ID: #${q.id}</span>
+                    </div>
+                    <div class="q-card-text">${esc(q.text)}</div>
+                    <div class="q-answers">${ansHtml}</div>
+                    <div class="q-card-actions">
+                        <button class="qb-btn qb-btn-edit" onclick="editQuestion('${q.id}')"><i class="bi bi-pencil-square"></i> Sửa</button>
+                        <button class="qb-btn qb-btn-del" onclick="deleteQuestion('${q.id}')"><i class="bi bi-trash-fill"></i> Xóa</button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderQBankPagination(data) {
+            const pg = document.getElementById('qbPagination');
+            if (!data || data.totalPages <= 1) { pg.style.display = 'none'; return; }
+            pg.style.display = 'flex';
+            const from = data.number * data.size + 1;
+            const to = Math.min((data.number + 1) * data.size, data.totalElements);
+            let btns = '';
+            for (let i = 0; i < data.totalPages; i++) {
+                if (i === 0 || i === data.totalPages-1 || Math.abs(i - data.number) <= 2) {
+                    btns += `<button class="btn btn-sm ${i===data.number?'btn-primary':'btn-outline-secondary'} rounded-3 px-3" onclick="qbGoPage(${i})">${i+1}</button>`;
+                } else if (Math.abs(i - data.number) === 3) {
+                    btns += `<span class="text-muted px-1">...</span>`;
+                }
+            }
+            pg.innerHTML = `<span class="text-muted small">Hiển thị ${from}–${to} / ${data.totalElements}</span><div class="d-flex gap-1 flex-wrap">${btns}</div>`;
+        }
+
+        function qbGoPage(p) { qbPage = p; fetchQBank(); }
 
         function getQuizCover(quizId) {
             const index = (quizId.toString().charCodeAt(0) + quizId.toString().length) % COVERS.length;
@@ -451,40 +631,6 @@
         const TYPE_MAP = { 'SINGLE_CHOICE': 'Trắc nghiệm', 'MULTIPLE_CHOICE': 'Chọn nhiều', 'FILL_IN_BLANK': 'Điền khuyết', 'ESSAY': 'Tự luận' };
         const LEVEL_MAP = { 'EASY': 'Dễ', 'MEDIUM': 'Trung bình', 'HARD': 'Khó' };
 
-        function renderQuestionList(list) {
-            const container = document.getElementById('contentList');
-            if (list.length === 0) { 
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <i class="bi bi-patch-question"></i>
-                        <h3>Chưa có câu hỏi nào</h3>
-                        <p>Bạn có thể tạo câu hỏi trực tiếp hoặc nhập từ file.</p>
-                    </div>`; 
-                return; 
-            }
-
-            container.innerHTML = list.map(q => `
-                <div class="q-item-up">
-                    <div class="d-flex align-items-center gap-3 overflow-hidden">
-                        <div class="q-icon-box">
-                            <i class="bi ${q.type === 'FILL_IN_BLANK' ? 'bi-pencil-square' : 'bi-check2-circle'}"></i>
-                        </div>
-                        <div class="text-truncate">
-                            <div class="fw-bold text-dark mb-1" style="font-size:1.05rem;">${esc(q.text)}</div>
-                            <div class="d-flex align-items-center gap-2">
-                                <span class="q-level-badge lvl-${(q.level || 'medium').toLowerCase()}">${LEVEL_MAP[q.level] || q.level}</span>
-                                <span class="small text-muted fw-700">• ${TYPE_MAP[q.type] || q.type}</span>
-                                <span class="small text-muted fw-700">• ${esc(q.categoryName || 'Chưa phân loại')}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="d-flex gap-2 ms-3">
-                        <button class="btn-icon-sm" onclick="editQuestion('${q.id}')" title="Sửa câu hỏi"><i class="bi bi-pencil"></i></button>
-                        <button class="btn-icon-sm text-danger" onclick="deleteQuestion('${q.id}')" title="Xóa câu hỏi"><i class="bi bi-trash3-fill"></i></button>
-                    </div>
-                </div>
-            `).join('');
-        }
 
         function openCreateModal(parentId) {
             document.getElementById('categoryCreateId').value = '';
