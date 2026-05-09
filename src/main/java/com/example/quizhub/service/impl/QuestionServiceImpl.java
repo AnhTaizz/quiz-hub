@@ -330,6 +330,21 @@ public class QuestionServiceImpl implements QuestionService {
         // Chuyển trạng thái sang PENDING (chưa public ngay)
         question.setQuestionStatus(QuestionStatus.PENDING);
         questionRepository.save(question);
+
+        // Gửi thông báo cho Admin
+        try {
+            userRepository.findByRole(com.example.quizhub.entity.enums.Role.ADMIN).forEach(admin -> {
+                notificationService.createNotification(
+                        admin.getId(),
+                        "Yêu cầu duyệt câu hỏi",
+                        "Giáo viên " + question.getCreator().getFullName() + " vừa gửi yêu cầu duyệt một câu hỏi mới.",
+                        NotificationType.SYSTEM_ALERT,
+                        "/admin/moderation"
+                );
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

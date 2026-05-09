@@ -40,6 +40,8 @@ import com.example.quizhub.repository.UserAttemptAnswerRepository;
 import com.example.quizhub.repository.QuizRepository;
 import com.example.quizhub.repository.UserRepository;
 import com.example.quizhub.service.quiz.QuizTakingService;
+import com.example.quizhub.service.notification.NotificationService;
+import com.example.quizhub.entity.enums.NotificationType;
 import com.example.quizhub.repository.ExamViolationRepository;
 import com.example.quizhub.repository.AttemptViolationRepository;
 import com.example.quizhub.entity.AttemptViolation;
@@ -62,6 +64,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
     private final ExamViolationRepository examViolationRepository;
     private final AttemptViolationRepository attemptViolationRepository;
     private final QuizRepository quizRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -258,9 +261,10 @@ public class QuizTakingServiceImpl implements QuizTakingService {
             if (question.getType() == QuestionType.FILL_IN_BLANK) {
                 String studentText = userAnswers.isEmpty() ? ""
                         : (userAnswers.get(0).getSelectedText() != null ? userAnswers.get(0).getSelectedText() : "");
+                String trimmedStudent = studentText.trim();
                 boolean isCorrect = question.getAnswers().stream()
                         .filter(Answer::getIsCorrect)
-                        .anyMatch(a -> a.getText().trim().equalsIgnoreCase(studentText.trim()));
+                        .anyMatch(a -> a.getText() != null && a.getText().trim().equalsIgnoreCase(trimmedStudent));
                 if (isCorrect)
                     correctCount++;
             } else {
@@ -295,6 +299,17 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         attempt.getQuizTaking().setStatus(TakingStatus.COMPLETED);
         quizTakingRepository.save(attempt.getQuizTaking());
         attemptRepository.save(attempt);
+
+        // Notify student of result
+        try {
+            notificationService.createNotification(
+                attempt.getQuizTaking().getLearner().getId(),
+                "Kết quả bài thi: " + quiz.getTitle(),
+                "Bạn đã hoàn thành bài thi với số điểm: " + finalScore + "/10",
+                NotificationType.QUIZ_SUBMITTED,
+                "/student/history"
+            );
+        } catch (Exception e) {}
     }
 
     @Override
@@ -339,10 +354,11 @@ public class QuizTakingServiceImpl implements QuizTakingService {
             QuestionSubmitRequestDTO qReq = submittedAnswersMap.get(question.getId());
 
             if (question.getType() == QuestionType.FILL_IN_BLANK) {
-                String studentText = (qReq != null ? qReq.getSelectedText() : "");
+                String studentText = (qReq != null && qReq.getSelectedText() != null ? qReq.getSelectedText() : "");
+                String trimmedStudent = studentText.trim();
                 boolean isCorrect = question.getAnswers().stream()
                         .filter(Answer::getIsCorrect)
-                        .anyMatch(a -> a.getText().trim().equalsIgnoreCase(studentText.trim()));
+                        .anyMatch(a -> a.getText() != null && a.getText().trim().equalsIgnoreCase(trimmedStudent));
 
                 if (isCorrect)
                     correctCount++;
@@ -399,6 +415,17 @@ public class QuizTakingServiceImpl implements QuizTakingService {
 
         attemptRepository.save(attempt);
 
+        // Notify student of result
+        try {
+            notificationService.createNotification(
+                studentId,
+                "Kết quả bài thi: " + quiz.getTitle(),
+                "Bạn đã hoàn thành bài thi với số điểm: " + finalScore + "/10",
+                NotificationType.QUIZ_SUBMITTED,
+                "/student/history"
+            );
+        } catch (Exception e) {}
+
         return attempt;
     }
 
@@ -443,10 +470,10 @@ public class QuizTakingServiceImpl implements QuizTakingService {
 
                     boolean isCorrect = false;
                     if (q.getType() == QuestionType.FILL_IN_BLANK) {
+                        String trimmedStudent = (selectedText != null ? selectedText : "").trim();
                         isCorrect = q.getAnswers().stream()
                                 .filter(Answer::getIsCorrect)
-                                .anyMatch(a -> a.getText().trim()
-                                        .equalsIgnoreCase((selectedText != null ? selectedText : "").trim()));
+                                .anyMatch(a -> a.getText() != null && a.getText().trim().equalsIgnoreCase(trimmedStudent));
                     } else {
                         List<Long> correctIds = q.getAnswers().stream()
                                 .filter(Answer::getIsCorrect)

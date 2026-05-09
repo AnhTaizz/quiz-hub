@@ -6,5 +6,7 @@ public enum NotificationType {
     JOIN_REQUEST,
     JOIN_APPROVED,
     QUIZ_SUBMITTED,
+    QUIZ_ASSIGNED,
+    JOIN_REJECTED,
     SYSTEM_ALERT
 }

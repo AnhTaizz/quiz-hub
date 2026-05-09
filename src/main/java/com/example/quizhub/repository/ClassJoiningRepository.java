@@ -19,6 +19,8 @@ public interface ClassJoiningRepository extends JpaRepository<ClassJoining, Long
 
     List<ClassJoining> findByLearnerId(Long learnerId);
 
+    List<ClassJoining> findByLearnerIdAndStatusIn(Long learnerId, java.util.Collection<JoinStatus> statuses);
+
     Optional<ClassJoining> findByClassroomIdAndLearnerId(Long classroomId, Long learnerId);
 
     @Query("SELECT COUNT(DISTINCT cj.learner) FROM ClassJoining cj WHERE cj.classroom.creator.id = :teacherId AND cj.status = com.example.quizhub.entity.JoinStatus.APPROVED")

@@ -79,12 +79,31 @@
         .td-sub { color: var(--text-muted); font-size: 14px; }
         .text-right { text-align: right; }
 
-        .badge-live { background: #d4edda; color: #1e7e34; padding: 6px 12px; border-radius: 50px; font-size: 12px; font-weight: 700; }
-        .badge-warn { background: #ffe5e5; color: #dc3545; padding: 6px 12px; border-radius: 50px; font-size: 12px; font-weight: 700; }
-        .badge-done { background: var(--bg-body); color: var(--text-muted); padding: 6px 12px; border-radius: 50px; font-size: 12px; font-weight: 700; }
+        .status-flex { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+        .action-flex { display: flex; align-items: center; justify-content: center; gap: 8px; }
 
-        .link-action { color: var(--blue); font-weight: 700; font-size: 14px; text-decoration: none; }
-        .link-action:hover { color: #1d4ed8; text-decoration: none; opacity: 0.8; }
+        .badge-live { background: #dcfce7; color: #15803d; padding: 4px 10px; border-radius: 50px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; border: 1px solid #bbf7d0; }
+        .badge-warn { background: #fee2e2; color: #b91c1c; padding: 4px 10px; border-radius: 50px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; border: 1px solid #fecaca; }
+        .badge-done { background: #f8fafc; color: #64748b; padding: 4px 10px; border-radius: 50px; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; border: 1px solid #e2e8f0; }
+
+        .btn-table-action { 
+            padding: 5px 12px; 
+            border-radius: 8px; 
+            font-size: 13px; 
+            font-weight: 700; 
+            text-decoration: none; 
+            transition: all 0.2s; 
+            display: inline-flex; 
+            align-items: center; 
+            gap: 4px;
+            border: 1px solid transparent;
+        }
+        .btn-log { color: #dc2626; border-color: #fee2e2; background: #fff; }
+        .btn-log:hover { background: #fee2e2; }
+        .btn-monitor { color: var(--blue); border-color: #dbeafe; background: #fff; }
+        .btn-monitor:hover { background: #dbeafe; }
+        .btn-grades { color: #475569; border-color: #e2e8f0; background: #fff; }
+        .btn-grades:hover { background: #f1f5f9; }
 
         .quick-actions { display: flex; flex-direction: column; gap: 12px; }
         .btn-quick { display: flex; align-items: center; padding: 14px 20px; background: var(--bg-body); border: 1px solid transparent; border-radius: 14px; color: var(--text-dark); font-weight: 600; font-size: 15px; transition: all 0.3s ease; cursor: pointer; border: none; }
@@ -166,8 +185,8 @@
                         <tr>
                             <th>Tên Lớp / Môn</th>
                             <th>Đề thi</th>
-                            <th>Trạng thái</th>
-                            <th class="text-right">Hành động</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th class="text-center">Hành động</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -175,23 +194,35 @@
                             <td><div class="td-bold" th:text="${as.classroomName}">Lập trình Java</div></td>
                             <td><div class="td-sub" th:text="${as.quizTitle}">Kiểm tra giữa kỳ</div></td>
                             <td>
-                                <span th:if="${as.status == 'LIVE'}" class="badge-live">
-                                    <i class="bi bi-record-circle me-1"></i> Đang diễn ra
-                                </span>
-                                <span th:if="${as.violationCount > 0}" class="badge-warn">
-                                    <i class="bi bi-exclamation-triangle-fill me-1"></i> <span th:text="${as.violationCount}">2</span> Vi phạm
-                                </span>
-                                <span th:if="${as.status == 'ENDED' && as.violationCount == 0}" class="badge-done">
-                                    <i class="bi bi-check2-circle me-1"></i> Đã kết thúc
-                                </span>
-                                <span th:if="${as.status == 'UPCOMING'}" class="badge-done" style="background: #e2e8f0; color: #4a5568;">
-                                    <i class="bi bi-calendar-event me-1"></i> Sắp diễn ra
-                                </span>
+                                <div class="status-flex">
+                                    <span th:if="${as.status == 'LIVE'}" class="badge-live">
+                                        <i class="bi bi-record-circle me-1"></i> Đang diễn ra
+                                    </span>
+                                    <span th:if="${as.status == 'ENDED'}" class="badge-done">
+                                        <i class="bi bi-check2-circle me-1"></i> Đã kết thúc
+                                    </span>
+                                    <span th:if="${as.violationCount > 0}" class="badge-warn">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i> <span th:text="${as.violationCount}">2</span>&nbsp;Vi phạm
+                                    </span>
+                                    <span th:if="${as.status == 'UPCOMING'}" class="badge-done" style="background: #f8fafc; color: #64748b;">
+                                        <i class="bi bi-calendar-event me-1"></i> Sắp diễn ra
+                                    </span>
+                                </div>
                             </td>
-                            <td class="text-right">
-                                <a th:if="${as.violationCount > 0}" th:href="@{'/teacher/monitoring/log/' + ${as.assigningId}}" class="link-action" style="color: #dc3545;">Xem Log</a>
-                                <a th:if="${as.status == 'LIVE' && as.violationCount == 0}" th:href="@{'/teacher/monitoring/log/' + ${as.assigningId}}" class="link-action">Giám sát</a>
-                                <a th:if="${as.status == 'ENDED'}" href="#" class="link-action" style="color: #718096;">Bảng điểm</a>
+                            <td class="text-center">
+                                <div class="action-flex">
+                                    <a th:if="${as.violationCount > 0}" th:href="@{'/teacher/monitoring/log/' + ${as.assigningId}}" class="btn-table-action btn-log">
+                                        <i class="bi bi-shield-exclamation"></i> Xem Log
+                                    </a>
+                                    <a th:if="${as.status == 'LIVE' && as.violationCount == 0}" th:href="@{'/teacher/monitoring/log/' + ${as.assigningId}}" class="btn-table-action btn-monitor">
+                                        <i class="bi bi-eye"></i> Giám sát
+                                    </a>
+                                    <a th:if="${as.status == 'ENDED'}" href="#" class="btn-table-action btn-grades"
+                                       th:attr="data-id=${as.assigningId}, data-title=${as.quizTitle}"
+                                       onclick="openGradesModal(this.getAttribute('data-id'), this.getAttribute('data-title'))">
+                                        <i class="bi bi-award"></i> Bảng điểm
+                                    </a>
+                                </div>
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(assignments)}">
@@ -242,5 +273,6 @@
     </script>
     <div th:replace="~{layout/header :: changePasswordModal}"></div>
     <script th:replace="~{layout/header :: change-password-script}"></script>
+    <div th:replace="~{fragments/quiz-grades :: assignment-grades-modal}"></div>
 </body>
 </html>

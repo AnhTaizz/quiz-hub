@@ -5,7 +5,9 @@
     <header th:fragment="public-header" id="header" class="fixed-top">
         <div class="container d-flex align-items-center justify-content-between">
             <h1 class="logo mb-0">
-                <a th:href="@{/}"><i class="bi bi-layers-fill logo-icon"></i> Quiz<span class="hub">Hub</span></a>
+                <a th:href="${#authorization.expression('isAuthenticated()')} ? (#authorization.expression('hasRole(''ADMIN'')') ? '/admin' : (#authorization.expression('hasRole(''TEACHER'')') ? '/teacher' : '/student')) : '/'">
+                    <i class="bi bi-layers-fill logo-icon"></i> Quiz<span class="hub">Hub</span>
+                </a>
             </h1>
             <nav id="navbar" class="navbar">
                 <ul>
@@ -45,10 +47,8 @@
                         <i class="bi bi-plus-lg me-1"></i> Nhập mã lớp
                     </button>
 
-                    <a href="#" class="position-relative text-secondary mx-2">
-                        <i class="bi bi-bell-fill fs-5"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
-                    </a>
+                    <!-- Notification Dropdown -->
+                    <div th:replace="~{layout/header :: notification-dropdown}"></div>
 
                     <div class="dropdown">
                         <a href="#" class="d-flex align-items-center gap-2 text-decoration-none text-dark user-dropdown-toggle ps-2 ms-1 border-start" data-bs-toggle="dropdown" aria-expanded="false" style="border-color: #e2e8f0 !important;">
@@ -71,7 +71,9 @@
         </header>
         <div th:replace="~{layout/header :: student-modals}"></div>
         <div th:replace="~{layout/header :: changePasswordModal}"></div>
+        <style th:replace="~{layout/header :: notification-styles}"></style>
         <script th:replace="~{layout/header :: change-password-script}"></script>
+        <script th:replace="~{layout/header :: notification-scripts}"></script>
     </th:block>
 
     <header th:fragment="teacher-header" id="header-nav">
@@ -80,26 +82,7 @@
         </div>
         <div class="header-right">
             <!-- Notification Dropdown -->
-            <div class="dropdown notification-dropdown">
-                <a href="#" class="notification-icon text-decoration-none" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false" onclick="loadNotifications()">
-                    <i class="bi bi-bell"></i>
-                    <span class="badge bg-danger" id="unreadCount">0</span>
-                </a>
-                <div class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 p-0" aria-labelledby="notificationDropdown" style="width: 350px; border-radius: 15px; overflow: hidden;">
-                    <div class="dropdown-header bg-light p-3 d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0 fw-bold">Thông báo</h6>
-                        <button class="btn btn-sm btn-link text-primary text-decoration-none p-0 small" onclick="markAllAsRead()">Đánh dấu tất cả đã đọc</button>
-                    </div>
-                    <div id="notificationList" style="max-height: 400px; overflow-y: auto;">
-                        <div class="text-center py-4">
-                            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
-                        </div>
-                    </div>
-                    <div class="dropdown-footer p-2 text-center border-top">
-                        <a href="#" class="text-muted small text-decoration-none">Xem tất cả thông báo</a>
-                    </div>
-                </div>
-            </div>
+            <div th:replace="~{layout/header :: notification-dropdown}"></div>
 
             <div class="user-profile dropdown ms-2">
                 <a href="#" class="d-flex align-items-center gap-2 text-decoration-none" data-bs-toggle="dropdown" aria-expanded="false">
@@ -115,128 +98,97 @@
             </div>
         </div>
 
+        <script th:replace="~{layout/header :: notification-scripts}"></script>
+        <style th:replace="~{layout/header :: notification-styles}"></style>
+
+        <script th:replace="~{layout/header :: logout-script}"></script>
+    </header>
+
+    <!-- Notification Styles (Dùng chung cho tất cả header) -->
+    <style th:fragment="notification-styles">
+        .notification-dropdown .notification-btn {
+            position: relative;
+            width: 40px;
+            height: 40px;
+            background: #f1f5f9;
+            border: none;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #1e1b4b;
+            transition: all 0.2s;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .notification-dropdown .notification-btn:hover {
+            background: #e2e8f0;
+            color: #28a745;
+        }
+
+        .notification-dropdown .badge {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 12px;
+            height: 12px;
+            background-color: #ef4444;
+            border: 2px solid #fff;
+            border-radius: 50%;
+            padding: 0;
+        }
+        .notification-item:hover {
+            background-color: #f8fafc !important;
+        }
+        .notification-icon-sm {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: #f1f5f9;
+            flex-shrink: 0;
+        }
+    </style>
+    </header>
+
+    <header th:fragment="admin-header" id="header-nav">
+        <div class="header-left">
+            <button class="toggle-btn" id="sidebarToggle"><i class="bi bi-list"></i></button>
+        </div>
+        <div class="header-right">
+            <!-- Notification Dropdown -->
+            <div th:replace="~{layout/header :: notification-dropdown}"></div>
+
+            <div class="user-profile dropdown ms-2">
+                <a href="#" class="d-flex align-items-center gap-2 text-decoration-none" data-bs-toggle="dropdown" aria-expanded="false">
+                    <span class="fw-bold d-none d-md-inline" th:text="${currentUser != null ? currentUser.fullName : 'Quản trị viên'}">Quản trị viên</span>
+                    <img th:src="${currentUser != null && currentUser.avatarUrl != null && !currentUser.avatarUrl.isEmpty() ? currentUser.avatarUrl : 'https://ui-avatars.com/api/?name=' + (currentUser != null ? currentUser.fullName : 'Admin') + '&background=dc3545&color=fff'}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%;">
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2">
+                    <li><a class="dropdown-item py-2" href="/profile"><i class="bi bi-person me-2"></i> Hồ sơ cá nhân</a></li>
+                    <li><a class="dropdown-item py-2" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key me-2"></i> Đổi mật khẩu</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item py-2 text-danger" href="#" onclick="doLogout(); return false;"><i class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
+                </ul>
+            </div>
+        </div>
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                updateUnreadCount();
-                // Tự động cập nhật mỗi 1 phút
-                setInterval(updateUnreadCount, 60000);
-            });
-
-            async function updateUnreadCount() {
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                if (!token) return;
-                try {
-                    const res = await fetch('/api/notifications/unread-count', {
-                        headers: { 'Authorization': 'Bearer ' + token }
+            (function() {
+                const toggleBtn = document.getElementById('sidebarToggle') || document.querySelector('.toggle-btn');
+                if (toggleBtn) {
+                    toggleBtn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
+                        localStorage.setItem('sidebar-collapsed', isCollapsed);
                     });
-                    if (res.ok) {
-                        const count = await res.json();
-                        const badge = document.getElementById('unreadCount');
-                        badge.innerText = count;
-                        badge.style.display = count > 0 ? 'block' : 'none';
-                    }
-                } catch (e) {}
-            }
-
-            async function loadNotifications() {
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                const list = document.getElementById('notificationList');
-                
-                try {
-                    const res = await fetch('/api/notifications', {
-                        headers: { 'Authorization': 'Bearer ' + token }
-                    });
-                    if (res.ok) {
-                        const notifications = await res.json();
-                        if (notifications.length === 0) {
-                            list.innerHTML = '<div class="p-4 text-center text-muted small">Không có thông báo nào</div>';
-                            return;
-                        }
-                        list.innerHTML = notifications.map(n => `
-                            <div class="notification-item p-3 border-bottom ${n.read ? '' : 'bg-light'}" onclick="handleNotificationClick(${n.id}, '${n.link}')" style="cursor: pointer; transition: background 0.2s;">
-                                <div class="d-flex gap-3">
-                                    <div class="notification-icon-sm text-primary">
-                                        <i class="bi ${getNotificationIcon(n.type)}"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-1 fw-bold" style="font-size: 14px;">${n.title}</h6>
-                                        <p class="mb-1 text-muted small" style="line-height: 1.4;">${n.message}</p>
-                                        <small class="text-primary" style="font-size: 11px;">${formatTime(n.createdAt)}</small>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('');
-                    }
-                } catch (e) {
-                    list.innerHTML = '<div class="p-3 text-center text-danger small">Lỗi tải thông báo</div>';
                 }
-            }
-
-            function getNotificationIcon(type) {
-                switch(type) {
-                    case 'QUESTION_APPROVED': return 'bi-check-circle-fill text-success';
-                    case 'QUESTION_REJECTED': return 'bi-x-circle-fill text-danger';
-                    case 'JOIN_REQUEST': return 'bi-person-plus-fill text-primary';
-                    case 'JOIN_APPROVED': return 'bi-person-check-fill text-success';
-                    case 'QUIZ_SUBMITTED': return 'bi-file-earmark-check-fill text-info';
-                    default: return 'bi-info-circle-fill';
-                }
-            }
-
-            async function handleNotificationClick(id, link) {
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                await fetch(`/api/notifications/${id}/read`, {
-                    method: 'PUT',
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                if (link) window.location.href = link;
-                else updateUnreadCount();
-            }
-
-            async function markAllAsRead() {
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                const res = await fetch('/api/notifications/read-all', {
-                    method: 'PUT',
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                if (res.ok) {
-                    updateUnreadCount();
-                    loadNotifications();
-                }
-            }
-
-            function formatTime(dateTimeStr) {
-                const date = new Date(dateTimeStr);
-                return date.toLocaleDateString('vi-VN') + ' ' + date.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
-            }
+            })();
         </script>
-
-        <style>
-            .notification-dropdown .notification-icon {
-                position: relative;
-                color: #64748b;
-                font-size: 1.25rem;
-                padding: 8px;
-                border-radius: 10px;
-                transition: all 0.2s;
-            }
-            .notification-dropdown .notification-icon:hover {
-                background: #f1f5f9;
-                color: #2563eb;
-            }
-            .notification-dropdown .badge {
-                position: absolute;
-                top: 4px;
-                right: 4px;
-                padding: 4px 6px;
-                font-size: 10px;
-                border-radius: 50%;
-                border: 2px solid #fff;
-            }
-            .notification-item:hover {
-                background-color: #f8fafc !important;
-            }
-        </style>
+        <style th:replace="~{layout/header :: notification-styles}"></style>
+        <script th:replace="~{layout/header :: notification-scripts}"></script>
         <script th:replace="~{layout/header :: logout-script}"></script>
     </header>
 
@@ -390,7 +342,8 @@
                 <button class="toggle-btn"><i class="bi bi-list"></i></button>
             </div>
             <div class="header-right">
-                <div class="user-profile dropdown">
+                    <div th:replace="~{layout/header :: notification-dropdown}"></div>
+                    <div class="user-profile dropdown ms-2">
                     <a href="#" class="d-flex align-items-center gap-2 text-decoration-none text-dark" data-bs-toggle="dropdown" aria-expanded="false">
                         <span class="fw-bold" th:text="${currentUser != null ? currentUser.fullName : 'Học Sinh'}">Học Sinh</span>
                         <img th:src="${currentUser != null && currentUser.avatarUrl != null && !currentUser.avatarUrl.isEmpty() ? currentUser.avatarUrl : 'https://ui-avatars.com/api/?name=' + (currentUser != null ? currentUser.fullName : 'Student') + '&background=10b981&color=fff'}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%;">
@@ -407,7 +360,9 @@
         </header>
         <div th:replace="~{layout/header :: student-modals}"></div>
         <div th:replace="~{layout/header :: changePasswordModal}"></div>
+        <style th:replace="~{layout/header :: notification-styles}"></style>
         <script th:replace="~{layout/header :: change-password-script}"></script>
+        <script th:replace="~{layout/header :: notification-scripts}"></script>
     </th:block>
 
     <script th:fragment="logout-script">
@@ -445,6 +400,131 @@
             </div>
         </div>
     </div>
+
+    <!-- Notification Dropdown Fragment -->
+    <div th:fragment="notification-dropdown" class="dropdown notification-dropdown">
+        <a href="#" class="notification-btn" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false" onclick="loadNotifications()">
+            <i class="bi bi-bell-fill" style="font-size: 1.2rem;"></i>
+            <span class="badge" id="unreadCount" style="display: none;"></span>
+        </a>
+        <div class="dropdown-menu dropdown-menu-end shadow border-0 mt-2 p-0" aria-labelledby="notificationDropdown" style="width: 350px; border-radius: 15px; overflow: hidden;">
+            <div class="dropdown-header bg-light p-3 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold">Thông báo</h6>
+                <button class="btn btn-sm btn-link text-primary text-decoration-none p-0 small" onclick="markAllAsRead()">Đánh dấu tất cả đã đọc</button>
+            </div>
+            <div id="notificationList" style="max-height: 400px; overflow-y: auto;">
+                <div class="text-center py-4">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                </div>
+            </div>
+            <div class="dropdown-footer p-2 text-center border-top">
+                <a href="#" class="text-muted small text-decoration-none">Xem tất cả thông báo</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Scripts Fragment -->
+    <script th:fragment="notification-scripts">
+        (function() {
+            document.addEventListener('DOMContentLoaded', function() {
+                updateUnreadCount();
+                // Tự động cập nhật mỗi 1 phút
+                setInterval(updateUnreadCount, 60000);
+            });
+
+            window.updateUnreadCount = async function() {
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                if (!token) return;
+                try {
+                    const res = await fetch('/api/notifications/unread-count', {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    if (res.ok) {
+                        const count = await res.json();
+                        const badge = document.getElementById('unreadCount');
+                        if (badge) {
+                            badge.style.display = count > 0 ? 'block' : 'none';
+                        }
+                    }
+                } catch (e) {}
+            }
+
+            window.loadNotifications = async function() {
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                const list = document.getElementById('notificationList');
+                if (!list) return;
+                
+                try {
+                    const res = await fetch('/api/notifications', {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    if (res.ok) {
+                        const notifications = await res.json();
+                        if (notifications.length === 0) {
+                            list.innerHTML = '<div class="p-4 text-center text-muted small">Không có thông báo nào</div>';
+                            return;
+                        }
+                        list.innerHTML = notifications.map(n => `
+                            <div class="notification-item p-3 border-bottom ${n.read ? '' : 'bg-light'}" onclick="handleNotificationClick(${n.id}, '${n.link}')" style="cursor: pointer; transition: background 0.2s;">
+                                <div class="d-flex gap-3">
+                                    <div class="notification-icon-sm text-primary">
+                                        <i class="bi ${getNotificationIcon(n.type)}"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="mb-1 fw-bold" style="font-size: 14px;">${n.title}</h6>
+                                        <p class="mb-1 text-muted small" style="line-height: 1.4;">${n.message}</p>
+                                        <small class="text-primary" style="font-size: 11px;">${formatTime(n.createdAt)}</small>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                } catch (e) {
+                    list.innerHTML = '<div class="p-3 text-center text-danger small">Lỗi tải thông báo</div>';
+                }
+            }
+
+            function getNotificationIcon(type) {
+                switch(type) {
+                    case 'QUESTION_APPROVED': return 'bi-check-circle-fill text-success';
+                    case 'QUESTION_REJECTED': return 'bi-x-circle-fill text-danger';
+                    case 'JOIN_REQUEST': return 'bi-person-plus-fill text-primary';
+                    case 'JOIN_APPROVED': return 'bi-person-check-fill text-success';
+                    case 'QUIZ_SUBMITTED': return 'bi-file-earmark-check-fill text-info';
+                    case 'QUIZ_ASSIGNED': return 'bi-journal-check text-primary';
+                    case 'JOIN_REJECTED': return 'bi-x-circle-fill text-danger';
+                    default: return 'bi-info-circle-fill';
+                }
+            }
+
+            window.handleNotificationClick = async function(id, link) {
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                await fetch(`/api/notifications/${id}/read`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (link) window.location.href = link;
+                else updateUnreadCount();
+            }
+
+            window.markAllAsRead = async function() {
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                const res = await fetch('/api/notifications/read-all', {
+                    method: 'PUT',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if (res.ok) {
+                    updateUnreadCount();
+                    loadNotifications();
+                }
+            }
+
+            function formatTime(dateTimeStr) {
+                const date = new Date(dateTimeStr);
+                return date.toLocaleDateString('vi-VN') + ' ' + date.toLocaleTimeString('vi-VN', {hour: '2-digit', minute:'2-digit'});
+            }
+        })();
+    </script>
 
 </body>
 </html>

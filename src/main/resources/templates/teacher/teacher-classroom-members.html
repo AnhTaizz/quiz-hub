@@ -45,6 +45,8 @@
         .btn-approve:hover { background: var(--green); color: #fff; }
         .btn-reject { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
         .btn-reject:hover { background: #ef4444; color: #fff; }
+        .btn-remove { background: rgba(239, 68, 68, 0.1); color: #ef4444; padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: 13px; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-remove:hover { background: #ef4444; color: #fff; }
 
         .empty-icon { font-size: 48px; color: #e2e8f0; margin-bottom: 15px; }
     </style>
@@ -88,6 +90,10 @@
         <!-- Success/Error Messages -->
         <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show mb-4 border-0 shadow-sm" style="border-radius: 12px;">
             <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show mb-4 border-0 shadow-sm" style="border-radius: 12px;">
+            <i class="bi bi-exclamation-circle-fill me-2"></i> <span th:text="${errorMessage}"></span>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
 
@@ -160,7 +166,7 @@
                             <tr>
                                 <th>Thành viên</th>
                                 <th>Ngày gia nhập</th>
-                                <th class="text-end">Trạng thái</th>
+                                <th class="text-end">Hành động</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -178,7 +184,16 @@
                                     <span class="fw-bold text-muted small" th:text="${#temporals.format(member.joinedAt, 'dd/MM/yyyy')}">10/10/2026</span>
                                 </td>
                                 <td class="text-end">
-                                    <span class="badge bg-success bg-opacity-10 text-success fw-bold p-2 px-3" style="border-radius: 8px;">Đang hoạt động</span>
+                                    <div class="d-flex align-items-center justify-content-end gap-2">
+                                        <span class="badge bg-success bg-opacity-10 text-success fw-bold p-2 px-3" style="border-radius: 8px;">Đang hoạt động</span>
+                                        <button type="button" class="btn-remove"
+                                                th:data-student-id="${member.learner.id}"
+                                                th:data-student-name="${member.learner.fullName}"
+                                                th:data-classroom-id="${classroom.id}"
+                                                onclick="confirmRemoveStudent(this)">
+                                            <i class="bi bi-person-x"></i> Xóa khỏi lớp
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>
@@ -217,6 +232,15 @@
                 });
             }
         });
+
+        function confirmRemoveStudent(btn) {
+            const studentId = btn.getAttribute('data-student-id');
+            const studentName = btn.getAttribute('data-student-name');
+            const classroomId = btn.getAttribute('data-classroom-id');
+            document.getElementById('removeStudentName').textContent = studentName;
+            document.getElementById('removeStudentForm').action = `/teacher/classrooms/${classroomId}/remove/${studentId}`;
+            new bootstrap.Modal(document.getElementById('removeStudentModal')).show();
+        }
 
         async function handleExcelUpload(input) {
             if (!input.files || input.files.length === 0) return;
@@ -312,6 +336,26 @@
         </div>
     </div>
     <div th:replace="~{layout/header :: changePasswordModal}"></div>
+
+    <!-- Modal Xác nhận Xóa Sinh viên -->
+    <div class="modal fade" id="removeStudentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+                <div class="modal-body p-4 text-center">
+                    <div class="mb-3" style="font-size: 48px; color: #ef4444;"><i class="bi bi-person-x-fill"></i></div>
+                    <h5 class="fw-bold mb-2">Xác nhận xóa sinh viên</h5>
+                    <p class="text-muted mb-0">Bạn có chắc chắn muốn xóa <strong id="removeStudentName"></strong> khỏi lớp học không? Hành động này không thể hoàn tác.</p>
+                </div>
+                <div class="modal-footer border-0 p-4 pt-0 d-flex gap-2">
+                    <button type="button" class="btn btn-outline-secondary fw-bold py-2 flex-fill" data-bs-dismiss="modal" style="border-radius: 10px;">Hủy bỏ</button>
+                    <form id="removeStudentForm" method="POST" style="flex: 1;">
+                        <button type="submit" class="btn btn-danger fw-bold py-2 w-100" style="border-radius: 10px;">Xóa khỏi lớp</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script th:replace="~{layout/header :: change-password-script}"></script>
 </body>
 </html>

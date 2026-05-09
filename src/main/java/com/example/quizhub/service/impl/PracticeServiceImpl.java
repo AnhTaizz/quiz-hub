@@ -79,24 +79,7 @@ public class PracticeServiceImpl implements PracticeService {
         Integer limit = request.getLimit() != null ? request.getLimit() : 10;
         Integer offset = request.getOffset() != null ? request.getOffset() : 0;
 
-        // Check if there is an ongoing practice for this specific range
-        Practice practice = practiceRepository
-                .findFirstByUserIdAndCategoryIdAndPracticeLimitAndPracticeOffsetAndIsCompletedFalseOrderByCreatedAtDesc(
-                        user.getId(), category.getId(), limit, offset)
-                .orElseGet(() -> {
-                    Practice newPractice = Practice.builder()
-                            .user(user)
-                            .category(category)
-                            .practiceLimit(limit)
-                            .practiceOffset(offset)
-                            .totalQuestions(limit)
-                            .correctAnswers(0)
-                            .isCompleted(false)
-                            .build();
-                    return practiceRepository.save(newPractice);
-                });
-
-        // Fetch questions for these categories
+        // 1. Fetch questions first to know the actual count
         org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(offset / limit, limit);
         List<Question> questions = questionRepository.findPublicQuestionsByCategories(
                 categoryIds,
@@ -106,6 +89,30 @@ public class PracticeServiceImpl implements PracticeService {
             throw new AppException(ErrorCode.QUESTION_NOT_FOUND);
         }
 
+        // 2. Create or get practice with actual question count
+        int actualCount = questions.size();
+        Practice practice = practiceRepository
+                .findFirstByUserIdAndCategoryIdAndPracticeLimitAndPracticeOffsetAndIsCompletedFalseOrderByCreatedAtDesc(
+                        user.getId(), category.getId(), limit, offset)
+                .orElseGet(() -> {
+                    Practice newPractice = Practice.builder()
+                            .user(user)
+                            .category(category)
+                            .practiceLimit(limit)
+                            .practiceOffset(offset)
+                            .totalQuestions(actualCount)
+                            .correctAnswers(0)
+                            .isCompleted(false)
+                            .build();
+                    return practiceRepository.save(newPractice);
+                });
+
+        // Ensure totalQuestions is updated if it was previously set incorrectly
+        if (!practice.getTotalQuestions().equals(actualCount)) {
+            practice.setTotalQuestions(actualCount);
+            practiceRepository.save(practice);
+        }
+
         // Map to safe DTO with progress
         List<PracticeQuestionResponseDTO> questionDTOs = questions.stream().map(q -> {
             List<PracticeAnswerResponseDTO> answers = q.getAnswers().stream()
@@ -113,7 +120,7 @@ public class PracticeServiceImpl implements PracticeService {
                     .collect(Collectors.toList());
 
             // Load saved progress for this question
-            PracticeDetail detail = practiceDetailRepository.findByPracticeIdAndQuestionId(practice.getId(), q.getId())
+            PracticeDetail detail = practiceDetailRepository.findFirstByPracticeIdAndQuestionIdOrderByIdAsc(practice.getId(), q.getId())
                     .orElse(null);
 
             return PracticeQuestionResponseDTO.builder()
@@ -151,7 +158,7 @@ public class PracticeServiceImpl implements PracticeService {
         Question question = questionRepository.findById(ansReq.getQuestionId())
                 .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
 
-        PracticeDetail detail = practiceDetailRepository.findByPracticeIdAndQuestionId(practiceId, ansReq.getQuestionId())
+        PracticeDetail detail = practiceDetailRepository.findFirstByPracticeIdAndQuestionIdOrderByIdAsc(practiceId, ansReq.getQuestionId())
                 .orElse(PracticeDetail.builder()
                         .practice(practice)
                         .question(question)
@@ -343,7 +350,7 @@ public class PracticeServiceImpl implements PracticeService {
                     if (selectedText != null && !selectedText.trim().isEmpty()) {
                         String trimmedSelected = selectedText.trim();
                         for (String ct : correctTexts) {
-                            if (ct.trim().equals(trimmedSelected)) {
+                            if (ct.trim().equalsIgnoreCase(trimmedSelected)) {
                                 isCorrect = true;
                                 break;
                             }
@@ -357,7 +364,7 @@ public class PracticeServiceImpl implements PracticeService {
             }
 
             // Save or update detail
-            PracticeDetail detail = practiceDetailRepository.findByPracticeIdAndQuestionId(savedPractice.getId(), question.getId())
+            PracticeDetail detail = practiceDetailRepository.findFirstByPracticeIdAndQuestionIdOrderByIdAsc(savedPractice.getId(), question.getId())
                     .orElse(PracticeDetail.builder()
                             .practice(savedPractice)
                             .question(question)

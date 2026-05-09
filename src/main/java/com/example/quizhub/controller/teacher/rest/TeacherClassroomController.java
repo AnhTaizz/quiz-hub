@@ -131,6 +131,13 @@ public class TeacherClassroomController {
         return ResponseEntity.ok(list);
     }
 
+    @GetMapping("/assigned-quizzes/{assigningId}/statistics")
+    public ResponseEntity<com.example.quizhub.dto.classroom.response.AssignmentStatisticsDTO> getAssignmentStatistics(
+            Principal principal,
+            @PathVariable Long assigningId) {
+        return ResponseEntity.ok(classroomService.getAssignmentStatistics(assigningId, principal.getName()));
+    }
+
     @org.springframework.web.bind.annotation.PutMapping("/{classroomId}")
     public ResponseEntity<com.example.quizhub.dto.classroom.response.ClassroomResponseDTO> updateClassroom(
             Principal principal,
