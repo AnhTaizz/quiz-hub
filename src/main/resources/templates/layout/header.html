@@ -36,6 +36,7 @@
                         <li><a class="nav-link" th:classappend="${activePage == 'history' ? 'active' : ''}" th:href="@{/student/history}">Lịch sử làm bài</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'qbank' ? 'active' : ''}" th:href="@{/student/categories(type='public')}">Ngân hàng đề thi</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'myqbank' ? 'active' : ''}" th:href="@{/student/categories(type='mine')}">Đề thi của tôi</a></li>
+                        <li><a class="nav-link" th:classappend="${activePage == 'myquestions' ? 'active' : ''}" th:href="@{/student/questions}">Ngân hàng câu hỏi</a></li>
                     </ul>
                     <i class="bi bi-list mobile-nav-toggle"></i>
                 </nav>

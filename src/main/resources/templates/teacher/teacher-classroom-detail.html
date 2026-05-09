@@ -264,9 +264,9 @@
                         <li class="mb-2">
                             <div class="d-flex align-items-center gap-2 category-node-row">
                                 ${toggleHtml}
-                                <span class="category-selectable-name text-dark fw-semibold" onclick="selectCategoryFromTree(${cat.id}, '${esc(cat.name)}')">
+                                <span class="category-selectable-name text-dark fw-semibold" onclick="selectCategoryFromTree(${cat.id}, '${escapeHTML(escapeJS(cat.name))}')">
                                     <i class="bi ${hasChildren ? 'bi-folder-fill text-warning' : 'bi-folder text-secondary'}"></i>
-                                    ${esc(cat.name)}
+                                    ${escapeHTML(cat.name)}
                                 </span>
                             </div>
                             ${childrenHtml}
@@ -600,7 +600,18 @@
     </div>
 
     <script th:inline="javascript">
-        function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+        function escapeJS(str) {
+            if (!str) return "";
+            return str.replace(/'/g, "\\'");
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return str.replace(/[&<>'"]/g, 
+                tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+            );
+        }
+        const esc = escapeHTML;
 
         async function openQuizPreviewModal(id, event) {
             if (event) event.preventDefault();
@@ -795,7 +806,7 @@
                 alert('Lỗi kết nối mạng.');
             }
         }
-        function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
     </script>
 
     <div th:replace="~{fragments/quiz-preview :: quiz-preview-modal}"></div>

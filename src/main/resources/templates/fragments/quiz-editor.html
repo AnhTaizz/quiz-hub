@@ -127,10 +127,12 @@
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <button type="button" class="btn btn-light w-100 fw-bold text-muted border-0" 
+                        <button type="button" class="btn btn-light w-100 fw-bold text-muted border-0 mb-1" 
                                 onclick="openCategoryTreePicker('filter')" style="border-radius:10px;">
                             <i class="bi bi-funnel"></i> Lọc CM
                         </button>
+                        <input type="text" id="q-category-filter-display" class="form-control fc small text-muted border-0 bg-transparent p-0 text-center" 
+                               value="Tất cả danh mục" readonly style="font-size: 0.75rem;">
                         <input type="hidden" id="q-category-filter">
                     </div>
                 </div>
@@ -252,6 +254,7 @@
         (function() {
             const USER_TYPE = /*[[${userType}]]*/ 'student';
             const BASE_API = USER_TYPE === 'teacher' ? '/api/teacher' : '/api/student';
+            const QUIZ_API = USER_TYPE === 'teacher' ? '/api/teacher/quizzes' : '/api/student/quiz';
             const REDIRECT_URL = USER_TYPE === 'teacher' ? '/teacher/categories?type=mine' : '/student/categories?type=mine';
             
             const quizId = document.getElementById('quizIdInput').value;
@@ -304,7 +307,7 @@
 
             async function fetchQuizToEdit() {
                 try {
-                    const res = await fetch(`${BASE_API}/quiz/${quizId}`, {
+                    const res = await fetch(`${QUIZ_API}/${quizId}`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     if (res.ok) {
@@ -449,7 +452,7 @@
                 };
 
                 const method = quizId ? 'PUT' : 'POST';
-                const url = quizId ? `${BASE_API}/quiz/${quizId}` : `${BASE_API}/quiz`;
+                const url = quizId ? `${QUIZ_API}/${quizId}` : QUIZ_API;
 
                 try {
                     const res = await fetch(url, {
@@ -512,8 +515,8 @@
                 if (!nodes || nodes.length === 0) return '<p class="text-center text-muted small py-3">Trống</p>';
                 return `<ul class="list-unstyled ps-3">${nodes.map(n => `
                     <li class="mb-2">
-                        <span class="category-selectable-name text-dark fw-bold small" onclick="selectCategoryFromTree(${n.id}, '${esc(n.name)}', '${source}')">
-                            <i class="bi bi-folder-fill text-warning me-1"></i> ${esc(n.name)}
+                        <span class="category-selectable-name text-dark fw-bold small" onclick="selectCategoryFromTree(${n.id}, '${escapeHTML(n.name)}', '${source}')">
+                            <i class="bi bi-folder-fill text-warning me-1"></i> ${escapeHTML(n.name)}
                         </span>
                         ${n.children ? renderTreeNodes(n.children, source) : ''}
                     </li>
@@ -522,12 +525,17 @@
 
             window.selectCategoryFromTree = function(id, name, source) {
                 if (categorySelectTarget === 'quiz') {
-                    document.getElementById('quiz-category').value = id;
-                    document.getElementById('quiz-category-display').value = name;
+                    const idEl = document.getElementById('quiz-category');
+                    const dispEl = document.getElementById('quiz-category-display');
+                    if(idEl) idEl.value = id;
+                    if(dispEl) dispEl.value = name;
                 } else {
-                    document.getElementById('q-category-filter').value = id;
-                    document.getElementById('q-category-filter-display').value = name;
-                    document.getElementById('q-source').value = source;
+                    const idEl = document.getElementById('q-category-filter');
+                    const dispEl = document.getElementById('q-category-filter-display');
+                    const sourceEl = document.getElementById('q-source');
+                    if(idEl) idEl.value = id;
+                    if(dispEl) dispEl.value = name;
+                    if(sourceEl) sourceEl.value = source;
                     loadQuestions();
                 }
                 // Hide all explorer modals
@@ -629,6 +637,13 @@
             }
 
             function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+            function escapeHTML(str) {
+                if (!str) return '';
+                return str.replace(/[&<>'"]/g, 
+                    tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+                );
+            }
         })();
     </script>
 </div>
