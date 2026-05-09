@@ -6,7 +6,7 @@ spring:
     name: quiz-hub
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/quiz_hub
+    url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
@@ -28,8 +28,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: "lamcong70@gmail.com"
-    password: "pijgiugbmewvdbvu"
+    username: ${SPRING_MAIL_USERNAME}
+    password: ${SPRING_MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -49,5 +49,5 @@ spring:
 
 app:
   jwt:
-    secret: 6a2f8e1c4b7d9f3a5e2b8c1d4f7a9e3c6b2f8e1c4b7d9f3a5e2b8c1d4f7a9e3c
+    secret: ${JWT_SECRET}
     expiration: 86400000 # 24 hours in milliseconds
