@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: quiz-hub
+  config:
+    import: "optional:file:.env[.properties]"
 
   datasource:
     url: ${DB_URL}
@@ -17,7 +19,7 @@ spring:
       ddl-auto: update
   sql:
     init:
-      mode: never
+      mode: always
       encoding: UTF-8
       data-locations: classpath:data.sql
     show-sql: true
