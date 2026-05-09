@@ -41,6 +41,9 @@ public class ClassroomServiceImpl implements ClassroomService {
     private final UserRepository userRepository;
     private final ClassJoiningRepository classJoiningRepository;
     private final NotificationService notificationService;
+    private final com.example.quizhub.repository.QuizAssigningRepository quizAssigningRepository;
+    private final com.example.quizhub.repository.QuizTakingRepository quizTakingRepository;
+    private final com.example.quizhub.repository.AttemptRepository attemptRepository;
 
     @Override
     public ClassroomResponseDTO createClassroom(String teacherEmail, ClassroomRequestDTO request) {
@@ -133,7 +136,8 @@ public class ClassroomServiceImpl implements ClassroomService {
                 .findByClassroomIdAndLearnerId(classroomId, studentId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_CLASS));
 
-        classJoiningRepository.delete(joiningRecord);
+        joiningRecord.setStatus(JoinStatus.REMOVED);
+        classJoiningRepository.save(joiningRecord);
     }
 
     @Override
@@ -144,11 +148,24 @@ public class ClassroomServiceImpl implements ClassroomService {
         Classroom classroom = classroomRepository.findByCode(classCode)
                 .orElseThrow(() -> new AppException(ErrorCode.CLASSROOM_NOT_FOUND));
 
-        boolean isAlreadyJoined = classJoiningRepository
-                .findByClassroomIdAndLearnerId(classroom.getId(), learner.getId())
-                .isPresent();
-        if (isAlreadyJoined) {
-            throw new AppException(ErrorCode.USER_ALREADY_IN_CLASS);
+        var existingJoining = classJoiningRepository
+                .findByClassroomIdAndLearnerId(classroom.getId(), learner.getId());
+        
+        if (existingJoining.isPresent()) {
+            ClassJoining joining = existingJoining.get();
+            if (joining.getStatus() == JoinStatus.REMOVED || joining.getStatus() == JoinStatus.REJECTED) {
+                // Cho phép đăng ký lại nếu đã bị xóa hoặc bị từ chối trước đó
+                joining.setStatus(classroom.getRequireApproval() != null && classroom.getRequireApproval() 
+                        ? JoinStatus.PENDING : JoinStatus.APPROVED);
+                joining.setJoinedAt(LocalDateTime.now());
+                classJoiningRepository.save(joining);
+                
+                // Gửi thông báo như bình thường
+                sendJoinNotification(classroom, learner, joining.getStatus());
+                return;
+            } else {
+                throw new AppException(ErrorCode.USER_ALREADY_IN_CLASS);
+            }
         }
 
         ClassJoining classJoining = ClassJoining.builder()
@@ -162,9 +179,11 @@ public class ClassroomServiceImpl implements ClassroomService {
                 .build();
 
         classJoiningRepository.save(classJoining);
+        sendJoinNotification(classroom, learner, classJoining.getStatus());
+    }
 
-        // Tạo thông báo cho giáo viên nếu cần phê duyệt
-        if (classJoining.getStatus() == JoinStatus.PENDING) {
+    private void sendJoinNotification(Classroom classroom, User learner, JoinStatus status) {
+        if (status == JoinStatus.PENDING) {
             notificationService.createNotification(
                     classroom.getCreator().getId(),
                     "Yêu cầu tham gia lớp học",
@@ -172,8 +191,7 @@ public class ClassroomServiceImpl implements ClassroomService {
                     NotificationType.JOIN_REQUEST,
                     "/teacher/classrooms/" + classroom.getId() + "/members"
             );
-        } else if (classJoining.getStatus() == JoinStatus.APPROVED) {
-            // Thông báo cho giáo viên là có người vừa vào lớp (dành cho lớp không cần duyệt)
+        } else if (status == JoinStatus.APPROVED) {
             notificationService.createNotification(
                     classroom.getCreator().getId(),
                     "Thành viên mới",
@@ -223,7 +241,7 @@ public class ClassroomServiceImpl implements ClassroomService {
                 joining.getLearner().getId(),
                 "Yêu cầu bị từ chối",
                 "Yêu cầu tham gia lớp \"" + joining.getClassroom().getName() + "\" của bạn đã bị từ chối.",
-                NotificationType.QUESTION_REJECTED, // Dùng tạm icon REJECTED
+                NotificationType.JOIN_REJECTED,
                 "/student/classrooms"
         );
     }
@@ -315,13 +333,33 @@ public class ClassroomServiceImpl implements ClassroomService {
                 }
 
                 User learner = studentOpt.get();
-                boolean isAlreadyJoined = classJoiningRepository
-                        .findByClassroomIdAndLearnerId(classroom.getId(), learner.getId())
-                        .isPresent();
+                var existingJoining = classJoiningRepository
+                        .findByClassroomIdAndLearnerId(classroom.getId(), learner.getId());
 
-                if (isAlreadyJoined) {
-                    alreadyJoinedEmails.add(email);
-                    continue;
+                if (existingJoining.isPresent()) {
+                    ClassJoining joining = existingJoining.get();
+                    if (joining.getStatus() == JoinStatus.APPROVED || joining.getStatus() == JoinStatus.PENDING) {
+                        alreadyJoinedEmails.add(email);
+                        continue;
+                    } else {
+                        // Nếu đã bị xóa hoặc bị từ chối, giáo viên import lại thì cho vào luôn
+                        joining.setStatus(JoinStatus.APPROVED);
+                        joining.setJoinedAt(LocalDateTime.now());
+                        classJoiningRepository.save(joining);
+                        successCount++;
+
+                        // Notify student
+                        try {
+                            notificationService.createNotification(
+                                learner.getId(),
+                                "Đã được thêm lại vào lớp học",
+                                "Giáo viên đã thêm bạn lại vào lớp \"" + classroom.getName() + "\".",
+                                NotificationType.JOIN_APPROVED,
+                                "/student/classrooms"
+                            );
+                        } catch (Exception e) {}
+                        continue;
+                    }
                 }
 
                 ClassJoining classJoining = ClassJoining.builder()
@@ -335,6 +373,17 @@ public class ClassroomServiceImpl implements ClassroomService {
 
                 classJoiningRepository.save(classJoining);
                 successCount++;
+
+                // Notify student
+                try {
+                    notificationService.createNotification(
+                        learner.getId(),
+                        "Đã được thêm vào lớp học",
+                        "Giáo viên đã thêm bạn vào lớp \"" + classroom.getName() + "\".",
+                        NotificationType.JOIN_APPROVED,
+                        "/student/classrooms"
+                    );
+                } catch (Exception e) {}
             }
         } catch (Exception e) {
             throw new RuntimeException("Lỗi khi đọc file Excel: " + e.getMessage());
@@ -346,5 +395,92 @@ public class ClassroomServiceImpl implements ClassroomService {
         result.put("failedEmails", failedEmails);
         result.put("alreadyJoinedEmails", alreadyJoinedEmails);
         return result;
+    }
+
+    @Override
+    public com.example.quizhub.dto.classroom.response.AssignmentStatisticsDTO getAssignmentStatistics(Long assigningId, String teacherEmail) {
+        com.example.quizhub.entity.QuizAssigning assigning = quizAssigningRepository.findById(assigningId)
+                .orElseThrow(() -> new AppException(ErrorCode.QUIZ_ASSIGNING_NOT_FOUND));
+
+        if (!assigning.getClassroom().getCreator().getEmail().equals(teacherEmail)) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        List<ClassJoining> members = classJoiningRepository.findByClassroomIdAndStatus(
+                assigning.getClassroom().getId(), JoinStatus.APPROVED);
+
+        int totalStudents = members.size();
+        int completedCount = 0;
+        int inProgressCount = 0;
+        int notStartedCount = 0;
+
+        java.math.BigDecimal sum = java.math.BigDecimal.ZERO;
+        java.math.BigDecimal highest = null;
+        java.math.BigDecimal lowest = null;
+        int scoresCount = 0;
+
+        Map<String, Integer> distribution = new HashMap<>();
+        distribution.put("0-2", 0);
+        distribution.put("2-4", 0);
+        distribution.put("4-6", 0);
+        distribution.put("6-8", 0);
+        distribution.put("8-10", 0);
+
+        for (ClassJoining member : members) {
+            java.util.Optional<com.example.quizhub.entity.QuizTaking> takingOpt = quizTakingRepository
+                    .findByLearnerIdAndQuizAssigningId(member.getLearner().getId(), assigningId);
+
+            if (takingOpt.isEmpty()) {
+                notStartedCount++;
+                continue;
+            }
+
+            com.example.quizhub.entity.QuizTaking taking = takingOpt.get();
+            if (taking.getStatus() == com.example.quizhub.entity.enums.TakingStatus.COMPLETED) {
+                completedCount++;
+            } else {
+                inProgressCount++;
+            }
+
+            // Find highest score for this student in this assignment
+            List<com.example.quizhub.entity.Attempt> attempts = attemptRepository.findByQuizTakingId(taking.getId());
+            java.math.BigDecimal studentBest = null;
+            for (com.example.quizhub.entity.Attempt att : attempts) {
+                if (att.getResult() != null) {
+                    if (studentBest == null || att.getResult().compareTo(studentBest) > 0) {
+                        studentBest = att.getResult();
+                    }
+                }
+            }
+
+            if (studentBest != null) {
+                sum = sum.add(studentBest);
+                scoresCount++;
+                if (highest == null || studentBest.compareTo(highest) > 0) highest = studentBest;
+                if (lowest == null || studentBest.compareTo(lowest) < 0) lowest = studentBest;
+
+                double val = studentBest.doubleValue();
+                if (val < 2) distribution.put("0-2", distribution.get("0-2") + 1);
+                else if (val < 4) distribution.put("2-4", distribution.get("2-4") + 1);
+                else if (val < 6) distribution.put("4-6", distribution.get("4-6") + 1);
+                else if (val < 8) distribution.put("6-8", distribution.get("6-8") + 1);
+                else distribution.put("8-10", distribution.get("8-10") + 1);
+            }
+        }
+
+        java.math.BigDecimal average = scoresCount > 0 
+                ? sum.divide(java.math.BigDecimal.valueOf(scoresCount), 2, java.math.RoundingMode.HALF_UP) 
+                : java.math.BigDecimal.ZERO;
+
+        return com.example.quizhub.dto.classroom.response.AssignmentStatisticsDTO.builder()
+                .totalStudents(totalStudents)
+                .completedCount(completedCount)
+                .inProgressCount(inProgressCount)
+                .notStartedCount(notStartedCount)
+                .averageScore(average)
+                .highestScore(highest != null ? highest : java.math.BigDecimal.ZERO)
+                .lowestScore(lowest != null ? lowest : java.math.BigDecimal.ZERO)
+                .scoreDistribution(distribution)
+                .build();
     }
 }

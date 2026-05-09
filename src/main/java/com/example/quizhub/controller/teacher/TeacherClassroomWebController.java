@@ -71,8 +71,10 @@ public class TeacherClassroomWebController {
                 return "redirect:/teacher/classrooms";
             }
 
-            List<ClassJoining> activeMembers = classJoiningRepository.findByClassroomIdAndStatus(id, JoinStatus.APPROVED);
-            List<ClassJoining> pendingRequests = classJoiningRepository.findByClassroomIdAndStatus(id, JoinStatus.PENDING);
+            List<ClassJoining> activeMembers = classJoiningRepository.findByClassroomIdAndStatus(id,
+                    JoinStatus.APPROVED);
+            List<ClassJoining> pendingRequests = classJoiningRepository.findByClassroomIdAndStatus(id,
+                    JoinStatus.PENDING);
 
             model.addAttribute("classroom", classroom);
             model.addAttribute("activeMembers", activeMembers);
@@ -83,7 +85,8 @@ public class TeacherClassroomWebController {
     }
 
     @PostMapping("/{id}/approve/{joiningId}")
-    public String approveMember(@PathVariable Long id, @PathVariable Long joiningId, RedirectAttributes redirectAttributes) {
+    public String approveMember(@PathVariable Long id, @PathVariable Long joiningId,
+            RedirectAttributes redirectAttributes) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof User user) {
             try {
@@ -97,12 +100,28 @@ public class TeacherClassroomWebController {
     }
 
     @PostMapping("/{id}/reject/{joiningId}")
-    public String rejectMember(@PathVariable Long id, @PathVariable Long joiningId, RedirectAttributes redirectAttributes) {
+    public String rejectMember(@PathVariable Long id, @PathVariable Long joiningId,
+            RedirectAttributes redirectAttributes) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof User user) {
             try {
                 classroomService.rejectJoinRequest(joiningId, user.getEmail());
                 redirectAttributes.addFlashAttribute("successMessage", "Đã từ chối yêu cầu tham gia!");
+            } catch (Exception e) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
+            }
+        }
+        return "redirect:/teacher/classrooms/" + id + "/members";
+    }
+
+    @PostMapping("/{id}/remove/{studentId}")
+    public String removeStudent(@PathVariable Long id, @PathVariable Long studentId,
+            RedirectAttributes redirectAttributes) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null && auth.getPrincipal() instanceof User user) {
+            try {
+                classroomService.removeStudentFromClass(id, studentId, user.getEmail());
+                redirectAttributes.addFlashAttribute("successMessage", "Đã xóa sinh viên khỏi lớp!");
             } catch (Exception e) {
                 redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
             }
@@ -123,10 +142,12 @@ public class TeacherClassroomWebController {
                 return "redirect:/teacher/classrooms";
             }
 
-            List<com.example.quizhub.entity.QuizAssigning> assignedQuizzes = quizAssigningRepository.findByClassroomId(id);
+            List<com.example.quizhub.entity.QuizAssigning> assignedQuizzes = quizAssigningRepository
+                    .findByClassroomId(id);
             List<com.example.quizhub.entity.Quiz> quizzes = quizRepository.findByCreatorIdAndIsEnableTrue(user.getId());
             List<com.example.quizhub.entity.ClassTopic> topics = classTopicRepository.findByClassroomId(id);
-            List<com.example.quizhub.entity.Category> categories = categoryRepository.findAllByCreatorIdWithParent(user.getId());
+            List<com.example.quizhub.entity.Category> categories = categoryRepository
+                    .findAllByCreatorIdWithParent(user.getId());
 
             model.addAttribute("classroom", classroom);
             model.addAttribute("assignedQuizzes", assignedQuizzes);
@@ -136,7 +157,8 @@ public class TeacherClassroomWebController {
             model.addAttribute("myCategories", categoryService.getMyCategories());
             model.addAttribute("publicCategories", categoryService.getPublicCategories());
             model.addAttribute("today", LocalDateTime.now().withSecond(0).withNano(0));
-            model.addAttribute("nextWeek", LocalDateTime.now().plusDays(7).withHour(23).withMinute(59).withSecond(0).withNano(0));
+            model.addAttribute("nextWeek",
+                    LocalDateTime.now().plusDays(7).withHour(23).withMinute(59).withSecond(0).withNano(0));
             model.addAttribute("currentUser", user);
         }
         return "teacher/teacher-classroom-detail";

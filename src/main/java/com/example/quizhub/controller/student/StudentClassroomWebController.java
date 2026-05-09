@@ -35,7 +35,11 @@ public class StudentClassroomWebController {
     public String listClassrooms(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof User user) {
-            List<ClassJoining> joinedClasses = classJoiningRepository.findByLearnerId(user.getId());
+            List<com.example.quizhub.entity.JoinStatus> allowedStatuses = List.of(
+                com.example.quizhub.entity.JoinStatus.PENDING,
+                com.example.quizhub.entity.JoinStatus.APPROVED
+            );
+            List<ClassJoining> joinedClasses = classJoiningRepository.findByLearnerIdAndStatusIn(user.getId(), allowedStatuses);
             model.addAttribute("joinedClasses", joinedClasses);
             model.addAttribute("currentUser", user);
         }

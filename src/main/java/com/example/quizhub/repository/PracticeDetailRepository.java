@@ -7,5 +7,5 @@ import com.example.quizhub.entity.PracticeDetail;
 
 @Repository
 public interface PracticeDetailRepository extends JpaRepository<PracticeDetail, Long> {
-    java.util.Optional<PracticeDetail> findByPracticeIdAndQuestionId(Long practiceId, Long questionId);
+    java.util.Optional<PracticeDetail> findFirstByPracticeIdAndQuestionIdOrderByIdAsc(Long practiceId, Long questionId);
 }

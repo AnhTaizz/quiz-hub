@@ -48,19 +48,23 @@ public class StudentHomeController {
         User student = userRepository.findByEmail(email).orElse(null);
 
         if (student != null) {
-            long attemptCount = attemptRepository.countByQuizTakingLearnerIdAndEndedAtIsNotNull(student.getId());
+            List<Attempt> allCompletedAttempts = attemptRepository.findByQuizTakingLearnerIdAndEndedAtIsNotNull(student.getId());
+            List<Attempt> classroomAttempts = allCompletedAttempts.stream()
+                    .filter(a -> a.getQuizTaking() != null && a.getQuizTaking().getQuizAssigning() != null)
+                    .collect(Collectors.toList());
+
+            long attemptCount = classroomAttempts.size();
             long practiceCount = practiceRepository.countByUserIdAndIsCompletedTrue(student.getId());
             long totalCompleted = attemptCount + practiceCount;
 
-            List<Attempt> completedAttempts = attemptRepository.findByQuizTakingLearnerIdAndEndedAtIsNotNull(student.getId());
             List<com.example.quizhub.entity.Practice> completedPractices = practiceRepository.findByUserIdAndIsCompletedTrueOrderByCreatedAtDesc(student.getId());
 
             BigDecimal quizAvg = BigDecimal.ZERO;
-            if (!completedAttempts.isEmpty()) {
-                BigDecimal sum = completedAttempts.stream()
+            if (!classroomAttempts.isEmpty()) {
+                BigDecimal sum = classroomAttempts.stream()
                         .map(a -> a.getResult() != null ? a.getResult() : BigDecimal.ZERO)
                         .reduce(BigDecimal.ZERO, BigDecimal::add);
-                quizAvg = sum.divide(BigDecimal.valueOf(completedAttempts.size()), 1, RoundingMode.HALF_UP);
+                quizAvg = sum.divide(BigDecimal.valueOf(classroomAttempts.size()), 1, RoundingMode.HALF_UP);
             }
 
             BigDecimal practiceAvg = BigDecimal.ZERO;
@@ -78,7 +82,10 @@ public class StudentHomeController {
             }
 
             // Get all assigned quizzes from joined classrooms
-            List<ClassJoining> joinedClasses = classJoiningRepository.findByLearnerId(student.getId());
+            List<ClassJoining> joinedClasses = classJoiningRepository.findByLearnerIdAndStatusIn(
+                student.getId(), 
+                List.of(JoinStatus.APPROVED, JoinStatus.PENDING)
+            );
             List<QuizAssigning> rawAssignedQuizzes = new ArrayList<>();
             for (ClassJoining joining : joinedClasses) {
                 if (joining.getStatus() == JoinStatus.APPROVED) {

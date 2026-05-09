@@ -269,6 +269,7 @@
             justify-content: space-between;
             padding: 0 32px;
             z-index: 99;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         .header-left .toggle-btn {
@@ -864,71 +865,8 @@
 <body>
 <script>(function(){if(localStorage.getItem('sidebar-collapsed')==='true')document.body.classList.add('sidebar-collapsed');})()</script>
 <input type="hidden" id="categoryTypeInput" th:value="${categoryType}">
-<aside id="sidebar">
-        <div class="brand-logo">
-            <i class="bi bi-layers-fill"></i>
-            <span>Quiz<span class="hub">Hub</span></span>
-        </div>
-
-        <div class="menu-title">Quản trị Hệ thống</div>
-        <ul class="nav-menu">
-            <li><a href="/admin" data-title="Dashboard"><i class="bi bi-grid-1x2-fill"></i>
-                    <span>Tổng quan</span></a></li>
-            <li><a href="/admin/users" data-title="Tài khoản"><i class="bi bi-people-fill"></i> <span>Quản lý Tài
-                        khoản</span></a></li>
-        </ul>
-
-        <div class="menu-title">Nội dung Public</div>
-        <ul class="nav-menu">
-            <li><a href="/admin/categories" class="active" data-title="Danh mục"><i class="bi bi-diagram-3-fill"></i> <span>Danh mục Hệ
-                        thống</span></a></li>
-            <li>
-                <a href="/admin/moderation" data-title="Duyệt nội dung">
-                    <i class="bi bi-clipboard2-check-fill"></i>
-                    <span>Duyệt Câu hỏi</span>
-                    <span
-                        style="background: var(--orange); color: #fff; padding: 2px 7px; border-radius: 20px; font-size: 11px; margin-left: auto;">5</span>
-                </a>
-            </li>
-        </ul>
-
-        <div class="menu-title">Báo cáo</div>
-        <ul class="nav-menu">
-            <li><a href="/admin/reports" data-title="Thống kê"><i class="bi bi-bar-chart-line-fill"></i> <span>Thống kê
-                        Hệ thống</span></a></li>
-        </ul>
-    </aside>
-
-    <header id="header-nav">
-        <div class="header-left">
-            <button class="toggle-btn" id="sidebarToggle"><i class="bi bi-list"></i></button>
-        </div>
-        <div class="header-right">
-            <div class="notification">
-                <i class="bi bi-bell"></i>
-                <span class="badge">5</span>
-            </div>
-            <div class="user-profile dropdown">
-                <a href="#" class="d-flex align-items-center gap-2 text-decoration-none" data-bs-toggle="dropdown"
-                    aria-expanded="false">
-                    <span th:text="${currentUser != null ? currentUser.fullName : 'Administrator'}">Administrator</span>
-                    <img th:src="${currentUser != null && currentUser.avatarUrl != null && !currentUser.avatarUrl.isEmpty() ? currentUser.avatarUrl : 'https://ui-avatars.com/api/?name=' + (currentUser != null ? currentUser.fullName : 'Admin') + '&background=2563eb&color=fff'}" alt="Admin Avatar">
-                </a>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i> Hồ sơ cá nhân</a>
-                    </li>
-                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal"><i class="bi bi-key me-2"></i> Đổi mật khẩu</a>
-                    </li>
-                    <li>
-                        <hr class="dropdown-divider">
-                    </li>
-                    <li><a class="dropdown-item text-danger" href="#" onclick="doLogout(); return false;"><i
-                                class="bi bi-box-arrow-right me-2"></i> Đăng xuất</a></li>
-                </ul>
-            </div>
-        </div>
-        <script th:replace="~{layout/header :: logout-script}"></script>
-    </header>
+    <aside th:replace="~{layout/sidebar :: admin-sidebar('categories')}"></aside>
+    <header th:replace="~{layout/header :: admin-header}"></header>
 
 <main id="main-content">
     <div class="page-title-box">
@@ -1102,12 +1040,6 @@ function getPathToNode(nodes, targetId, currentPath = []) {
    INIT
 ══════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-    const toggleBtn = document.querySelector('.toggle-btn');
-    if (toggleBtn) toggleBtn.addEventListener('click', e => {
-        e.preventDefault();
-        document.body.classList.toggle('sidebar-collapsed');
-        localStorage.setItem('sidebar-collapsed', document.body.classList.contains('sidebar-collapsed'));
-    });
     initResize();
 
     initMode();

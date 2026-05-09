@@ -15,6 +15,10 @@ import com.example.quizhub.repository.ClassroomRepository;
 import com.example.quizhub.repository.QuizAssigningRepository;
 import com.example.quizhub.repository.QuizRepository;
 import com.example.quizhub.service.quiz.QuizAssigningService;
+import com.example.quizhub.service.notification.NotificationService;
+import com.example.quizhub.entity.enums.NotificationType;
+import com.example.quizhub.entity.JoinStatus;
+import com.example.quizhub.repository.ClassJoiningRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,8 +30,11 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
     private final ClassroomRepository classroomRepository;
     private final QuizRepository quizRepository;
     private final ClassTopicRepository classTopicRepository;
+    private final ClassJoiningRepository classJoiningRepository;
+    private final NotificationService notificationService;
 
     @Override
+    @org.springframework.transaction.annotation.Transactional
     public QuizAssigningResponseDTO create(QuizAssigningRequestDTO request) {
         Classroom classroom = classroomRepository.findById(request.getClassroomId())
                             .orElseThrow(() -> new AppException(ErrorCode.CLASSROOM_NOT_FOUND));
@@ -82,6 +89,36 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
         }
 
         QuizAssigning savedQuizAssigning = quizAssigningRepository.save(quizAssigning);
+
+        // Notify the teacher themselves for confirmation
+        try {
+            notificationService.createNotification(
+                classroom.getCreator().getId(),
+                "Đã giao bài kiểm tra",
+                "Bạn đã giao thành công bài kiểm tra \"" + quiz.getTitle() + "\" cho lớp " + classroom.getName(),
+                NotificationType.SYSTEM_ALERT,
+                "/teacher/classrooms/" + classroom.getId()
+            );
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        // Notify students in the classroom
+        try {
+            classJoiningRepository.findByClassroomIdAndStatus(classroom.getId(), JoinStatus.APPROVED)
+                .forEach(joining -> {
+                    notificationService.createNotification(
+                        joining.getLearner().getId(),
+                        "Bài kiểm tra mới: " + quiz.getTitle(),
+                        "Bạn có bài kiểm tra mới trong lớp " + classroom.getName(),
+                        NotificationType.QUIZ_ASSIGNED,
+                        "/student/classrooms/" + classroom.getId()
+                    );
+                });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         return quizAssigningMapper.toResponseDTO(savedQuizAssigning);
     }
 }

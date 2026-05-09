@@ -27,4 +27,6 @@ public interface ClassroomService {
     void deleteClassroom(Long classroomId, String teacherEmail);
     
     java.util.Map<String, Object> importStudentsFromExcel(Long classroomId, org.springframework.web.multipart.MultipartFile file, String teacherEmail);
+
+    com.example.quizhub.dto.classroom.response.AssignmentStatisticsDTO getAssignmentStatistics(Long assigningId, String teacherEmail);
 }
