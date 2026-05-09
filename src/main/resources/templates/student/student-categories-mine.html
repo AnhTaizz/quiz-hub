@@ -16,98 +16,183 @@
 
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #4338ca, #6366f1);
-            --sidebar-width: 320px;
-            --border-color: #e2e8f0;
-            --bg-light: #f8fafc;
+            --primary-gradient: linear-gradient(135deg, #6366f1, #4338ca);
+            --accent-gradient: linear-gradient(135deg, #10b981, #059669);
+            --sidebar-width: 300px;
+            --sidebar-bg: #f8fafc;
+            --border-color: #f1f5f9;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --indigo-light: #eef2ff;
         }
 
-        body { background: #fff; font-family: 'Inter', sans-serif; overflow: hidden; }
+        body { background: #fff; font-family: 'Inter', sans-serif; overflow: hidden; color: var(--text-main); }
 
         .explorer-container { display: flex; height: calc(100vh - 70px); margin-top: 70px; }
 
-        /* Sidebar Tree */
-        .explorer-sidebar { width: var(--sidebar-width); background: var(--bg-light); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; flex-shrink: 0; }
-        .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border-color); background: #fff; }
-        .tree-container { flex: 1; overflow-y: auto; padding: 15px; }
+        /* Sidebar Tree - Modern & Clean */
+        .explorer-sidebar { 
+            width: var(--sidebar-width); background: var(--sidebar-bg); 
+            border-right: 1px solid var(--border-color); display: flex; 
+            flex-direction: column; flex-shrink: 0; transition: all 0.3s ease;
+        }
+        .sidebar-header { padding: 24px 20px; background: var(--sidebar-bg); }
+        .tree-container { flex: 1; overflow-y: auto; padding: 10px 15px; }
 
         .tree-node {
-            padding: 10px 14px; border-radius: 12px; cursor: pointer; transition: all 0.2s;
-            display: flex; align-items: center; gap: 10px; margin-bottom: 4px;
-            color: #475569; font-weight: 600; font-size: 0.92rem; position: relative;
+            padding: 10px 12px; border-radius: 12px; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; gap: 10px; margin-bottom: 2px;
+            color: var(--text-muted); font-weight: 600; font-size: 0.9rem; position: relative;
         }
-        .tree-node:hover { background: #fff; color: #4338ca; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-        .tree-node.active { background: #eef2ff; color: #4338ca; box-shadow: inset 0 0 0 1px #c7d2fe; }
-        .tree-node i.folder-icon { color: #f59e0b; font-size: 1.2rem; }
-        .btn-add-sub { position: absolute; right: 12px; opacity: 0; transition: 0.2s; color: #4338ca; }
-        .tree-node:hover .btn-add-sub { opacity: 1; }
+        .tree-node:hover { background: #fff; color: #4338ca; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+        .tree-node.active { background: #fff; color: #4338ca; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.1); }
+        .tree-node.active::before {
+            content: ''; position: absolute; left: -15px; top: 10px; bottom: 10px; width: 4px; 
+            background: #4338ca; border-radius: 0 4px 4px 0;
+        }
+        
+        .folder-icon { color: #f59e0b; font-size: 1.1rem; }
+        .chevron-icon { font-size: 0.8rem; transition: transform 0.2s; color: #cbd5e1; }
+        .tree-node.expanded .chevron-icon { transform: rotate(90deg); }
 
-        /* Content Area */
-        .explorer-content { flex: 1; overflow-y: auto; padding: 35px 50px; background: #fff; }
-        .content-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 30px; border-bottom: 1px solid #f1f5f9; padding-bottom: 25px; }
-        .folder-title { font-family: 'Nunito Sans', sans-serif; font-weight: 900; font-size: 2.2rem; color: #1e1b4b; margin: 0; }
+        .btn-add-sub { 
+            margin-left: auto; width: 24px; height: 24px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: 0.2s; color: #94a3b8; 
+        }
+        .tree-node:hover .btn-add-sub { opacity: 1; background: #f1f5f9; }
+        .btn-add-sub:hover { background: #e2e8f0; color: #4338ca; }
 
-        /* Toggle Buttons on the Right */
-        .header-actions-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 15px; }
-        .context-toggle { display: flex; background: #f1f5f9; padding: 4px; border-radius: 12px; gap: 2px; }
-        .tab-btn { padding: 7px 18px; border-radius: 9px; font-weight: 700; font-size: 0.82rem; border: none; cursor: pointer; transition: 0.2s; color: #64748b; background: transparent; }
-        .tab-btn.active { background: #fff; color: #4338ca; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        /* Content Area - Premium Spacing */
+        .explorer-content { flex: 1; overflow-y: auto; padding: 40px 60px; background: #fff; }
+        .content-header { 
+            display: flex; justify-content: space-between; align-items: flex-start; 
+            margin-bottom: 40px; 
+        }
+        .path-breadcrumb { 
+            font-size: 0.75rem; font-weight: 800; color: #94a3b8; 
+            letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .folder-title { 
+            font-family: 'Nunito Sans', sans-serif; font-weight: 900; 
+            font-size: 2.5rem; color: #0f172a; margin: 0; letter-spacing: -1px;
+        }
 
-        /* ULTRA PREMIUM QUIZ CARD */
-        .quiz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 30px; }
+        .header-actions { display: flex; align-items: center; gap: 15px; margin-top: 10px; }
+        .context-toggle { 
+            display: flex; background: #f1f5f9; padding: 4px; border-radius: 14px; gap: 2px; 
+        }
+        .tab-btn { 
+            padding: 8px 24px; border-radius: 11px; font-weight: 700; font-size: 0.85rem; 
+            border: none; cursor: pointer; transition: 0.2s; color: #64748b; background: transparent; 
+        }
+        .tab-btn.active { background: #fff; color: #4338ca; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+
+        /* PREMIUM QUIZ CARDS with Dynamic Covers */
+        .quiz-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
         .up-card {
-            background: #fff; border-radius: 28px; border: 1px solid #eef2ff; overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: #fff; border-radius: 24px; border: 1px solid #f1f5f9; overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
             display: flex; flex-direction: column; position: relative;
-            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.04);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.02);
         }
-        .up-card:hover { transform: translateY(-10px); box-shadow: 0 25px 50px -12px rgba(67, 56, 202, 0.12); border-color: #c7d2fe; }
+        .up-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(67, 56, 202, 0.1); border-color: #e2e8f0; }
         
         .up-card-banner {
-            height: 160px; background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-            display: flex; align-items: center; justify-content: center; position: relative;
+            height: 140px; position: relative; overflow: hidden;
+            background-size: cover; background-position: center;
         }
-        .up-card-banner i { font-size: 4.5rem; color: #e2e8f0; transition: 0.3s; }
-        .up-card:hover .up-card-banner i { color: #6366f1; transform: scale(1.1) rotate(-5deg); }
+        .up-card-overlay {
+            position: absolute; inset: 0; 
+            background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.4) 100%);
+        }
         
         .up-badge {
-            position: absolute; top: 15px; left: 15px; padding: 6px 14px; border-radius: 12px;
-            font-size: 0.7rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            position: absolute; top: 15px; left: 15px; padding: 6px 12px; border-radius: 10px;
+            font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px;
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            z-index: 2; border: 1px solid rgba(255,255,255,0.2);
         }
-        .badge-quiz { background: #fff; color: #4338ca; }
-        .badge-exam { background: #fef3c7; color: #d97706; }
+        .badge-quiz { background: rgba(255,255,255,0.85); color: #4338ca; }
+        .badge-exam { background: rgba(254, 243, 199, 0.9); color: #92400e; }
 
-        .up-card-body { padding: 25px; flex: 1; }
-        .up-q-title { font-weight: 800; font-size: 1.3rem; color: #0f172a; margin-bottom: 12px; line-height: 1.3; }
-        .up-q-meta { display: flex; gap: 20px; color: #64748b; font-size: 0.85rem; font-weight: 600; margin-bottom: 20px; }
+        .up-card-body { padding: 24px; flex: 1; }
+        .up-q-title { font-weight: 800; font-size: 1.2rem; color: #0f172a; margin-bottom: 12px; line-height: 1.4; }
+        .up-q-meta { display: flex; flex-wrap: wrap; gap: 15px; color: #94a3b8; font-size: 0.8rem; font-weight: 600; }
+        .up-q-meta span { display: flex; align-items: center; gap: 6px; }
+        .up-q-meta i { color: #cbd5e1; font-size: 1rem; }
 
         .up-card-actions {
-            display: grid; grid-template-columns: 1fr 45px 45px; gap: 10px;
-            padding: 0 25px 25px;
+            display: flex; gap: 10px; padding: 0 24px 24px;
         }
         .btn-play-up {
-            background: var(--primary-gradient); color: #fff; border-radius: 14px; border: none;
-            font-weight: 800; font-size: 0.9rem; padding: 12px; transition: 0.3s;
-            box-shadow: 0 8px 20px -6px rgba(67, 56, 202, 0.4);
+            flex: 1; background: var(--primary-gradient); color: #fff; border-radius: 14px; border: none;
+            font-weight: 800; font-size: 0.85rem; padding: 12px; transition: 0.3s;
+            box-shadow: 0 8px 20px -6px rgba(99, 102, 241, 0.5);
         }
-        .btn-play-up:hover { transform: scale(1.03); opacity: 0.95; }
+        .btn-play-up:hover { transform: scale(1.02); box-shadow: 0 12px 25px -6px rgba(99, 102, 241, 0.6); }
         .btn-opt-up {
-            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px;
-            color: #64748b; display: flex; align-items: center; justify-content: center; transition: 0.2s;
+            width: 44px; height: 44px; background: #f8fafc; border: 1px solid #f1f5f9; 
+            border-radius: 14px; color: #94a3b8; display: flex; align-items: center; 
+            justify-content: center; transition: 0.2s;
         }
-        .btn-opt-up:hover { border-color: #4338ca; color: #4338ca; background: #fff; }
+        .btn-opt-up:hover { border-color: #e2e8f0; color: #4338ca; background: #fff; }
 
-        /* Question List View */
+        /* Premium Question List Item */
         .q-item-up {
-            background: #fff; border: 1px solid #f1f5f9; border-radius: 20px; padding: 22px 30px;
-            margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between;
+            background: #fff; border: 1px solid #f1f5f9; border-radius: 20px; padding: 20px 24px;
+            margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between;
+            transition: all 0.3s;
+        }
+        .q-item-up:hover { 
+            border-color: #eef2ff; box-shadow: 0 10px 30px rgba(99, 102, 241, 0.08); 
+            transform: translateX(5px);
+        }
+
+        .q-icon-box {
+            width: 48px; height: 48px; border-radius: 14px; background: #f1f5f9;
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+            color: #6366f1; flex-shrink: 0; transition: 0.3s;
+        }
+        .q-item-up:hover .q-icon-box { background: #eef2ff; color: #4338ca; }
+
+        .q-level-badge {
+            padding: 4px 10px; border-radius: 8px; font-size: 0.65rem; font-weight: 800;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .lvl-easy { background: #dcfce7; color: #166534; }
+        .lvl-medium { background: #fef3c7; color: #92400e; }
+        .lvl-hard { background: #fee2e2; color: #991b1b; }
+
+        .btn-icon-sm {
+            width: 36px; height: 36px; border-radius: 10px; border: 1px solid #f1f5f9;
+            background: #fff; color: #94a3b8; display: flex; align-items: center; 
+            justify-content: center; transition: 0.2s;
+        }
+        .btn-icon-sm:hover { border-color: #cbd5e1; color: #4338ca; }
+
+        /* Buttons & Extras */
+        .btn-premium { 
+            background: var(--primary-gradient); color: #fff; font-weight: 800; 
+            border-radius: 16px; padding: 14px 28px; border: none; 
+            display: inline-flex; align-items: center; gap: 10px; font-size: 0.9rem; 
+            text-decoration: none; box-shadow: 0 10px 20px -8px rgba(99, 102, 241, 0.4); 
             transition: 0.3s;
         }
-        .q-item-up:hover { border-color: #c7d2fe; box-shadow: 0 10px 25px rgba(0,0,0,0.03); }
+        .btn-premium:hover { transform: translateY(-3px); box-shadow: 0 15px 30px -10px rgba(99, 102, 241, 0.5); color: #fff; }
 
-        .btn-premium { background: var(--primary-gradient); color: #fff; font-weight: 800; border-radius: 14px; padding: 12px 26px; border: none; display: inline-flex; align-items: center; gap: 10px; font-size: 0.95rem; text-decoration: none; box-shadow: 0 10px 20px -8px rgba(67, 56, 202, 0.4); }
-        .btn-premium:hover { transform: translateY(-3px); color: #fff; opacity: 0.95; }
+        .empty-state {
+            padding: 100px 0; text-align: center; color: #94a3b8;
+        }
+        .empty-state i { font-size: 4rem; display: block; margin-bottom: 20px; color: #e2e8f0; }
+        .empty-state h3 { color: #475569; font-weight: 800; }
+
+        /* Tooltips/Stats */
+        .folder-stat-pill {
+            background: #f1f5f9; padding: 6px 14px; border-radius: 100px;
+            font-size: 0.8rem; font-weight: 700; color: #64748b; display: flex; align-items: center; gap: 6px;
+        }
     </style>
 </head>
 
@@ -120,13 +205,15 @@
             <div class="sidebar-header">
                 <div class="position-relative">
                     <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                    <input type="text" id="treeSearch" class="form-control ps-5" style="border-radius:14px; padding:10px;" placeholder="Tìm nhanh thư mục..." oninput="handleSearchTree()">
+                    <input type="text" id="treeSearch" class="form-control ps-5" style="border-radius:14px; border:1px solid #e2e8f0; padding:12px;" placeholder="Tìm thư mục..." oninput="handleSearchTree()">
                 </div>
             </div>
-            <div class="tree-container" id="treeRoot"></div>
-            <div class="p-3 border-top bg-white">
-                <button class="btn btn-light w-100 rounded-4 fw-bold p-3" style="border: 1px dashed #cbd5e1;" onclick="openCreateModal(null)">
-                    <i class="bi bi-folder-plus me-2"></i> Thư mục gốc
+            <div class="tree-container" id="treeRoot">
+                <!-- JS renders private categories here -->
+            </div>
+            <div class="p-4 border-top bg-white">
+                <button class="btn btn-light w-100 rounded-4 fw-bold p-3 text-muted" style="border: 2px dashed #e2e8f0;" onclick="openCreateModal(null)">
+                    <i class="bi bi-folder-plus me-2"></i> Thêm thư mục gốc
                 </button>
             </div>
         </aside>
@@ -135,30 +222,47 @@
         <main class="explorer-content">
             <div class="content-header">
                 <div>
-                    <div class="small text-muted fw-800 mb-2 ls-1" id="pathText">LIBRARY / DASHBOARD</div>
-                    <h1 class="folder-title" id="currentName">Tất cả kho</h1>
-                </div>
-                <div class="header-actions-wrap">
-                    <div class="action-btns mb-2">
-                        <button class="btn-icon" id="btnEditCat" style="display:none;" onclick="openEditModal()"><i class="bi bi-pencil"></i></button>
-                        <button class="btn-icon text-danger" id="btnDeleteCat" style="display:none;" onclick="deleteFolder()"><i class="bi bi-trash"></i></button>
-                        <a href="/student/quiz/create" id="btnCreateQuiz" class="btn-premium">
-                            <i class="bi bi-magic"></i> Tạo đề thi mới
-                        </a>
+                    <div class="path-breadcrumb" id="pathText">
+                        <span>LIBRARY</span>
+                        <i class="bi bi-chevron-right" style="font-size: 0.6rem;"></i>
+                        <span class="text-indigo">DASHBOARD</span>
                     </div>
-                    <div class="context-toggle">
-                        <button class="tab-btn active" id="tab-quiz" onclick="switchContext('quiz')">Đề thi</button>
-                        <button class="tab-btn" id="tab-question" onclick="switchContext('question')">Câu hỏi</button>
+                    <h1 class="folder-title" id="currentName">Thư viện của tôi</h1>
+                    <div class="d-flex gap-3 mt-3">
+                        <div class="folder-stat-pill"><i class="bi bi-layers-fill"></i> <span id="statQuizCount">0</span> Đề thi</div>
+                        <div class="folder-stat-pill"><i class="bi bi-question-circle-fill"></i> <span id="statQuestionCount">0</span> Câu hỏi</div>
                     </div>
                 </div>
+                    <div class="header-actions">
+                        <div class="d-flex gap-2">
+                            <button class="btn-icon-sm" id="btnEditCat" style="display:none;" onclick="openEditModal()"><i class="bi bi-pencil-square"></i></button>
+                            <button class="btn-icon-sm text-danger" id="btnDeleteCat" style="display:none;" onclick="deleteFolder()"><i class="bi bi-trash3-fill"></i></button>
+                            <div id="mainActionBtn">
+                                <a href="/student/quiz/create" id="btnCreateQuiz" class="btn-premium">
+                                    <i class="bi bi-plus-lg"></i> Tạo đề thi
+                                </a>
+                            </div>
+                        </div>
+                        <div class="context-toggle">
+                            <button class="tab-btn active" id="tab-quiz" onclick="switchContext('quiz')">
+                                <i class="bi bi-journal-text me-1"></i> Đề thi
+                            </button>
+                            <button class="tab-btn" id="tab-question" onclick="switchContext('question')">
+                                <i class="bi bi-patch-question me-1"></i> Câu hỏi
+                            </button>
+                        </div>
+                    </div>
             </div>
 
-            <div id="contentList" class="mt-2"></div>
+            <div id="contentList" class="mt-2">
+                <!-- Content grid or list renders here -->
+            </div>
         </main>
     </div>
 
     <!-- Fragments -->
     <div th:replace="~{fragments/category-explorer-private :: category-create-modal}"></div>
+    <div th:replace="~{fragments/question-editor :: question-editor-modal}"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -168,6 +272,13 @@
         let ALL_QUESTIONS = [];
         let currentFolderId = null;
         let currentContext = 'quiz';
+        let expandedFolders = new Set();
+
+        const COVERS = [
+            '/images/covers/cover1.png',
+            '/images/covers/cover2.png',
+            '/images/covers/cover3.png'
+        ];
 
         document.addEventListener('DOMContentLoaded', async () => {
             await loadData();
@@ -180,53 +291,88 @@
                 const [resCat, resQuiz, resQues] = await Promise.all([
                     fetch('/api/student/categories/mine', { headers: { Authorization: 'Bearer ' + token } }),
                     fetch('/api/student/quiz/mine', { headers: { Authorization: 'Bearer ' + token } }),
-                    fetch('/api/student/questions?size=200', { headers: { Authorization: 'Bearer ' + token } })
+                    fetch('/api/student/questions?size=500', { headers: { Authorization: 'Bearer ' + token } })
                 ]);
                 TREE_DATA = await resCat.json();
                 ALL_QUIZZES = await resQuiz.json();
                 const qData = await resQues.json();
                 ALL_QUESTIONS = qData.content || [];
-            } catch (e) { }
+            } catch (e) { console.error("Lỗi khi tải dữ liệu:", e); }
         }
 
         function renderSidebarTree(nodes = null, container = null, level = 0) {
             if (!container) {
                 container = document.getElementById('treeRoot');
-                container.innerHTML = `<div class="tree-node ${currentFolderId === null ? 'active' : ''}" onclick="loadFolder(null)"><i class="bi bi-grid-fill text-primary"></i> Tất cả kho</div>`;
+                container.innerHTML = '';
+                const rootNode = document.createElement('div');
+                rootNode.className = `tree-node ${currentFolderId === null ? 'active' : ''}`;
+                rootNode.innerHTML = `<i class="bi bi-grid-fill text-primary"></i> <span>Tất cả kho</span>`;
+                rootNode.onclick = () => loadFolder(null);
+                container.appendChild(rootNode);
                 nodes = TREE_DATA;
             }
+
             nodes.forEach(n => {
+                const isExpanded = expandedFolders.has(n.id);
+                const hasChildren = n.children && n.children.length > 0;
+
                 const row = document.createElement('div');
-                row.className = `tree-node ${currentFolderId === n.id ? 'active' : ''}`;
-                row.style.paddingLeft = (level * 20 + 14) + 'px';
+                row.className = `tree-node ${currentFolderId === n.id ? 'active' : ''} ${isExpanded ? 'expanded' : ''}`;
+                row.style.paddingLeft = (level * 20 + 12) + 'px';
+                
                 row.innerHTML = `
-                    <i class="bi bi-folder-fill folder-icon"></i>
+                    <i class="bi bi-chevron-right chevron-icon ${hasChildren ? '' : 'opacity-0'}"></i>
+                    <i class="bi ${isExpanded ? 'bi-folder2-open' : 'bi-folder-fill'} folder-icon"></i>
                     <span class="text-truncate">${esc(n.name)}</span>
-                    <i class="bi bi-plus-circle-fill btn-add-sub" onclick="event.stopPropagation(); openCreateModal(${n.id})"></i>
+                    <div class="btn-add-sub" onclick="event.stopPropagation(); openCreateModal(${n.id})">
+                        <i class="bi bi-plus"></i>
+                    </div>
                 `;
-                row.onclick = () => loadFolder(n.id);
+
+                row.onclick = (e) => {
+                    if (e.target.closest('.chevron-icon') || e.target.closest('.folder-icon')) {
+                        if (hasChildren) {
+                            if (isExpanded) expandedFolders.delete(n.id);
+                            else expandedFolders.add(n.id);
+                            renderSidebarTree();
+                        }
+                    }
+                    loadFolder(n.id);
+                };
+
                 container.appendChild(row);
-                if (n.children) {
-                    const wrap = document.createElement('div');
-                    renderSidebarTree(n.children, wrap, level + 1);
-                    container.appendChild(wrap);
+
+                if (hasChildren && isExpanded) {
+                    renderSidebarTree(n.children, container, level + 1);
                 }
             });
         }
 
         function loadFolder(id) {
             currentFolderId = id;
-            document.querySelectorAll('.tree-node').forEach(el => el.classList.remove('active'));
-            document.getElementById('treeRoot').innerHTML = '';
+            const folder = id ? findCategory(TREE_DATA, id) : null;
+            
+            // Update active state in sidebar
             renderSidebarTree();
 
-            const folder = id ? findCategory(TREE_DATA, id) : null;
-            document.getElementById('currentName').textContent = folder ? folder.name : 'Tất cả kho';
-            document.getElementById('pathText').textContent = folder ? `LIBRARY / ${folder.name.toUpperCase()}` : 'LIBRARY / DASHBOARD';
+            document.getElementById('currentName').textContent = folder ? folder.name : 'Thư viện của tôi';
+            
+            const pathArr = folder ? getCategoryPath(TREE_DATA, id) : [];
+            const pathHtml = ['LIBRARY', ...pathArr.map(p => p.name.toUpperCase())]
+                .map((p, i) => `<span>${p}</span>${i < pathArr.length ? '<i class="bi bi-chevron-right" style="font-size: 0.6rem;"></i>' : ''}`)
+                .join('');
+            document.getElementById('pathText').innerHTML = pathHtml;
             
             document.getElementById('btnEditCat').style.display = id ? 'block' : 'none';
             document.getElementById('btnDeleteCat').style.display = id ? 'block' : 'none';
-            document.getElementById('btnCreateQuiz').href = `/student/quiz/create${id ? '?categoryId=' + id : ''}`;
+            
+            // Sync action button
+            const actionBtn = document.getElementById('mainActionBtn');
+            if (currentContext === 'quiz') {
+                actionBtn.innerHTML = `<a href="/student/quiz/create${id ? '?categoryId=' + id : ''}" id="btnCreateQuiz" class="btn-premium"><i class="bi bi-plus-lg"></i> Tạo đề thi</a>`;
+            } else {
+                actionBtn.innerHTML = `<button onclick="openEditorForCreate()" class="btn-premium" style="background: var(--accent-gradient); box-shadow: 0 10px 20px -8px rgba(16, 185, 129, 0.4);"><i class="bi bi-patch-plus"></i> Tạo câu hỏi</button>`;
+            }
 
             refreshContent();
         }
@@ -235,60 +381,106 @@
             currentContext = ctx;
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`tab-${ctx}`).classList.add('active');
+            
+            // Dynamic Action Button
+            const actionBtn = document.getElementById('mainActionBtn');
+            if (ctx === 'quiz') {
+                actionBtn.innerHTML = `<a href="/student/quiz/create${currentFolderId ? '?categoryId=' + currentFolderId : ''}" id="btnCreateQuiz" class="btn-premium"><i class="bi bi-plus-lg"></i> Tạo đề thi</a>`;
+            } else {
+                actionBtn.innerHTML = `<button onclick="openEditorForCreate()" class="btn-premium" style="background: var(--accent-gradient); box-shadow: 0 10px 20px -8px rgba(16, 185, 129, 0.4);"><i class="bi bi-patch-plus"></i> Tạo câu hỏi</button>`;
+            }
             refreshContent();
         }
 
         function refreshContent() {
             const container = document.getElementById('contentList');
+            let quizList = ALL_QUIZZES.filter(q => currentFolderId === null || q.categoryId === currentFolderId);
+            let questionList = ALL_QUESTIONS.filter(q => currentFolderId === null || q.categoryId === currentFolderId);
+
+            document.getElementById('statQuizCount').textContent = quizList.length;
+            document.getElementById('statQuestionCount').textContent = questionList.length;
+
             if (currentContext === 'quiz') {
-                const list = ALL_QUIZZES.filter(q => currentFolderId === null || q.categoryId === currentFolderId);
-                renderQuizGrid(list);
+                renderQuizGrid(quizList);
             } else {
-                const list = ALL_QUESTIONS.filter(q => currentFolderId === null || q.categoryId === currentFolderId);
-                renderQuestionList(list);
+                renderQuestionList(questionList);
             }
+        }
+
+        function getQuizCover(quizId) {
+            const index = (quizId.toString().charCodeAt(0) + quizId.toString().length) % COVERS.length;
+            return COVERS[index];
         }
 
         function renderQuizGrid(list) {
             const container = document.getElementById('contentList');
-            if (list.length === 0) { container.innerHTML = `<div class="empty-state"><i class="bi bi-inbox"></i>Chưa có đề thi nào.</div>`; return; }
+            if (list.length === 0) { 
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-journal-x"></i>
+                        <h3>Thư mục này chưa có đề thi</h3>
+                        <p>Hãy bắt đầu bằng cách tạo một đề thi mới hoặc di chuyển đề thi vào đây.</p>
+                        <a href="/student/quiz/create${currentFolderId ? '?categoryId=' + currentFolderId : ''}" class="btn btn-primary rounded-pill px-4 mt-3 fw-bold">Tạo đề ngay</a>
+                    </div>`; 
+                return; 
+            }
+
             container.innerHTML = `<div class="quiz-grid">` + list.map(q => `
                 <div class="up-card">
-                    <div class="up-card-banner">
+                    <div class="up-card-banner" style="background-image: url('${getQuizCover(q.id)}')">
+                        <div class="up-card-overlay"></div>
                         <span class="up-badge ${q.isExam ? 'badge-exam' : 'badge-quiz'}">${q.isExam ? 'Đề thi' : 'Luyện tập'}</span>
-                        <i class="bi ${q.isExam ? 'bi-mortarboard' : 'bi-journal-code'}"></i>
                     </div>
                     <div class="up-card-body">
                         <h3 class="up-q-title text-truncate" title="${esc(q.title)}">${esc(q.title)}</h3>
                         <div class="up-q-meta">
-                            <span><i class="bi bi-layers-fill me-1"></i> ${q.questionCount} câu</span>
-                            <span><i class="bi bi-folder2-open me-1"></i> ${esc(q.categoryName || 'Gốc')}</span>
+                            <span><i class="bi bi-list-check"></i> ${q.questionCount} câu</span>
+                            <span><i class="bi bi-clock"></i> ${q.durationInMins || 0} phút</span>
+                            <span><i class="bi bi-tag"></i> ${esc(q.categoryName || 'Mặc định')}</span>
                         </div>
                     </div>
                     <div class="up-card-actions">
-                        <button class="btn-play-up" onclick="startQuiz('${q.id}')">LÀM BÀI NGAY</button>
-                        <a href="/student/quiz/${q.id}/edit" class="btn-opt-up" title="Sửa"><i class="bi bi-pencil-fill"></i></a>
-                        <button class="btn-opt-up text-danger" title="Xóa" onclick="deleteQuiz('${q.id}')"><i class="bi bi-trash-fill"></i></button>
+                        <button class="btn-play-up" onclick="startQuiz('${q.id}')">BẮT ĐẦU</button>
+                        <a href="/student/quiz/${q.id}/edit" class="btn-opt-up" title="Sửa đề thi"><i class="bi bi-pencil"></i></a>
+                        <button class="btn-opt-up text-danger" title="Xóa đề thi" onclick="deleteQuiz('${q.id}')"><i class="bi bi-trash3"></i></button>
                     </div>
                 </div>
             `).join('') + `</div>`;
         }
 
+        const TYPE_MAP = { 'SINGLE_CHOICE': 'Trắc nghiệm', 'MULTIPLE_CHOICE': 'Chọn nhiều', 'FILL_IN_BLANK': 'Điền khuyết', 'ESSAY': 'Tự luận' };
+        const LEVEL_MAP = { 'EASY': 'Dễ', 'MEDIUM': 'Trung bình', 'HARD': 'Khó' };
+
         function renderQuestionList(list) {
             const container = document.getElementById('contentList');
-            if (list.length === 0) { container.innerHTML = `<div class="empty-state"><i class="bi bi-question-diamond"></i>Chưa có câu hỏi nào.</div>`; return; }
+            if (list.length === 0) { 
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-patch-question"></i>
+                        <h3>Chưa có câu hỏi nào</h3>
+                        <p>Bạn có thể tạo câu hỏi trực tiếp hoặc nhập từ file.</p>
+                    </div>`; 
+                return; 
+            }
+
             container.innerHTML = list.map(q => `
                 <div class="q-item-up">
-                    <div class="d-flex align-items-center gap-4 overflow-hidden">
-                        <div class="btn-icon bg-indigo-subtle border-0" style="width:50px; height:50px; border-radius:14px;"><i class="bi bi-chat-left-dots-fill text-indigo"></i></div>
+                    <div class="d-flex align-items-center gap-3 overflow-hidden">
+                        <div class="q-icon-box">
+                            <i class="bi ${q.type === 'FILL_IN_BLANK' ? 'bi-pencil-square' : 'bi-check2-circle'}"></i>
+                        </div>
                         <div class="text-truncate">
-                            <div class="fw-bold text-dark" style="font-size:1.1rem;">${esc(q.text)}</div>
-                            <div class="small text-muted fw-800 text-uppercase ls-1">${q.type} • ${q.level} • ${esc(q.categoryName || 'CHƯA PHÂN LOẠI')}</div>
+                            <div class="fw-bold text-dark mb-1" style="font-size:1.05rem;">${esc(q.text)}</div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="q-level-badge lvl-${(q.level || 'medium').toLowerCase()}">${LEVEL_MAP[q.level] || q.level}</span>
+                                <span class="small text-muted fw-700">• ${TYPE_MAP[q.type] || q.type}</span>
+                                <span class="small text-muted fw-700">• ${esc(q.categoryName || 'Chưa phân loại')}</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="d-flex gap-2">
-                        <button class="btn-icon" title="Sửa"><i class="bi bi-pencil-fill"></i></button>
-                        <button class="btn-icon text-danger" title="Xóa"><i class="bi bi-trash-fill"></i></button>
+                    <div class="d-flex gap-2 ms-3">
+                        <button class="btn-icon-sm" onclick="editQuestion('${q.id}')" title="Sửa câu hỏi"><i class="bi bi-pencil"></i></button>
+                        <button class="btn-icon-sm text-danger" onclick="deleteQuestion('${q.id}')" title="Xóa câu hỏi"><i class="bi bi-trash3-fill"></i></button>
                     </div>
                 </div>
             `).join('');
@@ -299,6 +491,18 @@
             document.getElementById('categoryCreateName').value = '';
             document.getElementById('categoryCreateDesc').value = '';
             document.getElementById('categoryCreateParentId').value = parentId || '';
+            document.getElementById('categoryCreateTitle').innerHTML = '<i class="bi bi-folder-plus me-2"></i>Tạo danh mục mới';
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryCreateModal')).show();
+        }
+
+        function openEditModal() {
+            const folder = findCategory(TREE_DATA, currentFolderId);
+            if (!folder) return;
+            document.getElementById('categoryCreateId').value = folder.id;
+            document.getElementById('categoryCreateName').value = folder.name;
+            document.getElementById('categoryCreateDesc').value = folder.description || '';
+            document.getElementById('categoryCreateParentId').value = folder.parentId || '';
+            document.getElementById('categoryCreateTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Sửa danh mục';
             bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryCreateModal')).show();
         }
 
@@ -310,11 +514,31 @@
             const method = id ? 'PUT' : 'POST';
             const url = id ? `/api/student/categories/${id}` : '/api/student/categories';
             try {
-                const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, body: JSON.stringify(payload) });
+                const res = await fetch(url, { 
+                    method, 
+                    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, 
+                    body: JSON.stringify(payload) 
+                });
                 if (res.ok) {
                     bootstrap.Modal.getInstance(document.getElementById('categoryCreateModal')).hide();
                     await loadData();
+                    renderSidebarTree();
                     loadFolder(currentFolderId);
+                }
+            } catch (e) { console.error("Lỗi khi lưu danh mục:", e); }
+        }
+
+        async function deleteFolder() {
+            if (!currentFolderId) return;
+            if (!confirm('Xác nhận xóa danh mục này? Tất cả danh mục con sẽ bị ảnh hưởng.')) return;
+            try {
+                const res = await fetch(`/api/student/categories/${currentFolderId}`, { 
+                    method: 'DELETE', 
+                    headers: { Authorization: 'Bearer ' + token } 
+                });
+                if (res.ok) {
+                    await loadData();
+                    loadFolder(null);
                 }
             } catch (e) { }
         }
@@ -330,6 +554,17 @@
             return null;
         }
 
+        function getCategoryPath(nodes, id, path = []) {
+            for (const n of nodes) {
+                if (n.id === id) return [...path, n];
+                if (n.children) {
+                    const found = getCategoryPath(n.children, id, [...path, n]);
+                    if (found.length > path.length + 1) return found;
+                }
+            }
+            return path;
+        }
+
         function startQuiz(id) {
             fetch(`/api/student/quiz/start-personal?quizId=${id}`, { headers: { Authorization: 'Bearer ' + token } })
                 .then(res => res.json())
@@ -337,15 +572,29 @@
         }
 
         async function deleteQuiz(id) {
-            if (!confirm('Xác nhận xóa đề thi?')) return;
+            if (!confirm('Xác nhận xóa đề thi này khỏi kho?')) return;
             try {
                 const res = await fetch(`/api/student/quiz/${id}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
                 if (res.ok) { await loadData(); refreshContent(); }
             } catch (e) { }
         }
 
+        function editQuestion(id) {
+            openEditorForEdit(id);
+        }
+
+        async function deleteQuestion(id) {
+            if (!confirm('Xác nhận xóa câu hỏi này?')) return;
+            try {
+                const res = await fetch(`/api/student/questions/${id}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
+                if (res.ok) { await loadData(); refreshContent(); }
+            } catch (e) { }
+        }
+
         function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
     </script>
+    <th:block th:replace="~{fragments/question-editor :: question-editor-js}"></th:block>
+
 </body>
 
 </html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+
+    <!-- Fragment: Question Editor Modal (Create/Edit) -->
+    <div th:fragment="question-editor-modal" class="modal fade" id="questionEditorModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content" style="border-radius: 24px; border: none; box-shadow: 0 20px 50px rgba(0,0,0,0.1);">
+                <div class="modal-header border-0 px-4 pt-4">
+                    <h5 class="fw-bold fs-4" id="questionEditorTitle">
+                        <i class="bi bi-patch-plus-fill text-primary me-2"></i>Tạo câu hỏi mới
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4">
+                    <form id="questionEditorForm" onsubmit="event.preventDefault(); saveQuestionFromEditor();">
+                        <input type="hidden" id="editor-q-id">
+                        
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-muted mb-2">NỘI DUNG CÂU HỎI <span class="text-danger">*</span></label>
+                            <textarea id="editor-q-text" class="form-control" rows="3" required 
+                                style="border-radius: 16px; border: 1.5px solid #e2e8f0; padding: 15px; font-weight: 500;"
+                                placeholder="Nhập câu hỏi của bạn tại đây..."></textarea>
+                        </div>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-muted mb-2">LOẠI CÂU HỎI <span class="text-danger">*</span></label>
+                                <select id="editor-q-type" class="form-select" onchange="toggleEditorAnswersUI()" required
+                                    style="border-radius: 12px; border: 1.5px solid #e2e8f0; padding: 11px 14px; font-weight: 600;">
+                                    <option value="SINGLE_CHOICE" selected>Một đáp án đúng (Trắc nghiệm)</option>
+                                    <option value="MULTIPLE_CHOICE">Nhiều đáp án đúng</option>
+                                    <option value="FILL_IN_BLANK">Điền khuyết (Tự luận ngắn)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-muted mb-2">MỨC ĐỘ <span class="text-danger">*</span></label>
+                                <select id="editor-q-level" class="form-select"
+                                    style="border-radius: 12px; border: 1.5px solid #e2e8f0; padding: 11px 14px; font-weight: 600;">
+                                    <option value="EASY" selected>Dễ</option>
+                                    <option value="MEDIUM">Trung bình</option>
+                                    <option value="HARD">Khó</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label fw-bold small text-muted mb-0">DANH SÁCH ĐÁP ÁN <span class="text-danger">*</span></label>
+                                <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold" onclick="addEditorAnswerRow()">
+                                    <i class="bi bi-plus-lg me-1"></i> Thêm đáp án
+                                </button>
+                            </div>
+                            <div id="editor-answers-wrapper" class="d-flex flex-column gap-2">
+                                <!-- Answers will be rendered here -->
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light px-4 py-2 fw-bold rounded-3" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="button" class="btn btn-primary px-5 py-2 fw-bold rounded-3" onclick="saveQuestionFromEditor()"
+                        style="background: linear-gradient(135deg, #4f46e5, #4338ca); border: none; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);">
+                        Lưu câu hỏi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script for Question Editor logic -->
+    <th:block th:fragment="question-editor-js">
+        <script>
+            function toggleEditorAnswersUI() {
+                const type = document.getElementById('editor-q-type').value;
+                const wrapper = document.getElementById('editor-answers-wrapper');
+                if (type === 'FILL_IN_BLANK') {
+                    // For Fill in Blank, we usually only need one "correct" answer or a list of acceptable ones
+                    // If current rows are more than 1, we might want to warn or just keep them.
+                }
+                document.querySelectorAll('.editor-ans-correct').forEach(el => {
+                    el.type = type === 'MULTIPLE_CHOICE' ? 'checkbox' : 'radio';
+                    el.style.display = type === 'FILL_IN_BLANK' ? 'none' : 'block';
+                });
+            }
+
+            function addEditorAnswerRow(text = '', isCorrect = false) {
+                const wrapper = document.getElementById('editor-answers-wrapper');
+                const type = document.getElementById('editor-q-type').value;
+                const row = document.createElement('div');
+                row.className = 'd-flex align-items-center gap-3 p-2 rounded-3 border editor-ans-row transition-all';
+                row.style.background = '#f8fafc';
+                
+                row.innerHTML = `
+                    <div class="form-check m-0">
+                        <input class="form-check-input editor-ans-correct" type="${type === 'MULTIPLE_CHOICE' ? 'checkbox' : 'radio'}" 
+                            name="editorAns" ${isCorrect ? 'checked' : ''} style="width: 22px; height: 22px; cursor: pointer; ${type === 'FILL_IN_BLANK' ? 'display:none' : ''}">
+                    </div>
+                    <input type="text" class="form-control border-0 bg-transparent fw-500 editor-ans-text" 
+                        value="${esc(text)}" placeholder="${type === 'FILL_IN_BLANK' ? 'Đáp án đúng...' : 'Nội dung đáp án...'}" required>
+                    <button type="button" class="btn btn-sm text-danger border-0 bg-transparent" onclick="this.closest('.editor-ans-row').remove()">
+                        <i class="bi bi-trash-fill fs-5"></i>
+                    </button>
+                `;
+                wrapper.appendChild(row);
+                // Simple focus
+                if (!text) row.querySelector('.editor-ans-text').focus();
+            }
+
+            async function saveQuestionFromEditor() {
+                const id = document.getElementById('editor-q-id').value;
+                const text = document.getElementById('editor-q-text').value.trim();
+                const type = document.getElementById('editor-q-type').value;
+                const level = document.getElementById('editor-q-level').value;
+                
+                // For library page, we need currentFolderId. For quiz create, we might need a different cat.
+                // We'll assume the page defines 'targetCategoryId' or similar.
+                const categoryId = (typeof currentFolderId !== 'undefined' ? currentFolderId : (document.getElementById('quiz-category') ? document.getElementById('quiz-category').value : null));
+                
+                if (!text || !categoryId) {
+                    if (typeof showToast === 'function') showToast('Vui lòng nhập nội dung và chọn danh mục!', 'err');
+                    else alert('Vui lòng nhập nội dung và chọn danh mục!');
+                    return;
+                }
+
+                const answers = [];
+                const rows = document.querySelectorAll('.editor-ans-row');
+                if (rows.length === 0) {
+                    alert('Hãy thêm ít nhất một đáp án!');
+                    return;
+                }
+
+                rows.forEach(row => {
+                    const aText = row.querySelector('.editor-ans-text').value.trim();
+                    const aCorrect = type === 'FILL_IN_BLANK' ? true : row.querySelector('.editor-ans-correct').checked;
+                    if (aText) answers.push({ text: aText, isCorrect: aCorrect });
+                });
+
+                if (type !== 'FILL_IN_BLANK' && !answers.some(a => a.isCorrect)) {
+                    alert('Hãy chọn ít nhất một đáp án đúng!');
+                    return;
+                }
+
+                const payload = { categoryId: parseInt(categoryId), text, type, level, answers };
+                const method = id ? 'PUT' : 'POST';
+                const url = id ? `/api/student/questions/${id}` : '/api/student/questions';
+
+                try {
+                    const res = await fetch(url, {
+                        method,
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                        body: JSON.stringify(payload)
+                    });
+                    if (res.ok) {
+                        const savedQ = await res.json();
+                        bootstrap.Modal.getInstance(document.getElementById('questionEditorModal')).hide();
+                        if (typeof refreshContent === 'function') {
+                            // If we are in library, reload data
+                            await loadData();
+                            refreshContent();
+                        } else if (typeof onQuestionSaved === 'function') {
+                            onQuestionSaved(savedQ, !!id);
+                        }
+                        if (typeof showToast === 'function') showToast(id ? 'Cập nhật câu hỏi thành công!' : 'Đã tạo câu hỏi mới!');
+                    } else {
+                        const err = await res.json();
+                        alert(err.message || 'Lỗi khi lưu câu hỏi');
+                    }
+                } catch (e) { console.error(e); alert('Lỗi kết nối!'); }
+            }
+
+            function openEditorForCreate() {
+                document.getElementById('editor-q-id').value = '';
+                document.getElementById('editor-q-text').value = '';
+                document.getElementById('editor-q-type').value = 'SINGLE_CHOICE';
+                document.getElementById('editor-q-level').value = 'MEDIUM';
+                document.getElementById('editor-answers-wrapper').innerHTML = '';
+                document.getElementById('questionEditorTitle').innerHTML = '<i class="bi bi-patch-plus-fill text-primary me-2"></i>Tạo câu hỏi mới';
+                addEditorAnswerRow('', false);
+                addEditorAnswerRow('', false);
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('questionEditorModal')).show();
+            }
+
+            async function openEditorForEdit(id) {
+                try {
+                    const res = await fetch(`/api/student/questions/${id}`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        const q = await res.json();
+                        document.getElementById('editor-q-id').value = q.id;
+                        document.getElementById('editor-q-text').value = q.text;
+                        document.getElementById('editor-q-type').value = q.type;
+                        document.getElementById('editor-q-level').value = q.level;
+                        document.getElementById('questionEditorTitle').innerHTML = '<i class="bi bi-pencil-square text-primary me-2"></i>Chỉnh sửa câu hỏi';
+                        
+                        const wrapper = document.getElementById('editor-answers-wrapper');
+                        wrapper.innerHTML = '';
+                        if (q.answers && q.answers.length > 0) {
+                            q.answers.forEach(a => addEditorAnswerRow(a.text, a.isCorrect));
+                        } else {
+                            addEditorAnswerRow('', false);
+                        }
+                        toggleEditorAnswersUI();
+                        bootstrap.Modal.getOrCreateInstance(document.getElementById('questionEditorModal')).show();
+                    }
+                } catch (e) { console.error(e); }
+            }
+        </script>
+    </th:block>
+
+</body>
+</html>

@@ -13,440 +13,68 @@
     <style>
         body { background: #f8fafc; font-family: 'Inter', sans-serif; color: #334155; }
         .page-title { font-family: 'Nunito Sans', sans-serif; font-weight: 900; font-size: 1.75rem; color: #1e1b4b; margin: 0; }
-        .card-panel { background: #fff; border-radius: 20px; border: 1px solid #e2e8f0; padding: 24px; box-shadow: 0 4px 25px rgba(0, 0, 0, 0.03); height: 100%; display: flex; flex-direction: column; }
+        .card-panel { background: #fff; border-radius: 20px; border: 1px solid #e2e8f0; padding: 24px; box-shadow: 0 4px 25px rgba(0, 0, 0, 0.03); }
         .fc { border-radius: 12px; border: 1.5px solid #e2e8f0; padding: 11px 14px; font-size: 0.92rem; font-weight: 500; width: 100%; transition: all 0.2s ease; }
         .fc:focus { border-color: #4f46e5; outline: none; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
-        .question-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; margin-bottom: 12px; transition: all 0.22s; cursor: pointer; position: relative; }
-        .question-card:hover { border-color: #a5b4fc; background: #fcfdff; transform: translateY(-2px); }
-        .question-card.selected { border-color: #4f46e5; background: #eff6ff; box-shadow: 0 4px 15px rgba(67, 56, 202, 0.08); }
-        .qbadge { font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase; }
+        .question-card { border: 1.5px solid #f1f5f9; border-radius: 18px; transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; background: #fff; }
+        .question-card:hover { border-color: #c7d2fe; transform: translateY(-3px); box-shadow: 0 10px 20px rgba(79, 70, 229, 0.08); }
+        .question-card.selected { border-color: #4f46e5; background: #f5f7ff; box-shadow: 0 8px 25px rgba(79, 70, 229, 0.12); }
+        .qbadge { font-size: 0.7rem; font-weight: 800; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; }
         .qbadge-type { background: #e0e7ff; color: #4338ca; }
-        .qbadge-level { background: #ede9fe; color: #7c3aed; }
-        .right-scroller { max-height: 520px; overflow-y: auto; padding-right: 4px; }
-        .btn-submit-quiz { background: linear-gradient(135deg, #4f46e5, #4338ca); color: #fff; border: none; border-radius: 12px; padding: 10px 24px; font-weight: 700; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25); transition: all 0.2s ease; }
-        .btn-submit-quiz:hover { opacity: 0.92; transform: translateY(-1px); box-shadow: 0 6px 18px rgba(79, 70, 229, 0.35); }
-        #toastWrap { position: fixed; top: 22px; right: 22px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
-        .toast-msg { background: #1e1b4b; color: #fff; border-radius: 14px; padding: 12px 18px; font-weight: 600; font-size: 0.88rem; display: flex; align-items: center; gap: 9px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18); opacity: 0; transform: translateX(16px); transition: all 0.3s ease; }
-        .toast-msg.show { opacity: 1; transform: translateX(0); }
+        .qbadge-level { background: #f1f5f9; color: #64748b; }
+        .right-scroller::-webkit-scrollbar { width: 6px; }
+        .right-scroller::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .btn-submit-quiz { background: linear-gradient(135deg, #4f46e5, #4338ca); color: #fff; border: none; border-radius: 14px; padding: 12px 30px; font-weight: 800; box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3); transition: all 0.3s ease; }
+        .btn-submit-quiz:hover { transform: translateY(-2px); box-shadow: 0 12px 25px rgba(79, 70, 229, 0.4); opacity: 0.95; }
+        #toastWrap { position: fixed; top: 22px; right: 22px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast-msg { background: #1e1b4b; color: #fff; border-radius: 16px; padding: 14px 22px; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 12px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2); opacity: 0; transform: translateY(-20px); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .toast-msg.show { opacity: 1; transform: translateY(0); }
+        .toast-msg.err { border-left: 4px solid #ef4444; }
+        .toast-msg.ok { border-left: 4px solid #10b981; }
         .category-selectable-name:hover { color: #4338ca !important; text-decoration: underline; cursor: pointer; }
+        .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     </style>
 </head>
 
 <body>
     <header th:replace="~{layout/header :: student-header(activePage='myqbank')}"></header>
 
-    <main id="main-content" class="container" style="padding-top: 100px; padding-bottom: 50px;">
+    <main id="main-content" class="container" style="padding-top: 100px; padding-bottom: 80px;">
+        <!-- Hidden inputs for logic -->
         <input type="hidden" id="quizIdInput" th:value="${quizId}">
         <input type="hidden" id="categoryIdInput" th:value="${categoryId}">
 
-        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <div class="d-flex justify-content-between align-items-center mb-5 flex-wrap gap-3">
             <div>
-                <h1 class="page-title"><i class="bi bi-file-earmark-plus-fill me-2" style="color: #4338ca;"></i>Soạn Đề Thi</h1>
-                <p class="text-muted small">Tạo lộ trình ôn tập cá nhân chuyên nghiệp.</p>
+                <h1 class="page-title"><i class="bi bi-magic me-2 text-indigo"></i>Soạn Đề Thi Cá Nhân</h1>
+                <p class="text-muted small fw-medium">Tự do sáng tạo lộ trình học tập của riêng bạn.</p>
             </div>
-            <div class="d-flex gap-2">
-                <a href="/student/categories/mine" class="btn btn-light fw-bold rounded-4 px-4 border"><i class="bi bi-arrow-left"></i> Trở về</a>
-                <button type="button" class="btn btn-submit-quiz" onclick="saveQuiz()"><i class="bi bi-floppy-fill me-1"></i> Lưu Đề Thi</button>
+            <div class="d-flex gap-3">
+                <a href="/student/categories?type=mine" class="btn btn-light fw-bold rounded-4 px-4 border-0 shadow-sm" style="background: #fff; color: #64748b;">
+                    <i class="bi bi-chevron-left me-1"></i> Quay lại
+                </a>
+                <button type="button" class="btn btn-submit-quiz" onclick="saveQuiz()">
+                    <i class="bi bi-cloud-arrow-up-fill me-2"></i> Lưu Đề Thi
+                </button>
             </div>
         </div>
 
-        <div class="row g-4">
-            <!-- Left: Metadata Panel -->
-            <div class="col-lg-5">
-                <div class="card-panel">
-                    <h5 class="fw-bold mb-3" style="color: #1e1b4b;"><i class="bi bi-info-circle-fill me-1 text-primary"></i> 1. Thông tin Đề thi</h5>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold mb-1">Tiêu đề đề thi <span class="text-danger">*</span></label>
-                        <input type="text" id="quiz-title" class="fc" placeholder="Ví dụ: Ôn tập môn Toán chương 1" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold mb-1">Mô tả đề thi</label>
-                        <textarea id="quiz-desc" class="fc" rows="3" placeholder="Ghi chú nội dung đề thi..."></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold mb-1">Danh mục lưu trữ <span class="text-danger">*</span></label>
-                        <div class="input-group">
-                            <input type="text" id="quiz-category-display" class="form-control fc bg-white cursor-pointer" placeholder="Chọn danh mục..." readonly onclick="openCategoryTreePicker('quiz')" style="border-radius:12px 0 0 12px;">
-                            <button type="button" class="btn btn-outline-secondary" onclick="openCategoryTreePicker('quiz')" style="border-radius: 0 12px 12px 0;"><i class="bi bi-folder-fill"></i></button>
-                        </div>
-                        <input type="hidden" id="quiz-category">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold mb-1">Ảnh đại diện (URL)</label>
-                        <input type="text" id="quiz-image" class="fc" placeholder="https://example.com/image.jpg">
-                    </div>
-                    <div class="row g-2">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold mb-1">Loại bài tập</label>
-                            <select id="quiz-isExam" class="form-select fc">
-                                <option value="false" selected>Quiz luyện tập</option>
-                                <option value="true">Đề thi (Exam)</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label small fw-bold mb-1">Trạng thái</label>
-                            <select id="quiz-isDraft" class="form-select fc">
-                                <option value="false" selected>Xuất bản</option>
-                                <option value="true">Bản nháp</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Right: Question Selection Panel -->
-            <div class="col-lg-7">
-                <div th:replace="~{fragments/quiz-editor :: question-selection-panel}"></div>
-            </div>
-        </div>
+        <!-- Injecting the Unified Quiz Editor UI -->
+        <div th:replace="~{fragments/quiz-editor :: quiz-editor-ui(userType='student')}"></div>
     </main>
 
     <!-- Modals -->
+    <div th:replace="~{fragments/quiz-editor :: quiz-editor-modals}"></div>
     <div th:replace="~{fragments/category-explorer-public :: category-explorer-public-modal}"></div>
     <div th:replace="~{fragments/category-explorer-private :: category-explorer-private-modal}"></div>
     <div th:replace="~{fragments/category-explorer-private :: category-create-modal}"></div>
 
-    <div class="modal fade" id="createOnTheFlyQuestionModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 24px;">
-                <div class="modal-header border-0 px-4 pt-4">
-                    <h5 class="fw-bold"><i class="bi bi-patch-plus me-2"></i>Tạo câu hỏi trực tiếp</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body px-4">
-                    <form id="flyQuestionForm">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small text-muted">Nội dung câu hỏi *</label>
-                            <textarea id="fly-text" class="fc" rows="3" required placeholder="Nhập câu hỏi..."></textarea>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small text-muted">Loại câu hỏi *</label>
-                                <select id="fly-type" class="fc" onchange="toggleFlyAnswersUI()" required>
-                                    <option value="SINGLE_CHOICE" selected>Một đáp án</option>
-                                    <option value="MULTIPLE_CHOICE">Nhiều đáp án</option>
-                                    <option value="FILL_IN_BLANK">Điền khuyết</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small text-muted">Mức độ *</label>
-                                <select id="fly-level" class="fc">
-                                    <option value="EASY" selected>Dễ</option>
-                                    <option value="MEDIUM">Trung bình</option>
-                                    <option value="HARD">Khó</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between mb-2">
-                                <label class="form-label fw-bold small text-muted">Đáp án *</label>
-                                <button type="button" class="btn btn-sm btn-link fw-bold text-decoration-none" onclick="addFlyAnswerRow()"><i class="bi bi-plus-lg"></i> Thêm đáp án</button>
-                            </div>
-                            <div id="fly-answers-wrapper"></div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer border-0 px-4 pb-4">
-                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-primary px-4 fw-bold" onclick="saveFlyQuestion()">Lưu câu hỏi</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div id="toastWrap"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        const quizId = document.getElementById('quizIdInput').value;
-        const initialCategoryId = document.getElementById('categoryIdInput').value;
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-
-        let myCategories = [];
-        let publicCategories = [];
-        let questionsList = [];
-        let selectedQuestionIds = new Set();
-        let categorySelectTarget = 'quiz';
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            await fetchCategories();
-            if (quizId) {
-                await fetchQuizToEdit();
-            } else if (initialCategoryId) {
-                const matched = findCategoryById(myCategories, parseInt(initialCategoryId));
-                if (matched) {
-                    document.getElementById('quiz-category').value = matched.id;
-                    document.getElementById('quiz-category-display').value = matched.name;
-                }
-                loadQuestions();
-            } else {
-                loadQuestions();
-            }
-        });
-
-        async function fetchCategories() {
-            try {
-                const [m, p] = await Promise.all([
-                    fetch('/api/student/categories/mine', { headers: { Authorization: `Bearer ${token}` } }),
-                    fetch('/api/student/categories/public', { headers: { Authorization: `Bearer ${token}` } })
-                ]);
-                myCategories = await m.json();
-                publicCategories = await p.json();
-            } catch (e) {}
-        }
-
-        async function fetchQuizToEdit() {
-            if (!quizId) return;
-            try {
-                const res = await fetch(`/api/student/quiz/${quizId}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    const q = await res.json();
-                    document.getElementById('quiz-title').value = q.title || '';
-                    document.getElementById('quiz-desc').value = q.description || '';
-                    document.getElementById('quiz-image').value = q.imageUrl || '';
-                    document.getElementById('quiz-isExam').value = String(q.isExam);
-                    document.getElementById('quiz-isDraft').value = String(q.isDraft);
-                    if (q.category) {
-                        document.getElementById('quiz-category').value = q.category.id;
-                        document.getElementById('quiz-category-display').value = q.category.name;
-                    }
-                    if (q.questionIds) q.questionIds.forEach(id => selectedQuestionIds.add(id));
-                    updateSelectedCount();
-                    loadQuestions();
-                }
-            } catch (e) {}
-        }
-
-        async function loadQuestions() {
-            const search = document.getElementById('q-search').value;
-            const source = document.getElementById('q-source').value;
-            const type = document.getElementById('q-type').value;
-            const catId = document.getElementById('q-category-filter').value;
-            
-            const url = `/api/student/questions?keyword=${encodeURIComponent(search)}&type=${type}&isPublicTab=${source === 'public'}${catId ? '&categoryId=' + catId : ''}&size=150`;
-            const wrapper = document.getElementById('questions-wrapper');
-            wrapper.innerHTML = '<div class="text-center py-4"><span class="spinner-border spinner-border-sm text-primary"></span></div>';
-            try {
-                const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
-                const data = await res.json();
-                questionsList = data.content || [];
-                filterLocalQuestions();
-            } catch (e) { wrapper.innerHTML = 'Lỗi tải câu hỏi'; }
-        }
-
-        function filterLocalQuestions() {
-            const level = document.getElementById('q-level').value;
-            const filtered = questionsList.filter(q => {
-                if (level && q.level !== level) return false;
-                return true;
-            });
-            renderQuestions(filtered);
-        }
-
-        function renderQuestions(list = questionsList) {
-            const wrapper = document.getElementById('questions-wrapper');
-            if (list.length === 0) { wrapper.innerHTML = '<p class="text-center py-4 text-muted small">Không tìm thấy câu hỏi nào.</p>'; return; }
-            wrapper.innerHTML = list.map(q => {
-                const isSelected = selectedQuestionIds.has(q.id);
-                return `<div class="question-card ${isSelected ? 'selected' : ''}" onclick="toggleQuestionSelection(${q.id})">
-                    <div class="d-flex align-items-center gap-3">
-                        <input type="checkbox" class="form-check-input" ${isSelected ? 'checked' : ''} style="pointer-events:none; width:22px; height:22px;">
-                        <div>
-                            <div class="d-flex gap-2 mb-1">
-                                <span class="qbadge qbadge-type">${q.type === 'SINGLE_CHOICE' ? '1 đáp án' : (q.type === 'MULTIPLE_CHOICE' ? 'Nhiều đáp án' : 'Điền khuyết')}</span>
-                                <span class="qbadge qbadge-level">${q.level === 'EASY' ? 'Dễ' : (q.level === 'MEDIUM' ? 'Trung bình' : 'Khó')}</span>
-                            </div>
-                            <div class="fw-bold small text-dark">${esc(q.text)}</div>
-                        </div>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        function toggleQuestionSelection(id) {
-            if (selectedQuestionIds.has(id)) selectedQuestionIds.delete(id);
-            else selectedQuestionIds.add(id);
-            updateSelectedCount();
-            renderQuestions();
-        }
-
-        function updateSelectedCount() {
-            document.getElementById('selected-count').textContent = `Đã chọn ${selectedQuestionIds.size} câu hỏi`;
-        }
-
-        async function saveQuiz() {
-            const title = document.getElementById('quiz-title').value.trim();
-            const categoryId = document.getElementById('quiz-category').value;
-            if (!title || !categoryId) { showToast('Nhập tiêu đề và chọn danh mục!', 'err'); return; }
-            if (selectedQuestionIds.size === 0) { showToast('Hãy chọn ít nhất 1 câu hỏi!', 'err'); return; }
-
-            const payload = {
-                title,
-                description: document.getElementById('quiz-desc').value.trim(),
-                imageUrl: document.getElementById('quiz-image').value.trim(),
-                categoryId: parseInt(categoryId),
-                isExam: document.getElementById('quiz-isExam').value === 'true',
-                isDraft: document.getElementById('quiz-isDraft').value === 'true',
-                questionIds: Array.from(selectedQuestionIds)
-            };
-
-            const method = quizId ? 'PUT' : 'POST';
-            const url = quizId ? `/api/student/quiz/${quizId}` : '/api/student/quiz';
-
-            try {
-                const res = await fetch(url, {
-                    method,
-                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                    body: JSON.stringify(payload)
-                });
-                if (res.ok) {
-                    showToast(quizId ? 'Cập nhật thành công!' : 'Lưu đề thi thành công!');
-                    setTimeout(() => window.location.href = '/student/categories/mine', 1000);
-                } else {
-                    const err = await res.json();
-                    showToast(err.message || 'Lỗi lưu đề thi', 'err');
-                }
-            } catch (e) { showToast('Lỗi kết nối!', 'err'); }
-        }
-
-        function openCategoryTreePicker(target) {
-            categorySelectTarget = target;
-            if (target === 'quiz') {
-                const container = document.getElementById('private-category-tree-container');
-                if (container) {
-                    container.innerHTML = renderTreeNodes(myCategories, 'mine');
-                    bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerPrivateModal')).show();
-                }
-            } else {
-                // For filter, use modal based on current source
-                const source = document.getElementById('q-source').value;
-                if (source === 'public') {
-                    const pubContainer = document.getElementById('public-category-tree-container');
-                    if (pubContainer) {
-                        pubContainer.innerHTML = renderTreeNodes(publicCategories, 'public');
-                        bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerPublicModal')).show();
-                    }
-                } else {
-                    const myContainer = document.getElementById('private-category-tree-container');
-                    if (myContainer) {
-                        myContainer.innerHTML = renderTreeNodes(myCategories, 'mine');
-                        bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerPrivateModal')).show();
-                    }
-                }
-            }
-        }
-
-        function renderTreeNodes(nodes, source) {
-            if (!nodes || nodes.length === 0) return '<p class="text-center text-muted small py-3">Trống</p>';
-            return `<ul class="list-unstyled ps-3">${nodes.map(n => `
-                <li class="mb-2">
-                    <span class="category-selectable-name text-dark fw-bold small" onclick="selectCategoryFromTree(${n.id}, '${esc(n.name)}', '${source}')">
-                        <i class="bi bi-folder-fill text-warning me-1"></i> ${esc(n.name)}
-                    </span>
-                    ${n.children ? renderTreeNodes(n.children, source) : ''}
-                </li>
-            `).join('')}</ul>`;
-        }
-
-        function selectCategoryFromTree(id, name, source) {
-            if (categorySelectTarget === 'quiz') {
-                document.getElementById('quiz-category').value = id;
-                document.getElementById('quiz-category-display').value = name;
-                bootstrap.Modal.getInstance(document.getElementById('categoryExplorerPrivateModal')).hide();
-            } else {
-                document.getElementById('q-category-filter').value = id;
-                document.getElementById('q-category-filter-display').value = name;
-                document.getElementById('q-source').value = source; // Auto set source
-                const modalIds = ['categoryExplorerModal', 'categoryExplorerPrivateModal', 'categoryExplorerPublicModal'];
-                modalIds.forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) {
-                        const m = bootstrap.Modal.getInstance(el);
-                        if (m) m.hide();
-                    }
-                });
-                loadQuestions();
-            }
-        }
-
-        function clearCategoryFilterSelection() {
-            document.getElementById('q-category-filter').value = '';
-            document.getElementById('q-category-filter-display').value = 'Lọc theo danh mục...';
-            loadQuestions();
-        }
-
-        let flyAnsCounter = 0;
-        function toggleFlyAnswersUI() {
-            const type = document.getElementById('fly-type').value;
-            const wrapper = document.getElementById('fly-answers-wrapper');
-            if (type === 'FILL_IN_BLANK') { wrapper.innerHTML = ''; addFlyAnswerRow('', true); }
-            document.querySelectorAll('.fly-ans-correct').forEach(el => el.style.display = type === 'FILL_IN_BLANK' ? 'none' : 'block');
-        }
-
-        function addFlyAnswerRow(text = '', isCorrect = false) {
-            const wrapper = document.getElementById('fly-answers-wrapper');
-            const type = document.getElementById('fly-type').value;
-            const row = document.createElement('div');
-            row.className = 'd-flex align-items-center gap-2 mb-2 fly-ans-row';
-            row.innerHTML = `
-                <input class="form-check-input fly-ans-correct" type="${type === 'MULTIPLE_CHOICE' ? 'checkbox' : 'radio'}" name="flyAns" ${isCorrect ? 'checked' : ''}>
-                <input type="text" class="form-control rounded-3 fly-ans-text" value="${text}" placeholder="${type === 'FILL_IN_BLANK' ? 'Đáp án đúng...' : 'Nội dung...'}" required>
-                <button type="button" class="btn btn-sm text-danger" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
-            `;
-            wrapper.appendChild(row);
-        }
-
-        async function saveFlyQuestion() {
-            const text = document.getElementById('fly-text').value.trim();
-            const type = document.getElementById('fly-type').value;
-            const catId = document.getElementById('quiz-category').value;
-            if (!text || !catId) { showToast('Nhập nội dung và chọn danh mục trước!', 'err'); return; }
-            const answers = [];
-            document.querySelectorAll('.fly-ans-row').forEach(row => {
-                const aText = row.querySelector('.fly-ans-text').value.trim();
-                const aCorrect = type === 'FILL_IN_BLANK' ? true : row.querySelector('.fly-ans-correct').checked;
-                if (aText) answers.push({ text: aText, isCorrect: aCorrect });
-            });
-            const payload = { categoryId: parseInt(catId), text, type, level: document.getElementById('fly-level').value, answers };
-            try {
-                const res = await fetch('/api/student/questions', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                    body: JSON.stringify(payload)
-                });
-                if (res.ok) {
-                    const newQ = await res.json();
-                    questionsList.unshift(newQ); selectedQuestionIds.add(newQ.id);
-                    updateSelectedCount(); renderQuestions();
-                    bootstrap.Modal.getInstance(document.getElementById('createOnTheFlyQuestionModal')).hide();
-                }
-            } catch (e) { showToast('Lỗi tạo câu hỏi!', 'err'); }
-        }
-
-        function findCategoryById(nodes, id) {
-            for (let n of nodes) {
-                if (n.id === id) return n;
-                if (n.children) {
-                    const c = findCategoryById(n.children, id);
-                    if (c) return c;
-                }
-            }
-            return null;
-        }
-
-        function showToast(msg, type = 'ok') {
-            const w = document.getElementById('toastWrap');
-            const t = document.createElement('div');
-            t.className = `toast-msg show ${type}`;
-            t.innerHTML = `<i class="bi ${type === 'ok' ? 'bi-check-circle' : 'bi-x-circle'}"></i> ${msg}`;
-            w.appendChild(t);
-            setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3000);
-        }
-
-        function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
-    </script>
+    
+    <!-- Injecting the Unified Quiz Editor Logic -->
+    <div th:replace="~{fragments/quiz-editor :: quiz-editor-scripts(userType='student')}"></div>
 </body>
 
 </html>
