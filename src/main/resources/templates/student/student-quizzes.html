@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizHub | Kho bài thi của tôi</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito+Sans:wght@700;800;900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/student.css}">
+
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.3);
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+            --accent-gradient: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
+        }
+
+        body {
+            background-color: #f8fafc;
+            min-height: 100vh;
+        }
+
+        /* ─── Hero Section ─── */
+        .quizzes-hero {
+            background: linear-gradient(140deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+            border-radius: 32px;
+            padding: 60px 48px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 40px;
+            box-shadow: 0 20px 40px rgba(49, 46, 129, 0.15);
+        }
+
+        .hero-pattern {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            opacity: 0.5;
+        }
+
+        .hero-blob {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.2), transparent 70%);
+            border-radius: 50%;
+            filter: blur(60px);
+            z-index: 0;
+        }
+
+        .hero-title {
+            font-family: 'Nunito Sans', sans-serif;
+            font-weight: 900;
+            font-size: 3rem;
+            letter-spacing: -1.5px;
+        }
+
+        /* ─── Filter Bar ─── */
+        .filter-bar {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 12px;
+            display: flex;
+            gap: 12px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+            position: sticky;
+            top: 100px;
+            z-index: 100;
+        }
+
+        .search-input-wrap {
+            position: relative;
+            flex-grow: 1;
+        }
+
+        .search-input-wrap i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 1.2rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 12px 12px 48px;
+            border-radius: 14px;
+            border: 2px solid transparent;
+            background: #fff;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .classroom-select-wrap {
+            min-width: 200px;
+        }
+
+        .classroom-select {
+            width: 100%;
+            padding: 12px 20px;
+            border-radius: 14px;
+            border: 2px solid transparent;
+            background: #fff;
+            font-weight: 600;
+            appearance: none;
+            cursor: pointer;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+        }
+
+        /* ─── Quiz Cards ─── */
+        .quiz-item-card {
+            background: #fff;
+            border-radius: 24px;
+            border: 1px solid #e2e8f0;
+            padding: 28px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quiz-item-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            border-color: #6366f1;
+        }
+
+        .status-pill {
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 20px;
+        }
+
+        .pill-ongoing { background: rgba(34, 197, 94, 0.1); color: #16a34a; }
+        .pill-upcoming { background: rgba(245, 158, 11, 0.1); color: #d97706; }
+        .pill-expired { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+
+        .quiz-title-link {
+            font-family: 'Nunito Sans', sans-serif;
+            font-weight: 800;
+            font-size: 20px;
+            color: #1e1b4b;
+            text-decoration: none;
+            margin-bottom: 16px;
+            display: block;
+            line-height: 1.4;
+            transition: color 0.2s;
+        }
+
+        .quiz-title-link:hover {
+            color: #6366f1;
+        }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .meta-item {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .meta-item i {
+            font-size: 18px;
+            color: #6366f1;
+        }
+
+        .attempt-progress-box {
+            margin-bottom: 24px;
+        }
+
+        .attempt-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: 800;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+
+        .progress {
+            height: 8px;
+            border-radius: 10px;
+            background: #f1f5f9;
+        }
+
+        .progress-bar {
+            background: var(--primary-gradient);
+            border-radius: 10px;
+        }
+
+        .btn-play {
+            background: var(--primary-gradient);
+            color: white;
+            border: none;
+            padding: 12px 10px;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+            flex: 1;
+        }
+
+        .btn-play:hover {
+            transform: scale(1.01);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+            color: white;
+        }
+
+        .btn-history {
+            background: white;
+            color: #6366f1;
+            border: 2px solid #6366f1;
+            padding: 12px 10px;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            transition: all 0.3s;
+            white-space: nowrap;
+            flex: 1;
+        }
+
+        .btn-history:hover {
+            background: #f5f3ff;
+            transform: scale(1.02);
+            color: #4f46e5;
+            border-color: #4f46e5;
+        }
+
+        .btn-disabled {
+            background: #f1f5f9;
+            color: #94a3b8;
+            cursor: not-allowed;
+            pointer-events: none;
+            padding: 12px 10px;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: 14px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex: 1;
+        }
+
+        .classroom-footer {
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .class-tag {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .class-tag i { color: #94a3b8; }
+    </style>
+</head>
+<body>
+
+    <header th:replace="~{layout/header :: student-header(activePage='dashboard')}"></header>
+
+    <main class="container py-4">
+        <!-- Premium Hero -->
+        <section class="quizzes-hero" style="opacity: 1 !important; transform: none !important;">
+            <div class="hero-pattern"></div>
+            <div class="hero-blob" style="top: -100px; right: -50px;"></div>
+            <div class="hero-blob" style="bottom: -150px; left: -100px; background: radial-gradient(circle, rgba(56, 189, 248, 0.2), transparent 70%);"></div>
+            
+            <div class="position-relative z-1">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-3">
+                        <li class="breadcrumb-item"><a th:href="@{/student}" class="text-white opacity-75 text-decoration-none fw-bold">Bảng điều khiển</a></li>
+                        <li class="breadcrumb-item active text-white fw-bold ps-0" aria-current="page"><span class="mx-1">/</span> Bài thi của tôi</li>
+                    </ol>
+                </nav>
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <h1 class="hero-title text-white mb-0">Bài thi <span class="text-info">của tôi</span></h1>
+                    <span class="badge bg-info text-dark rounded-pill px-3 py-2 fw-bold" th:text="${(allQuizzes != null ? allQuizzes.size() : 0) + ' bài thi'}">0 bài thi</span>
+                </div>
+                <p class="hero-subtitle text-white opacity-75 mb-0" style="max-width: 500px;">
+                    Tổng hợp tất cả bài tập từ các lớp học của bạn. Bạn có thể tìm kiếm theo tên hoặc lọc theo lớp học bên dưới.
+                </p>
+            </div>
+        </section>
+
+        <!-- Search & Filter Bar -->
+        <div class="filter-bar" style="opacity: 1 !important; transform: none !important;">
+            <div class="search-input-wrap">
+                <i class="bi bi-search"></i>
+                <input type="text" class="search-input" id="quizSearch" placeholder="Tìm kiếm tên bài thi...">
+            </div>
+            
+            <div class="classroom-select-wrap">
+                <select class="classroom-select" id="classFilter">
+                    <option value="all">Tất cả lớp học</option>
+                    <th:block th:if="${joinedClasses != null}">
+                        <option th:each="joining : ${joinedClasses}" 
+                                th:if="${joining != null && joining.classroom != null}"
+                                th:value="${joining.classroom.id}" 
+                                th:text="${joining.classroom.name}">Tên lớp</option>
+                    </th:block>
+                </select>
+            </div>
+        </div>
+
+        <!-- Quizzes Grid -->
+        <div th:if="${allQuizzes == null || #lists.isEmpty(allQuizzes)}" class="text-center py-5 bg-white rounded-5 shadow-sm">
+            <i class="bi bi-journal-x text-muted mb-3 d-block" style="font-size: 5rem;"></i>
+            <h2 class="fw-bold">Bạn chưa có bài thi nào</h2>
+            <p class="text-muted mb-4">Hãy tham gia lớp học để nhận bài thi từ giáo viên.</p>
+            <a href="/student/classrooms" class="btn btn-primary rounded-pill px-5 py-3 fw-bold">Tham gia lớp học</a>
+        </div>
+
+        <div th:if="${allQuizzes != null && !#lists.isEmpty(allQuizzes)}" class="row g-4" id="quizzesGrid">
+            <th:block th:each="info, iter : ${allQuizzes}">
+                <!-- Each Quiz Card -->
+                <div th:if="${info != null and info.assigning != null and info.assigning.quiz != null}" 
+                     class="col-md-6 col-lg-4 quiz-container" 
+                     th:data-classroom-id="${info.assigning.classroom != null ? info.assigning.classroom.id : 'all'}"
+                     style="display: block !important;">
+                    
+                    <div class="quiz-item-card" style="opacity: 1 !important; transform: none !important;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <!-- Status Pills -->
+                            <th:block th:with="isUpcoming=${info.assigning.startDate != null && now.isBefore(info.assigning.startDate)}, 
+                                               isExpired=${info.assigning.dueDate != null && now.isAfter(info.assigning.dueDate)}">
+                                
+                                <span th:if="${isUpcoming}" class="status-pill pill-upcoming">
+                                    <i class="bi bi-clock"></i> Sắp tới
+                                </span>
+                                <span th:if="${isExpired}" class="status-pill pill-expired">
+                                    <i class="bi bi-x-circle"></i> Hết hạn
+                                </span>
+                                <span th:if="${!isUpcoming && !isExpired}" class="status-pill pill-ongoing">
+                                    <i class="bi bi-play-circle"></i> Đang mở
+                                </span>
+                            </th:block>
+                            
+                            <div class="dropdown">
+                                <button class="btn p-0 border-0" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
+                                    <li><a class="dropdown-item py-2" th:href="@{'/student/quiz/history/' + ${info.assigning.id}}"><i class="bi bi-history me-2"></i>Lịch sử</a></li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <a th:href="@{'/student/quiz/history/' + ${info.assigning.id}}" class="quiz-title-link" th:text="${info.assigning.quiz.title}">Tên bài thi</a>
+                        
+                        <div class="meta-grid">
+                            <div class="meta-item">
+                                <i class="bi bi-stopwatch"></i>
+                                <div>
+                                    <div style="font-size: 10px; color: #94a3b8;">THỜI GIAN</div>
+                                    <span th:text="${(info.assigning.durationInMins != null ? info.assigning.durationInMins : 0) + ' phút'}">45 phút</span>
+                                </div>
+                            </div>
+                            <div class="meta-item">
+                                <i class="bi bi-card-list"></i>
+                                <div>
+                                    <div style="font-size: 10px; color: #94a3b8;">CÂU HỎI</div>
+                                    <span th:text="${(info.assigning.quiz.questions != null ? info.assigning.quiz.questions.size() : 0) + ' câu'}">30 câu</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="attempt-progress-box">
+                            <div class="attempt-header">
+                                <span>LƯỢT LÀM</span>
+                                <span th:text="${info.attemptsMade + ' / ' + (info.assigning.maxAttempt != null && info.assigning.maxAttempt > 0 ? info.assigning.maxAttempt : '∞')}">0 / 1</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" 
+                                     th:style="|width: ${(info.assigning.maxAttempt != null and info.assigning.maxAttempt > 0) ? (info.attemptsMade * 100 / info.assigning.maxAttempt) : 0}%|"></div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div th:if="${info.assigning.dueDate != null}" class="d-flex align-items-center gap-2 text-danger fw-bold" style="font-size: 0.85rem;">
+                                <i class="bi bi-calendar-x"></i> Hạn: 
+                                <span th:text="${#temporals != null ? #temporals.format(info.assigning.dueDate, 'HH:mm dd/MM/yyyy') : info.assigning.dueDate}">---</span>
+                            </div>
+                            <div th:unless="${info.assigning.dueDate != null}" class="d-flex align-items-center gap-2 text-muted" style="font-size: 0.85rem;">
+                                <i class="bi bi-infinity"></i> Không giới hạn thời gian
+                            </div>
+                        </div>
+
+                        <div class="mt-auto d-flex gap-2">
+                            <th:block th:with="canPlay=${(info.assigning.startDate == null or now.isAfter(info.assigning.startDate)) and (info.assigning.dueDate == null or now.isBefore(info.assigning.dueDate)) and (info.assigning.maxAttempt == null or info.assigning.maxAttempt == 0 or info.attemptsMade < info.assigning.maxAttempt)}">
+                                
+                                <a th:href="@{'/student/quiz/history/' + ${info.assigning.id}}" class="btn-history">
+                                    <i class="bi bi-clock-history"></i> Lịch sử
+                                </a>
+
+                                <a th:if="${canPlay}" th:href="@{/student/quiz/play/{id}(id=${info.assigning.id})}" class="btn-play">
+                                    <i class="bi bi-pencil-square"></i> Làm bài
+                                </a>
+                                
+                                <th:block th:unless="${canPlay}">
+                                    <button th:if="${info.assigning.dueDate != null && now.isAfter(info.assigning.dueDate)}" class="btn-disabled" disabled>
+                                        <i class="bi bi-lock"></i> Hết hạn
+                                    </button>
+                                    <button th:if="${info.assigning.startDate != null && now.isBefore(info.assigning.startDate)}" class="btn-disabled" disabled>
+                                        <i class="bi bi-calendar"></i> Sắp tới
+                                    </button>
+                                    <button th:if="${info.assigning.maxAttempt != null && info.assigning.maxAttempt > 0 && info.attemptsMade >= info.assigning.maxAttempt}" class="btn-disabled" disabled>
+                                        <i class="bi bi-check-all"></i> Hết lượt
+                                    </button>
+                                </th:block>
+                            </th:block>
+                        </div>
+
+                        <div class="classroom-footer" th:if="${info.assigning.classroom != null}">
+                            <div class="class-tag">
+                                <i class="bi bi-mortarboard-fill"></i>
+                                <span th:text="${info.assigning.classroom.name}">Tên lớp</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </th:block>
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('quizSearch');
+            const classFilter = document.getElementById('classFilter');
+            const cards = document.querySelectorAll('.quiz-container');
+
+            function applyFilters() {
+                try {
+                    const searchTerm = searchInput.value.toLowerCase().trim();
+                    const classId = classFilter.value;
+                    
+                    cards.forEach(card => {
+                        try {
+                            const titleEl = card.querySelector('.quiz-title-link');
+                            const title = titleEl ? titleEl.innerText.toLowerCase() : "";
+                            const cardClassId = card.getAttribute('data-classroom-id');
+                            
+                            const matchesSearch = title.includes(searchTerm);
+                            const matchesClass = classId === 'all' || cardClassId === classId;
+                            
+                            if (matchesSearch && matchesClass) {
+                                card.style.display = 'block';
+                                card.style.setProperty('display', 'block', 'important');
+                            } else {
+                                card.style.display = 'none';
+                                card.style.setProperty('display', 'none', 'important');
+                            }
+                        } catch (e) {
+                            console.warn("Lỗi khi lọc thẻ bài thi:", e);
+                            card.style.display = 'block'; // Hiện thị nếu lỗi để không bị mất bài
+                        }
+                    });
+                } catch (err) {
+                    console.error('Filter error:', err);
+                }
+            }
+
+            if (searchInput) searchInput.addEventListener('input', applyFilters);
+            if (classFilter) classFilter.addEventListener('change', applyFilters);
+            
+            applyFilters();
+        });
+    </script>
+</body>
+</html>

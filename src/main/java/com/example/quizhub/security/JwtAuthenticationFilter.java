@@ -67,12 +67,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
 
             if (jwtService.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities());
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                if (!userDetails.isEnabled()) {
+                    // Tài khoản bị khoá -> Xóa phiên làm việc
+                    SecurityContextHolder.clearContext();
+                    
+                    if (request.getRequestURI().startsWith("/api/")) {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.setContentType("application/json; charset=UTF-8");
+                        response.getWriter().write("{\"message\":\"Tài khoản của bạn đã bị khóa.\"}");
+                    } else {
+                        response.setContentType("text/html; charset=UTF-8");
+                        response.getWriter().write("<script>localStorage.clear(); sessionStorage.clear(); document.cookie = 'jwt=; path=/; max-age=0;'; window.location.href='/login?error=locked';</script>");
+                    }
+                    return; // Chặn yêu cầu đi tiếp
+                } else {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities());
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
         }
 
