@@ -55,8 +55,6 @@
         }
         .qbadge-exam { background: #fef3c7; color: #d97706; }
         .qbadge-quiz { background: #dbeafe; color: #1d4ed8; }
-        .qbadge-draft { background: #f1f5f9; color: #94a3b8; }
-        .qbadge-pub { background: #dcfce7; color: #15803d; }
         .ans-row {
             padding: 12px;
             border-radius: 12px;
@@ -152,15 +150,12 @@
         function renderQuizMeta(q) {
             const wrap = document.getElementById('quiz-meta-wrapper');
             const typeBadge = q.isExam
-                ? `<span class="qbadge qbadge-exam"><i class="bi bi-mortarboard-fill"></i> Đề thi</span>`
-                : `<span class="qbadge qbadge-quiz"><i class="bi bi-journal-check"></i> Quiz</span>`;
-            const statusBadge = q.isDraft
-                ? `<span class="qbadge qbadge-draft"><i class="bi bi-cone-striped"></i> Bản nháp</span>`
-                : `<span class="qbadge qbadge-pub"><i class="bi bi-check-circle-fill"></i> Xuất bản</span>`;
+                ? `<span class="qbadge qbadge-exam"><i class="bi bi-mortarboard-fill"></i> Kiểm tra</span>`
+                : `<span class="qbadge qbadge-quiz"><i class="bi bi-journal-check"></i> Luyện tập</span>`;
 
             wrap.innerHTML = `
                 ${q.imageUrl ? `<img src="${q.imageUrl}" alt="Quiz Image" class="img-fluid rounded mb-3" style="max-height:180px; object-fit:cover; width:100%;">` : ''}
-                <div class="d-flex gap-2 mb-3">${typeBadge} ${statusBadge}</div>
+                <div class="d-flex gap-2 mb-3">${typeBadge}</div>
                 <h3 class="fw-bold text-dark" style="font-family:'Nunito Sans'; font-size:1.35rem;">${esc(q.title)}</h3>
                 <p class="text-muted small mb-3">${esc(q.description) || '<i>Không có mô tả.</i>'}</p>
                 <hr>

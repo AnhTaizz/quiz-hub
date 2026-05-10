@@ -739,6 +739,7 @@
                 const res = await fetch(CAT_API, { headers: { Authorization: 'Bearer ' + token } });
                 if (!res.ok) throw new Error('Lỗi tải danh mục');
                 TREE_DATA = await res.json();
+                window.publicCategories = TREE_DATA;
 
                 if (navStack.length === 0) {
                     renderRoot();

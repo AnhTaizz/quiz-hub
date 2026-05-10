@@ -198,7 +198,7 @@
         .qb-filter-shell {
             background: #fff; border-radius: 16px; border: 1px solid #e2e8f0;
             padding: 16px 20px; margin-bottom: 20px;
-            display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;
             box-shadow: 0 2px 12px rgba(0,0,0,0.04);
         }
         .qb-filter-shell .fg label {
@@ -259,11 +259,18 @@
                     <input type="text" id="treeSearch" class="form-control ps-5" style="border-radius:14px; border:1px solid #e2e8f0; padding:12px;" placeholder="Tìm thư mục..." oninput="handleSearchTree()">
                 </div>
             </div>
-            <div class="tree-container" id="treeRoot">
-                <!-- JS renders private categories here -->
+            <div class="tree-panel" id="treeRoot">
+                <!-- Tree items will be injected here -->
             </div>
-            <div class="p-4 border-top bg-white">
-                <button class="btn btn-light w-100 rounded-4 fw-bold p-3 text-muted" style="border: 2px dashed #e2e8f0;" onclick="openCreateModal(null)">
+
+            <div class="tree-footer mt-auto p-4 border-top bg-white">
+                <div id="unassignedNodeWrapper" class="mb-3">
+                    <div class="tree-node" onclick="loadFolder(-1)" id="folder--1" style="display: flex; align-items: center; padding: 12px 16px; border-radius: 12px; cursor: pointer; transition: 0.2s; color: #475569; font-weight: 500;">
+                        <i class="bi bi-folder-x me-2 text-warning" style="font-size: 1.2rem;"></i>
+                        <span style="font-size: 0.95rem;">Chưa phân loại</span>
+                    </div>
+                </div>
+                <button class="btn btn-light w-100 rounded-4 fw-bold p-3 text-muted" style="border: 2px dashed #e2e8f0; transition: 0.2s;" onclick="openCreateModal(null)">
                     <i class="bi bi-folder-plus me-2"></i> Thêm thư mục gốc
                 </button>
             </div>
@@ -314,6 +321,7 @@
     <!-- Fragments -->
     <div th:replace="~{fragments/category-explorer-private :: category-create-modal}"></div>
     <div th:replace="~{fragments/question-editor :: question-editor-modal}"></div>
+    <th:block th:replace="~{fragments/category-explorer-private :: category-explorer-private-scripts(userType='student')}"></th:block>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -348,22 +356,37 @@
                     fetch('/api/student/questions?size=500', { headers: { Authorization: 'Bearer ' + token } })
                 ]);
                 TREE_DATA = await resCat.json();
+                window.myCategories = TREE_DATA;
                 ALL_QUIZZES = await resQuiz.json();
                 const qData = await resQues.json();
                 ALL_QUESTIONS = qData.content || [];
             } catch (e) { console.error("Lỗi khi tải dữ liệu:", e); }
         }
 
-        function renderSidebarTree(nodes = null, container = null, level = 0) {
-            if (!container) {
-                container = document.getElementById('treeRoot');
+        function renderSidebarTree(nodes = TREE_DATA, container = document.getElementById('treeRoot'), level = 0) {
+            if (level === 0) {
                 container.innerHTML = '';
-                const rootNode = document.createElement('div');
-                rootNode.className = `tree-node ${currentFolderId === null ? 'active' : ''}`;
-                rootNode.innerHTML = `<i class="bi bi-grid-fill text-primary"></i> <span>Tất cả kho</span>`;
-                rootNode.onclick = () => loadFolder(null);
-                container.appendChild(rootNode);
-                nodes = TREE_DATA;
+                // Handle active state for Unassigned node
+                const unassignedNode = document.getElementById('folder--1');
+                if (unassignedNode) {
+                    if (currentFolderId === -1) {
+                        unassignedNode.style.background = '#eef2ff';
+                        unassignedNode.style.color = '#4f46e5';
+                        unassignedNode.style.fontWeight = '700';
+                    } else {
+                        unassignedNode.style.background = 'transparent';
+                        unassignedNode.style.color = '#475569';
+                        unassignedNode.style.fontWeight = '500';
+                    }
+                }
+                // Add "All"
+                const allRow = document.createElement('div');
+                allRow.className = `tree-node ${currentFolderId === null ? 'active' : ''}`;
+                allRow.innerHTML = `<i class="bi bi-collection-fill folder-icon" style="color: #4f46e5;"></i><span class="fw-bold">Tất cả thư mục</span>`;
+                allRow.onclick = () => loadFolder(null);
+                container.appendChild(allRow);
+                
+                if (!nodes || nodes.length === 0) return;
             }
 
             nodes.forEach(n => {
@@ -404,14 +427,13 @@
 
         function loadFolder(id) {
             currentFolderId = id;
-            questionCategoryFilter = null; // reset filter chip khi đổi folder
             const folder = id ? findCategory(TREE_DATA, id) : null;
 
             
             // Update active state in sidebar
             renderSidebarTree();
 
-            document.getElementById('currentName').textContent = folder ? folder.name : 'Thư viện của tôi';
+            document.getElementById('currentName').textContent = folder ? folder.name : (id === -1 ? 'Chưa phân loại' : 'Thư viện của tôi');
             
             const pathArr = folder ? getCategoryPath(TREE_DATA, id) : [];
             const pathHtml = ['LIBRARY', ...pathArr.map(p => p.name.toUpperCase())]
@@ -419,15 +441,15 @@
                 .join('');
             document.getElementById('pathText').innerHTML = pathHtml;
             
-            document.getElementById('btnEditCat').style.display = id ? 'block' : 'none';
-            document.getElementById('btnDeleteCat').style.display = id ? 'block' : 'none';
+            document.getElementById('btnEditCat').style.display = id && id !== -1 ? 'block' : 'none';
+            document.getElementById('btnDeleteCat').style.display = id && id !== -1 ? 'block' : 'none';
             
             // Sync action button
             const actionBtn = document.getElementById('mainActionBtn');
             if (currentContext === 'quiz') {
-                actionBtn.innerHTML = `<a href="/student/quiz/create${id ? '?categoryId=' + id : ''}" id="btnCreateQuiz" class="btn-premium"><i class="bi bi-plus-lg"></i> Tạo đề thi</a>`;
+                actionBtn.innerHTML = `<a href="/student/quiz/create${id && id !== -1 ? '?categoryId=' + id : ''}" id="btnCreateQuiz" class="btn-premium"><i class="bi bi-plus-lg"></i> Tạo đề thi</a>`;
             } else {
-                actionBtn.innerHTML = `<button onclick="openEditorForCreate()" class="btn-premium" style="background: var(--accent-gradient); box-shadow: 0 10px 20px -8px rgba(16, 185, 129, 0.4);"><i class="bi bi-patch-plus"></i> Tạo câu hỏi</button>`;
+                actionBtn.innerHTML = `<button onclick="openQuestionEditor()" class="btn-premium" style="background: var(--accent-gradient); box-shadow: 0 10px 20px -8px rgba(16, 185, 129, 0.4);"><i class="bi bi-patch-plus"></i> Tạo câu hỏi</button>`;
             }
 
             refreshContent();
@@ -441,15 +463,34 @@
             // Dynamic Action Button
             const actionBtn = document.getElementById('mainActionBtn');
             if (ctx === 'quiz') {
-                actionBtn.innerHTML = `<a href="/student/quiz/create${currentFolderId ? '?categoryId=' + currentFolderId : ''}" id="btnCreateQuiz" class="btn-premium"><i class="bi bi-plus-lg"></i> Tạo đề thi</a>`;
+                actionBtn.innerHTML = `<a href="/student/quiz/create${currentFolderId && currentFolderId !== -1 ? '?categoryId=' + currentFolderId : ''}" id="btnCreateQuiz" class="btn-premium"><i class="bi bi-plus-lg"></i> Tạo đề thi</a>`;
             } else {
-                actionBtn.innerHTML = `<button onclick="openEditorForCreate()" class="btn-premium" style="background: var(--accent-gradient); box-shadow: 0 10px 20px -8px rgba(16, 185, 129, 0.4);"><i class="bi bi-patch-plus"></i> Tạo câu hỏi</button>`;
+                actionBtn.innerHTML = `<button onclick="openQuestionEditor()" class="btn-premium" style="background: var(--accent-gradient); box-shadow: 0 10px 20px -8px rgba(16, 185, 129, 0.4);"><i class="bi bi-patch-plus"></i> Tạo câu hỏi</button>`;
             }
             refreshContent();
         }
 
+        function getDescendantIds(folderId) {
+            const folder = findCategory(TREE_DATA, folderId);
+            if (!folder) return [folderId];
+            const ids = [folderId];
+            const collect = (nodes) => {
+                nodes.forEach(n => {
+                    ids.push(n.id);
+                    if (n.children) collect(n.children);
+                });
+            }
+            if (folder.children) collect(folder.children);
+            return ids;
+        }
+
         function refreshContent() {
-            let quizList = ALL_QUIZZES.filter(q => currentFolderId === null || q.categoryId === currentFolderId);
+            let quizList = ALL_QUIZZES.filter(q => {
+                if (currentFolderId === null) return true;
+                if (currentFolderId === -1) return !q.categoryId;
+                const descendants = getDescendantIds(currentFolderId);
+                return descendants.includes(q.categoryId);
+            });
             document.getElementById('statQuizCount').textContent = quizList.length;
 
             if (currentContext === 'quiz') {
@@ -463,12 +504,11 @@
 
         // ── Render vỏ Question Bank (filter bar + container) ──
         function renderQBankShell() {
-            const showCatFilter = currentFolderId === null;
             document.getElementById('contentList').innerHTML = `
                 <div class="qb-filter-shell" id="qbFilterShell">
                     <div class="fg">
                         <label><i class="bi bi-search me-1"></i> Tìm kiếm</label>
-                        <input type="text" id="qbKeyword" class="qb-ctrl" placeholder="Tìm tên câu hỏi..." oninput="qbSearch()" autocomplete="off" value="${esc(qbKeyword)}">
+                        <input type="text" id="qbKeyword" class="form-control" placeholder="Tìm theo tên..." oninput="qbSearch()" autocomplete="off" value="${esc(qbKeyword)}">
                     </div>
                     <div class="fg">
                         <label><i class="bi bi-tags-fill me-1"></i> Loại câu hỏi</label>
@@ -506,13 +546,31 @@
             }, 350);
         }
 
+        let unassignedOnly = false;
+        function toggleUnassignedOnly() {
+            unassignedOnly = !unassignedOnly;
+            const btn = document.getElementById('btnFilterUnassigned');
+            if (unassignedOnly) {
+                btn.classList.replace('btn-outline-secondary', 'btn-danger');
+                currentFolderId = -1;
+            } else {
+                btn.classList.replace('btn-danger', 'btn-outline-secondary');
+                currentFolderId = null;
+            }
+            refreshContent();
+        }
+
         async function fetchQBank() {
             const list = document.getElementById('qbList');
             if (!list) return;
             list.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="text-muted mt-2 small">Đang tải...</p></div>';
 
             let url = `/api/student/questions?page=${qbPage}&size=${qbSize}&sortBy=id&sortDir=desc`;
-            if (currentFolderId) url += `&categoryId=${currentFolderId}`;
+            if (currentFolderId === -1) {
+                url += `&categoryId=-1`; // Assume backend handles -1 as unassigned
+            } else if (currentFolderId) {
+                url += `&categoryId=${currentFolderId}`;
+            }
             if (qbKeyword)       url += `&keyword=${encodeURIComponent(qbKeyword)}`;
             if (qbType)          url += `&type=${qbType}`;
             if (qbLevel)         url += `&level=${qbLevel}`;
@@ -607,7 +665,10 @@
 
             container.innerHTML = `<div class="quiz-grid">` + list.map(q => `
                 <div class="up-card">
-                    <div class="up-card-banner" style="background-image: url('${getQuizCover(q.id)}')">
+                    <div class="up-card-banner">
+                        <img src="${q.imageUrl || getQuizCover(q.id)}" 
+                             onerror="this.src='${getQuizCover(q.id)}'"
+                             style="width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0;">
                         <div class="up-card-overlay"></div>
                         <span class="up-badge ${q.isExam ? 'badge-exam' : 'badge-quiz'}">${q.isExam ? 'Đề thi' : 'Luyện tập'}</span>
                     </div>
@@ -632,47 +693,57 @@
         const LEVEL_MAP = { 'EASY': 'Dễ', 'MEDIUM': 'Trung bình', 'HARD': 'Khó' };
 
 
-        function openCreateModal(parentId) {
-            document.getElementById('categoryCreateId').value = '';
-            document.getElementById('categoryCreateName').value = '';
-            document.getElementById('categoryCreateDesc').value = '';
-            document.getElementById('categoryCreateParentId').value = parentId || '';
-            document.getElementById('categoryCreateTitle').innerHTML = '<i class="bi bi-folder-plus me-2"></i>Tạo danh mục mới';
-            bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryCreateModal')).show();
-        }
+        // Use functions from fragment but keep them compatible with this page's naming
+        window.openCreateModal = function(pId) {
+            let pName = null;
+            if (pId) {
+                const folder = findCategory(TREE_DATA, pId);
+                if (folder) pName = folder.name;
+            }
+            openCreateCategoryModal(pId, pName);
+        };
 
-        function openEditModal() {
+        window.openEditModal = function() {
             const folder = findCategory(TREE_DATA, currentFolderId);
             if (!folder) return;
+            
+            // Pre-fill the modal fields directly
             document.getElementById('categoryCreateId').value = folder.id;
             document.getElementById('categoryCreateName').value = folder.name;
             document.getElementById('categoryCreateDesc').value = folder.description || '';
-            document.getElementById('categoryCreateParentId').value = folder.parentId || '';
-            document.getElementById('categoryCreateTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Sửa danh mục';
+            
+            const pId = folder.parentId;
+            let pName = 'Mặc định: Danh mục gốc';
+            if (pId) {
+                const parent = findCategory(TREE_DATA, pId);
+                if (parent) pName = parent.name;
+            }
+            
+            const idInput = document.getElementById('categoryCreateParentId');
+            const nameInput = document.getElementById('categoryCreateParentName');
+            const disp = document.getElementById('categoryCreateParentNameDisplay');
+            
+            if (idInput) idInput.value = pId || '';
+            if (nameInput) nameInput.value = pName;
+            if (disp) {
+                disp.textContent = pName;
+                disp.classList.toggle('text-muted', !pId);
+                disp.classList.toggle('text-dark', !!pId);
+            }
+            
+            const titleEl = document.getElementById('categoryCreateTitle');
+            if (titleEl) titleEl.innerHTML = '<i class="bi bi-pencil-square me-2"></i>Sửa danh mục';
+            
             bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryCreateModal')).show();
-        }
+        };
 
-        async function submitCategoryCreateForm() {
-            const id = document.getElementById('categoryCreateId').value;
-            const name = document.getElementById('categoryCreateName').value.trim();
-            const parentId = document.getElementById('categoryCreateParentId').value;
-            const payload = { name, parentId: parentId ? parseInt(parentId) : null, isPublic: false };
-            const method = id ? 'PUT' : 'POST';
-            const url = id ? `/api/student/categories/${id}` : '/api/student/categories';
-            try {
-                const res = await fetch(url, { 
-                    method, 
-                    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, 
-                    body: JSON.stringify(payload) 
-                });
-                if (res.ok) {
-                    bootstrap.Modal.getInstance(document.getElementById('categoryCreateModal')).hide();
-                    await loadData();
-                    renderSidebarTree();
-                    loadFolder(currentFolderId);
-                }
-            } catch (e) { console.error("Lỗi khi lưu danh mục:", e); }
-        }
+        // Note: the fragment's submitCategoryCreateForm handles both POST and PUT if ID is present
+        // and it calls fetchCategories() on success. We need to make sure fetchCategories is defined here.
+        window.fetchCategories = async function() {
+            await loadData();
+            renderSidebarTree();
+            loadFolder(currentFolderId);
+        };
 
         async function deleteFolder() {
             if (!currentFolderId) return;
@@ -725,8 +796,12 @@
             } catch (e) { }
         }
 
-        function editQuestion(id) {
-            openEditorForEdit(id);
+        async function editQuestion(id) {
+            try {
+                const res = await fetch(`/api/student/questions/${id}`, { headers: { Authorization: 'Bearer ' + token } });
+                const q = await res.json();
+                openQuestionEditor(q);
+            } catch (e) { alert('Lỗi tải câu hỏi'); }
         }
 
         async function deleteQuestion(id) {
@@ -739,7 +814,7 @@
 
         function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
     </script>
-    <th:block th:replace="~{fragments/question-editor :: question-editor-js}"></th:block>
+    <th:block th:replace="~{fragments/question-editor :: question-editor-scripts(userType='student')}"></th:block>
 
 </body>
 

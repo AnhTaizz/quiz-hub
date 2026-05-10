@@ -2,9 +2,11 @@
 <div th:fragment="quiz-editor-ui(userType)" class="row g-4">
     <!-- Left: Metadata Panel -->
     <div class="col-lg-5">
-        <div class="card-panel shadow-sm border-0" style="border-radius: 24px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);">
+        <div class="card-panel shadow-sm border-0"
+            style="border-radius: 24px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);">
             <div class="d-flex align-items-center mb-4">
-                <div class="icon-box me-3" style="background: #e0e7ff; color: #4338ca; width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+                <div class="icon-box me-3"
+                    style="background: #e0e7ff; color: #4338ca; width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center;">
                     <i class="bi bi-info-circle-fill fs-5"></i>
                 </div>
                 <div>
@@ -14,62 +16,64 @@
             </div>
 
             <div class="mb-3">
-                <label class="form-label small fw-bold text-secondary mb-1">Tiêu đề đề thi <span class="text-danger">*</span></label>
-                <input type="text" id="quiz-title" class="fc form-control-lg" placeholder="Ví dụ: Ôn tập kiến thức chương 1" required>
+                <label class="form-label small fw-bold text-secondary mb-1">Tiêu đề đề thi <span
+                        class="text-danger">*</span></label>
+                <input type="text" id="quiz-title" class="fc form-control-lg"
+                    placeholder="Ví dụ: Ôn tập kiến thức chương 1" required>
             </div>
 
             <div class="mb-3">
                 <label class="form-label small fw-bold text-secondary mb-1">Mô tả chi tiết</label>
-                <textarea id="quiz-desc" class="fc" rows="3" placeholder="Ghi chú nội dung hoặc hướng dẫn làm bài..."></textarea>
+                <textarea id="quiz-desc" class="fc" rows="3"
+                    placeholder="Ghi chú nội dung hoặc hướng dẫn làm bài..."></textarea>
             </div>
 
             <div class="mb-3">
-                <label class="form-label small fw-bold text-secondary mb-1">Danh mục lưu trữ <span class="text-danger">*</span></label>
+                <label class="form-label small fw-bold text-secondary mb-1">Danh mục lưu trữ <span
+                        class="text-danger">*</span></label>
                 <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0" style="border-radius: 12px 0 0 12px; border-color: #e2e8f0;">
+                    <span class="input-group-text bg-light border-end-0"
+                        style="border-radius: 12px 0 0 12px; border-color: #e2e8f0;">
                         <i class="bi bi-folder2-open text-primary"></i>
                     </span>
-                    <input type="text" id="quiz-category-display" class="form-control fc bg-white cursor-pointer border-start-0" 
-                           placeholder="Chọn danh mục..." readonly onclick="openCategoryTreePicker('quiz')" style="border-radius:0 12px 12px 0;">
+                    <input type="text" id="quiz-category-display"
+                        class="form-control fc bg-white cursor-pointer border-start-0" placeholder="Chọn danh mục..."
+                        readonly onclick="openCategoryTreePicker('quiz')"
+                        style="border-radius:0 12px 12px 0; width: auto; flex: 1;">
                 </div>
                 <input type="hidden" id="quiz-category">
             </div>
 
             <div class="mb-4">
                 <label class="form-label small fw-bold text-secondary mb-1">Ảnh minh họa (URL)</label>
-                <div class="input-group">
-                    <span class="input-group-text bg-light border-end-0" style="border-radius: 12px 0 0 12px; border-color: #e2e8f0;">
+                <div class="input-group mb-2">
+                    <span class="input-group-text bg-light border-end-0"
+                        style="border-radius: 12px 0 0 12px; border-color: #e2e8f0;">
                         <i class="bi bi-image text-indigo"></i>
                     </span>
-                    <input type="text" id="quiz-image" class="fc border-start-0" placeholder="https://example.com/cover.jpg" style="border-radius:0 12px 12px 0;">
+                    <input type="text" id="quiz-image" class="form-control fc border-start-0"
+                        placeholder="https://example.com/cover.jpg"
+                        oninput="updateQuizImagePreview(this.value)"
+                        style="border-radius:0 12px 12px 0; width: auto; flex: 1;">
                 </div>
+                <div id="quiz-image-preview-container" class="rounded-4 overflow-hidden border" style="height: 150px; background: #f1f5f9; display: none;">
+                    <img id="quiz-image-preview" src="" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <input type="hidden" id="quiz-isExam" value="false">
+                <input type="hidden" id="quiz-isDraft" value="false">
             </div>
 
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label small fw-bold text-secondary mb-1">Phân loại</label>
-                    <select id="quiz-isExam" class="form-select fc">
-                        <option value="false" selected>Quiz luyện tập</option>
-                        <option value="true">Đề thi (Exam)</option>
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label small fw-bold text-secondary mb-1">Trạng thái</label>
-                    <select id="quiz-isDraft" class="form-select fc">
-                        <option value="false" selected>Xuất bản ngay</option>
-                        <option value="true">Lưu bản nháp</option>
-                    </select>
-                </div>
-            </div>
         </div>
     </div>
 
     <!-- Right: Question Selection Panel -->
     <div class="col-lg-7">
-        <div class="card-panel shadow-sm border-0" style="border-radius: 24px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);">
+        <div class="card-panel shadow-sm border-0"
+            style="border-radius: 24px; background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px);">
             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                 <div class="d-flex align-items-center">
-                    <div class="icon-box me-3" style="background: #eef2ff; color: #6366f1; width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+                    <div class="icon-box me-3"
+                        style="background: #eef2ff; color: #6366f1; width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center;">
                         <i class="bi bi-collection-play-fill fs-5"></i>
                     </div>
                     <div>
@@ -78,13 +82,13 @@
                     </div>
                 </div>
                 <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-sm btn-outline-primary fw-bold px-3 py-2" 
-                            data-bs-toggle="modal" data-bs-target="#createOnTheFlyQuestionModal"
-                            style="border-radius:12px; border-color:#e0e7ff !important; color:#4f46e5 !important; background: #f5f7ff;">
+                    <button type="button" class="btn btn-sm btn-outline-primary fw-bold px-3 py-2"
+                        onclick="openQuestionEditor()"
+                        style="border-radius:12px; border-color:#e0e7ff !important; color:#4f46e5 !important; background: #f5f7ff;">
                         <i class="bi bi-plus-circle me-1"></i>Tạo nhanh
                     </button>
-                    <button type="button" class="btn btn-sm btn-indigo text-white fw-bold px-3 py-2" 
-                            onclick="previewQuiz()" style="border-radius:12px; background: #4338ca;">
+                    <button type="button" class="btn btn-sm btn-indigo text-white fw-bold px-3 py-2"
+                        onclick="previewQuiz()" style="border-radius:12px; background: #4338ca;">
                         <i class="bi bi-eye me-1"></i>Xem đề
                     </button>
                 </div>
@@ -95,11 +99,12 @@
                 <div class="row g-2 mb-2">
                     <div class="col-md-7">
                         <div class="input-group">
-                            <span class="input-group-text bg-white border-end-0" style="border-radius: 10px 0 0 10px; border-color: #e2e8f0;">
+                            <span class="input-group-text bg-white border-end-0"
+                                style="border-radius: 10px 0 0 10px; border-color: #e2e8f0;">
                                 <i class="bi bi-search text-muted"></i>
                             </span>
-                            <input type="text" id="q-search" class="form-control fc border-start-0" 
-                                   placeholder="Tìm câu hỏi..." onkeyup="loadQuestions()">
+                            <input type="text" id="q-search" class="form-control fc border-start-0"
+                                placeholder="Tìm câu hỏi..." onkeyup="loadQuestions()">
                         </div>
                     </div>
                     <div class="col-md-5">
@@ -127,18 +132,20 @@
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <button type="button" class="btn btn-light w-100 fw-bold text-muted border-0 mb-1" 
-                                onclick="openCategoryTreePicker('filter')" style="border-radius:10px;">
+                        <button type="button" class="btn btn-light w-100 fw-bold text-muted border-0 mb-1"
+                            onclick="openCategoryTreePicker('filter')" style="border-radius:10px;">
                             <i class="bi bi-funnel"></i> Lọc CM
                         </button>
-                        <input type="text" id="q-category-filter-display" class="form-control fc small text-muted border-0 bg-transparent p-0 text-center" 
-                               value="Tất cả danh mục" readonly style="font-size: 0.75rem;">
+                        <input type="text" id="q-category-filter-display"
+                            class="form-control fc small text-muted border-0 bg-transparent p-0 text-center"
+                            value="Tất cả danh mục" readonly style="font-size: 0.75rem;">
                         <input type="hidden" id="q-category-filter">
                     </div>
                 </div>
             </div>
 
-            <div class="right-scroller pe-2" id="questions-wrapper" style="max-height: 450px;">
+            <div class="right-scroller pe-3" id="questions-wrapper"
+                style="max-height: 450px; overflow-y: auto; overflow-x: hidden;">
                 <!-- Populate via JS -->
             </div>
         </div>
@@ -150,9 +157,11 @@
     <!-- Preview Question Modal -->
     <div class="modal fade" id="previewQuestionModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
-            <div class="modal-content" style="border-radius: 24px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
+            <div class="modal-content"
+                style="border-radius: 24px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.15);">
                 <div class="modal-header border-0 px-4 pt-4">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-eye-fill me-2 text-primary"></i>Chi tiết câu hỏi</h5>
+                    <h5 class="modal-title fw-bold"><i class="bi bi-eye-fill me-2 text-primary"></i>Chi tiết câu hỏi
+                    </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body px-4 py-3">
@@ -161,8 +170,10 @@
                     <div id="preview-ans-wrapper" class="d-flex flex-column gap-2"></div>
                 </div>
                 <div class="modal-footer border-0 px-4 pb-4">
-                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal" style="border-radius:12px;">Đóng</button>
-                    <button type="button" id="btn-modal-select-toggle" class="btn btn-primary px-4 fw-bold" onclick="toggleSelectionInModal()" style="border-radius:12px;">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal"
+                        style="border-radius:12px;">Đóng</button>
+                    <button type="button" id="btn-modal-select-toggle" class="btn btn-primary px-4 fw-bold"
+                        onclick="toggleSelectionInModal()" style="border-radius:12px;">
                         Chọn câu hỏi
                     </button>
                 </div>
@@ -170,58 +181,8 @@
         </div>
     </div>
 
-    <!-- On-the-fly Question Modal (Simplified for now) -->
-    <div class="modal fade" id="createOnTheFlyQuestionModal" tabindex="-1" aria-hidden="true">
-        <!-- Re-using logic from current student-quiz-create.html or expanding it -->
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 24px;">
-                <div class="modal-header border-0 px-4 pt-4">
-                    <h5 class="fw-bold"><i class="bi bi-patch-plus-fill me-2 text-success"></i>Tạo câu hỏi nhanh</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body px-4">
-                    <p class="text-muted small mb-4">Câu hỏi sẽ được tạo mới và tự động thêm vào đề thi này.</p>
-                    <form id="flyQuestionForm">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small">Nội dung câu hỏi *</label>
-                            <textarea id="fly-text" class="fc" rows="3" required placeholder="Ví dụ: Thủ đô của Việt Nam là gì?"></textarea>
-                        </div>
-                        <div class="row g-3 mb-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small">Loại câu hỏi</label>
-                                <select id="fly-type" class="fc" onchange="toggleFlyAnswersUI()">
-                                    <option value="SINGLE_CHOICE" selected>Một đáp án đúng</option>
-                                    <option value="MULTIPLE_CHOICE">Nhiều đáp án đúng</option>
-                                    <option value="FILL_IN_BLANK">Điền từ vào chỗ trống</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold small">Mức độ</label>
-                                <select id="fly-level" class="fc">
-                                    <option value="EASY" selected>Dễ</option>
-                                    <option value="MEDIUM">Trung bình</option>
-                                    <option value="HARD">Khó</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <label class="form-label fw-bold small">Danh sách đáp án</label>
-                                <button type="button" class="btn btn-sm btn-link text-indigo fw-bold text-decoration-none" onclick="addFlyAnswerRow()">
-                                    <i class="bi bi-plus-circle"></i> Thêm đáp án
-                                </button>
-                            </div>
-                            <div id="fly-answers-wrapper"></div>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer border-0 px-4 pb-4">
-                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Hủy</button>
-                    <button type="button" class="btn btn-indigo px-4 fw-bold" onclick="saveFlyQuestion()">Lưu & Thêm</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Shared Question Editor Modal -->
+    <div th:replace="~{fragments/question-editor :: question-editor-modal}"></div>
 
     <!-- Quiz Preview Modal (Whole Quiz) -->
     <div class="modal fade" id="previewQuizModal" tabindex="-1" aria-hidden="true">
@@ -241,39 +202,71 @@
                     </div>
                 </div>
                 <div class="modal-footer border-0 px-4 pb-4">
-                    <button type="button" class="btn btn-indigo w-100 fw-bold py-2" data-bs-dismiss="modal" style="border-radius:12px;">Đóng Xem Trước</button>
+                    <button type="button" class="btn btn-indigo w-100 fw-bold py-2" data-bs-dismiss="modal"
+                        style="border-radius:12px;">Đóng Xem Trước</button>
                 </div>
             </div>
         </div>
     </div>
+    <div th:replace="~{fragments/category-explorer-private :: category-create-modal}"></div>
 </div>
 
 <!-- Fragment: Quiz Editor Logic Scripts -->
 <div th:fragment="quiz-editor-scripts(userType)" th:remove="tag">
     <script th:inline="javascript">
-        (function() {
+        (function () {
             const USER_TYPE = /*[[${userType}]]*/ 'student';
             const BASE_API = USER_TYPE === 'teacher' ? '/api/teacher' : '/api/student';
             const QUIZ_API = USER_TYPE === 'teacher' ? '/api/teacher/quizzes' : '/api/student/quiz';
             const REDIRECT_URL = USER_TYPE === 'teacher' ? '/teacher/categories?type=mine' : '/student/categories?type=mine';
-            
+
             const quizId = document.getElementById('quizIdInput').value;
             const initialCategoryId = document.getElementById('categoryIdInput').value;
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
-            let myCategories = [];
-            let publicCategories = [];
             let questionsList = [];
             let selectedQuestionIds = new Set();
             let categorySelectTarget = 'quiz';
             let previewingQuestionId = null;
+
+            // Helper functions
+            function esc(s) {
+                if (!s) return '';
+                const d = document.createElement('div');
+                d.textContent = s;
+                return d.innerHTML;
+            }
+
+            function updateQuizImagePreview(url) {
+                const preview = document.getElementById('quiz-image-preview');
+                const container = document.getElementById('quiz-image-preview-container');
+                if (url && (url.startsWith('http') || url.startsWith('/'))) {
+                    preview.src = url;
+                    container.style.display = 'block';
+                } else {
+                    container.style.display = 'none';
+                }
+            }
+
+            function showToast(msg, type = 'ok') {
+                const wrap = document.getElementById('toastWrap');
+                if (!wrap) { console.log('Toast:', msg); return; }
+                const el = document.createElement('div');
+                el.className = `toast-msg show ${type}`;
+                el.innerHTML = `<i class="bi ${type === 'ok' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}"></i> ${msg}`;
+                wrap.appendChild(el);
+                setTimeout(() => {
+                    el.classList.remove('show');
+                    setTimeout(() => el.remove(), 400);
+                }, 3000);
+            }
 
             document.addEventListener('DOMContentLoaded', async () => {
                 await fetchCategories();
                 if (quizId) {
                     await fetchQuizToEdit();
                 } else if (initialCategoryId) {
-                    const matched = findCategoryById(myCategories, parseInt(initialCategoryId));
+                    const matched = findCategoryById(window.myCategories, parseInt(initialCategoryId));
                     if (matched) {
                         document.getElementById('quiz-category').value = matched.id;
                         document.getElementById('quiz-category-display').value = matched.name;
@@ -281,16 +274,6 @@
                     loadQuestions();
                 } else {
                     loadQuestions();
-                }
-                
-                // Initialize fly answers if modal is shown
-                const flyModal = document.getElementById('createOnTheFlyQuestionModal');
-                if (flyModal) {
-                    flyModal.addEventListener('show.bs.modal', () => {
-                        if (document.getElementById('fly-answers-wrapper').children.length === 0) {
-                            toggleFlyAnswersUI();
-                        }
-                    });
                 }
             });
 
@@ -300,8 +283,8 @@
                         fetch(`${BASE_API}/categories/mine`, { headers: { Authorization: `Bearer ${token}` } }),
                         fetch(`${BASE_API}/categories/public`, { headers: { Authorization: `Bearer ${token}` } })
                     ]);
-                    myCategories = await m.json();
-                    publicCategories = await p.json();
+                    window.myCategories = await m.json();
+                    window.publicCategories = await p.json();
                 } catch (e) { console.error('Failed to load categories', e); }
             }
 
@@ -315,31 +298,32 @@
                         document.getElementById('quiz-title').value = q.title || '';
                         document.getElementById('quiz-desc').value = q.description || '';
                         document.getElementById('quiz-image').value = q.imageUrl || '';
-                        document.getElementById('quiz-isExam').value = String(q.isExam);
-                        document.getElementById('quiz-isDraft').value = String(q.isDraft);
+                        updateQuizImagePreview(q.imageUrl);
+                        document.getElementById('quiz-isExam').value = String(q.isExam || false);
+                        document.getElementById('quiz-isDraft').value = String(q.isDraft || false);
                         if (q.category) {
                             document.getElementById('quiz-category').value = q.category.id;
                             document.getElementById('quiz-category-display').value = q.category.name;
                         }
                         const ids = q.questionIds || (q.questions ? q.questions.map(qi => qi.id) : []);
-                        ids.forEach(id => selectedQuestionIds.add(id));
+                        ids.forEach(id => selectedQuestionIds.add(Number(id)));
                         updateSelectedCount();
                         loadQuestions();
                     }
                 } catch (e) { console.error('Failed to load quiz', e); }
             }
 
-            window.loadQuestions = async function() {
+            window.loadQuestions = async function () {
                 const search = document.getElementById('q-search').value;
                 const source = document.getElementById('q-source').value;
                 const type = document.getElementById('q-type').value;
                 const catId = document.getElementById('q-category-filter').value;
-                
+
                 // Construct URL correctly based on API type
                 const url = `${BASE_API}/questions?keyword=${encodeURIComponent(search)}&type=${type}&isPublicTab=${source === 'public'}${catId ? '&categoryId=' + catId : ''}&size=150`;
                 const wrapper = document.getElementById('questions-wrapper');
                 wrapper.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>';
-                
+
                 try {
                     const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
                     const data = await res.json();
@@ -348,7 +332,7 @@
                 } catch (e) { wrapper.innerHTML = '<div class="text-center text-danger">Lỗi tải dữ liệu</div>'; }
             }
 
-            window.filterLocalQuestions = function() {
+            window.filterLocalQuestions = function () {
                 const level = document.getElementById('q-level').value;
                 const filtered = questionsList.filter(q => !level || q.level === level);
                 renderQuestions(filtered);
@@ -363,30 +347,34 @@
                 wrapper.innerHTML = list.map(q => {
                     const isSelected = selectedQuestionIds.has(q.id);
                     return `
-                        <div class="question-card shadow-sm mb-3 ${isSelected ? 'selected' : ''}" onclick="toggleQuestionSelection(${q.id})">
-                            <div class="d-flex align-items-center justify-content-between p-3" style="border-radius: 16px;">
-                                <div class="d-flex align-items-center gap-3">
-                                    <div class="custom-check">
+                        <div class="question-card shadow-sm mb-3 ${isSelected ? 'selected' : ''}"
+                             onclick="toggleQuestionSelection(${q.id})"
+                             style="overflow: hidden; width: 100%; box-sizing: border-box; border: 1.5px solid ${isSelected ? '#4f46e5' : '#f1f5f9'};">
+                            <div class="d-flex align-items-center justify-content-between p-3" style="border-radius: 16px; width: 100%; box-sizing: border-box;">
+                                <div class="d-flex align-items-center gap-3" style="min-width: 0; flex: 1;">
+                                    <div class="custom-check" style="flex-shrink: 0;">
                                         <input type="checkbox" class="form-check-input" ${isSelected ? 'checked' : ''} style="width: 20px; height: 20px; pointer-events:none;">
                                     </div>
-                                    <div>
-                                        <div class="d-flex gap-2 mb-1">
-                                            <span class="qbadge qbadge-type">${q.type === 'SINGLE_CHOICE' ? 'Trắc nghiệm' : (q.type === 'MULTIPLE_CHOICE' ? 'Nhiều đ/á' : 'Điền khuyết')}</span>
-                                            <span class="qbadge qbadge-level">${q.level === 'EASY' ? 'Dễ' : (q.level === 'MEDIUM' ? 'T.Bình' : 'Khó')}</span>
+                                    <div style="min-width: 0; flex: 1;">
+                                        <div class="d-flex gap-2 mb-1 flex-wrap">
+                                            <span class="qbadge qbadge-type" style="flex-shrink: 0;">${q.type === 'SINGLE_CHOICE' ? 'Trắc nghiệm' : (q.type === 'MULTIPLE_CHOICE' ? 'Nhiều đ/á' : 'Điền khuyết')}</span>
+                                            <span class="qbadge qbadge-level" style="flex-shrink: 0;">${q.level === 'EASY' ? 'Dễ' : (q.level === 'MEDIUM' ? 'T.Bình' : 'Khó')}</span>
                                         </div>
-                                        <div class="fw-bold small text-dark line-clamp-2">${esc(q.text)}</div>
+                                        <div class="fw-bold small text-dark line-clamp-2" style="word-break: break-word;">${esc(q.text)}</div>
                                     </div>
                                 </div>
-                                <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="openPreviewModal(${q.id}, event)" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
-                                    <i class="bi bi-eye"></i>
-                                </button>
+                                <div class="ms-2" style="flex-shrink: 0;">
+                                    <button type="button" class="btn btn-sm btn-light rounded-circle" onclick="openPreviewModal(${q.id}, event)" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     `;
                 }).join('');
             }
 
-            window.toggleQuestionSelection = function(id) {
+            window.toggleQuestionSelection = function (id) {
                 if (selectedQuestionIds.has(id)) selectedQuestionIds.delete(id);
                 else selectedQuestionIds.add(id);
                 updateSelectedCount();
@@ -397,45 +385,45 @@
                 document.getElementById('selected-count').textContent = `Đã chọn ${selectedQuestionIds.size} câu hỏi`;
             }
 
-            window.openPreviewModal = function(id, e) {
+            window.openPreviewModal = function (id, e) {
                 if (e) e.stopPropagation();
                 const q = questionsList.find(x => x.id === id);
                 if (!q) return;
-                
+
                 previewingQuestionId = id;
                 document.getElementById('preview-q-text').textContent = q.text;
                 document.getElementById('preview-q-badges').innerHTML = `
                     <span class="qbadge qbadge-type">${q.type}</span>
                     <span class="qbadge qbadge-level">${q.level}</span>
                 `;
-                
+
                 const wrap = document.getElementById('preview-ans-wrapper');
                 wrap.innerHTML = q.answers.map((a, i) => `
                     <div class="p-3 rounded-3 border ${a.isCorrect ? 'bg-success bg-opacity-10 border-success' : 'bg-light border-light'}">
                         <div class="d-flex align-items-center gap-2">
-                            <span class="fw-bold">${String.fromCharCode(65+i)}.</span>
+                            <span class="fw-bold">${String.fromCharCode(65 + i)}.</span>
                             <span class="${a.isCorrect ? 'text-success fw-bold' : ''}">${esc(a.text)}</span>
                             ${a.isCorrect ? '<i class="bi bi-check-circle-fill ms-auto text-success"></i>' : ''}
                         </div>
                     </div>
                 `).join('');
-                
+
                 const btn = document.getElementById('btn-modal-select-toggle');
                 const isSelected = selectedQuestionIds.has(id);
                 btn.textContent = isSelected ? 'Bỏ chọn' : 'Chọn câu hỏi';
                 btn.className = isSelected ? 'btn btn-outline-danger px-4 fw-bold' : 'btn btn-primary px-4 fw-bold';
-                
+
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('previewQuestionModal')).show();
             }
 
-            window.toggleSelectionInModal = function() {
+            window.toggleSelectionInModal = function () {
                 if (previewingQuestionId) {
                     toggleQuestionSelection(previewingQuestionId);
                     bootstrap.Modal.getInstance(document.getElementById('previewQuestionModal')).hide();
                 }
             }
 
-            window.saveQuiz = async function() {
+            window.saveQuiz = async function () {
                 const title = document.getElementById('quiz-title').value.trim();
                 const categoryId = document.getElementById('quiz-category').value;
                 if (!title || !categoryId) { showToast('Nhập tiêu đề và chọn danh mục!', 'err'); return; }
@@ -464,186 +452,84 @@
                         showToast(quizId ? 'Cập nhật thành công!' : 'Lưu đề thi thành công!');
                         setTimeout(() => window.location.href = REDIRECT_URL, 1000);
                     } else {
-                        const err = await res.json();
-                        showToast(err.message || 'Lỗi lưu đề thi', 'err');
+                        let msg = 'Lỗi lưu đề thi';
+                        try {
+                            const err = await res.json();
+                            msg = err.message || msg;
+                        } catch (e) { }
+                        showToast(msg, 'err');
                     }
                 } catch (e) { showToast('Lỗi kết nối!', 'err'); }
             }
 
-            window.previewQuiz = function() {
+            window.previewQuiz = function () {
                 const title = document.getElementById('quiz-title').value || 'Chưa đặt tiêu đề';
                 const desc = document.getElementById('quiz-desc').value || 'Chưa có mô tả';
                 const selected = questionsList.filter(q => selectedQuestionIds.has(q.id));
-                
+
                 document.getElementById('preview-quiz-title').textContent = title;
                 document.getElementById('preview-quiz-meta').textContent = `${selected.length} câu hỏi đã chọn`;
                 document.getElementById('preview-quiz-desc').textContent = desc;
-                
+
                 const listWrap = document.getElementById('preview-quiz-questions-list');
                 listWrap.innerHTML = selected.map((q, idx) => `
                     <div class="border-bottom pb-3">
-                        <div class="fw-bold mb-2">Câu ${idx+1}: ${esc(q.text)}</div>
+                        <div class="fw-bold mb-2">Câu ${idx + 1}: ${esc(q.text)}</div>
                         <div class="ps-3 d-flex flex-column gap-1">
                             ${q.answers.map((a, i) => `
                                 <div class="small ${a.isCorrect ? 'text-success fw-bold' : 'text-muted'}">
-                                    ${String.fromCharCode(65+i)}. ${esc(a.text)}
+                                    ${String.fromCharCode(65 + i)}. ${esc(a.text)}
                                 </div>
                             `).join('')}
                         </div>
                     </div>
                 `).join('');
-                
+
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('previewQuizModal')).show();
             }
 
             // Category Tree Picker Logic
-            window.openCategoryTreePicker = function(target) {
-                categorySelectTarget = target;
-                const containerId = target === 'quiz' ? 'private-category-tree-container' : 
-                                   (document.getElementById('q-source').value === 'public' ? 'public-category-tree-container' : 'private-category-tree-container');
-                const modalId = containerId.includes('public') ? 'categoryExplorerPublicModal' : 'categoryExplorerPrivateModal';
-                const categories = containerId.includes('public') ? publicCategories : myCategories;
-                
-                const container = document.getElementById(containerId);
-                if (container) {
-                    container.innerHTML = renderTreeNodes(categories, containerId.includes('public') ? 'public' : 'mine');
-                    bootstrap.Modal.getOrCreateInstance(document.getElementById(modalId)).show();
-                }
-            }
 
-            function renderTreeNodes(nodes, source) {
-                if (!nodes || nodes.length === 0) return '<p class="text-center text-muted small py-3">Trống</p>';
-                return `<ul class="list-unstyled ps-3">${nodes.map(n => `
-                    <li class="mb-2">
-                        <span class="category-selectable-name text-dark fw-bold small" onclick="selectCategoryFromTree(${n.id}, '${escapeHTML(n.name)}', '${source}')">
-                            <i class="bi bi-folder-fill text-warning me-1"></i> ${escapeHTML(n.name)}
-                        </span>
-                        ${n.children ? renderTreeNodes(n.children, source) : ''}
-                    </li>
-                `).join('')}</ul>`;
-            }
+            // Unified opening logic is now in category-explorer-private-scripts
 
-            window.selectCategoryFromTree = function(id, name, source) {
-                if (categorySelectTarget === 'quiz') {
-                    const idEl = document.getElementById('quiz-category');
-                    const dispEl = document.getElementById('quiz-category-display');
-                    if(idEl) idEl.value = id;
-                    if(dispEl) dispEl.value = name;
-                } else {
-                    const idEl = document.getElementById('q-category-filter');
-                    const dispEl = document.getElementById('q-category-filter-display');
-                    const sourceEl = document.getElementById('q-source');
-                    if(idEl) idEl.value = id;
-                    if(dispEl) dispEl.value = name;
-                    if(sourceEl) sourceEl.value = source;
-                    loadQuestions();
-                }
-                // Hide all explorer modals
-                ['categoryExplorerPrivateModal', 'categoryExplorerPublicModal'].forEach(mId => {
-                    const el = document.getElementById(mId);
-                    if (el) {
-                        const inst = bootstrap.Modal.getInstance(el);
-                        if (inst) inst.hide();
-                    }
-                });
-            }
-
-            window.clearCategoryFilterSelection = function() {
-                document.getElementById('q-category-filter').value = '';
-                document.getElementById('q-category-filter-display').value = 'Tất cả danh mục';
+            window.clearCategoryFilterSelection = function () {
+                const idEl = document.getElementById('q-category-filter');
+                const dispEl = document.getElementById('q-category-filter-display');
+                if (idEl) idEl.value = '';
+                if (dispEl) dispEl.value = 'Tất cả danh mục';
                 loadQuestions();
             }
 
-            // On-the-fly Question Creation Logic
-            window.toggleFlyAnswersUI = function() {
-                const type = document.getElementById('fly-type').value;
-                const wrapper = document.getElementById('fly-answers-wrapper');
-                wrapper.innerHTML = '';
-                if (type === 'FILL_IN_BLANK') {
-                    addFlyAnswerRow('', true);
-                } else {
-                    addFlyAnswerRow('', true);
-                    addFlyAnswerRow('', false);
-                }
-            }
-
-            window.addFlyAnswerRow = function(text = '', isCorrect = false) {
-                const wrapper = document.getElementById('fly-answers-wrapper');
-                const type = document.getElementById('fly-type').value;
-                const div = document.createElement('div');
-                div.className = 'd-flex align-items-center gap-2 mb-2 fly-ans-row';
-                div.innerHTML = `
-                    <input class="form-check-input fly-ans-correct" type="${type === 'MULTIPLE_CHOICE' ? 'checkbox' : 'radio'}" name="flyAns" ${isCorrect ? 'checked' : ''} style="flex-shrink:0;">
-                    <input type="text" class="form-control fc fly-ans-text" value="${text}" placeholder="Nội dung đáp án..." required>
-                    <button type="button" class="btn btn-sm text-danger border-0" onclick="this.parentElement.remove()"><i class="bi bi-trash"></i></button>
-                `;
-                wrapper.appendChild(div);
-            }
-
-            window.saveFlyQuestion = async function() {
-                const text = document.getElementById('fly-text').value.trim();
-                const type = document.getElementById('fly-type').value;
-                const catId = document.getElementById('quiz-category').value;
-                if (!text || !catId) { showToast('Nhập nội dung và chọn danh mục trước!', 'err'); return; }
-                
-                const answers = [];
-                document.querySelectorAll('.fly-ans-row').forEach(row => {
-                    const aText = row.querySelector('.fly-ans-text').value.trim();
-                    const aCorrect = type === 'FILL_IN_BLANK' ? true : row.querySelector('.fly-ans-correct').checked;
-                    if (aText) answers.push({ text: aText, isCorrect: aCorrect });
-                });
-                
-                if (answers.length === 0) { showToast('Hãy thêm ít nhất 1 đáp án!', 'err'); return; }
-
-                const payload = { categoryId: parseInt(catId), text, type, level: document.getElementById('fly-level').value, answers };
-                try {
-                    const res = await fetch(`${BASE_API}/questions`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-                        body: JSON.stringify(payload)
-                    });
-                    if (res.ok) {
-                        const newQ = await res.json();
-                        questionsList.unshift(newQ);
-                        selectedQuestionIds.add(newQ.id);
-                        updateSelectedCount();
-                        renderQuestions(questionsList);
-                        bootstrap.Modal.getInstance(document.getElementById('createOnTheFlyQuestionModal')).hide();
-                        showToast('Đã tạo và thêm câu hỏi!');
-                    }
-                } catch (e) { showToast('Lỗi tạo câu hỏi nhanh!', 'err'); }
-            }
-
-            // Helpers
             function findCategoryById(nodes, id) {
-                for (let n of nodes) {
+                if (!nodes) return null;
+                for (const n of nodes) {
                     if (n.id === id) return n;
                     if (n.children) {
-                        const c = findCategoryById(n.children, id);
-                        if (c) return c;
+                        const f = findCategoryById(n.children, id);
+                        if (f) return f;
                     }
                 }
                 return null;
             }
 
-            function showToast(msg, type = 'ok') {
-                const w = document.getElementById('toastWrap');
-                if (!w) return;
-                const t = document.createElement('div');
-                t.className = `toast-msg show ${type}`;
-                t.innerHTML = `<i class="bi ${type === 'ok' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}"></i> ${msg}`;
-                w.appendChild(t);
-                setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3000);
-            }
+            // Handle question saved from the shared editor
+            window.onQuestionSaved = function(newQ, isEdit) {
+                if (isEdit) {
+                    // Update in lists if present
+                    const idx = questionsList.findIndex(q => q.id === newQ.id);
+                    if (idx !== -1) questionsList[idx] = newQ;
+                    renderQuestions(questionsList);
+                } else {
+                    // Prepend new question and auto-select it
+                    questionsList.unshift(newQ);
+                    selectedQuestionIds.add(newQ.id);
+                    updateSelectedCount();
+                    renderQuestions(questionsList);
+                }
+            };
 
-            function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
-
-            function escapeHTML(str) {
-                if (!str) return '';
-                return str.replace(/[&<>'"]/g, 
-                    tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
-                );
-            }
         })();
     </script>
+    <div th:replace="~{fragments/question-editor :: question-editor-scripts(${userType})}"></div>
+    <div th:replace="~{fragments/category-explorer-private :: category-explorer-private-scripts(${userType})}"></div>
 </div>

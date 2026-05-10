@@ -414,12 +414,16 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         Quiz quiz = attempt.getQuizTaking().getQuiz();
         QuizAssigning quizAssigning = attempt.getQuizTaking().getQuizAssigning();
 
-        // Logical fix: only show answers if (personal quiz) OR (showAnswer is true AND
-        // deadline has passed)
-        boolean deadlinePassed = quizAssigning == null || (quizAssigning.getDueDate() != null
-                && quizAssigning.getDueDate().isBefore(LocalDateTime.now()));
+        // Show answers if:
+        // 1. It's a personal quiz (no assigning)
+        // 2. OR the teacher explicitly allowed it (showAnswer is true)
+        // 3. OR the deadline has passed (safety fallback, though usually showAnswer is the master switch)
+        boolean deadlinePassed = quizAssigning == null || quizAssigning.getDueDate() == null
+                || quizAssigning.getDueDate().isBefore(LocalDateTime.now());
+        
         boolean shouldShowAnswer = quizAssigning == null
-                || (Boolean.TRUE.equals(quizAssigning.getShowAnswer()) && deadlinePassed);
+                || Boolean.TRUE.equals(quizAssigning.getShowAnswer())
+                || deadlinePassed;
 
         List<UserAttemptAnswer> userAnswers = userAttemptAnswerRepository.findByAttemptId(attemptId);
 

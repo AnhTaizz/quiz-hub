@@ -392,69 +392,8 @@
             </div>
         </div>
 
-        <!-- Question Modals -->
-        <div class="modal fade" id="questionModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-dialog-centered modal-lg">
-                <div class="modal-content" style="border-radius: 20px; overflow: hidden;">
-                    <div class="modal-header border-0" style="background: linear-gradient(135deg, #4338ca, #6366f1); padding: 20px 28px;">
-                        <h5 class="modal-title fw-bold text-white" id="questionModalLabel"><i class="bi bi-pencil-square me-2"></i>Thêm Câu hỏi mới</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body p-4">
-                        <form id="question-form" autocomplete="off">
-                            <input type="hidden" id="q-id">
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <label class="form-label fw-bold text-dark">Nội dung câu hỏi <span class="text-danger">*</span></label>
-                                    <textarea id="q-text" class="form-control fc" rows="3" placeholder="Nhập nội dung câu hỏi..." required></textarea>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold text-dark">Loại câu hỏi <span class="text-danger">*</span></label>
-                                    <select id="q-type" class="form-select fc" required onchange="adaptAnswerFormat()">
-                                        <option value="SINGLE_CHOICE">Trắc nghiệm 1 đáp án</option>
-                                        <option value="MULTIPLE_CHOICE">Trắc nghiệm nhiều đáp án</option>
-                                        <option value="FILL_IN_BLANK">Điền khuyết</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold text-dark">Độ khó <span class="text-danger">*</span></label>
-                                    <select id="q-level" class="form-select fc">
-                                        <option value="EASY">Dễ (Easy)</option>
-                                        <option value="MEDIUM" selected>Trung bình (Medium)</option>
-                                        <option value="HARD">Khó (Hard)</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label fw-bold text-dark">Danh mục</label>
-                                    <div class="d-flex gap-1 align-items-center">
-                                        <input type="text" id="q-category-display" class="form-control fc cursor-pointer bg-white" placeholder="-- Chọn danh mục --" readonly onclick="openModalCategorySelector()" style="cursor: pointer;">
-                                        <input type="hidden" id="q-category" value="">
-                                        <button type="button" class="btn btn-outline-danger btn-sm p-2" id="clear-q-cat-btn" style="display: none; border-radius: 12px; height: 42px; width: 42px;" onclick="clearQuestionCategorySelection()">
-                                            <i class="bi bi-x-lg"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="col-12 mt-4">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h6 class="fw-bold text-dark mb-0"><i class="bi bi-list-check me-2"></i>Các đáp án lựa chọn</h6>
-                                        <button type="button" class="btn-add-ans" onclick="addNewAnswerRow()">
-                                            <i class="bi bi-plus-lg"></i> Thêm đáp án
-                                        </button>
-                                    </div>
-                                    <div id="answer-list" class="answer-list"></div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="modal-footer border-0 p-4 pt-0">
-                        <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal" style="border-radius:12px; padding:10px 20px;">Hủy</button>
-                        <button type="button" class="btn fw-bold btn-premium" onclick="saveQuestion()" style="border-radius:12px; padding:10px 24px;">
-                            <i class="bi bi-check-circle-fill me-1"></i> Lưu câu hỏi
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- The Question Modal is now provided by the shared question-editor fragment -->
+        <div th:replace="~{fragments/question-editor :: question-editor-modal}"></div>
 
         <div class="modal fade" id="viewDetailModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered modal-lg">
@@ -568,79 +507,12 @@
             }
 
             // --- Tree & Selection ---
-            function renderTreeNodes(categories) {
-                if (!categories || categories.length === 0) return '';
-                return '<ul class="list-unstyled ps-3 mt-1">' +
-                    categories.map(function(cat) {
-                        var hasChildren = cat.children && cat.children.length > 0;
-                        return '<li class="mb-2">' +
-                                '<div class="d-flex align-items-center gap-2 category-node-row">' +
-                                    (hasChildren ? '<i class="bi bi-chevron-right me-1 text-primary folder-toggle" onclick="toggleFolderNode(event, this)"></i>' : '<i class="bi bi-dot me-1 text-muted"></i>') +
-                                    '<span class="category-selectable-name text-dark fw-semibold" onclick="selectCategoryFromTree(' + cat.id + ', \'' + escapeHTML(escapeJS(cat.name)) + '\')">' +
-                                        '<i class="bi ' + (hasChildren ? 'bi-folder-fill text-warning' : 'bi-folder text-secondary') + '"></i> ' +
-                                        escapeHTML(cat.name) +
-                                    '</span>' +
-                                '</div>' +
-                                (hasChildren ? '<div class="children-node" style="display: none;">' + renderTreeNodes(cat.children) + '</div>' : '') +
-                            '</li>';
-                    }).join('') +
-                '</ul>';
-            }
+            // Tree logic is now centralized in category-explorer-private-scripts
 
-            function toggleFolderNode(e, el) {
-                e.stopPropagation();
-                var childrenDiv = el.closest('li').querySelector('.children-node');
-                if (childrenDiv) {
-                    var isHidden = childrenDiv.style.display === 'none';
-                    childrenDiv.style.display = isHidden ? 'block' : 'none';
-                    el.classList.toggle('bi-chevron-right', !isHidden);
-                    el.classList.toggle('bi-chevron-down', isHidden);
-                }
-            }
-
-            var categorySelectTarget = 'filter';
-            function openCategoryModal(target) {
-                categorySelectTarget = target || 'filter';
-                if (currentTab === 'public') {
-                    var publicContainer = document.getElementById('public-category-tree-container');
-                    if (publicContainer) {
-                        publicContainer.innerHTML = renderTreeNodes(typeof publicCategories !== 'undefined' ? publicCategories : []) || '<div class="text-muted text-center my-4">Không có danh mục nào</div>';
-                        bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerPublicModal')).show();
-                    }
-                } else {
-                    var privateContainer = document.getElementById('private-category-tree-container');
-                    if (privateContainer) {
-                        var myTreeHtml = renderTreeNodes(typeof myCategories !== 'undefined' ? myCategories : []);
-                        var myHtml = myTreeHtml || '<div class="text-muted text-center my-4">Không có danh mục nào</div>';
-                        if (categorySelectTarget === 'filter') {
-                            myHtml = '<div class="mb-3"><span class="category-selectable-name text-danger fw-semibold" onclick="selectCategoryFromTree(-1, \'Câu hỏi chưa phân mục\')"><i class="bi bi-folder-x"></i> Chưa phân mục</span></div>' + myHtml;
-                        }
-                        privateContainer.innerHTML = myHtml;
-                        bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerPrivateModal')).show();
-                    }
-                }
-            }
+            window.categorySelectTarget = 'filter';
+            // Using unified openCategoryExplorer from shared scripts
             function openModalCategorySelector() { openCategoryModal('question'); }
 
-            function selectCategoryFromTree(id, name) {
-                if (categorySelectTarget === 'filter') {
-                    document.getElementById('filter-category').value = id;
-                    document.getElementById('filter-category-display').value = name;
-                    document.getElementById('clear-cat-btn').style.display = 'inline-block';
-                    triggerSearch();
-                } else {
-                    document.getElementById('q-category').value = id;
-                    document.getElementById('q-category-display').value = name;
-                    document.getElementById('clear-q-cat-btn').style.display = 'inline-block';
-                }
-                ['categoryExplorerModal', 'categoryExplorerPrivateModal', 'categoryExplorerPublicModal'].forEach(function(mid) {
-                    var el = document.getElementById(mid);
-                    if (el) {
-                        var m = bootstrap.Modal.getInstance(el);
-                        if (m) m.hide();
-                    }
-                });
-            }
             function clearCategorySelection() {
                 document.getElementById('filter-category').value = '';
                 document.getElementById('filter-category-display').value = '';
@@ -663,7 +535,21 @@
             }
             function triggerSearch() { page = 0; clearSelection(); fetchQuestions(); }
 
+            async function fetchCategories() {
+                try {
+                    const baseUrl = '/api/' + USER_TYPE + '/categories';
+                    const [m, p] = await Promise.all([
+                        fetch(baseUrl + '/mine', { headers: { Authorization: 'Bearer ' + token } }),
+                        fetch(baseUrl + '/public', { headers: { Authorization: 'Bearer ' + token } })
+                    ]);
+                    if (m.ok) window.myCategories = await m.json();
+                    if (p.ok) window.publicCategories = await p.json();
+                } catch (e) { console.error('Failed to refresh categories', e); }
+            }
+            window.fetchCategories = fetchCategories;
+
             async function fetchQuestions() {
+
                 var container = document.getElementById('questions-container');
                 container.innerHTML = '<div class="text-center my-5 py-5"><div class="spinner-border text-primary"></div><p class="text-muted mt-2">Đang tải...</p></div>';
                 
@@ -829,27 +715,16 @@
 
             async function viewDetail(id, canEdit) {
                 try {
-                    var res = await fetch(BASE_API + '/' + id, { headers: { 'Authorization': 'Bearer ' + token } });
-                    var q = await res.json();
+                    const res = await fetch(BASE_API + '/' + id, { headers: { 'Authorization': 'Bearer ' + token } });
+                    if (!res.ok) throw new Error('Không thể tải câu hỏi');
+                    const q = await res.json();
                     if (canEdit) {
-                        document.getElementById('questionModalLabel').innerHTML = 'Sửa câu hỏi';
-                        document.getElementById('q-id').value = q.id;
-                        document.getElementById('q-text').value = q.text;
-                        document.getElementById('q-type').value = q.type;
-                        document.getElementById('q-level').value = q.level;
-                        document.getElementById('q-category').value = q.categoryId || '';
-                        document.getElementById('q-category-display').value = q.categoryName || '';
-                        document.getElementById('clear-q-cat-btn').style.display = q.categoryId ? 'inline-block' : 'none';
-                        var wrapper = document.getElementById('answer-list');
-                        wrapper.innerHTML = '';
-                        q.answers.forEach(function(a) { wrapper.appendChild(createAnswerRow(q.type, a.text, a.isCorrect)); });
-                        syncSelectedStyles();
-                        bootstrap.Modal.getOrCreateInstance(document.getElementById('questionModal')).show();
+                        openQuestionEditor(q);
                     } else {
                         document.getElementById('detail-body').innerHTML = '<h5>' + escapeHTML(q.text) + '</h5><hr>' + q.answers.map(function(a) { return '<div class="p-2 mb-1 rounded ' + (a.isCorrect ? 'bg-success-subtle' : 'bg-light') + '">' + (a.isCorrect ? '<i class="bi bi-check-circle-fill text-success"></i> ' : '') + escapeHTML(a.text) + '</div>'; }).join('');
                         bootstrap.Modal.getOrCreateInstance(document.getElementById('viewDetailModal')).show();
                     }
-                } catch(e) { showToast('Lỗi tải chi tiết', 'error'); }
+                } catch (e) { showToast('Lỗi tải chi tiết', 'error'); }
             }
 
             // --- Bulk Actions ---
@@ -903,80 +778,13 @@
 
             // --- Form Management ---
             function showCreateModal() {
-                document.getElementById('questionModalLabel').innerHTML = 'Soạn câu hỏi mới';
-                document.getElementById('q-id').value = '';
-                document.getElementById('q-text').value = '';
-                document.getElementById('q-type').value = 'SINGLE_CHOICE';
-                document.getElementById('q-level').value = 'MEDIUM';
-                document.getElementById('q-category').value = '';
-                document.getElementById('q-category-display').value = '';
-                document.getElementById('clear-q-cat-btn').style.display = 'none';
-                adaptAnswerFormat();
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('questionModal')).show();
-            }
-
-            function adaptAnswerFormat() {
-                var type = document.getElementById('q-type').value;
-                var wrapper = document.getElementById('answer-list');
-                var current = Array.from(wrapper.querySelectorAll('.answer-row')).map(function(row) {
-                    return { text: row.querySelector('.ans-input')?.value || '', isCorrect: row.classList.contains('correct-ans') };
-                });
-                wrapper.innerHTML = '';
-                if (current.length === 0) {
-                    if (type === 'SINGLE_CHOICE' || type === 'MULTIPLE_CHOICE') {
-                        for(var i=0; i<4; i++) current.push({ text: '', isCorrect: i === 0 });
-                    } else current.push({ text: '', isCorrect: true });
-                }
-                current.forEach(function(ans) { wrapper.appendChild(createAnswerRow(type, ans.text, ans.isCorrect)); });
-                syncSelectedStyles();
-            }
-
-            function createAnswerRow(type, text, checked) {
-                var div = document.createElement('div');
-                div.className = 'answer-row ' + (checked ? 'correct-ans' : '');
-                div.innerHTML = (type === 'SINGLE_CHOICE' ? '<input type="radio" name="correct-ans" class="ans-toggle" ' + (checked?'checked':'') + ' onchange="syncSelectedStyles()">' : (type === 'MULTIPLE_CHOICE' ? '<input type="checkbox" class="ans-toggle" ' + (checked?'checked':'') + ' onchange="syncSelectedStyles()">' : '<input type="hidden" class="ans-toggle" value="true">')) +
-                    '<input type="text" class="ans-input" value="' + escapeHTML(text || '') + '" placeholder="Đáp án..." required oninput="syncSelectedStyles()">' +
-                    '<button type="button" class="btn btn-sm text-danger border-0" onclick="this.parentElement.remove(); syncSelectedStyles()"><i class="bi bi-x-circle fs-5"></i></button>';
-                return div;
-            }
-            function addNewAnswerRow() { var wrap = document.getElementById('answer-list'); wrap.appendChild(createAnswerRow(document.getElementById('q-type').value, '', false)); }
-            function syncSelectedStyles() {
-                var type = document.getElementById('q-type').value;
-                document.querySelectorAll('#answer-list .answer-row').forEach(function(row) {
-                    var toggle = row.querySelector('.ans-toggle');
-                    var isCorrect = (type === 'FILL_IN_BLANK') || (toggle && toggle.checked);
-                    row.classList.toggle('correct-ans', isCorrect);
-                });
-            }
-
-            async function saveQuestion() {
-                var id = document.getElementById('q-id').value, text = document.getElementById('q-text').value.trim(), type = document.getElementById('q-type').value, level = document.getElementById('q-level').value, catId = document.getElementById('q-category').value;
-                if(!text) { showToast('Vui lòng nhập câu hỏi', 'error'); return; }
-                var answers = Array.from(document.querySelectorAll('#answer-list .answer-row')).map(function(row) {
-                    var toggle = row.querySelector('.ans-toggle');
-                    return { text: row.querySelector('.ans-input').value.trim(), isCorrect: (type === 'FILL_IN_BLANK') || (toggle && toggle.checked) };
-                }).filter(function(a) { return a.text; });
-
-                if(answers.length < 1) { showToast('Cần ít nhất 1 đáp án', 'error'); return; }
-                if(type !== 'FILL_IN_BLANK' && !answers.some(function(a) { return a.isCorrect; })) { showToast('Cần chọn đáp án đúng', 'error'); return; }
-
-                var payload = { text: text, type: type, level: level, categoryId: catId ? parseInt(catId) : null, answers: answers };
-                try {
-                    var res = await fetch(id ? BASE_API + '/' + id : BASE_API, {
-                        method: id ? 'PUT' : 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                        body: JSON.stringify(payload)
-                    });
-                    if(!res.ok) throw new Error('Lưu thất bại');
-                    showToast(id ? 'Cập nhật thành công!' : 'Tạo thành công!');
-                    var m = bootstrap.Modal.getInstance(document.getElementById('questionModal'));
-                    if(m) m.hide();
-                    fetchQuestions();
-                } catch(e) { showToast(e.message, 'error'); }
+                openQuestionEditor();
             }
 
             document.addEventListener('DOMContentLoaded', fetchQuestions);
         </script>
+
+        <div th:replace="~{fragments/question-editor :: question-editor-scripts(${userType})}"></div>
 
     </div>
 

@@ -17,7 +17,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     List<Category> findByParentIsNull();
 
-    List<Category> findByParentId(Long parentId);
+    @Query("SELECT c FROM Category c WHERE c.parent.id = :parentId")
+    List<Category> findByParentId(@Param("parentId") Long parentId);
 
     /**
      * Lấy tất cả danh mục công khai kèm parent (JOIN FETCH tránh LazyInitializationException).

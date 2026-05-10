@@ -46,13 +46,19 @@ public class StudentQuestionRestController {
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) QuestionType type,
             @RequestParam(required = false) String keyword,
+            @RequestParam(defaultValue = "false") Boolean isPublicTab,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
 
-        Page<QuestionResponseDTO> response = questionService.searchMyQuestion(
-                getCurrentUserId(), categoryId, type, keyword, page, size, sortBy, sortDir);
+        Page<QuestionResponseDTO> response;
+
+        if (isPublicTab) {
+            response = questionService.searchPublicQuestion(categoryId, type, keyword, page, size, sortBy, sortDir);
+        } else {
+            response = questionService.searchMyQuestion(getCurrentUserId(), categoryId, type, keyword, page, size, sortBy, sortDir);
+        }
 
         return ResponseEntity.ok(response);
     }

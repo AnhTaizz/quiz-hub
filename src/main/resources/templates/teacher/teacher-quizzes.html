@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,7 +8,9 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Nunito+Sans:wght@700;800;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Nunito+Sans:wght@700;800;900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/style.css}">
@@ -19,8 +22,15 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .page-title {
@@ -43,7 +53,7 @@
             border-radius: 16px;
             border: 1px solid #e2e8f0;
             padding: 16px;
-            box-shadow: 0 4px 25px rgba(0,0,0,0.03);
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.03);
             margin-bottom: 24px;
         }
 
@@ -151,15 +161,6 @@
             color: #1d4ed8;
         }
 
-        .qbadge-draft {
-            background: #f1f5f9;
-            color: #94a3b8;
-        }
-
-        .qbadge-pub {
-            background: #dcfce7;
-            color: #15803d;
-        }
 
         .quiz-title {
             font-family: 'Nunito Sans', sans-serif;
@@ -293,15 +294,24 @@
             display: flex;
             align-items: center;
             gap: 9px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
             opacity: 0;
             transform: translateX(16px);
             transition: all .3s ease;
         }
 
-        .toast-msg.show { opacity: 1; transform: translateX(0); }
-        .toast-msg.ok i { color: #4ade80; }
-        .toast-msg.err i { color: #fb7185; }
+        .toast-msg.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast-msg.ok i {
+            color: #4ade80;
+        }
+
+        .toast-msg.err i {
+            color: #fb7185;
+        }
 
         .skeleton {
             animation: shimmer 1.5s infinite;
@@ -312,8 +322,13 @@
         }
 
         @keyframes shimmer {
-            0% { background-position: -200% 0 }
-            100% { background-position: 200% 0 }
+            0% {
+                background-position: -200% 0
+            }
+
+            100% {
+                background-position: 200% 0
+            }
         }
     </style>
 </head>
@@ -340,11 +355,13 @@
             <div class="row g-3">
                 <div class="col-lg-5 col-md-4">
                     <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0" style="border-radius:12px 0 0 12px; border-color:#e2e8f0;">
+                        <span class="input-group-text bg-white border-end-0"
+                            style="border-radius:12px 0 0 12px; border-color:#e2e8f0;">
                             <i class="bi bi-search text-muted"></i>
                         </span>
-                        <input type="text" id="searchInput" class="form-control fc-custom border-start-0" 
-                            placeholder="Tìm kiếm đề thi..." style="border-radius:0 12px 12px 0;" onkeyup="filterQuizzes()">
+                        <input type="text" id="searchInput" class="form-control fc-custom border-start-0"
+                            placeholder="Tìm kiếm đề thi..." style="border-radius:0 12px 12px 0;"
+                            onkeyup="filterQuizzes()">
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-4">
@@ -375,14 +392,17 @@
     <!-- Delete Confirmation Modal -->
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-sm">
-            <div class="modal-content text-center p-4" style="border-radius:20px; border:none; box-shadow:0 15px 40px rgba(0,0,0,0.15);">
+            <div class="modal-content text-center p-4"
+                style="border-radius:20px; border:none; box-shadow:0 15px 40px rgba(0,0,0,0.15);">
                 <div style="font-size:2.5rem; margin-bottom:10px;">🗑️</div>
                 <h6 class="fw-bold mb-1">Xóa đề thi?</h6>
                 <p class="text-muted small mb-3">Thao tác này không thể hoàn tác. Bạn có chắc chắn muốn xóa?</p>
                 <input type="hidden" id="delQuizId">
                 <div class="d-flex gap-2">
-                    <button class="btn btn-light w-50 fw-bold" data-bs-dismiss="modal" style="border-radius:12px; font-size:.85rem;">Hủy</button>
-                    <button class="btn btn-danger w-50 fw-bold" onclick="confirmDelete()" style="border-radius:12px; font-size:.85rem;">Xóa</button>
+                    <button class="btn btn-light w-50 fw-bold" data-bs-dismiss="modal"
+                        style="border-radius:12px; font-size:.85rem;">Hủy</button>
+                    <button class="btn btn-danger w-50 fw-bold" onclick="confirmDelete()"
+                        style="border-radius:12px; font-size:.85rem;">Xóa</button>
                 </div>
             </div>
         </div>
@@ -391,7 +411,8 @@
     <!-- Assign Quiz Modal -->
     <div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius:20px; border:none; box-shadow:0 15px 40px rgba(0,0,0,0.15);">
+            <div class="modal-content"
+                style="border-radius:20px; border:none; box-shadow:0 15px 40px rgba(0,0,0,0.15);">
                 <div class="modal-header border-0 pb-0 pt-4 px-4">
                     <h5 class="modal-title fw-bold">Giao bài cho lớp học</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -417,28 +438,34 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Thời gian làm bài (Phút)</label>
-                            <input type="number" name="durationInMins" class="form-control rounded-3" value="45" min="1" required>
+                            <input type="number" name="durationInMins" class="form-control rounded-3" value="45" min="1"
+                                required>
                         </div>
                         <div class="row g-3 mb-3">
                             <div class="col-6">
                                 <label class="form-label fw-bold">Ngày mở đề</label>
-                                <input type="datetime-local" id="assignStartDate" name="startDate" class="form-control rounded-3" required>
+                                <input type="datetime-local" id="assignStartDate" name="startDate"
+                                    class="form-control rounded-3" required>
                             </div>
                             <div class="col-6">
                                 <label class="form-label fw-bold">Hạn chót</label>
-                                <input type="datetime-local" id="assignDueDate" name="dueDate" class="form-control rounded-3" required>
+                                <input type="datetime-local" id="assignDueDate" name="dueDate"
+                                    class="form-control rounded-3" required>
                             </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Số lần làm tối đa</label>
-                            <input type="number" name="maxAttempt" class="form-control rounded-3" value="1" min="1" required>
+                            <input type="number" name="maxAttempt" class="form-control rounded-3" value="1" min="1"
+                                required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Ghi chú</label>
-                            <textarea name="note" class="form-control rounded-3" rows="2" placeholder="Ví dụ: Bài tập về nhà"></textarea>
+                            <textarea name="note" class="form-control rounded-3" rows="2"
+                                placeholder="Ví dụ: Bài tập về nhà"></textarea>
                         </div>
                         <div class="form-check form-switch mb-2">
-                            <input class="form-check-input" type="checkbox" id="assignQShuffled" name="questionShuffled">
+                            <input class="form-check-input" type="checkbox" id="assignQShuffled"
+                                name="questionShuffled">
                             <label class="form-check-label fw-bold" for="assignQShuffled">Xáo trộn câu hỏi</label>
                         </div>
                         <div class="form-check form-switch mb-2">
@@ -446,10 +473,13 @@
                             <label class="form-check-label fw-bold" for="assignAShuffled">Xáo trộn đáp án</label>
                         </div>
                         <div class="form-check form-switch mb-4">
-                            <input class="form-check-input" type="checkbox" id="assignShowAnswer" name="showAnswer" checked>
-                            <label class="form-check-label fw-bold" for="assignShowAnswer">Cho phép học sinh xem đáp án</label>
+                            <input class="form-check-input" type="checkbox" id="assignShowAnswer" name="showAnswer"
+                                checked>
+                            <label class="form-check-label fw-bold" for="assignShowAnswer">Cho phép học sinh xem đáp
+                                án</label>
                         </div>
-                        <button type="button" onclick="confirmAssign()" class="btn btn-primary w-100 py-2 fw-bold" style="background:var(--blue); border:none; border-radius:10px;">Xác nhận giao đề</button>
+                        <button type="button" onclick="confirmAssign()" class="btn btn-primary w-100 py-2 fw-bold"
+                            style="background:var(--blue); border:none; border-radius:10px;">Xác nhận giao đề</button>
                     </form>
                 </div>
             </div>
@@ -524,15 +554,12 @@
 
             wrapper.innerHTML = list.map(q => {
                 const typeBadge = q.isExam
-                    ? `<span class="qbadge qbadge-exam"><i class="bi bi-mortarboard-fill"></i> Đề thi</span>`
-                    : `<span class="qbadge qbadge-quiz"><i class="bi bi-journal-check"></i> Quiz</span>`;
-                const statusBadge = q.isDraft
-                    ? `<span class="qbadge qbadge-draft"><i class="bi bi-cone-striped"></i> Bản nháp</span>`
-                    : `<span class="qbadge qbadge-pub"><i class="bi bi-check-circle-fill"></i> Xuất bản</span>`;
+                    ? `<span class="qbadge qbadge-exam"><i class="bi bi-mortarboard-fill"></i> Kiểm tra</span>`
+                    : `<span class="qbadge qbadge-quiz"><i class="bi bi-journal-check"></i> Luyện tập</span>`;
 
                 return `
                 <div class="quiz-card">
-                    <div class="quiz-badge-row">${typeBadge} ${statusBadge}</div>
+                    <div class="quiz-badge-row">${typeBadge}</div>
                     <h3 class="quiz-title">${esc(q.title) || '(Chưa có tiêu đề)'}</h3>
                     <p class="quiz-desc">${esc(q.description) || '<span style="color:#cbd5e1; font-style:italic;">Chưa có mô tả.</span>'}</p>
                     <div class="quiz-chips">
@@ -598,7 +625,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const select = document.getElementById('classroomIdSelect');
             if (select) {
-                select.addEventListener('change', async function() {
+                select.addEventListener('change', async function () {
                     const classId = this.value;
                     const topicContainer = document.getElementById('topicDropdownContainer');
                     const topicSelect = document.getElementById('assignTopicId');
@@ -645,7 +672,7 @@
             const month = String(now.getMonth() + 1).padStart(2, '0');
             const day = String(now.getDate()).padStart(2, '0');
             const nowStr = `${year}-${month}-${day}T${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-            
+
             const due = new Date();
             due.setDate(now.getDate() + 7);
             due.setHours(23, 59, 0, 0); // Default to end of day for due date
@@ -741,4 +768,5 @@
         }
     </script>
 </body>
+
 </html>

@@ -1716,11 +1716,8 @@ async function doDeleteQuestion() {
 
 function quizCardHtml(q) {
     const typeBadge   = q.isExam
-        ? `<span class="qbadge qbadge-exam"><i class="bi bi-mortarboard-fill"></i> Đề thi</span>`
-        : `<span class="qbadge qbadge-quiz"><i class="bi bi-journal-check"></i> Quiz</span>`;
-    const statusBadge = q.isDraft
-        ? `<span class="qbadge qbadge-draft"><i class="bi bi-cone-striped"></i> Bản nháp</span>`
-        : `<span class="qbadge qbadge-pub"><i class="bi bi-check-circle-fill"></i> Xuất bản</span>`;
+        ? `<span class="qbadge qbadge-exam"><i class="bi bi-mortarboard-fill"></i> Kiểm tra</span>`
+        : `<span class="qbadge qbadge-quiz"><i class="bi bi-journal-check"></i> Luyện tập</span>`;
 
     const actions = OWN_MODE
         ? `<div class="quiz-actions">
@@ -1733,7 +1730,7 @@ function quizCardHtml(q) {
            </div>`;
 
     return `<div class="quiz-card">
-        <div class="quiz-badge-row">${typeBadge} ${statusBadge}</div>
+        <div class="quiz-badge-row">${typeBadge}</div>
         <h3 class="quiz-title">${esc(q.title) || '(Chưa có tiêu đề)'}</h3>
         <p class="quiz-desc">${esc(q.description) || '<span style="color:#cbd5e1;font-style:italic;">Chưa có mô tả.</span>'}</p>
         <div class="quiz-chips">

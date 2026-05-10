@@ -190,17 +190,24 @@ public class QuestionServiceImpl implements QuestionService {
         }
     }
 
-    private void collectCategoryIds(Category category, List<Long> ids) {
-        if (category == null) return;
-        ids.add(category.getId());
-        if (category.getChildren() != null) {
-            for (Category child : category.getChildren()) {
-                collectCategoryIds(child, ids);
+    private void collectCategoryIds(Long categoryId, List<Long> ids) {
+        if (categoryId == null) return;
+        List<Category> allCategories = categoryRepository.findAll();
+        ids.add(categoryId);
+        collectRecursive(categoryId, allCategories, ids);
+    }
+
+    private void collectRecursive(Long parentId, List<Category> allCategories, List<Long> ids) {
+        for (Category cat : allCategories) {
+            if (cat.getParent() != null && cat.getParent().getId().equals(parentId)) {
+                ids.add(cat.getId());
+                collectRecursive(cat.getId(), allCategories, ids);
             }
         }
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<QuestionResponseDTO> searchMyQuestion(Long userId, Long categoryId, QuestionType type,
                                                     String keyword,
                                                     int page, int size,
@@ -218,9 +225,7 @@ public class QuestionServiceImpl implements QuestionService {
             if (categoryId == -1L) {
                 categoryIds.add(-1L);
             } else {
-                Category category = categoryRepository.findById(categoryId)
-                        .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-                collectCategoryIds(category, categoryIds);
+                collectCategoryIds(categoryId, categoryIds);
             }
             useCategoryFilter = true;
         }
@@ -232,6 +237,7 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<QuestionResponseDTO> searchPublicQuestion(Long categoryId, QuestionType type,
                                                           String keyword, int page, int size,
                                                           String sortBy, String sortDir) {
@@ -248,9 +254,7 @@ public class QuestionServiceImpl implements QuestionService {
             if (categoryId == -1L) {
                 categoryIds.add(-1L);
             } else {
-                Category category = categoryRepository.findById(categoryId)
-                        .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-                collectCategoryIds(category, categoryIds);
+                collectCategoryIds(categoryId, categoryIds);
             }
             useCategoryFilter = true;
         }
@@ -278,9 +282,7 @@ public class QuestionServiceImpl implements QuestionService {
             if (categoryId == -1L) {
                 categoryIds.add(-1L);
             } else {
-                Category category = categoryRepository.findById(categoryId)
-                        .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-                collectCategoryIds(category, categoryIds);
+                collectCategoryIds(categoryId, categoryIds);
             }
             useCategoryFilter = true;
         }
@@ -420,9 +422,7 @@ public class QuestionServiceImpl implements QuestionService {
             if (filterCategoryId == -1L) {
                 categoryIds.add(-1L);
             } else {
-                Category category = categoryRepository.findById(filterCategoryId)
-                        .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-                collectCategoryIds(category, categoryIds);
+                collectCategoryIds(filterCategoryId, categoryIds);
             }
             useCategoryFilter = true;
         }
@@ -471,9 +471,7 @@ public class QuestionServiceImpl implements QuestionService {
             if (filterCategoryId == -1L) {
                 categoryIds.add(-1L);
             } else {
-                Category category = categoryRepository.findById(filterCategoryId)
-                        .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-                collectCategoryIds(category, categoryIds);
+                collectCategoryIds(filterCategoryId, categoryIds);
             }
             useCategoryFilter = true;
         }

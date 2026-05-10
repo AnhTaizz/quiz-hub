@@ -13,6 +13,7 @@ import com.example.quizhub.dto.category.CategoryRequestDTO;
 import com.example.quizhub.dto.category.CategoryResponseDTO;
 import com.example.quizhub.entity.Category;
 import com.example.quizhub.entity.Question;
+import com.example.quizhub.entity.Quiz;
 import com.example.quizhub.entity.User;
 import com.example.quizhub.entity.enums.QuestionStatus;
 import com.example.quizhub.entity.enums.Role;
@@ -44,12 +45,14 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CategoryResponseDTO> getAllCategories(){
         List<Category> allCategories = categoryRepository.findAll();
         return buildTree(allCategories, null);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CategoryResponseDTO> getPublicCategories() {
         // JOIN FETCH đảm bảo parent được load trong transaction
         List<Category> publicCats = categoryRepository.findAllPublicWithParent();
@@ -201,9 +204,20 @@ public class CategoryServiceImpl implements CategoryService {
         }
 
         List<Question> questions = questionRepository.findByCategoryId(id);
-
         if (!questions.isEmpty()) {
-            throw new AppException(ErrorCode.CATEGORY_HAS_QUESTIONS);
+            for (Question q : questions) {
+                q.setCategory(null);
+                questionRepository.save(q);
+            }
+        }
+
+        // 2. Move all quizzes in this category to "Unassigned" (null)
+        List<Quiz> quizzes = quizRepository.findByCategoryId(id);
+        if (!quizzes.isEmpty()) {
+            for (Quiz q : quizzes) {
+                q.setCategory(null);
+                quizRepository.save(q);
+            }
         }
 
         List<Category> children = category.getChildren();
@@ -217,19 +231,22 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Long> getAllDescendantIds(Long categoryId) {
-        List<Long> ids = new ArrayList<>();
-        Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-        collectIds(category, ids);
-        return ids;
+        List<Category> allCategories = categoryRepository.findAll();
+        List<Long> descendantIds = new ArrayList<>();
+        if (categoryId == null) return descendantIds;
+        
+        descendantIds.add(categoryId);
+        collectDescendantIdsRecursive(categoryId, allCategories, descendantIds);
+        return descendantIds;
     }
 
-    private void collectIds(Category category, List<Long> ids) {
-        ids.add(category.getId());
-        if (category.getChildren() != null) {
-            for (Category child : category.getChildren()) {
-                collectIds(child, ids);
+    private void collectDescendantIdsRecursive(Long parentId, List<Category> allCategories, List<Long> ids) {
+        for (Category category : allCategories) {
+            if (category.getParent() != null && category.getParent().getId().equals(parentId)) {
+                ids.add(category.getId());
+                collectDescendantIdsRecursive(category.getId(), allCategories, ids);
             }
         }
     }

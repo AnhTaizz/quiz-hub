@@ -36,7 +36,7 @@ public class Quiz {
     @Column(length = 1000)
     String description;
 
-    @Column(name = "image_url", length = 256)
+    @Column(name = "image_url", length = 1024)
     String imageUrl;
 
     @Column(name = "is_draft", nullable = false)

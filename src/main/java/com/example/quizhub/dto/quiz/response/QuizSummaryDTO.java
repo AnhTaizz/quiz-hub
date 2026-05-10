@@ -28,6 +28,7 @@ public class QuizSummaryDTO {
     int questionCount;
     String creatorName;
     String categoryName;
+    Long categoryId;
     String takingStatus; // NOT_STARTED, IN_PROGRESS, COMPLETED
     String attemptInfo;  // e.g. "Lần làm: 2"
 
@@ -41,5 +42,6 @@ public class QuizSummaryDTO {
         this.questionCount = (quiz.getQuestions() != null) ? quiz.getQuestions().size() : 0;
         this.creatorName = (quiz.getCreator() != null) ? quiz.getCreator().getFullName() : "";
         this.categoryName = (quiz.getCategory() != null) ? quiz.getCategory().getName() : "";
+        this.categoryId = (quiz.getCategory() != null) ? quiz.getCategory().getId() : null;
     }
 }

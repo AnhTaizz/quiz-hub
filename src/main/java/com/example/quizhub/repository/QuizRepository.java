@@ -34,6 +34,8 @@ public interface QuizRepository extends JpaRepository<Quiz, UUID> {
     long countByCategoryIdAndCreatorId(Long categoryId, Long creatorId);
     long countByCategoryIdInAndCreatorId(List<Long> categoryIds, Long creatorId);
 
+    List<Quiz> findByCategoryId(Long categoryId);
+
     long countByCategoryId(Long categoryId);
     long countByCategoryIdIn(List<Long> categoryIds);
 }
