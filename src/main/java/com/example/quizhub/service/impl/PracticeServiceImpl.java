@@ -1,11 +1,14 @@
 package com.example.quizhub.service.impl;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.quizhub.dto.practice.PracticeAnswerRequestDTO;
 import com.example.quizhub.dto.practice.PracticeAnswerResponseDTO;
 import com.example.quizhub.dto.practice.PracticeDetailResponseDTO;
+import com.example.quizhub.dto.practice.PracticeHistoryResponseDTO;
 import com.example.quizhub.dto.practice.PracticeQuestionResponseDTO;
 import com.example.quizhub.dto.practice.PracticeResultResponseDTO;
 import com.example.quizhub.dto.practice.PracticeStartRequestDTO;
@@ -79,7 +83,18 @@ public class PracticeServiceImpl implements PracticeService {
         Integer limit = request.getLimit() != null ? request.getLimit() : 10;
         Integer offset = request.getOffset() != null ? request.getOffset() : 0;
 
-        // Check if there is an ongoing practice for this specific range
+        // 1. Fetch questions first to know the actual count
+        Pageable pageable = org.springframework.data.domain.PageRequest.of(offset / limit, limit);
+        List<Question> questions = questionRepository.findPublicQuestionsByCategories(
+                categoryIds,
+                pageable);
+
+        if (questions.isEmpty()) {
+            throw new AppException(ErrorCode.QUESTION_NOT_FOUND);
+        }
+
+        // 2. Create or get practice with actual question count
+        int actualCount = questions.size();
         Practice practice = practiceRepository
                 .findFirstByUserIdAndCategoryIdAndPracticeLimitAndPracticeOffsetAndIsCompletedFalseOrderByCreatedAtDesc(
                         user.getId(), category.getId(), limit, offset)
@@ -89,21 +104,17 @@ public class PracticeServiceImpl implements PracticeService {
                             .category(category)
                             .practiceLimit(limit)
                             .practiceOffset(offset)
-                            .totalQuestions(limit)
+                            .totalQuestions(actualCount)
                             .correctAnswers(0)
                             .isCompleted(false)
                             .build();
                     return practiceRepository.save(newPractice);
                 });
 
-        // Fetch questions for these categories
-        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(offset / limit, limit);
-        List<Question> questions = questionRepository.findPublicQuestionsByCategories(
-                categoryIds,
-                pageable);
-
-        if (questions.isEmpty()) {
-            throw new AppException(ErrorCode.QUESTION_NOT_FOUND);
+        // Ensure totalQuestions is updated if it was previously set incorrectly
+        if (!practice.getTotalQuestions().equals(actualCount)) {
+            practice.setTotalQuestions(actualCount);
+            practiceRepository.save(practice);
         }
 
         // Map to safe DTO with progress
@@ -113,7 +124,8 @@ public class PracticeServiceImpl implements PracticeService {
                     .collect(Collectors.toList());
 
             // Load saved progress for this question
-            PracticeDetail detail = practiceDetailRepository.findByPracticeIdAndQuestionId(practice.getId(), q.getId())
+            PracticeDetail detail = practiceDetailRepository
+                    .findFirstByPracticeIdAndQuestionIdOrderByIdAsc(practice.getId(), q.getId())
                     .orElse(null);
 
             return PracticeQuestionResponseDTO.builder()
@@ -151,7 +163,8 @@ public class PracticeServiceImpl implements PracticeService {
         Question question = questionRepository.findById(ansReq.getQuestionId())
                 .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
 
-        PracticeDetail detail = practiceDetailRepository.findByPracticeIdAndQuestionId(practiceId, ansReq.getQuestionId())
+        PracticeDetail detail = practiceDetailRepository
+                .findFirstByPracticeIdAndQuestionIdOrderByIdAsc(practiceId, ansReq.getQuestionId())
                 .orElse(PracticeDetail.builder()
                         .practice(practice)
                         .question(question)
@@ -240,7 +253,7 @@ public class PracticeServiceImpl implements PracticeService {
 
         Integer limit = request.getLimit() != null ? request.getLimit() : 10;
         Integer offset = request.getOffset() != null ? request.getOffset() : 0;
-        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(offset / limit, limit);
+        Pageable pageable = PageRequest.of(offset / limit, limit);
         List<Question> questions = questionRepository.findPublicQuestionsByCategories(
                 categoryIds,
                 pageable);
@@ -282,15 +295,15 @@ public class PracticeServiceImpl implements PracticeService {
                     .orElseThrow(() -> new AppException(ErrorCode.PRACTICE_NOT_FOUND));
         } else {
             practice = practiceRepository
-                .findFirstByUserIdAndCategoryIdAndPracticeLimitAndPracticeOffsetAndIsCompletedFalseOrderByCreatedAtDesc(
-                        user.getId(), category.getId(), limit, offset)
-                .orElseGet(() -> Practice.builder()
-                        .user(user)
-                        .category(category)
-                        .totalQuestions(limit)
-                        .correctAnswers(0)
-                        .isCompleted(false)
-                        .build());
+                    .findFirstByUserIdAndCategoryIdAndPracticeLimitAndPracticeOffsetAndIsCompletedFalseOrderByCreatedAtDesc(
+                            user.getId(), category.getId(), limit, offset)
+                    .orElseGet(() -> Practice.builder()
+                            .user(user)
+                            .category(category)
+                            .totalQuestions(limit)
+                            .correctAnswers(0)
+                            .isCompleted(false)
+                            .build());
         }
 
         Practice savedPractice = practiceRepository.save(practice);
@@ -343,7 +356,7 @@ public class PracticeServiceImpl implements PracticeService {
                     if (selectedText != null && !selectedText.trim().isEmpty()) {
                         String trimmedSelected = selectedText.trim();
                         for (String ct : correctTexts) {
-                            if (ct.trim().equals(trimmedSelected)) {
+                            if (ct.trim().equalsIgnoreCase(trimmedSelected)) {
                                 isCorrect = true;
                                 break;
                             }
@@ -357,12 +370,13 @@ public class PracticeServiceImpl implements PracticeService {
             }
 
             // Save or update detail
-            PracticeDetail detail = practiceDetailRepository.findByPracticeIdAndQuestionId(savedPractice.getId(), question.getId())
+            PracticeDetail detail = practiceDetailRepository
+                    .findFirstByPracticeIdAndQuestionIdOrderByIdAsc(savedPractice.getId(), question.getId())
                     .orElse(PracticeDetail.builder()
                             .practice(savedPractice)
                             .question(question)
                             .build());
-            
+
             detail.setSelectedAnswers(selectedAnswers);
             detail.setSelectedText(selectedText);
             detail.setIsCorrect(isCorrect);
@@ -415,12 +429,13 @@ public class PracticeServiceImpl implements PracticeService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<com.example.quizhub.dto.practice.PracticeHistoryResponseDTO> getPracticeHistory(Long categoryId) {
+    public List<PracticeHistoryResponseDTO> getPracticeHistory(Long categoryId) {
         User user = getCurrentUser();
-        List<Practice> practices = practiceRepository.findByUserIdAndCategoryIdAndIsCompletedTrueOrderByCreatedAtDesc(user.getId(),
+        List<Practice> practices = practiceRepository.findByUserIdAndCategoryIdAndIsCompletedTrueOrderByCreatedAtDesc(
+                user.getId(),
                 categoryId);
 
-        return practices.stream().map(p -> com.example.quizhub.dto.practice.PracticeHistoryResponseDTO.builder()
+        return practices.stream().map(p -> PracticeHistoryResponseDTO.builder()
                 .id(p.getId())
                 .categoryId(p.getCategory().getId())
                 .categoryName(p.getCategory().getName())
@@ -432,11 +447,11 @@ public class PracticeServiceImpl implements PracticeService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<com.example.quizhub.dto.practice.PracticeHistoryResponseDTO> getMyPracticeHistory() {
+    public List<PracticeHistoryResponseDTO> getMyPracticeHistory() {
         User user = getCurrentUser();
         List<Practice> practices = practiceRepository.findByUserIdAndIsCompletedTrueOrderByCreatedAtDesc(user.getId());
 
-        return practices.stream().map(p -> com.example.quizhub.dto.practice.PracticeHistoryResponseDTO.builder()
+        return practices.stream().map(p -> PracticeHistoryResponseDTO.builder()
                 .id(p.getId())
                 .categoryId(p.getCategory() != null ? p.getCategory().getId() : null)
                 .categoryName(p.getCategory() != null ? p.getCategory().getName() : "Đề thi cá nhân")
@@ -462,8 +477,9 @@ public class PracticeServiceImpl implements PracticeService {
                 .map(d -> PracticeDetailResponseDTO.builder()
                         .questionId(d.getQuestion().getId())
                         .questionText(d.getQuestion().getText())
-                        .selectedAnswerIds(d.getSelectedAnswers() != null ?
-                                d.getSelectedAnswers().stream().map(Answer::getId).collect(Collectors.toList()) : null)
+                        .selectedAnswerIds(d.getSelectedAnswers() != null
+                                ? d.getSelectedAnswers().stream().map(Answer::getId).collect(Collectors.toList())
+                                : null)
                         .selectedText(d.getSelectedText())
                         .correctAnswerIds(d.getQuestion().getAnswers().stream()
                                 .filter(a -> Boolean.TRUE.equals(a.getIsCorrect()))
@@ -488,7 +504,7 @@ public class PracticeServiceImpl implements PracticeService {
                 .totalQuestions(practice.getTotalQuestions())
                 .correctAnswers(practice.getCorrectAnswers())
                 .score(BigDecimal.valueOf((practice.getCorrectAnswers() * 10.0) / practice.getTotalQuestions())
-                        .setScale(1, java.math.RoundingMode.HALF_UP))
+                        .setScale(1, RoundingMode.HALF_UP))
                 .createdAt(practice.getCreatedAt())
                 .details(details)
                 .build();
@@ -520,7 +536,7 @@ public class PracticeServiceImpl implements PracticeService {
                     .build();
         }).collect(Collectors.toList());
 
-        return com.example.quizhub.dto.practice.PracticeStartResponseDTO.builder()
+        return PracticeStartResponseDTO.builder()
                 .questions(questionDTOs)
                 .categoryId(quiz.getCategory() != null ? quiz.getCategory().getId() : null)
                 .categoryName(quiz.getCategory() != null ? quiz.getCategory().getName() : "Đề thi cá nhân")

@@ -7,11 +7,13 @@ import java.util.Random;
 import org.springframework.stereotype.Service;
 
 import com.example.quizhub.dto.classroom.request.ClassroomRequestDTO;
+import com.example.quizhub.dto.classroom.response.AssignmentStatisticsDTO;
 import com.example.quizhub.dto.classroom.response.ClassroomResponseDTO;
 import com.example.quizhub.dto.classroom.response.MemberResponseDTO;
+import com.example.quizhub.entity.Attempt;
 import com.example.quizhub.entity.ClassJoining;
 import com.example.quizhub.entity.Classroom;
-import com.example.quizhub.entity.JoinStatus;
+import com.example.quizhub.entity.QuizTaking;
 import com.example.quizhub.entity.User;
 import com.example.quizhub.exception.AppException;
 import com.example.quizhub.exception.ErrorCode;
@@ -20,15 +22,20 @@ import com.example.quizhub.repository.ClassroomRepository;
 import com.example.quizhub.repository.UserRepository;
 import com.example.quizhub.service.classroom.ClassroomService;
 import com.example.quizhub.service.notification.NotificationService;
+import com.example.quizhub.entity.enums.JoinStatus;
 import com.example.quizhub.entity.enums.NotificationType;
 
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.InputStream;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
@@ -41,6 +48,9 @@ public class ClassroomServiceImpl implements ClassroomService {
     private final UserRepository userRepository;
     private final ClassJoiningRepository classJoiningRepository;
     private final NotificationService notificationService;
+    private final com.example.quizhub.repository.QuizAssigningRepository quizAssigningRepository;
+    private final com.example.quizhub.repository.QuizTakingRepository quizTakingRepository;
+    private final com.example.quizhub.repository.AttemptRepository attemptRepository;
 
     @Override
     public ClassroomResponseDTO createClassroom(String teacherEmail, ClassroomRequestDTO request) {
@@ -133,7 +143,8 @@ public class ClassroomServiceImpl implements ClassroomService {
                 .findByClassroomIdAndLearnerId(classroomId, studentId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_CLASS));
 
-        classJoiningRepository.delete(joiningRecord);
+        joiningRecord.setStatus(JoinStatus.REMOVED);
+        classJoiningRepository.save(joiningRecord);
     }
 
     @Override
@@ -144,11 +155,25 @@ public class ClassroomServiceImpl implements ClassroomService {
         Classroom classroom = classroomRepository.findByCode(classCode)
                 .orElseThrow(() -> new AppException(ErrorCode.CLASSROOM_NOT_FOUND));
 
-        boolean isAlreadyJoined = classJoiningRepository
-                .findByClassroomIdAndLearnerId(classroom.getId(), learner.getId())
-                .isPresent();
-        if (isAlreadyJoined) {
-            throw new AppException(ErrorCode.USER_ALREADY_IN_CLASS);
+        var existingJoining = classJoiningRepository
+                .findByClassroomIdAndLearnerId(classroom.getId(), learner.getId());
+
+        if (existingJoining.isPresent()) {
+            ClassJoining joining = existingJoining.get();
+            if (joining.getStatus() == JoinStatus.REMOVED || joining.getStatus() == JoinStatus.REJECTED) {
+                // Cho phép đăng ký lại nếu đã bị xóa hoặc bị từ chối trước đó
+                joining.setStatus(classroom.getRequireApproval() != null && classroom.getRequireApproval()
+                        ? JoinStatus.PENDING
+                        : JoinStatus.APPROVED);
+                joining.setJoinedAt(LocalDateTime.now());
+                classJoiningRepository.save(joining);
+
+                // Gửi thông báo như bình thường
+                sendJoinNotification(classroom, learner, joining.getStatus());
+                return;
+            } else {
+                throw new AppException(ErrorCode.USER_ALREADY_IN_CLASS);
+            }
         }
 
         ClassJoining classJoining = ClassJoining.builder()
@@ -162,25 +187,25 @@ public class ClassroomServiceImpl implements ClassroomService {
                 .build();
 
         classJoiningRepository.save(classJoining);
+        sendJoinNotification(classroom, learner, classJoining.getStatus());
+    }
 
-        // Tạo thông báo cho giáo viên nếu cần phê duyệt
-        if (classJoining.getStatus() == JoinStatus.PENDING) {
+    private void sendJoinNotification(Classroom classroom, User learner, JoinStatus status) {
+        if (status == JoinStatus.PENDING) {
             notificationService.createNotification(
                     classroom.getCreator().getId(),
                     "Yêu cầu tham gia lớp học",
-                    "Học sinh \"" + learner.getFullName() + "\" đang chờ bạn phê duyệt vào lớp \"" + classroom.getName() + "\".",
+                    "Học sinh \"" + learner.getFullName() + "\" đang chờ bạn phê duyệt vào lớp \"" + classroom.getName()
+                            + "\".",
                     NotificationType.JOIN_REQUEST,
-                    "/teacher/classrooms/" + classroom.getId() + "/members"
-            );
-        } else if (classJoining.getStatus() == JoinStatus.APPROVED) {
-            // Thông báo cho giáo viên là có người vừa vào lớp (dành cho lớp không cần duyệt)
+                    "/teacher/classrooms/" + classroom.getId() + "/members");
+        } else if (status == JoinStatus.APPROVED) {
             notificationService.createNotification(
                     classroom.getCreator().getId(),
                     "Thành viên mới",
                     "Học sinh \"" + learner.getFullName() + "\" vừa tham gia vào lớp \"" + classroom.getName() + "\".",
                     NotificationType.JOIN_APPROVED,
-                    "/teacher/classrooms/" + classroom.getId() + "/members"
-            );
+                    "/teacher/classrooms/" + classroom.getId() + "/members");
         }
     }
 
@@ -200,10 +225,10 @@ public class ClassroomServiceImpl implements ClassroomService {
         notificationService.createNotification(
                 joining.getLearner().getId(),
                 "Yêu cầu được chấp nhận",
-                "Yêu cầu tham gia lớp \"" + joining.getClassroom().getName() + "\" của bạn đã được giáo viên phê duyệt.",
+                "Yêu cầu tham gia lớp \"" + joining.getClassroom().getName()
+                        + "\" của bạn đã được giáo viên phê duyệt.",
                 NotificationType.JOIN_APPROVED,
-                "/student/classrooms"
-        );
+                "/student/classrooms");
     }
 
     @Override
@@ -223,9 +248,8 @@ public class ClassroomServiceImpl implements ClassroomService {
                 joining.getLearner().getId(),
                 "Yêu cầu bị từ chối",
                 "Yêu cầu tham gia lớp \"" + joining.getClassroom().getName() + "\" của bạn đã bị từ chối.",
-                NotificationType.QUESTION_REJECTED, // Dùng tạm icon REJECTED
-                "/student/classrooms"
-        );
+                NotificationType.JOIN_REJECTED,
+                "/student/classrooms");
     }
 
     @Override
@@ -291,21 +315,24 @@ public class ClassroomServiceImpl implements ClassroomService {
         List<String> alreadyJoinedEmails = new ArrayList<>();
 
         try (InputStream is = file.getInputStream();
-             Workbook workbook = new XSSFWorkbook(is)) {
-            
+                Workbook workbook = new XSSFWorkbook(is)) {
+
             Sheet sheet = workbook.getSheetAt(0);
             DataFormatter formatter = new DataFormatter(); // Bộ định dạng dữ liệu thông minh
 
             for (Row row : sheet) {
-                if (row.getRowNum() == 0) continue; // Bỏ qua dòng tiêu đề
+                if (row.getRowNum() == 0)
+                    continue; // Bỏ qua dòng tiêu đề
 
                 Cell cell = row.getCell(0);
-                if (cell == null) continue;
+                if (cell == null)
+                    continue;
 
                 // Đọc dữ liệu ô và chuyển về String bất kể định dạng là gì
                 String email = formatter.formatCellValue(cell).trim();
 
-                if (email.isEmpty()) continue;
+                if (email.isEmpty())
+                    continue;
 
                 var studentOpt = userRepository.findByEmail(email);
                 if (studentOpt.isEmpty()) {
@@ -315,13 +342,33 @@ public class ClassroomServiceImpl implements ClassroomService {
                 }
 
                 User learner = studentOpt.get();
-                boolean isAlreadyJoined = classJoiningRepository
-                        .findByClassroomIdAndLearnerId(classroom.getId(), learner.getId())
-                        .isPresent();
+                var existingJoining = classJoiningRepository
+                        .findByClassroomIdAndLearnerId(classroom.getId(), learner.getId());
 
-                if (isAlreadyJoined) {
-                    alreadyJoinedEmails.add(email);
-                    continue;
+                if (existingJoining.isPresent()) {
+                    ClassJoining joining = existingJoining.get();
+                    if (joining.getStatus() == JoinStatus.APPROVED || joining.getStatus() == JoinStatus.PENDING) {
+                        alreadyJoinedEmails.add(email);
+                        continue;
+                    } else {
+                        // Nếu đã bị xóa hoặc bị từ chối, giáo viên import lại thì cho vào luôn
+                        joining.setStatus(JoinStatus.APPROVED);
+                        joining.setJoinedAt(LocalDateTime.now());
+                        classJoiningRepository.save(joining);
+                        successCount++;
+
+                        // Notify student
+                        try {
+                            notificationService.createNotification(
+                                    learner.getId(),
+                                    "Đã được thêm lại vào lớp học",
+                                    "Giáo viên đã thêm bạn lại vào lớp \"" + classroom.getName() + "\".",
+                                    NotificationType.JOIN_APPROVED,
+                                    "/student/classrooms");
+                        } catch (Exception e) {
+                        }
+                        continue;
+                    }
                 }
 
                 ClassJoining classJoining = ClassJoining.builder()
@@ -335,6 +382,17 @@ public class ClassroomServiceImpl implements ClassroomService {
 
                 classJoiningRepository.save(classJoining);
                 successCount++;
+
+                // Notify student
+                try {
+                    notificationService.createNotification(
+                            learner.getId(),
+                            "Đã được thêm vào lớp học",
+                            "Giáo viên đã thêm bạn vào lớp \"" + classroom.getName() + "\".",
+                            NotificationType.JOIN_APPROVED,
+                            "/student/classrooms");
+                } catch (Exception e) {
+                }
             }
         } catch (Exception e) {
             throw new RuntimeException("Lỗi khi đọc file Excel: " + e.getMessage());
@@ -346,5 +404,99 @@ public class ClassroomServiceImpl implements ClassroomService {
         result.put("failedEmails", failedEmails);
         result.put("alreadyJoinedEmails", alreadyJoinedEmails);
         return result;
+    }
+
+    @Override
+    public AssignmentStatisticsDTO getAssignmentStatistics(Long assigningId, String teacherEmail) {
+        com.example.quizhub.entity.QuizAssigning assigning = quizAssigningRepository.findById(assigningId)
+                .orElseThrow(() -> new AppException(ErrorCode.QUIZ_ASSIGNING_NOT_FOUND));
+
+        if (!assigning.getClassroom().getCreator().getEmail().equals(teacherEmail)) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        List<ClassJoining> members = classJoiningRepository.findByClassroomIdAndStatus(
+                assigning.getClassroom().getId(), JoinStatus.APPROVED);
+
+        int totalStudents = members.size();
+        int completedCount = 0;
+        int inProgressCount = 0;
+        int notStartedCount = 0;
+
+        java.math.BigDecimal sum = java.math.BigDecimal.ZERO;
+        java.math.BigDecimal highest = null;
+        java.math.BigDecimal lowest = null;
+        int scoresCount = 0;
+
+        Map<String, Integer> distribution = new HashMap<>();
+        distribution.put("0-2", 0);
+        distribution.put("2-4", 0);
+        distribution.put("4-6", 0);
+        distribution.put("6-8", 0);
+        distribution.put("8-10", 0);
+
+        for (ClassJoining member : members) {
+            Optional<QuizTaking> takingOpt = quizTakingRepository
+                    .findByLearnerIdAndQuizAssigningId(member.getLearner().getId(), assigningId);
+
+            if (takingOpt.isEmpty()) {
+                notStartedCount++;
+                continue;
+            }
+
+            QuizTaking taking = takingOpt.get();
+            if (taking.getStatus() == com.example.quizhub.entity.enums.TakingStatus.COMPLETED) {
+                completedCount++;
+            } else {
+                inProgressCount++;
+            }
+
+            // Find highest score for this student in this assignment
+            List<Attempt> attempts = attemptRepository.findByQuizTakingId(taking.getId());
+            BigDecimal studentBest = null;
+            for (Attempt att : attempts) {
+                if (att.getResult() != null) {
+                    if (studentBest == null || att.getResult().compareTo(studentBest) > 0) {
+                        studentBest = att.getResult();
+                    }
+                }
+            }
+
+            if (studentBest != null) {
+                sum = sum.add(studentBest);
+                scoresCount++;
+                if (highest == null || studentBest.compareTo(highest) > 0)
+                    highest = studentBest;
+                if (lowest == null || studentBest.compareTo(lowest) < 0)
+                    lowest = studentBest;
+
+                double val = studentBest.doubleValue();
+                if (val < 2)
+                    distribution.put("0-2", distribution.get("0-2") + 1);
+                else if (val < 4)
+                    distribution.put("2-4", distribution.get("2-4") + 1);
+                else if (val < 6)
+                    distribution.put("4-6", distribution.get("4-6") + 1);
+                else if (val < 8)
+                    distribution.put("6-8", distribution.get("6-8") + 1);
+                else
+                    distribution.put("8-10", distribution.get("8-10") + 1);
+            }
+        }
+
+        BigDecimal average = scoresCount > 0
+                ? sum.divide(BigDecimal.valueOf(scoresCount), 2, RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+
+        return AssignmentStatisticsDTO.builder()
+                .totalStudents(totalStudents)
+                .completedCount(completedCount)
+                .inProgressCount(inProgressCount)
+                .notStartedCount(notStartedCount)
+                .averageScore(average)
+                .highestScore(highest != null ? highest : BigDecimal.ZERO)
+                .lowestScore(lowest != null ? lowest : BigDecimal.ZERO)
+                .scoreDistribution(distribution)
+                .build();
     }
 }

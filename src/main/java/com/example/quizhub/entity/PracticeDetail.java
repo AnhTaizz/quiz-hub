@@ -1,5 +1,7 @@
 package com.example.quizhub.entity;
 
+import java.util.List;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -7,8 +9,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -24,7 +29,9 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Entity
-@Table(name = "_practice_detail")
+@Table(name = "_practice_detail", uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "practice_id", "question_id" })
+})
 public class PracticeDetail {
 
     @Id
@@ -39,13 +46,9 @@ public class PracticeDetail {
     @JoinColumn(name = "question_id", nullable = false)
     Question question;
 
-    @jakarta.persistence.ManyToMany(fetch = FetchType.LAZY)
-    @jakarta.persistence.JoinTable(
-        name = "_practice_detail_selected_answers",
-        joinColumns = @jakarta.persistence.JoinColumn(name = "practice_detail_id"),
-        inverseJoinColumns = @jakarta.persistence.JoinColumn(name = "answer_id")
-    )
-    java.util.List<Answer> selectedAnswers;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "_practice_detail_selected_answers", joinColumns = @JoinColumn(name = "practice_detail_id"), inverseJoinColumns = @JoinColumn(name = "answer_id"))
+    List<Answer> selectedAnswers;
 
     @Column(name = "selected_text")
     String selectedText;

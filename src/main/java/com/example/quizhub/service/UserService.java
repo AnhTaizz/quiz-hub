@@ -3,6 +3,7 @@ package com.example.quizhub.service;
 import org.springframework.data.domain.Page;
 
 import com.example.quizhub.dto.auth.request.ChangePasswordRequest;
+import com.example.quizhub.dto.user.request.CreateUserRequest;
 import com.example.quizhub.dto.user.request.UpdateProfileRequest;
 import com.example.quizhub.dto.user.response.UserProfileResponse;
 import com.example.quizhub.dto.user.response.UserResponseDTO;
@@ -23,7 +24,7 @@ public interface UserService {
 
     Page<UserProfileResponse> getAllUsers(String key, Role role, int page, int size);
 
-    void createUser(com.example.quizhub.dto.user.request.CreateUserRequest request);
+    void createUser(CreateUserRequest request);
 
     boolean existsByEmail(String email);
 }

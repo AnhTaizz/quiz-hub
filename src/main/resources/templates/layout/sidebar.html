@@ -3,9 +3,9 @@
 
 <body>
     <aside th:fragment="teacher-sidebar(activeItem)" id="sidebar">
-        <div class="brand-logo">
+        <a th:href="@{/teacher}" class="brand-logo" style="text-decoration: none;">
             <i class="bi bi-layers-fill"></i> <span>Quiz<span class="hub">Hub</span></span>
-        </div>
+        </a>
 
         <div class="menu-title">Bảng điều khiển</div>
         <ul class="nav-menu">
@@ -32,10 +32,11 @@
             </a></li>
         </ul>
     </aside>
+
     <aside th:fragment="student-sidebar(activeItem)" id="sidebar">
-        <div class="brand-logo">
+        <a th:href="@{/student}" class="brand-logo" style="text-decoration: none;">
             <i class="bi bi-layers-fill"></i> <span>Quiz<span class="hub">Hub</span></span>
-        </div>
+        </a>
 
         <div class="menu-title">Bảng điều khiển</div>
         <ul class="nav-menu">
@@ -58,6 +59,43 @@
             </li>
             <li><a href="/student/questions" th:classappend="${activeItem == 'questions' ? 'active' : ''}" data-title="Tự tạo câu hỏi"><i class="bi bi-pencil-square"></i> <span>Tự tạo câu hỏi</span></a></li>
             <li><a href="/student/quizzes/create" th:classappend="${activeItem == 'create-quiz' ? 'active' : ''}" data-title="Tự tạo đề luyện tập"><i class="bi bi-file-earmark-plus"></i> <span>Tự tạo đề luyện tập</span></a></li>
+        </ul>
+    </aside>
+
+    <aside th:fragment="admin-sidebar(activeItem)" id="sidebar">
+        <a th:href="@{/admin}" class="brand-logo" style="text-decoration: none;">
+            <i class="bi bi-layers-fill"></i> <span>Quiz<span class="hub">Hub</span></span>
+        </a>
+
+        <div class="menu-title">Quản trị Hệ thống</div>
+        <ul class="nav-menu">
+            <li><a href="/admin" th:classappend="${activeItem == 'dashboard' ? 'active' : ''}" data-title="Dashboard">
+                <i class="bi bi-grid-1x2-fill"></i> <span>Tổng quan</span>
+            </a></li>
+            <li><a href="/admin/users" th:classappend="${activeItem == 'users' ? 'active' : ''}" data-title="Tài khoản">
+                <i class="bi bi-people-fill"></i> <span>Quản lý Tài khoản</span>
+            </a></li>
+        </ul>
+
+        <div class="menu-title">Nội dung Public</div>
+        <ul class="nav-menu">
+            <li><a href="/admin/categories" th:classappend="${activeItem == 'categories' ? 'active' : ''}" data-title="Danh mục">
+                <i class="bi bi-diagram-3-fill"></i> <span>Danh mục Hệ thống</span>
+            </a></li>
+            <li>
+                <a href="/admin/moderation" th:classappend="${activeItem == 'moderation' ? 'active' : ''}" data-title="Duyệt nội dung">
+                    <i class="bi bi-clipboard2-check-fill"></i>
+                    <span>Duyệt Câu hỏi</span>
+                    <span style="background: var(--orange); color: #fff; padding: 2px 7px; border-radius: 20px; font-size: 11px; margin-left: auto;">5</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="menu-title">Báo cáo</div>
+        <ul class="nav-menu">
+            <li><a href="/admin/reports" th:classappend="${activeItem == 'reports' ? 'active' : ''}" data-title="Thống kê">
+                <i class="bi bi-bar-chart-line-fill"></i> <span>Thống kê Hệ thống</span>
+            </a></li>
         </ul>
     </aside>
 </body>

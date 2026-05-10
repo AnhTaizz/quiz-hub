@@ -2,6 +2,7 @@ package com.example.quizhub.dto.quiztaking.response;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,6 @@ public class QuizTakingResponseDTO {
     Long startedAtMillis;
 
     List<QuestionTakingResponseDTO> questions;
-    java.util.Map<Long, List<Long>> selectedAnswers;
-    java.util.Map<Long, String> selectedTexts;
+    Map<Long, List<Long>> selectedAnswers;
+    Map<Long, String> selectedTexts;
 }

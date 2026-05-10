@@ -19,7 +19,17 @@
         .score-low { background: #fee2e2; color: #dc2626; }
         .btn-review { background: #f1f5f9; color: #475569; border: none; font-weight: 600; padding: 8px 16px; border-radius: 10px; transition: all 0.2s; }
         .btn-review:hover { background: #e2e8f0; color: #1e293b; }
-        .breadcrumb-item + .breadcrumb-item::before { content: ">"; }
+        
+        .breadcrumb { background: transparent; padding: 0; }
+        .breadcrumb-item { font-size: 0.9rem; font-weight: 700; color: #64748b; }
+        .breadcrumb-item a { color: #6366f1; text-decoration: none; transition: color 0.2s; }
+        .breadcrumb-item a:hover { color: #4f46e5; }
+        .breadcrumb-item + .breadcrumb-item::before { content: ""; padding: 0; }
+        .breadcrumb-separator { margin: 0 8px; color: #cbd5e1; font-weight: 700; }
+        
+        .page-header-title { font-weight: 800; color: #1e1b4b; font-size: 2rem; letter-spacing: -0.5px; line-height: 1.2; }
+        .back-button { width: 45px; height: 45px; background: white; color: #6366f1; border: 1px solid #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-decoration: none; margin-top: 15px; }
+        .back-button:hover { background: #f5f3ff; color: #4f46e5; border-color: #c7d2fe; transform: translateX(-3px); }
     </style>
 </head>
 <body>
@@ -28,19 +38,21 @@
     <main class="container py-5">
         <div class="row justify-content-center">
             <div class="col-lg-9">
-                <div class="d-flex align-items-center gap-3 mb-4">
-                    <a href="/student" class="btn btn-light rounded-circle" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">
+                <div class="d-flex align-items-start gap-4 mb-5">
+                    <a th:href="@{/student/quizzes}" class="back-button">
                         <i class="bi bi-arrow-left"></i>
                     </a>
                     <div>
                         <nav aria-label="breadcrumb">
-                            <ol class="breadcrumb mb-1">
-                                <li class="breadcrumb-item"><a href="/student" class="text-decoration-none">Dashboard</a></li>
-                                <li class="breadcrumb-item"><a href="/student/history" class="text-decoration-none">Lịch sử</a></li>
-                                <li class="breadcrumb-item active" th:text="${assigning != null ? 'Lớp học' : 'Cá nhân'}">Lớp học</li>
+                            <ol class="breadcrumb mb-2">
+                                <li class="breadcrumb-item"><a th:href="@{/student}">Bảng điều khiển</a></li>
+                                <li class="breadcrumb-separator">/</li>
+                                <li class="breadcrumb-item"><a th:href="@{/student/quizzes}">Bài thi của tôi</a></li>
+                                <li class="breadcrumb-separator">/</li>
+                                <li class="breadcrumb-item active text-muted">Lịch sử làm bài</li>
                             </ol>
                         </nav>
-                        <h2 class="fw-bold mb-0" th:text="${assigning != null ? assigning.quiz.title : (attempts.size() > 0 ? attempts[0].quizTaking.quiz.title : 'Đề thi')}">Tên đề thi</h2>
+                        <h1 class="page-header-title mb-0" th:text="${assigning != null ? assigning.quiz.title : (attempts.size() > 0 ? attempts[0].quizTaking.quiz.title : 'Đề thi')}">Tên đề thi</h1>
                     </div>
                 </div>
 

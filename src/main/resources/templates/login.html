@@ -155,22 +155,25 @@
     (function() {
         const userJson = localStorage.getItem('user') || sessionStorage.getItem('user');
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        const params = new URLSearchParams(window.location.search);
+        const returnUrl = params.get('returnUrl');
+
         if (userJson && token) {
-            if (!isTokenValid(token)) {
-                // Token hết hạn -> xóa dữ liệu cũ, cho đăng nhập lại
+            // Nếu có returnUrl nghĩa là backend đã TỪ CHỐI token của user (bị khóa, hoặc cookie bị mất)
+            if (!isTokenValid(token) || returnUrl) {
+                // Token hết hạn HOẶC không còn hợp lệ ở backend -> xóa sạch
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
                 sessionStorage.removeItem('token');
                 sessionStorage.removeItem('user');
                 document.cookie = 'jwt=; path=/; max-age=0;';
+                
+                if (returnUrl) {
+                    showLoginError("Phiên đăng nhập đã hết hạn hoặc tài khoản bị khóa. Vui lòng đăng nhập lại.");
+                }
                 return;
             }
-            const params = new URLSearchParams(window.location.search);
-            const returnUrl = params.get('returnUrl');
-            if (returnUrl) {
-                window.location.replace(decodeURIComponent(returnUrl));
-                return;
-            }
+            
             const user = JSON.parse(userJson);
             if (user.role === 'ADMIN') window.location.replace('/admin');
             else if (user.role === 'TEACHER') window.location.replace('/teacher');

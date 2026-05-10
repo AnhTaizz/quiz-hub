@@ -15,6 +15,10 @@ import com.example.quizhub.exception.ErrorCode;
 import com.example.quizhub.repository.ClassTopicRepository;
 import com.example.quizhub.repository.ClassroomRepository;
 import com.example.quizhub.service.classroom.ClassTopicService;
+import com.example.quizhub.service.notification.NotificationService;
+import com.example.quizhub.entity.enums.JoinStatus;
+import com.example.quizhub.entity.enums.NotificationType;
+import com.example.quizhub.repository.ClassJoiningRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +28,8 @@ public class ClassTopicServiceImpl implements ClassTopicService {
 
     private final ClassTopicRepository classTopicRepository;
     private final ClassroomRepository classroomRepository;
+    private final ClassJoiningRepository classJoiningRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -39,7 +45,23 @@ public class ClassTopicServiceImpl implements ClassTopicService {
         topic.setName(request.getName());
         topic.setClassroom(classroom);
 
-        return ClassTopicResponseDTO.fromEntity(classTopicRepository.save(topic));
+        ClassTopic savedTopic = classTopicRepository.save(topic);
+
+        // Notify students
+        try {
+            classJoiningRepository.findByClassroomIdAndStatus(classroom.getId(), JoinStatus.APPROVED)
+                    .forEach(joining -> {
+                        notificationService.createNotification(
+                                joining.getLearner().getId(),
+                                "Chủ đề mới: " + savedTopic.getName(),
+                                "Giáo viên vừa tạo một chủ đề mới trong lớp " + classroom.getName(),
+                                NotificationType.SYSTEM_ALERT, // Hoặc dùng icon phù hợp
+                                "/student/classrooms");
+                    });
+        } catch (Exception e) {
+        }
+
+        return ClassTopicResponseDTO.fromEntity(savedTopic);
     }
 
     @Override

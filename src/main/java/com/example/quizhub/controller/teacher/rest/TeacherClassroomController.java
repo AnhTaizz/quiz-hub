@@ -86,7 +86,7 @@ public class TeacherClassroomController {
                 .orElseThrow(() -> new RuntimeException("Assignment not found"));
 
         List<com.example.quizhub.entity.ClassJoining> members = classJoiningRepository.findByClassroomIdAndStatus(
-                assigning.getClassroom().getId(), com.example.quizhub.entity.JoinStatus.APPROVED);
+                assigning.getClassroom().getId(), com.example.quizhub.entity.enums.JoinStatus.APPROVED);
 
         List<com.example.quizhub.dto.classroom.response.GradeResponseDTO> list = members.stream().map(cj -> {
             com.example.quizhub.entity.User student = cj.getLearner();
@@ -129,6 +129,13 @@ public class TeacherClassroomController {
         }).toList();
 
         return ResponseEntity.ok(list);
+    }
+
+    @GetMapping("/assigned-quizzes/{assigningId}/statistics")
+    public ResponseEntity<com.example.quizhub.dto.classroom.response.AssignmentStatisticsDTO> getAssignmentStatistics(
+            Principal principal,
+            @PathVariable Long assigningId) {
+        return ResponseEntity.ok(classroomService.getAssignmentStatistics(assigningId, principal.getName()));
     }
 
     @org.springframework.web.bind.annotation.PutMapping("/{classroomId}")

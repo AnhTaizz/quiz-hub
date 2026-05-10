@@ -269,6 +269,7 @@
             justify-content: space-between;
             padding: 0 32px;
             z-index: 99;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
         .header-left .toggle-btn {
@@ -1109,12 +1110,6 @@ function getPathToNode(nodes, targetId, currentPath = []) {
    INIT
 ══════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-    const toggleBtn = document.querySelector('.toggle-btn');
-    if (toggleBtn) toggleBtn.addEventListener('click', e => {
-        e.preventDefault();
-        document.body.classList.toggle('sidebar-collapsed');
-        localStorage.setItem('sidebar-collapsed', document.body.classList.contains('sidebar-collapsed'));
-    });
     initResize();
 
     initMode();
