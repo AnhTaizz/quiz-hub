@@ -289,6 +289,21 @@
             @keyframes slideIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
             .toast-card.success i { color: #4ade80; }
             .toast-card.error i { color: #f87171; }
+            /* Premium Pagination (Unified) */
+            .pagination-shell-up {
+                display: flex; justify-content: space-between; align-items: center;
+                padding: 24px 0; border-top: 1px solid #f1f5f9; flex-wrap: wrap; gap: 15px;
+                margin-top: auto;
+            }
+            .page-link-up {
+                width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+                border-radius: 12px; border: 1px solid #e2e8f0; background: #fff;
+                color: #64748b; font-weight: 700; font-size: 0.85rem; transition: all 0.2s;
+                text-decoration: none; cursor: pointer;
+            }
+            .page-link-up:hover:not(.disabled) { border-color: #6366f1; color: #6366f1; background: #f5f7ff; transform: translateY(-2px); }
+            .page-link-up.active { background: linear-gradient(135deg, #4338ca, #6366f1); color: #fff; border-color: transparent; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+            .page-link-up.disabled { opacity: 0.4; cursor: not-allowed; background: #f8fafc; }
         </style>
 
         <div class="page-title-box">
@@ -322,7 +337,7 @@
             <div class="filter-group">
                 <label><i class="bi bi-folder2-open me-1"></i> Danh mục</label>
                 <div class="d-flex gap-1 align-items-center">
-                    <input type="text" id="filter-category-display" class="form-control filter-ctrl cursor-pointer bg-white" placeholder="Tất cả danh mục" readonly onclick="openCategoryModal()" style="cursor: pointer;">
+                    <input type="text" id="filter-category-display" class="form-control filter-ctrl cursor-pointer bg-white" placeholder="Tất cả danh mục" readonly onclick="openModalCategorySelector()" style="cursor: pointer;">
                     <input type="hidden" id="filter-category" value="">
                     <button type="button" class="btn btn-outline-danger btn-sm p-2" id="clear-cat-btn" style="display: none; border-radius: 12px; height: 42px; width: 42px;" onclick="clearCategorySelection()">
                         <i class="bi bi-x-lg"></i>
@@ -380,15 +395,9 @@
                 <!-- Ajax loading output -->
             </div>
 
-            <!-- Pagination Bar -->
-            <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top flex-wrap gap-2" id="pagination-shell" style="display:none !important;">
-                <div class="text-muted small" id="pagination-info">Hiển thị...</div>
-                <div class="d-flex flex-column align-items-end gap-2">
-                    <nav>
-                        <ul class="pagination pagination-sm mb-0 gap-1" id="pagination-list"></ul>
-                    </nav>
-                    <div id="pagination-jump-area"></div>
-                </div>
+            <!-- Premium Pagination Bar -->
+            <div id="pagination-shell" class="pagination-shell-up" style="display: none !important;">
+                <!-- JS will render premium pagination here -->
             </div>
         </div>
 
@@ -511,7 +520,10 @@
 
             window.categorySelectTarget = 'filter';
             // Using unified openCategoryExplorer from shared scripts
-            function openModalCategorySelector() { openCategoryModal('question'); }
+            function openModalCategorySelector() { 
+                const source = (currentTab === 'public') ? 'public' : 'private';
+                openCategoryExplorer('filter', source); 
+            }
 
             function clearCategorySelection() {
                 document.getElementById('filter-category').value = '';
@@ -527,10 +539,17 @@
 
             // --- Fetching & Rendering ---
             function switchTab(tab) {
+                if (currentTab === tab) return;
                 currentTab = tab;
                 document.querySelectorAll('.tab-item').forEach(function(el) { el.classList.remove('active'); });
                 var tabEl = document.getElementById('tab-' + tab);
                 if (tabEl) tabEl.classList.add('active');
+                
+                // Reset category filter when switching tabs to avoid ID mismatch
+                document.getElementById('filter-category').value = '';
+                document.getElementById('filter-category-display').value = 'Tất cả danh mục';
+                document.getElementById('clear-cat-btn').style.display = 'none';
+
                 page = 0; fetchQuestions();
             }
             function triggerSearch() { page = 0; clearSelection(); fetchQuestions(); }
@@ -620,18 +639,41 @@
             }
 
             function renderPagination(data) {
-                var shell = document.getElementById('pagination-shell'), list = document.getElementById('pagination-list'), jump = document.getElementById('pagination-jump-area');
-                if (!data || data.totalElements === 0) { shell.style.setProperty('display', 'none', 'important'); return; }
+                var shell = document.getElementById('pagination-shell');
+                if (!shell) return;
+                if (!data || data.totalPages <= 1) { shell.style.setProperty('display', 'none', 'important'); return; }
+                
                 shell.style.setProperty('display', 'flex', 'important');
-                document.getElementById('pagination-info').innerText = 'Hiển thị ' + (data.number * data.size + 1) + ' đến ' + Math.min((data.number + 1) * data.size, data.totalElements) + ' / ' + data.totalElements;
+                
+                var pagesHtml = '';
+                var current = data.number;
+                var total = data.totalPages;
+                
+                // Previous
+                pagesHtml += `<div class="page-link-up ${data.first ? 'disabled' : ''}" onclick="${data.first ? '' : `goToPage(${current - 1})`}"><i class="bi bi-chevron-left"></i></div>`;
+                
+                // Pages
+                var start = Math.max(0, current - 2);
+                var end = Math.min(total - 1, start + 4);
+                if (end - start < 4) start = Math.max(0, end - 4);
+                
+                for (var i = start; i <= end; i++) {
+                    pagesHtml += `<div class="page-link-up ${i === current ? 'active' : ''}" onclick="goToPage(${i})">${i + 1}</div>`;
+                }
+                
+                // Next
+                pagesHtml += `<div class="page-link-up ${data.last ? 'disabled' : ''}" onclick="${data.last ? '' : `goToPage(${current + 1})`}"><i class="bi bi-chevron-right"></i></div>`;
 
-                var pages = [];
-                var max = 5, start = Math.max(0, data.number - 2), end = Math.min(data.totalPages - 1, start + max - 1);
-                if (start > 0) pages.push('<li class="page-item"><button class="page-link" onclick="goToPage(0)">1</button></li>');
-                for (var i = start; i <= end; i++) pages.push('<li class="page-item ' + (i === data.number ? 'active' : '') + '"><button class="page-link" onclick="goToPage(' + i + ')">' + (i + 1) + '</button></li>');
-                if (end < data.totalPages - 1) pages.push('<li class="page-item"><button class="page-link" onclick="goToPage(' + (data.totalPages - 1) + ')">' + data.totalPages + '</button></li>');
-                list.innerHTML = pages.join('');
-                jump.innerHTML = '<div class="d-flex align-items-center gap-1 mt-1 small">Đến trang: <input type="number" class="form-control form-control-sm text-center" style="width:50px;" min="1" max="' + data.totalPages + '" value="' + (data.number + 1) + '" onchange="goToPage(this.value-1)"></div>';
+                shell.innerHTML = `
+                    <div class="text-muted small fw-bold">
+                        <span class="text-dark">Trang ${current + 1}</span> / ${total} 
+                        <span class="mx-2 text-slate-300">•</span> 
+                        ${data.totalElements} câu hỏi
+                    </div>
+                    <div class="d-flex gap-2">
+                        ${pagesHtml}
+                    </div>
+                `;
             }
             function goToPage(p) { page = p; fetchQuestions(); }
 
@@ -754,6 +796,13 @@
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteConfirmModal')).show();
             }
 
+            function confirmBulkShare() {
+                var count = isSelectAllResults ? lastTotalElements : selectedIds.length;
+                if (count === 0) return;
+                document.getElementById('bulk-share-count').innerText = count;
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('bulkShareConfirmModal')).show();
+            }
+
             async function executeBulkShare() {
                 if (USER_TYPE !== 'teacher') return;
                 var count = isSelectAllResults ? lastTotalElements : selectedIds.length;
@@ -781,7 +830,10 @@
                 openQuestionEditor();
             }
 
-            document.addEventListener('DOMContentLoaded', fetchQuestions);
+            document.addEventListener('DOMContentLoaded', function() {
+                fetchQuestions();
+                fetchCategories();
+            });
         </script>
 
         <div th:replace="~{fragments/question-editor :: question-editor-scripts(${userType})}"></div>

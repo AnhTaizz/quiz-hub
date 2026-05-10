@@ -12,6 +12,7 @@ public interface QuizMapper {
 
     // Quiz -> QuizResponseDTO
     @Mapping(source = "category.name", target = "categoryName")
+    @Mapping(source = "category.id",   target = "categoryId")
     QuizResponseDTO toResponseDTO(Quiz quiz);
 
     // QuizRequestDTO -> Quiz

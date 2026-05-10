@@ -31,6 +31,7 @@ public class QuizResponseDTO {
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
     String categoryName;
+    Long categoryId;
 
     List<QuestionResponseDTO> questions;
 }

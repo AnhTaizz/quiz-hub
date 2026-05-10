@@ -69,7 +69,7 @@
                                 </select>
                             </div>
                             <!-- Category Selection -->
-                            <div class="col-lg-4 col-md-12">
+                            <div class="col-lg-4 col-md-12" id="editor-q-cat-wrapper">
                                 <label class="form-label fw-bold text-dark small text-uppercase tracking-wider mb-2">Danh mục</label>
                                 <div class="position-relative editor-ctrl-wrapper" 
                                      style="cursor: pointer; border-radius: 12px; border: 1.5px solid #e2e8f0; background: #fff; transition: all 0.2s; height: 48px; display: flex; align-items: center;">
@@ -218,7 +218,7 @@
                 if (answers.length === 0) { alert('Vui lòng thêm ít nhất một đáp án!'); return; }
                 if (type !== 'FILL_IN_BLANK' && !answers.some(a => a.isCorrect)) { alert('Vui lòng chọn ít nhất một đáp án đúng!'); return; }
 
-                const payload = { text, type, level, categoryId: parseInt(catId), answers };
+                const payload = { text, type, level, categoryId: (catId && !isNaN(parseInt(catId))) ? parseInt(catId) : null, answers };
                 
                 try {
                     const url = id ? `${EDITOR_BASE_API}/${id}` : EDITOR_BASE_API;
@@ -254,8 +254,19 @@
                 document.getElementById('editor-q-text').value = q ? q.text : '';
                 document.getElementById('editor-q-type').value = q ? q.type : 'SINGLE_CHOICE';
                 document.getElementById('editor-q-level').value = q ? q.level : 'MEDIUM';
-                document.getElementById('editor-q-category').value = q ? (q.categoryId || (q.category ? q.category.id : '')) : '';
+                document.getElementById('editor-q-category').value = q ? (q.categoryId !== undefined && q.categoryId !== null ? q.categoryId : (q.category ? q.category.id : '')) : '';
                 document.getElementById('editor-q-category-display').value = q ? (q.categoryName || (q.category ? q.category.name : '')) : '';
+
+                // If opened from Quiz Editor, auto-assign quiz category and hide selector
+                const quizCatEl = document.getElementById('quiz-category');
+                const catWrapper = document.getElementById('editor-q-cat-wrapper');
+                if (quizCatEl && !q) {
+                    document.getElementById('editor-q-category').value = quizCatEl.value;
+                    document.getElementById('editor-q-category-display').value = document.getElementById('quiz-category-display').value;
+                    if (catWrapper) catWrapper.style.display = 'none';
+                } else {
+                    if (catWrapper) catWrapper.style.display = 'block';
+                }
                 
                 document.getElementById('questionEditorTitle').innerHTML = q ? '<i class="bi bi-pencil-square me-2"></i>Chỉnh sửa câu hỏi' : '<i class="bi bi-patch-plus-fill me-2"></i>Soạn câu hỏi mới';
                 

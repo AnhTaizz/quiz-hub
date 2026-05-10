@@ -301,9 +301,9 @@
                         updateQuizImagePreview(q.imageUrl);
                         document.getElementById('quiz-isExam').value = String(q.isExam || false);
                         document.getElementById('quiz-isDraft').value = String(q.isDraft || false);
-                        if (q.category) {
-                            document.getElementById('quiz-category').value = q.category.id;
-                            document.getElementById('quiz-category-display').value = q.category.name;
+                        if (q.categoryId) {
+                            document.getElementById('quiz-category').value = q.categoryId;
+                            document.getElementById('quiz-category-display').value = q.categoryName || 'Mặc định';
                         }
                         const ids = q.questionIds || (q.questions ? q.questions.map(qi => qi.id) : []);
                         ids.forEach(id => selectedQuestionIds.add(Number(id)));

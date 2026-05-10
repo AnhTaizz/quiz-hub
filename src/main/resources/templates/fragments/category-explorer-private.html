@@ -105,16 +105,25 @@
         <script th:inline="javascript">
             (function() {
                 const USER_TYPE = /*[[${userType}]]*/ 'student';
-                const CAT_API = `/api/${USER_TYPE}/categories`;
                 const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                
-                window.categorySelectTarget = 'filter';
 
-                // --- Tree Rendering ---
+                window.fetchCategories = async function(source = 'private') {
+                    const role = (USER_TYPE === 'admin') ? 'teacher' : USER_TYPE;
+                    const type = (source === 'public') ? 'public' : 'mine';
+                    const url = `/api/${role}/categories/${type}`;
+                    
+                    const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+                    if (!res.ok) throw new Error('API Error: ' + res.status);
+                    return await res.json();
+                };
+
+                window.categorySelectTarget = 'filter';
+                window.categorySelectSource = 'private';
+
                 window.renderTreeNodes = function(nodes, target) {
-                    if (!nodes || nodes.length === 0) return '';
+                    if (!nodes || !Array.isArray(nodes) || nodes.length === 0) return '';
                     return `<ul class="list-unstyled ps-2 mt-1">${nodes.map(n => {
-                        const hasChildren = n.children && n.children.length > 0;
+                        const hasChildren = n.children && Array.isArray(n.children) && n.children.length > 0;
                         return `
                             <li class="mb-1">
                                 <div class="d-flex align-items-start gap-2 category-node-row">
@@ -246,17 +255,33 @@
                 };
 
                 // --- Unified Opening Logic ---
-                window.openCategoryExplorer = function(target = 'filter', source = 'private') {
+                window.openCategoryExplorer = async function(target = 'filter', source = 'private') {
                     window.categorySelectTarget = target;
-                    const btnWrap = document.getElementById('explorer-create-btn-wrapper');
-                    if (btnWrap) btnWrap.style.display = (target === 'categoryCreateParent') ? 'none' : 'block';
+                    window.categorySelectSource = source;
+                    
+                    const pvtBtnWrap = document.getElementById('explorer-create-btn-wrapper');
+                    const pubBtnWrap = document.getElementById('explorer-public-create-btn-wrapper');
+                    
+                    if (pvtBtnWrap) pvtBtnWrap.style.display = (source === 'private' && target !== 'categoryCreateParent') ? 'block' : 'none';
+                    if (pubBtnWrap) pubBtnWrap.style.display = (source === 'public' && (USER_TYPE === 'admin' || USER_TYPE === 'public')) ? 'block' : 'none';
 
                     const containerId = source === 'public' ? 'public-category-tree-container' : 'private-category-tree-container';
                     const modalId = source === 'public' ? 'categoryExplorerPublicModal' : 'categoryExplorerPrivateModal';
                     const container = document.getElementById(containerId);
                     
-                    if (container) {
-                        const nodes = source === 'public' ? (window.publicCategories || []) : (window.myCategories || []);
+                    if (!container) return;
+
+                    container.innerHTML = '<div class="text-center my-4"><div class="spinner-border spinner-border-sm text-primary"></div></div>';
+                    showModalStacked(modalId);
+
+                    try {
+                        let nodes = source === 'public' ? window.publicCategories : window.myCategories;
+                        if (!nodes || nodes.length === 0) {
+                            nodes = await fetchCategories(source);
+                            if (source === 'public') window.publicCategories = nodes;
+                            else window.myCategories = nodes;
+                        }
+
                         let html = '';
                         if (target === 'categoryCreateParent') {
                             html = `<div class="mb-3">
@@ -265,19 +290,23 @@
                                     <span class="text-danger fw-bold small flex-grow-1 category-selectable-name">Là danh mục gốc</span>
                                 </div>
                             </div>`;
-                        } else if (target === 'filter') {
+                        } else if (target === 'filter' || target === 'moderation') {
+                             const label = source === 'private' ? 'Chưa phân mục' : 'Tất cả danh mục';
+                             const icon = source === 'private' ? 'bi-folder-x text-danger' : 'bi-folder2-open text-primary';
+                             const colorClass = source === 'private' ? 'text-danger' : 'text-primary';
+                             
                              html = `<div class="mb-3">
-                                <div class="d-flex align-items-center gap-2 category-node-row" onclick="selectCategoryFromTree(-1, 'Chưa phân mục', 'filter')">
-                                    <i class="bi bi-folder-x text-danger" style="font-size: 1.1rem;"></i>
-                                    <span class="text-danger fw-bold small flex-grow-1 category-selectable-name">Chưa phân mục</span>
+                                <div class="d-flex align-items-center gap-2 category-node-row" onclick="selectCategoryFromTree(-1, '${label}', '${target}')">
+                                    <i class="bi ${icon}" style="font-size: 1.1rem;"></i>
+                                    <span class="${colorClass} fw-bold small flex-grow-1 category-selectable-name">${label}</span>
                                 </div>
                             </div>`;
                         }
                         
                         html += renderTreeNodes(nodes, target);
                         container.innerHTML = html || '<div class="text-muted text-center my-4">Không có danh mục nào</div>';
-                        
-                        showModalStacked(modalId);
+                    } catch (err) {
+                        container.innerHTML = '<div class="text-danger text-center my-4">Lỗi tải danh mục</div>';
                     }
                 };
 
@@ -353,11 +382,11 @@
                         name, 
                         description, 
                         parentId: (parentId && parentId !== '-1') ? parseInt(parentId) : null,
-                        isPublic: (USER_TYPE === 'public')
+                        isPublic: (window.categorySelectSource === 'public' || USER_TYPE === 'public' || USER_TYPE === 'admin')
                     };
                     
                     const method = id ? 'PUT' : 'POST';
-                    const url = id ? `${CAT_API}/${id}` : CAT_API;
+                    const url = id ? `/api/${USER_TYPE}/categories/${id}` : `/api/${USER_TYPE}/categories`;
 
                     try {
                         const res = await fetch(url, {
@@ -372,9 +401,21 @@
                                 const inst = bootstrap.Modal.getInstance(modalEl);
                                 if (inst) inst.hide();
                             }
-                            if (typeof fetchCategories === 'function') await fetchCategories();
-                            else if (typeof loadData === 'function') { await loadData(); if (typeof renderSidebarTree === 'function') renderSidebarTree(); }
-                            else location.reload();
+                            if (window.categorySelectSource === 'public') {
+                                window.publicCategories = null; // Clear cache
+                                if (typeof openCategoryExplorer === 'function') openCategoryExplorer('moderation', 'public');
+                            } else if (typeof fetchCategories === 'function') {
+                                await fetchCategories();
+                                if (typeof renderTree === 'function') {
+                                    const nodes = window.myCategories;
+                                    renderTree(nodes);
+                                }
+                            } else if (typeof loadData === 'function') { 
+                                await loadData(); 
+                                if (typeof renderSidebarTree === 'function') renderSidebarTree(); 
+                            } else {
+                                location.reload();
+                            }
                         } else {
                             const errData = await res.json().catch(() => ({}));
                             showPrivateToast(errData.message || 'Lỗi khi lưu danh mục', 'err');

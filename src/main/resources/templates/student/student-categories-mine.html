@@ -176,11 +176,14 @@
         .btn-premium { 
             background: var(--primary-gradient); color: #fff; font-weight: 800; 
             border-radius: 16px; padding: 14px 28px; border: none; 
-            display: inline-flex; align-items: center; gap: 10px; font-size: 0.9rem; 
+            display: inline-flex; align-items: center; justify-content: center; gap: 10px; font-size: 0.9rem; 
             text-decoration: none; box-shadow: 0 10px 20px -8px rgba(99, 102, 241, 0.4); 
-            transition: 0.3s;
+            transition: 0.3s; min-width: 180px;
         }
         .btn-premium:hover { transform: translateY(-3px); box-shadow: 0 15px 30px -10px rgba(99, 102, 241, 0.5); color: #fff; }
+        
+        .btn-premium.btn-accent { background: var(--accent-gradient); box-shadow: 0 10px 20px -8px rgba(16, 185, 129, 0.4); }
+        .btn-premium.btn-accent:hover { box-shadow: 0 15px 30px -10px rgba(16, 185, 129, 0.5); }
 
         .empty-state {
             padding: 100px 0; text-align: center; color: #94a3b8;
@@ -242,7 +245,29 @@
         .qb-btn-edit:hover { background: #2563eb; color: #fff; }
         .qb-btn-del { background: #fef2f2; color: #dc2626; }
         .qb-btn-del:hover { background: #dc2626; color: #fff; }
-        .qb-pagination { display: flex; justify-content: space-between; align-items: center; padding-top: 16px; border-top: 1px solid #f1f5f9; flex-wrap: wrap; gap: 8px; }
+        .qb-pagination { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 24px 20px; border-top: 1px solid #f1f5f9; flex-wrap: wrap; gap: 15px; 
+            background: #fff; border-bottom-left-radius: 24px; border-bottom-right-radius: 24px;
+        }
+        .page-link-up {
+            width: 38px; height: 38px; display: flex; align-items: center; justify-content: center;
+            border-radius: 12px; border: 1px solid #e2e8f0; background: #fff;
+            color: #64748b; font-weight: 700; font-size: 0.85rem; transition: all 0.2s;
+            text-decoration: none; cursor: pointer;
+        }
+        .page-link-up:hover:not(.disabled) { border-color: #6366f1; color: #6366f1; background: #f5f7ff; transform: translateY(-2px); }
+        .page-link-up.active { background: var(--primary-gradient); color: #fff; border-color: transparent; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+        .page-link-up.disabled { opacity: 0.4; cursor: not-allowed; background: #f8fafc; }
+        
+        /* Animations for smoothness */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) forwards; }
+        
+        #contentList { min-height: 400px; transition: opacity 0.2s; }
     </style>
 
 </head>
@@ -319,6 +344,7 @@
     </div>
 
     <!-- Fragments -->
+    <div th:replace="~{fragments/category-explorer-private :: category-explorer-private-modal}"></div>
     <div th:replace="~{fragments/category-explorer-private :: category-create-modal}"></div>
     <div th:replace="~{fragments/question-editor :: question-editor-modal}"></div>
     <th:block th:replace="~{fragments/category-explorer-private :: category-explorer-private-scripts(userType='student')}"></th:block>
@@ -449,7 +475,7 @@
             if (currentContext === 'quiz') {
                 actionBtn.innerHTML = `<a href="/student/quiz/create${id && id !== -1 ? '?categoryId=' + id : ''}" id="btnCreateQuiz" class="btn-premium"><i class="bi bi-plus-lg"></i> Tạo đề thi</a>`;
             } else {
-                actionBtn.innerHTML = `<button onclick="openQuestionEditor()" class="btn-premium" style="background: var(--accent-gradient); box-shadow: 0 10px 20px -8px rgba(16, 185, 129, 0.4);"><i class="bi bi-patch-plus"></i> Tạo câu hỏi</button>`;
+                actionBtn.innerHTML = `<button onclick="openQuestionEditor()" class="btn-premium btn-accent"><i class="bi bi-patch-plus"></i> Tạo câu hỏi</button>`;
             }
 
             refreshContent();
@@ -465,7 +491,7 @@
             if (ctx === 'quiz') {
                 actionBtn.innerHTML = `<a href="/student/quiz/create${currentFolderId && currentFolderId !== -1 ? '?categoryId=' + currentFolderId : ''}" id="btnCreateQuiz" class="btn-premium"><i class="bi bi-plus-lg"></i> Tạo đề thi</a>`;
             } else {
-                actionBtn.innerHTML = `<button onclick="openQuestionEditor()" class="btn-premium" style="background: var(--accent-gradient); box-shadow: 0 10px 20px -8px rgba(16, 185, 129, 0.4);"><i class="bi bi-patch-plus"></i> Tạo câu hỏi</button>`;
+                actionBtn.innerHTML = `<button onclick="openQuestionEditor()" class="btn-premium btn-accent"><i class="bi bi-patch-plus"></i> Tạo câu hỏi</button>`;
             }
             refreshContent();
         }
@@ -504,33 +530,38 @@
 
         // ── Render vỏ Question Bank (filter bar + container) ──
         function renderQBankShell() {
-            document.getElementById('contentList').innerHTML = `
-                <div class="qb-filter-shell" id="qbFilterShell">
-                    <div class="fg">
-                        <label><i class="bi bi-search me-1"></i> Tìm kiếm</label>
-                        <input type="text" id="qbKeyword" class="form-control" placeholder="Tìm theo tên..." oninput="qbSearch()" autocomplete="off" value="${esc(qbKeyword)}">
+            const container = document.getElementById('contentList');
+            if (document.getElementById('qbFilterShell')) return; // Already rendered
+
+            container.innerHTML = `
+                <div class="fade-in">
+                    <div class="qb-filter-shell" id="qbFilterShell">
+                        <div class="fg">
+                            <label><i class="bi bi-search me-1"></i> Tìm kiếm</label>
+                            <input type="text" id="qbKeyword" class="form-control" placeholder="Tìm câu hỏi..." oninput="qbSearch()" autocomplete="off" value="${esc(qbKeyword)}">
+                        </div>
+                        <div class="fg">
+                            <label><i class="bi bi-tags-fill me-1"></i> Loại</label>
+                            <select id="qbType" class="qb-ctrl" onchange="qbSearch()">
+                                <option value="">Tất cả</option>
+                                <option value="SINGLE_CHOICE" ${qbType==='SINGLE_CHOICE'?'selected':''}>Một đáp án</option>
+                                <option value="MULTIPLE_CHOICE" ${qbType==='MULTIPLE_CHOICE'?'selected':''}>Nhiều đáp án</option>
+                                <option value="FILL_IN_BLANK" ${qbType==='FILL_IN_BLANK'?'selected':''}>Điền khuyết</option>
+                            </select>
+                        </div>
+                        <div class="fg">
+                            <label><i class="bi bi-bar-chart-fill me-1"></i> Độ khó</label>
+                            <select id="qbLevel" class="qb-ctrl" onchange="qbSearch()">
+                                <option value="">Tất cả</option>
+                                <option value="EASY" ${qbLevel==='EASY'?'selected':''}>Dễ</option>
+                                <option value="MEDIUM" ${qbLevel==='MEDIUM'?'selected':''}>Trung bình</option>
+                                <option value="HARD" ${qbLevel==='HARD'?'selected':''}>Khó</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="fg">
-                        <label><i class="bi bi-tags-fill me-1"></i> Loại câu hỏi</label>
-                        <select id="qbType" class="qb-ctrl" onchange="qbSearch()">
-                            <option value="">-- Tất cả loại --</option>
-                            <option value="SINGLE_CHOICE" ${qbType==='SINGLE_CHOICE'?'selected':''}>Một đáp án</option>
-                            <option value="MULTIPLE_CHOICE" ${qbType==='MULTIPLE_CHOICE'?'selected':''}>Nhiều đáp án</option>
-                            <option value="FILL_IN_BLANK" ${qbType==='FILL_IN_BLANK'?'selected':''}>Điền khuyết</option>
-                        </select>
-                    </div>
-                    <div class="fg">
-                        <label><i class="bi bi-bar-chart-fill me-1"></i> Độ khó</label>
-                        <select id="qbLevel" class="qb-ctrl" onchange="qbSearch()">
-                            <option value="">-- Tất cả mức --</option>
-                            <option value="EASY" ${qbLevel==='EASY'?'selected':''}>Dễ</option>
-                            <option value="MEDIUM" ${qbLevel==='MEDIUM'?'selected':''}>Trung bình</option>
-                            <option value="HARD" ${qbLevel==='HARD'?'selected':''}>Khó</option>
-                        </select>
-                    </div>
+                    <div id="qbList"></div>
+                    <div id="qbPagination" class="qb-pagination"></div>
                 </div>
-                <div id="qbList"></div>
-                <div id="qbPagination" class="qb-pagination" style="display:none"></div>
             `;
         }
 
@@ -546,56 +577,47 @@
             }, 350);
         }
 
-        let unassignedOnly = false;
-        function toggleUnassignedOnly() {
-            unassignedOnly = !unassignedOnly;
-            const btn = document.getElementById('btnFilterUnassigned');
-            if (unassignedOnly) {
-                btn.classList.replace('btn-outline-secondary', 'btn-danger');
-                currentFolderId = -1;
-            } else {
-                btn.classList.replace('btn-danger', 'btn-outline-secondary');
-                currentFolderId = null;
-            }
-            refreshContent();
-        }
-
         async function fetchQBank() {
-            const list = document.getElementById('qbList');
-            if (!list) return;
-            list.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary"></div><p class="text-muted mt-2 small">Đang tải...</p></div>';
+            const listContainer = document.getElementById('qbList');
+            if (!listContainer) return;
+
+            listContainer.innerHTML = `
+                <div class="text-center py-5 fade-in">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted small">Đang tải câu hỏi...</p>
+                </div>
+            `;
 
             let url = `/api/student/questions?page=${qbPage}&size=${qbSize}&sortBy=id&sortDir=desc`;
-            if (currentFolderId === -1) {
-                url += `&categoryId=-1`; // Assume backend handles -1 as unassigned
-            } else if (currentFolderId) {
-                url += `&categoryId=${currentFolderId}`;
-            }
-            if (qbKeyword)       url += `&keyword=${encodeURIComponent(qbKeyword)}`;
-            if (qbType)          url += `&type=${qbType}`;
-            if (qbLevel)         url += `&level=${qbLevel}`;
+            if (currentFolderId === -1) url += `&categoryId=-1`;
+            else if (currentFolderId) url += `&categoryId=${currentFolderId}`;
+            
+            if (qbKeyword) url += `&keyword=${encodeURIComponent(qbKeyword)}`;
+            if (qbType)    url += `&type=${qbType}`;
+            if (qbLevel)   url += `&level=${qbLevel}`;
 
             try {
                 const res = await fetch(url, { headers: { Authorization: 'Bearer ' + token } });
-                if (!res.ok) throw new Error('Lỗi tải dữ liệu');
                 const data = await res.json();
                 qbTotal = data.totalElements;
                 document.getElementById('statQuestionCount').textContent = qbTotal;
-                renderQBankCards(data.content);
+                renderQuestionList(data.content);
                 renderQBankPagination(data);
             } catch (e) {
-                list.innerHTML = `<div class="empty-state"><i class="bi bi-exclamation-triangle text-danger"></i><h3 class="text-danger">Lỗi tải dữ liệu</h3><p>${e.message}</p></div>`;
+                listContainer.innerHTML = `<div class="empty-state text-danger"><i class="bi bi-exclamation-circle"></i><h3>Lỗi tải dữ liệu</h3></div>`;
             }
         }
 
-        function renderQBankCards(items) {
+        function renderQuestionList(items) {
             const list = document.getElementById('qbList');
+            if (!list) return;
+
             if (!items || items.length === 0) {
-                list.innerHTML = `<div class="empty-state"><i class="bi bi-patch-question"></i><h3>Chưa có câu hỏi nào</h3><p>Hãy tạo câu hỏi mới hoặc thay đổi bộ lọc.</p></div>`;
+                list.innerHTML = `<div class="empty-state fade-in"><i class="bi bi-patch-question"></i><h3>Chưa có câu hỏi nào</h3></div>`;
                 return;
             }
 
-            const typeLbl = { SINGLE_CHOICE: 'Một đáp án', MULTIPLE_CHOICE: 'Nhiều đáp án', FILL_IN_BLANK: 'Điền khuyết', ESSAY: 'Tự luận' };
+            const typeLbl = { SINGLE_CHOICE: 'Một đáp án', MULTIPLE_CHOICE: 'Nhiều đáp án', FILL_IN_BLANK: 'Điền khuyết' };
             const levelCls = { EASY: 'qb-level-easy', MEDIUM: 'qb-level-medium', HARD: 'qb-level-hard' };
             const levelLbl = { EASY: 'Dễ', MEDIUM: 'Trung bình', HARD: 'Khó' };
 
@@ -607,19 +629,19 @@
                         </div>`).join('')
                     : '<div class="q-ans-item text-muted"><i class="bi bi-dash"></i><span>Chưa có đáp án</span></div>';
 
-                return `<div class="q-card">
+                return `<div class="q-card fade-in">
                     <div class="q-card-badges">
                         <div class="q-badge-row">
                             <span class="qb-badge qb-type">${typeLbl[q.type] || q.type}</span>
                             <span class="qb-badge ${levelCls[q.level] || 'qb-level-medium'}">${levelLbl[q.level] || q.level}</span>
                             ${currentFolderId === null ? `<span class="qb-badge qb-cat"><i class="bi bi-folder me-1"></i>${esc(q.categoryName || 'Chưa phân mục')}</span>` : ''}
                         </div>
-                        <span class="q-card-id">ID: #${q.id}</span>
+                        <span class="q-card-id">#${q.id}</span>
                     </div>
                     <div class="q-card-text">${esc(q.text)}</div>
                     <div class="q-answers">${ansHtml}</div>
                     <div class="q-card-actions">
-                        <button class="qb-btn qb-btn-edit" onclick="editQuestion('${q.id}')"><i class="bi bi-pencil-square"></i> Sửa</button>
+                        <button class="qb-btn qb-btn-edit" onclick="editQuestion(${q.id})"><i class="bi bi-pencil-fill"></i> Sửa</button>
                         <button class="qb-btn qb-btn-del" onclick="deleteQuestion('${q.id}')"><i class="bi bi-trash-fill"></i> Xóa</button>
                     </div>
                 </div>`;
@@ -627,20 +649,48 @@
         }
 
         function renderQBankPagination(data) {
-            const pg = document.getElementById('qbPagination');
-            if (!data || data.totalPages <= 1) { pg.style.display = 'none'; return; }
-            pg.style.display = 'flex';
-            const from = data.number * data.size + 1;
-            const to = Math.min((data.number + 1) * data.size, data.totalElements);
-            let btns = '';
-            for (let i = 0; i < data.totalPages; i++) {
-                if (i === 0 || i === data.totalPages-1 || Math.abs(i - data.number) <= 2) {
-                    btns += `<button class="btn btn-sm ${i===data.number?'btn-primary':'btn-outline-secondary'} rounded-3 px-3" onclick="qbGoPage(${i})">${i+1}</button>`;
-                } else if (Math.abs(i - data.number) === 3) {
-                    btns += `<span class="text-muted px-1">...</span>`;
-                }
+            const container = document.getElementById('qbPagination');
+            if (!container) return;
+            if (data.totalPages <= 1) { container.style.display = 'none'; return; }
+
+            container.style.display = 'flex';
+            
+            let pagesHtml = '';
+            const current = data.number;
+            const total = data.totalPages;
+            
+            // Previous Button
+            pagesHtml += `<div class="page-link-up ${data.first ? 'disabled' : ''}" onclick="${data.first ? '' : `changeQBPage(${current - 1})`}"><i class="bi bi-chevron-left"></i></div>`;
+            
+            // Page Numbers (Show max 5 pages with ellipsis logic)
+            let start = Math.max(0, current - 2);
+            let end = Math.min(total - 1, start + 4);
+            if (end - start < 4) start = Math.max(0, end - 4);
+            
+            for (let i = start; i <= end; i++) {
+                pagesHtml += `<div class="page-link-up ${i === current ? 'active' : ''}" onclick="changeQBPage(${i})">${i + 1}</div>`;
             }
-            pg.innerHTML = `<span class="text-muted small">Hiển thị ${from}–${to} / ${data.totalElements}</span><div class="d-flex gap-1 flex-wrap">${btns}</div>`;
+            
+            // Next Button
+            pagesHtml += `<div class="page-link-up ${data.last ? 'disabled' : ''}" onclick="${data.last ? '' : `changeQBPage(${current + 1})`}"><i class="bi bi-chevron-right"></i></div>`;
+
+            container.innerHTML = `
+                <div class="text-muted small fw-bold">
+                    <span class="text-dark">Trang ${current + 1}</span> / ${total} 
+                    <span class="mx-2 text-slate-300">•</span> 
+                    ${data.totalElements} câu hỏi
+                </div>
+                <div class="d-flex gap-2">
+                    ${pagesHtml}
+                </div>
+            `;
+        }
+
+        function changeQBPage(p) { qbPage = p; fetchQBank(); }
+
+        async function loadQuestions() {
+            renderQBankShell();
+            await fetchQBank();
         }
 
         function qbGoPage(p) { qbPage = p; fetchQBank(); }
@@ -654,7 +704,7 @@
             const container = document.getElementById('contentList');
             if (list.length === 0) { 
                 container.innerHTML = `
-                    <div class="empty-state">
+                    <div class="empty-state fade-in">
                         <i class="bi bi-journal-x"></i>
                         <h3>Thư mục này chưa có đề thi</h3>
                         <p>Hãy bắt đầu bằng cách tạo một đề thi mới hoặc di chuyển đề thi vào đây.</p>
@@ -734,7 +784,7 @@
             const titleEl = document.getElementById('categoryCreateTitle');
             if (titleEl) titleEl.innerHTML = '<i class="bi bi-pencil-square me-2"></i>Sửa danh mục';
             
-            bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryCreateModal')).show();
+            showModalStacked('categoryCreateModal');
         };
 
         // Note: the fragment's submitCategoryCreateForm handles both POST and PUT if ID is present

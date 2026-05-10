@@ -674,8 +674,8 @@
         .mode-tab:hover:not(.active){background:rgba(255,255,255,.6);}
 
         /* ══ File Explorer ══ */
-        .explorer-shell{display:flex;min-height:calc(100vh - 190px);border-radius:20px;border:1px solid #e2e8f0;
-            background:#fff;overflow:hidden;box-shadow:0 4px 30px rgba(0,0,0,.05);}
+        .explorer-shell{display:flex;min-height:calc(100vh - 190px);border-radius:var(--radius-lg);border:1px solid var(--border);
+            background:#fff;overflow:hidden;box-shadow:var(--shadow-card);}
 
         /* Left tree */
         .tree-panel{width:270px;min-width:200px;border-right:1px solid #f1f5f9;display:flex;flex-direction:column;background:#fafafa;flex-shrink:0;}
@@ -886,8 +886,8 @@
                 <a href="/admin/moderation" data-title="Duyệt nội dung">
                     <i class="bi bi-clipboard2-check-fill"></i>
                     <span>Duyệt Câu hỏi</span>
-                    <span
-                        style="background: var(--orange); color: #fff; padding: 2px 7px; border-radius: 20px; font-size: 11px; margin-left: auto;">5</span>
+                    <span th:if="${pendingQuestionsCount > 0}" th:text="${pendingQuestionsCount}"
+                        style="background: var(--orange); color: #fff; padding: 2px 7px; border-radius: 20px; font-size: 11px; margin-left: auto;">0</span>
                 </a>
             </li>
         </ul>
@@ -912,7 +912,8 @@
                 <a href="#" class="d-flex align-items-center gap-2 text-decoration-none" data-bs-toggle="dropdown"
                     aria-expanded="false">
                     <span th:text="${currentUser != null ? currentUser.fullName : 'Administrator'}">Administrator</span>
-                    <img th:src="${currentUser != null && currentUser.avatarUrl != null && !currentUser.avatarUrl.isEmpty() ? currentUser.avatarUrl : 'https://ui-avatars.com/api/?name=' + (currentUser != null ? currentUser.fullName : 'Admin') + '&background=2563eb&color=fff'}" alt="Admin Avatar">
+                    <img th:src="${currentUser != null && currentUser.avatarUrl != null && !currentUser.avatarUrl.isEmpty() ? currentUser.avatarUrl : 'https://ui-avatars.com/api/?name=' + (currentUser != null ? currentUser.fullName : 'Admin') + '&background=2563eb&color=fff'}"
+                        alt="Admin Avatar">
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><a class="dropdown-item" href="/profile"><i class="bi bi-person me-2"></i> Hồ sơ cá nhân</a>
@@ -930,11 +931,11 @@
         <script th:replace="~{layout/header :: logout-script}"></script>
     </header>
 
-<main id="main-content">
-    <div class="page-title-box">
-        <h4>🗂️ Danh mục Hệ thống</h4>
-        <p>Quản lý cấu trúc cây danh mục công khai chung của toàn hệ thống.</p>
-    </div>
+    <main id="main-content">
+        <div class="page-title-box">
+            <h4><i class="bi bi-diagram-3-fill text-primary me-2"></i>Danh mục Hệ thống</h4>
+            <p>Quản lý cấu trúc cây danh mục công khai chung của toàn hệ thống và điều phối câu hỏi.</p>
+        </div>
 
     <!-- File Explorer -->
     <div class="explorer-shell">
@@ -1059,13 +1060,19 @@
             <div class="modal-body p-0 mb-3">
                 <input type="hidden" id="moveQuestionId">
                 <div class="mb-3">
-                    <label for="moveCategorySelect" class="form-label small fw-bold text-muted mb-1">Chọn danh mục công khai đích</label>
-                    <select id="moveCategorySelect" class="form-select" style="border-radius:12px; height:45px; border-color:#cbd5e1; font-size:0.92rem;"></select>
+                    <label class="form-label small fw-bold text-muted mb-1">Chọn danh mục công khai đích</label>
+                    <div class="category-selector-box p-3 border d-flex justify-content-between align-items-center" 
+                         style="border-radius:12px; cursor:pointer; background:#f8fafc;"
+                         onclick="openCategoryExplorer('moveQuestion', 'public')">
+                        <span id="moveQuestionCategoryName" class="text-muted fw-semibold">-- Chưa chọn danh mục --</span>
+                        <input type="hidden" id="moveQuestionCategoryId">
+                        <i class="bi bi-chevron-down text-muted"></i>
+                    </div>
                 </div>
             </div>
             <div class="d-flex gap-2">
                 <button class="btn btn-light w-50" data-bs-dismiss="modal" style="border-radius:12px;font-weight:600;height:42px;">Hủy</button>
-                <button class="btn btn-primary w-50 fw-bold" onclick="doMoveQuestion()" style="border-radius:12px;height:42px;">Xác nhận</button>
+                <button class="btn btn-primary w-50 fw-bold" onclick="doMoveQuestion()" style="border-radius:12px;height:42px; background-color: #4f46e5; border-color: #4f46e5;">Xác nhận</button>
             </div>
         </div>
     </div>
@@ -1644,22 +1651,27 @@ function flattenTreeForSelect(nodes, level = 0, output = []) {
 
 function openMoveQuestionModal(questionId) {
     document.getElementById('moveQuestionId').value = questionId;
-
-    const select = document.getElementById('moveCategorySelect');
-    select.innerHTML = '<option value="">-- Chọn danh mục công khai --</option>';
-    
-    const flatList = flattenTreeForSelect(TREE_DATA);
-    flatList.forEach(c => {
-        select.innerHTML += `<option value="${c.id}">${c.name}</option>`;
-    });
+    document.getElementById('moveQuestionCategoryId').value = '';
+    document.getElementById('moveQuestionCategoryName').textContent = '-- Chưa chọn danh mục --';
+    document.getElementById('moveQuestionCategoryName').classList.add('text-muted');
 
     const modal = new bootstrap.Modal(document.getElementById('moveQuestionModal'));
     modal.show();
 }
 
+// 🌟 Callback cho Category Explorer
+window.handleCategorySelection = function(id, name, target) {
+    if (target === 'moveQuestion') {
+        document.getElementById('moveQuestionCategoryId').value = id;
+        document.getElementById('moveQuestionCategoryName').textContent = name;
+        document.getElementById('moveQuestionCategoryName').classList.remove('text-muted');
+        document.getElementById('moveQuestionCategoryName').classList.add('text-dark');
+    }
+}
+
 async function doMoveQuestion() {
     const questionId = document.getElementById('moveQuestionId').value;
-    const catId = document.getElementById('moveCategorySelect').value;
+    const catId = document.getElementById('moveQuestionCategoryId').value;
     if (!catId) {
         alert('Vui lòng chọn danh mục đích!');
         return;
@@ -1678,7 +1690,8 @@ async function doMoveQuestion() {
             showToast('Thành công', 'Đã chuyển danh mục cho câu hỏi.', 'success');
             loadFolderContent(activeFolderId, currentQuestionPage);
         } else {
-            alert('Có lỗi xảy ra khi chuyển danh mục!');
+            const err = await res.json().catch(() => ({}));
+            alert(err.message || 'Có lỗi xảy ra khi chuyển danh mục!');
         }
     } catch (_) {
         alert('Có lỗi kết nối!');
@@ -1975,6 +1988,9 @@ function initResize() {
     });
 }
 </script>
+    <div th:replace="~{fragments/category-explorer-public :: category-explorer-public-modal}"></div>
+    <div th:replace="~{fragments/category-explorer-private :: category-explorer-private-modal}"></div>
+    <th:block th:replace="~{fragments/category-explorer-private :: category-explorer-private-scripts('admin')}"></th:block>
     <div th:replace="~{layout/header :: changePasswordModal}"></div>
     <script th:replace="~{layout/header :: change-password-script}"></script>
 </body>
