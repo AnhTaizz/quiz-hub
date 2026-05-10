@@ -1,5 +1,7 @@
 package com.example.quizhub.dto.question;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
@@ -15,10 +17,10 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AnswerCreationRequestDTO {
-    @NotBlank(message="Đáp án không được để trống")
+    @NotBlank(message = "Đáp án không được để trống")
     private String text;
 
-    @com.fasterxml.jackson.annotation.JsonProperty("isCorrect")
+    @JsonProperty("isCorrect")
     @NotNull(message = "Trạng thái đúng sai không được null")
     @Builder.Default
     private Boolean correct = false; // Gán mặc định là false nếu FE quên gửi

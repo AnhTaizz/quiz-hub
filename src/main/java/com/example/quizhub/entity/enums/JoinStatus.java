@@ -1,4 +1,4 @@
-package com.example.quizhub.entity;
+package com.example.quizhub.entity.enums;
 
 public enum JoinStatus {
     PENDING,

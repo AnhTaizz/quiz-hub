@@ -2,6 +2,8 @@ package com.example.quizhub.dto.practice;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,7 +25,7 @@ public class PracticeDetailResponseDTO {
     String selectedText;
     List<Long> correctAnswerIds;
     List<String> correctTexts;
-    @com.fasterxml.jackson.annotation.JsonProperty("isCorrect")
+    @JsonProperty("isCorrect")
     Boolean isCorrect;
     String questionType;
     String questionLevel;

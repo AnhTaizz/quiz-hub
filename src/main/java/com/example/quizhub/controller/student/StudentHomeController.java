@@ -12,9 +12,10 @@ import com.example.quizhub.repository.ClassJoiningRepository;
 import com.example.quizhub.repository.QuizAssigningRepository;
 import com.example.quizhub.entity.QuizAssigning;
 import com.example.quizhub.entity.ClassJoining;
-import com.example.quizhub.entity.JoinStatus;
+import com.example.quizhub.entity.Practice;
 import com.example.quizhub.entity.Attempt;
 import com.example.quizhub.entity.QuizTaking;
+import com.example.quizhub.entity.enums.JoinStatus;
 import com.example.quizhub.entity.enums.TakingStatus;
 import com.example.quizhub.repository.AttemptRepository;
 import com.example.quizhub.repository.PracticeRepository;
@@ -58,7 +59,7 @@ public class StudentHomeController {
             long practiceCount = practiceRepository.countByUserIdAndIsCompletedTrue(student.getId());
             long totalCompleted = attemptCount + practiceCount;
 
-            List<com.example.quizhub.entity.Practice> completedPractices = practiceRepository
+            List<Practice> completedPractices = practiceRepository
                     .findByUserIdAndIsCompletedTrueOrderByCreatedAtDesc(student.getId());
 
             BigDecimal quizAvg = BigDecimal.ZERO;
@@ -158,10 +159,9 @@ public class StudentHomeController {
         if (student != null) {
             // Get all classrooms to match home() logic
             List<ClassJoining> joinedClasses = classJoiningRepository.findByLearnerIdAndStatusIn(
-                student.getId(), 
-                List.of(JoinStatus.APPROVED, JoinStatus.PENDING)
-            );
-            
+                    student.getId(),
+                    List.of(JoinStatus.APPROVED, JoinStatus.PENDING));
+
             Map<Long, QuizDashboardInfo> quizMap = new LinkedHashMap<>();
             LocalDateTime now = LocalDateTime.now();
 
@@ -169,12 +169,14 @@ public class StudentHomeController {
                 if (joining.getStatus() == JoinStatus.APPROVED && joining.getClassroom() != null) {
                     Long classId = joining.getClassroom().getId();
                     List<QuizAssigning> classroomQuizzes = quizAssigningRepository.findByClassroomId(classId);
-                    
+
                     if (classroomQuizzes != null) {
                         for (QuizAssigning assigning : classroomQuizzes) {
-                            if (assigning == null || assigning.getQuiz() == null) continue;
-                            
-                            if (quizMap.containsKey(assigning.getId())) continue;
+                            if (assigning == null || assigning.getQuiz() == null)
+                                continue;
+
+                            if (quizMap.containsKey(assigning.getId()))
+                                continue;
 
                             QuizTaking taking = quizTakingRepository
                                     .findByLearnerIdAndQuizAssigningId(student.getId(), assigning.getId())
@@ -195,25 +197,30 @@ public class StudentHomeController {
                             QuizDashboardInfo info = new QuizDashboardInfo();
                             info.setAssigning(assigning);
                             info.setAttemptsMade(finishedCount);
-                            info.setAttemptsLeft(assigning.getMaxAttempt() == null || assigning.getMaxAttempt() == 0 ? -1 : Math.max(0, assigning.getMaxAttempt() - finishedCount));
+                            info.setAttemptsLeft(
+                                    assigning.getMaxAttempt() == null || assigning.getMaxAttempt() == 0 ? -1
+                                            : Math.max(0, assigning.getMaxAttempt() - finishedCount));
                             info.setHasStarted(anyAttemptExists);
                             info.setHasUnfinished(hasUnfinished);
-                            
+
                             quizMap.put(assigning.getId(), info);
                         }
                     }
                 }
             }
-            
+
             List<QuizDashboardInfo> allQuizzes = new ArrayList<>(quizMap.values());
-            
+
             // Sắp xếp: Ưu tiên hạn gần nhất lên đầu
             allQuizzes.sort((a, b) -> {
                 LocalDateTime d1 = a.getAssigning().getDueDate();
                 LocalDateTime d2 = b.getAssigning().getDueDate();
-                if (d1 == null && d2 == null) return 0;
-                if (d1 == null) return 1;
-                if (d2 == null) return -1;
+                if (d1 == null && d2 == null)
+                    return 0;
+                if (d1 == null)
+                    return 1;
+                if (d2 == null)
+                    return -1;
                 return d1.compareTo(d2);
             });
 
@@ -300,7 +307,7 @@ public class StudentHomeController {
                 .findByQuizTakingLearnerIdAndEndedAtIsNotNullOrderByStartedAtDesc(student.getId());
 
         // Get all finished practice sessions
-        List<com.example.quizhub.entity.Practice> practiceHistory = practiceRepository
+        List<Practice> practiceHistory = practiceRepository
                 .findByUserIdAndIsCompletedTrueOrderByCreatedAtDesc(student.getId());
 
         model.addAttribute("quizAttempts", quizAttempts);

@@ -6,6 +6,8 @@ import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
 
+import com.example.quizhub.entity.enums.JoinStatus;
+
 @Getter
 @Setter
 @NoArgsConstructor

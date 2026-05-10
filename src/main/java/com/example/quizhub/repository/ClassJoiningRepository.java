@@ -1,7 +1,8 @@
 package com.example.quizhub.repository;
 
 import com.example.quizhub.entity.ClassJoining;
-import com.example.quizhub.entity.JoinStatus;
+import com.example.quizhub.entity.enums.JoinStatus;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

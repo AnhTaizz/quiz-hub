@@ -1,6 +1,7 @@
 package com.example.quizhub.dto.quizassigning.request;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import jakarta.validation.constraints.NotNull;
@@ -25,9 +26,8 @@ public class QuizAssigningRequestDTO {
     @NotNull(message = "Thời gian làm bài không được để trống")
     Integer durationInMins;
 
-    java.time.LocalDateTime startDate;
-    java.time.LocalDateTime dueDate;
-    
+    LocalDateTime startDate;
+    LocalDateTime dueDate;
+
     Long topicId;
 }
-

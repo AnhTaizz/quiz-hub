@@ -1,6 +1,8 @@
 package com.example.quizhub.entity;
 
 import com.example.quizhub.entity.enums.NotificationType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -34,7 +36,7 @@ public class Notification {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    @com.fasterxml.jackson.annotation.JsonIgnore
+    @JsonIgnore
     private User user;
 
     @PrePersist

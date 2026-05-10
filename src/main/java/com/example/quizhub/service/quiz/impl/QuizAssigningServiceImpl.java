@@ -16,8 +16,8 @@ import com.example.quizhub.repository.QuizAssigningRepository;
 import com.example.quizhub.repository.QuizRepository;
 import com.example.quizhub.service.quiz.QuizAssigningService;
 import com.example.quizhub.service.notification.NotificationService;
+import com.example.quizhub.entity.enums.JoinStatus;
 import com.example.quizhub.entity.enums.NotificationType;
-import com.example.quizhub.entity.JoinStatus;
 import com.example.quizhub.repository.ClassJoiningRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -37,22 +37,22 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
     @org.springframework.transaction.annotation.Transactional
     public QuizAssigningResponseDTO create(QuizAssigningRequestDTO request) {
         Classroom classroom = classroomRepository.findById(request.getClassroomId())
-                            .orElseThrow(() -> new AppException(ErrorCode.CLASSROOM_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.CLASSROOM_NOT_FOUND));
         Quiz quiz = quizRepository.findById(request.getQuizId())
-                            .orElseThrow(() -> new AppException(ErrorCode.QUIZ_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.QUIZ_NOT_FOUND));
 
         QuizAssigning quizAssigning = quizAssigningMapper.toEntity(request);
-        
-        if(quizAssigning.getStartDate() == null){
+
+        if (quizAssigning.getStartDate() == null) {
             quizAssigning.setStartDate(java.time.LocalDateTime.now());
         }
-        if(quizAssigning.getDueDate() == null){
+        if (quizAssigning.getDueDate() == null) {
             quizAssigning.setDueDate(java.time.LocalDateTime.now().plusDays(7));
         }
 
         // Validation logic
-        if (quizAssigning.getDueDate().isBefore(quizAssigning.getStartDate()) || 
-            quizAssigning.getDueDate().isEqual(quizAssigning.getStartDate())) {
+        if (quizAssigning.getDueDate().isBefore(quizAssigning.getStartDate()) ||
+                quizAssigning.getDueDate().isEqual(quizAssigning.getStartDate())) {
             throw new AppException(ErrorCode.INVALID_DATE_RANGE);
         }
 
@@ -60,22 +60,23 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
             if (quizAssigning.getDurationInMins() <= 0) {
                 throw new AppException(ErrorCode.INVALID_DURATION);
             }
-            
-            long windowMinutes = java.time.Duration.between(quizAssigning.getStartDate(), quizAssigning.getDueDate()).toMinutes();
+
+            long windowMinutes = java.time.Duration.between(quizAssigning.getStartDate(), quizAssigning.getDueDate())
+                    .toMinutes();
             if (quizAssigning.getDurationInMins() > windowMinutes) {
                 throw new AppException(ErrorCode.INVALID_DURATION);
             }
         }
-        if(quizAssigning.getMaxAttempt() == null){
+        if (quizAssigning.getMaxAttempt() == null) {
             quizAssigning.setMaxAttempt(1);
         }
-        if(quizAssigning.getQuestionShuffled() == null){
+        if (quizAssigning.getQuestionShuffled() == null) {
             quizAssigning.setQuestionShuffled(false);
         }
-        if(quizAssigning.getAnswerShuffled() == null){
+        if (quizAssigning.getAnswerShuffled() == null) {
             quizAssigning.setAnswerShuffled(false);
         }
-        if(quizAssigning.getShowAnswer() == null){
+        if (quizAssigning.getShowAnswer() == null) {
             quizAssigning.setShowAnswer(true);
         }
 
@@ -84,7 +85,7 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
 
         if (request.getTopicId() != null) {
             com.example.quizhub.entity.ClassTopic topic = classTopicRepository.findById(request.getTopicId())
-                .orElseThrow(() -> new AppException(ErrorCode.CLASS_TOPIC_NOT_FOUND));
+                    .orElseThrow(() -> new AppException(ErrorCode.CLASS_TOPIC_NOT_FOUND));
             quizAssigning.setTopic(topic);
         }
 
@@ -93,12 +94,11 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
         // Notify the teacher themselves for confirmation
         try {
             notificationService.createNotification(
-                classroom.getCreator().getId(),
-                "Đã giao bài kiểm tra",
-                "Bạn đã giao thành công bài kiểm tra \"" + quiz.getTitle() + "\" cho lớp " + classroom.getName(),
-                NotificationType.SYSTEM_ALERT,
-                "/teacher/classrooms/" + classroom.getId()
-            );
+                    classroom.getCreator().getId(),
+                    "Đã giao bài kiểm tra",
+                    "Bạn đã giao thành công bài kiểm tra \"" + quiz.getTitle() + "\" cho lớp " + classroom.getName(),
+                    NotificationType.SYSTEM_ALERT,
+                    "/teacher/classrooms/" + classroom.getId());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -106,15 +106,14 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
         // Notify students in the classroom
         try {
             classJoiningRepository.findByClassroomIdAndStatus(classroom.getId(), JoinStatus.APPROVED)
-                .forEach(joining -> {
-                    notificationService.createNotification(
-                        joining.getLearner().getId(),
-                        "Bài kiểm tra mới: " + quiz.getTitle(),
-                        "Bạn có bài kiểm tra mới trong lớp " + classroom.getName(),
-                        NotificationType.QUIZ_ASSIGNED,
-                        "/student/classrooms/" + classroom.getId()
-                    );
-                });
+                    .forEach(joining -> {
+                        notificationService.createNotification(
+                                joining.getLearner().getId(),
+                                "Bài kiểm tra mới: " + quiz.getTitle(),
+                                "Bạn có bài kiểm tra mới trong lớp " + classroom.getName(),
+                                NotificationType.QUIZ_ASSIGNED,
+                                "/student/classrooms/" + classroom.getId());
+                    });
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -122,4 +121,3 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
         return quizAssigningMapper.toResponseDTO(savedQuizAssigning);
     }
 }
-

@@ -1,5 +1,7 @@
 package com.example.quizhub.dto.practice;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,6 +19,6 @@ import lombok.experimental.FieldDefaults;
 public class PracticeAnswerResponseDTO {
     Long id;
     String text;
-    @com.fasterxml.jackson.annotation.JsonProperty("isCorrect")
+    @JsonProperty("isCorrect")
     Boolean isCorrect;
 }

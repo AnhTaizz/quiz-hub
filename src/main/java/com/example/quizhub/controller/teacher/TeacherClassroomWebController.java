@@ -1,12 +1,20 @@
 package com.example.quizhub.controller.teacher;
 
 import com.example.quizhub.dto.classroom.request.ClassroomRequestDTO;
+import com.example.quizhub.entity.Category;
 import com.example.quizhub.entity.ClassJoining;
+import com.example.quizhub.entity.ClassTopic;
 import com.example.quizhub.entity.Classroom;
-import com.example.quizhub.entity.JoinStatus;
+import com.example.quizhub.entity.Quiz;
+import com.example.quizhub.entity.QuizAssigning;
 import com.example.quizhub.entity.User;
+import com.example.quizhub.entity.enums.JoinStatus;
+import com.example.quizhub.repository.CategoryRepository;
 import com.example.quizhub.repository.ClassJoiningRepository;
+import com.example.quizhub.repository.ClassTopicRepository;
 import com.example.quizhub.repository.ClassroomRepository;
+import com.example.quizhub.repository.QuizAssigningRepository;
+import com.example.quizhub.repository.QuizRepository;
 import com.example.quizhub.repository.UserRepository;
 import com.example.quizhub.service.classroom.ClassroomService;
 import lombok.RequiredArgsConstructor;
@@ -28,10 +36,10 @@ public class TeacherClassroomWebController {
     private final UserRepository userRepository;
     private final ClassroomService classroomService;
     private final ClassJoiningRepository classJoiningRepository;
-    private final com.example.quizhub.repository.QuizAssigningRepository quizAssigningRepository;
-    private final com.example.quizhub.repository.QuizRepository quizRepository;
-    private final com.example.quizhub.repository.ClassTopicRepository classTopicRepository;
-    private final com.example.quizhub.repository.CategoryRepository categoryRepository;
+    private final QuizAssigningRepository quizAssigningRepository;
+    private final QuizRepository quizRepository;
+    private final ClassTopicRepository classTopicRepository;
+    private final CategoryRepository categoryRepository;
     private final com.example.quizhub.service.CategoryService categoryService;
 
     @GetMapping
@@ -142,11 +150,11 @@ public class TeacherClassroomWebController {
                 return "redirect:/teacher/classrooms";
             }
 
-            List<com.example.quizhub.entity.QuizAssigning> assignedQuizzes = quizAssigningRepository
+            List<QuizAssigning> assignedQuizzes = quizAssigningRepository
                     .findByClassroomId(id);
-            List<com.example.quizhub.entity.Quiz> quizzes = quizRepository.findByCreatorIdAndIsEnableTrue(user.getId());
-            List<com.example.quizhub.entity.ClassTopic> topics = classTopicRepository.findByClassroomId(id);
-            List<com.example.quizhub.entity.Category> categories = categoryRepository
+            List<Quiz> quizzes = quizRepository.findByCreatorIdAndIsEnableTrue(user.getId());
+            List<ClassTopic> topics = classTopicRepository.findByClassroomId(id);
+            List<Category> categories = categoryRepository
                     .findAllByCreatorIdWithParent(user.getId());
 
             model.addAttribute("classroom", classroom);

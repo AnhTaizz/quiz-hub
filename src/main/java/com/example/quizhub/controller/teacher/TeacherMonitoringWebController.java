@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.example.quizhub.entity.AttemptViolation;
 import com.example.quizhub.entity.QuizAssigning;
+import com.example.quizhub.entity.User;
 import com.example.quizhub.repository.AttemptViolationRepository;
 import com.example.quizhub.repository.QuizAssigningRepository;
 
@@ -31,13 +32,13 @@ public class TeacherMonitoringWebController {
     public String viewViolationLog(@PathVariable Long assigningId, Principal principal, Model model) {
         QuizAssigning assignment = quizAssigningRepository.findById(assigningId).orElseThrow();
         List<AttemptViolation> violations = attemptViolationRepository.findAllByAssigningId(assigningId);
-        
+
         model.addAttribute("assignment", assignment);
         model.addAttribute("violations", violations);
 
-        com.example.quizhub.entity.User teacher = userRepository.findByEmail(principal.getName()).orElseThrow();
+        User teacher = userRepository.findByEmail(principal.getName()).orElseThrow();
         model.addAttribute("currentUser", teacher);
-        
+
         return "teacher/monitoring-log";
     }
 }

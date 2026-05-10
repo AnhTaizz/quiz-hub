@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.quizhub.dto.practice.PracticeAnswerRequestDTO;
+import com.example.quizhub.dto.practice.PracticeHistoryResponseDTO;
 import com.example.quizhub.dto.practice.PracticeQuestionResponseDTO;
 import com.example.quizhub.dto.practice.PracticeResultResponseDTO;
 import com.example.quizhub.dto.practice.PracticeStartRequestDTO;
@@ -67,7 +68,7 @@ public class StudentPracticeRestController {
     }
 
     @GetMapping("/history")
-    public ResponseEntity<List<com.example.quizhub.dto.practice.PracticeHistoryResponseDTO>> getPracticeHistory(
+    public ResponseEntity<List<PracticeHistoryResponseDTO>> getPracticeHistory(
             @RequestParam(value = "categoryId", required = false) Long categoryId) {
         if (categoryId != null) {
             return ResponseEntity.ok(practiceService.getPracticeHistory(categoryId));

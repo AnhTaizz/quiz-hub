@@ -1,5 +1,7 @@
 package com.example.quizhub.dto.practice;
 
+import java.util.List;
+
 import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -16,7 +18,7 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class PracticeAnswerRequestDTO {
-    
+
     @NotNull(message = "Question ID is required")
     Long questionId;
 
@@ -24,7 +26,7 @@ public class PracticeAnswerRequestDTO {
     Long selectedAnswerId;
 
     // For MULTIPLE_CHOICE
-    java.util.List<Long> selectedAnswerIds;
+    List<Long> selectedAnswerIds;
 
     // For FILL_IN_BLANK
     String selectedText;

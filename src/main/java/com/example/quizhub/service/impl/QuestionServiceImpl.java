@@ -1,5 +1,6 @@
 package com.example.quizhub.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -70,7 +71,8 @@ public class QuestionServiceImpl implements QuestionService {
                 }
                 break;
             case FILL_IN_BLANK:
-                // Điền khuyết: Có thể chỉ có 1 lựa chọn, nhưng lựa chọn đó bắt buộc phải đánh dấu là "đúng"
+                // Điền khuyết: Có thể chỉ có 1 lựa chọn, nhưng lựa chọn đó bắt buộc phải đánh
+                // dấu là "đúng"
                 if (correctAnswersCount < 1) {
                     throw new AppException(ErrorCode.QUESTION_INVALID_LOGIC);
                 }
@@ -81,34 +83,34 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     @Transactional
     public QuestionResponseDTO createNewQuestion(Long userId, QuestionRequestDTO request) {
-        validateQuestionLogic(request.getType(), request.getAnswers());      //ktra logic
+        validateQuestionLogic(request.getType(), request.getAnswers()); // ktra logic
 
         User creator = userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         Category category = null;
-        if(request.getCategoryId() != null){
+        if (request.getCategoryId() != null) {
             category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+                    .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
         }
 
-        //Tạo question entity
+        // Tạo question entity
         Question question = Question.builder()
-                            .type(request.getType())
-                            .text(request.getText())
-                            .questionStatus(QuestionStatus.PRIVATE)
-                            .creator(creator)
-                            .category(category)
-                            .level(request.getLevel() != null ? request.getLevel() : QuestionLevel.MEDIUM)
-                            .build();
+                .type(request.getType())
+                .text(request.getText())
+                .questionStatus(QuestionStatus.PRIVATE)
+                .creator(creator)
+                .category(category)
+                .level(request.getLevel() != null ? request.getLevel() : QuestionLevel.MEDIUM)
+                .build();
 
         List<Answer> answers = request.getAnswers().stream()
-                                    .map(ansDto -> Answer.builder()
-                                                    .text(ansDto.getText())
-                                                    .isCorrect(Boolean.TRUE.equals(ansDto.getCorrect()))
-                                                    .question(question)
-                                                    .build())
-                                    .collect(Collectors.toList());
+                .map(ansDto -> Answer.builder()
+                        .text(ansDto.getText())
+                        .isCorrect(Boolean.TRUE.equals(ansDto.getCorrect()))
+                        .question(question)
+                        .build())
+                .collect(Collectors.toList());
 
         question.setAnswers(answers);
 
@@ -119,53 +121,52 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     @Transactional
     public QuestionResponseDTO updateQuestion(Long userId, Long id, QuestionRequestDTO request) {
-        validateQuestionLogic(request.getType(), request.getAnswers());      //ktra logic
+        validateQuestionLogic(request.getType(), request.getAnswers()); // ktra logic
 
         Question oldQuestion = questionRepository.findById(id)
-                            .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
+                .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
 
-        if(!oldQuestion.getCreator().getId().equals(userId)){
+        if (!oldQuestion.getCreator().getId().equals(userId)) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
         Category category = null;
-        if(request.getCategoryId() != null){
+        if (request.getCategoryId() != null) {
             category = categoryRepository.findById(request.getCategoryId())
-                                    .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+                    .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
         }
 
         boolean isUsedInQuiz = questionRepository.isQuestionUsedInQuiz(id);
         boolean isUsedInPractice = questionRepository.isQuestionUsedInPractice(id);
 
-        if(isUsedInQuiz || isUsedInPractice){
-            //xóa câu hỏi cũ nếu đã dùng trong quiz hoặc luyện tập rồi
+        if (isUsedInQuiz || isUsedInPractice) {
+            // xóa câu hỏi cũ nếu đã dùng trong quiz hoặc luyện tập rồi
             oldQuestion.setQuestionStatus(QuestionStatus.DELETED);
             questionRepository.save(oldQuestion);
-            //tạo câu hỏi mới
+            // tạo câu hỏi mới
             Question cloneQuestion = Question.builder()
-                                        .type(request.getType())
-                                        .text(request.getText())
-                                        .creator(oldQuestion.getCreator())
-                                        .category(category)
-                                        .questionStatus(QuestionStatus.PRIVATE)
-                                        .level(request.getLevel() != null ? request.getLevel() : QuestionLevel.MEDIUM)
-                                        .build();
+                    .type(request.getType())
+                    .text(request.getText())
+                    .creator(oldQuestion.getCreator())
+                    .category(category)
+                    .questionStatus(QuestionStatus.PRIVATE)
+                    .level(request.getLevel() != null ? request.getLevel() : QuestionLevel.MEDIUM)
+                    .build();
 
             List<Answer> cloneAnswers = request.getAnswers().stream()
-                                        .map(ansDto -> Answer.builder()
-                                                .text(ansDto.getText())
-                                                .isCorrect(Boolean.TRUE.equals(ansDto.getCorrect()))
-                                                .question(cloneQuestion)
-                                                .build())
-                                            .collect(Collectors.toList());
+                    .map(ansDto -> Answer.builder()
+                            .text(ansDto.getText())
+                            .isCorrect(Boolean.TRUE.equals(ansDto.getCorrect()))
+                            .question(cloneQuestion)
+                            .build())
+                    .collect(Collectors.toList());
 
             cloneQuestion.setAnswers(cloneAnswers);
             Question saved = questionRepository.save(cloneQuestion);
             return questionMapper.toResponseDTO(saved);
 
-        }
-        else{
-            //Câu hỏi chưa nằm trong quiz nào
+        } else {
+            // Câu hỏi chưa nằm trong quiz nào
             oldQuestion.setText(request.getText());
             oldQuestion.setType(request.getType());
             oldQuestion.setCategory(category);
@@ -191,7 +192,8 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     private void collectCategoryIds(Category category, List<Long> ids) {
-        if (category == null) return;
+        if (category == null)
+            return;
         ids.add(category.getId());
         if (category.getChildren() != null) {
             for (Category child : category.getChildren()) {
@@ -202,13 +204,13 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     public Page<QuestionResponseDTO> searchMyQuestion(Long userId, Long categoryId, QuestionType type,
-                                                    String keyword,
-                                                    int page, int size,
-                                                    String sortBy, String sortDir) {
+            String keyword,
+            int page, int size,
+            String sortBy, String sortDir) {
 
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())
-                            ? Sort.by(sortBy).ascending()
-                            : Sort.by(sortBy).descending();
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
 
         Pageable pageable = PageRequest.of(page, size, sort);
 
@@ -225,16 +227,18 @@ public class QuestionServiceImpl implements QuestionService {
             useCategoryFilter = true;
         }
 
-        String searchKeyword = (keyword == null || keyword.trim().isEmpty()) ? null : "%" + keyword.trim().toLowerCase() + "%";
-        Page<Question> questionPage = questionRepository.searchMyQuestion(userId, useCategoryFilter, categoryIds, type, searchKeyword, pageable);
+        String searchKeyword = (keyword == null || keyword.trim().isEmpty()) ? null
+                : "%" + keyword.trim().toLowerCase() + "%";
+        Page<Question> questionPage = questionRepository.searchMyQuestion(userId, useCategoryFilter, categoryIds, type,
+                searchKeyword, pageable);
 
         return questionPage.map(questionMapper::toResponseDTO);
     }
 
     @Override
     public Page<QuestionResponseDTO> searchPublicQuestion(Long categoryId, QuestionType type,
-                                                          String keyword, int page, int size,
-                                                          String sortBy, String sortDir) {
+            String keyword, int page, int size,
+            String sortBy, String sortDir) {
 
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())
                 ? Sort.by(sortBy).ascending()
@@ -255,16 +259,18 @@ public class QuestionServiceImpl implements QuestionService {
             useCategoryFilter = true;
         }
 
-        String searchKeyword = (keyword == null || keyword.trim().isEmpty()) ? null : "%" + keyword.trim().toLowerCase() + "%";
-        Page<Question> questionPage = questionRepository.searchPublicQuestion(useCategoryFilter, categoryIds, type, searchKeyword, QuestionStatus.PUBLIC, pageable);
+        String searchKeyword = (keyword == null || keyword.trim().isEmpty()) ? null
+                : "%" + keyword.trim().toLowerCase() + "%";
+        Page<Question> questionPage = questionRepository.searchPublicQuestion(useCategoryFilter, categoryIds, type,
+                searchKeyword, QuestionStatus.PUBLIC, pageable);
 
         return questionPage.map(questionMapper::toResponseDTO);
     }
 
     @Override
     public Page<QuestionResponseDTO> searchQuestions(QuestionStatus status, Long categoryId, QuestionType type,
-                                                     QuestionLevel level, String keyword, String creatorName,
-                                                     int page, int size, String sortBy, String sortDir) {
+            QuestionLevel level, String keyword, String creatorName,
+            int page, int size, String sortBy, String sortDir) {
 
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())
                 ? Sort.by(sortBy).ascending()
@@ -285,10 +291,13 @@ public class QuestionServiceImpl implements QuestionService {
             useCategoryFilter = true;
         }
 
-        String searchKeyword = (keyword == null || keyword.trim().isEmpty()) ? null : "%" + keyword.trim().toLowerCase() + "%";
-        String searchCreator = (creatorName == null || creatorName.trim().isEmpty()) ? null : "%" + creatorName.trim().toLowerCase() + "%";
+        String searchKeyword = (keyword == null || keyword.trim().isEmpty()) ? null
+                : "%" + keyword.trim().toLowerCase() + "%";
+        String searchCreator = (creatorName == null || creatorName.trim().isEmpty()) ? null
+                : "%" + creatorName.trim().toLowerCase() + "%";
 
-        Page<Question> questionPage = questionRepository.searchQuestions(status, useCategoryFilter, categoryIds, type, level, searchKeyword, searchCreator, pageable);
+        Page<Question> questionPage = questionRepository.searchQuestions(status, useCategoryFilter, categoryIds, type,
+                level, searchKeyword, searchCreator, pageable);
 
         return questionPage.map(questionMapper::toResponseDTO);
     }
@@ -304,26 +313,26 @@ public class QuestionServiceImpl implements QuestionService {
     @Transactional
     public void deleteQuestion(Long userId, Long id) {
         Question question = questionRepository.findById(id)
-                            .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
-        if(!question.getCreator().getId().equals(userId)){
+                .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
+        if (!question.getCreator().getId().equals(userId)) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
         question.setQuestionStatus(QuestionStatus.DELETED);
         questionRepository.save(question);
     }
 
-
     @Override
     @Transactional
     public void requestShareQuestion(Long questionId, Long teacherId) {
-        Question question = questionRepository.findById(questionId).orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
+        Question question = questionRepository.findById(questionId)
+                .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
 
         // Kiểm tra quyền sở hữu
         if (!question.getCreator().getId().equals(teacherId)) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        if(question.getQuestionStatus() == QuestionStatus.PUBLIC){
+        if (question.getQuestionStatus() == QuestionStatus.PUBLIC) {
             throw new AppException(ErrorCode.QUESTION_ALREADY_PUBLIC);
         }
 
@@ -339,8 +348,7 @@ public class QuestionServiceImpl implements QuestionService {
                         "Yêu cầu duyệt câu hỏi",
                         "Giáo viên " + question.getCreator().getFullName() + " vừa gửi yêu cầu duyệt một câu hỏi mới.",
                         NotificationType.SYSTEM_ALERT,
-                        "/admin/moderation"
-                );
+                        "/admin/moderation");
             });
         } catch (Exception e) {
             e.printStackTrace();
@@ -350,7 +358,8 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     @Transactional
     public void bulkRequestShareQuestions(List<Long> questionIds, Long teacherId) {
-        if (questionIds == null || questionIds.isEmpty()) return;
+        if (questionIds == null || questionIds.isEmpty())
+            return;
         for (Long id : questionIds) {
             requestShareQuestion(id, teacherId);
         }
@@ -360,11 +369,12 @@ public class QuestionServiceImpl implements QuestionService {
     @Transactional
     public void bulkRequestShareAllQuestions(Long teacherId, Long categoryId, QuestionType type, String keyword) {
         String searchKeyword = (keyword != null && !keyword.isEmpty()) ? "%" + keyword.toLowerCase() + "%" : null;
-        List<Long> ids = questionRepository.findIdsByFilters(teacherId, QuestionStatus.PRIVATE, categoryId, type, searchKeyword);
+        List<Long> ids = questionRepository.findIdsByFilters(teacherId, QuestionStatus.PRIVATE, categoryId, type,
+                searchKeyword);
         bulkRequestShareQuestions(ids, teacherId);
     }
 
-    //Admin duyệt
+    // Admin duyệt
     @Override
     @Transactional
     public void approveQuestion(Long questionId, Long categoryId) {
@@ -391,7 +401,7 @@ public class QuestionServiceImpl implements QuestionService {
 
         // Sao chép các đáp án
         if (originalQuestion.getAnswers() != null) {
-            java.util.List<Answer> clonedAnswers = new java.util.ArrayList<>();
+            List<Answer> clonedAnswers = new ArrayList<>();
             for (Answer ans : originalQuestion.getAnswers()) {
                 Answer clonedAns = new Answer();
                 clonedAns.setText(ans.getText());
@@ -413,14 +423,14 @@ public class QuestionServiceImpl implements QuestionService {
                 "Câu hỏi được phê duyệt",
                 "Câu hỏi \"" + originalQuestion.getText() + "\" của bạn đã được Admin phê duyệt vào kho chung.",
                 NotificationType.QUESTION_APPROVED,
-                "/teacher/questions"
-        );
+                "/teacher/questions");
     }
 
     @Override
     @Transactional
     public void bulkApproveQuestions(List<Long> questionIds, Long categoryId) {
-        if (questionIds == null || questionIds.isEmpty()) return;
+        if (questionIds == null || questionIds.isEmpty())
+            return;
         for (Long id : questionIds) {
             approveQuestion(id, categoryId);
         }
@@ -428,7 +438,8 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     @Transactional
-    public void bulkApproveAllQuestions(Long targetCategoryId, Long filterCategoryId, QuestionType type, QuestionLevel level, String keyword, String creatorName) {
+    public void bulkApproveAllQuestions(Long targetCategoryId, Long filterCategoryId, QuestionType type,
+            QuestionLevel level, String keyword, String creatorName) {
         boolean useCategoryFilter = false;
         List<Long> categoryIds = new java.util.ArrayList<>();
         if (filterCategoryId != null) {
@@ -443,12 +454,14 @@ public class QuestionServiceImpl implements QuestionService {
         }
 
         String searchKeyword = (keyword != null && !keyword.isEmpty()) ? "%" + keyword.toLowerCase() + "%" : null;
-        String searchCreator = (creatorName != null && !creatorName.isEmpty()) ? "%" + creatorName.toLowerCase() + "%" : null;
-        List<Long> ids = questionRepository.findPendingIdsByFilters(QuestionStatus.PENDING, useCategoryFilter, categoryIds, type, level, searchKeyword, searchCreator);
+        String searchCreator = (creatorName != null && !creatorName.isEmpty()) ? "%" + creatorName.toLowerCase() + "%"
+                : null;
+        List<Long> ids = questionRepository.findPendingIdsByFilters(QuestionStatus.PENDING, useCategoryFilter,
+                categoryIds, type, level, searchKeyword, searchCreator);
         bulkApproveQuestions(ids, targetCategoryId);
     }
 
-    //Admin từ chối
+    // Admin từ chối
     @Override
     @Transactional
     public void rejectQuestion(Long questionId) {
@@ -464,14 +477,14 @@ public class QuestionServiceImpl implements QuestionService {
                 "Câu hỏi bị từ chối",
                 "Câu hỏi \"" + question.getText() + "\" của bạn đã bị Admin từ chối chia sẻ.",
                 NotificationType.QUESTION_REJECTED,
-                "/teacher/questions"
-        );
+                "/teacher/questions");
     }
 
     @Override
     @Transactional
     public void bulkRejectQuestions(List<Long> questionIds) {
-        if (questionIds == null || questionIds.isEmpty()) return;
+        if (questionIds == null || questionIds.isEmpty())
+            return;
         for (Long id : questionIds) {
             rejectQuestion(id);
         }
@@ -479,7 +492,8 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     @Transactional
-    public void bulkRejectAllQuestions(Long filterCategoryId, QuestionType type, QuestionLevel level, String keyword, String creatorName) {
+    public void bulkRejectAllQuestions(Long filterCategoryId, QuestionType type, QuestionLevel level, String keyword,
+            String creatorName) {
         boolean useCategoryFilter = false;
         List<Long> categoryIds = new java.util.ArrayList<>();
         if (filterCategoryId != null) {
@@ -494,12 +508,14 @@ public class QuestionServiceImpl implements QuestionService {
         }
 
         String searchKeyword = (keyword != null && !keyword.isEmpty()) ? "%" + keyword.toLowerCase() + "%" : null;
-        String searchCreator = (creatorName != null && !creatorName.isEmpty()) ? "%" + creatorName.toLowerCase() + "%" : null;
-        List<Long> ids = questionRepository.findPendingIdsByFilters(QuestionStatus.PENDING, useCategoryFilter, categoryIds, type, level, searchKeyword, searchCreator);
+        String searchCreator = (creatorName != null && !creatorName.isEmpty()) ? "%" + creatorName.toLowerCase() + "%"
+                : null;
+        List<Long> ids = questionRepository.findPendingIdsByFilters(QuestionStatus.PENDING, useCategoryFilter,
+                categoryIds, type, level, searchKeyword, searchCreator);
         bulkRejectQuestions(ids);
     }
 
-    //Admin xóa
+    // Admin xóa
     @Override
     @Transactional
     public void deleteQuestionByAdmin(Long questionId) {

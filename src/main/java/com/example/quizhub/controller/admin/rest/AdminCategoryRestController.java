@@ -24,6 +24,7 @@ import com.example.quizhub.entity.enums.QuestionLevel;
 import com.example.quizhub.entity.enums.QuestionStatus;
 import com.example.quizhub.entity.enums.QuestionType;
 import com.example.quizhub.service.CategoryService;
+import com.example.quizhub.service.QuestionService;
 import com.example.quizhub.service.quiz.QuizService;
 
 import jakarta.validation.Valid;
@@ -37,7 +38,7 @@ public class AdminCategoryRestController {
 
     private final CategoryService categoryService;
     private final QuizService quizService;
-    private final com.example.quizhub.service.QuestionService questionService;
+    private final QuestionService questionService;
 
     @GetMapping
     public ResponseEntity<List<CategoryResponseDTO>> getPublicCategories() {

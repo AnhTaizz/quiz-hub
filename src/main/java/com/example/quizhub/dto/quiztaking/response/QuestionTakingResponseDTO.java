@@ -2,6 +2,7 @@ package com.example.quizhub.dto.quiztaking.response;
 
 import java.util.List;
 
+import com.example.quizhub.entity.enums.QuestionLevel;
 import com.example.quizhub.entity.enums.QuestionType;
 
 import lombok.AccessLevel;
@@ -20,6 +21,6 @@ public class QuestionTakingResponseDTO {
     Long id;
     String text;
     QuestionType type;
-    com.example.quizhub.entity.enums.QuestionLevel level;
+    QuestionLevel level;
     List<AnswerTakingResponseDTO> answers;
 }
