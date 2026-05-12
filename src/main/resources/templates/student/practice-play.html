@@ -159,6 +159,7 @@
         }
 
         .nav-dot {
+            position: relative;
             width: 36px;
             height: 36px;
             border-radius: 12px;
@@ -692,6 +693,41 @@
                 grid-template-columns: repeat(10, 1fr);
             }
         }
+
+        /* ── Flag Feature ── */
+        .btn-flag {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .btn-flag:hover {
+            background: #fffbeb;
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+
+        .btn-flag.active {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            color: #f59e0b;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+        }
+
+        .nav-dot.flagged {
+            border-color: #f59e0b !important;
+            background: #fffbeb !important;
+            color: #d97706 !important;
+        }
     </style>
 </head>
 
@@ -754,12 +790,15 @@
             <!-- Main: Question Area -->
             <div class="col-lg-9">
                 <div class="question-card" id="questionArea">
-                    <div class="question-header">
-                        <span class="q-number-badge" id="qNumber">Câu 0/0</span>
-                        <div class="d-flex gap-2">
+                    <div class="question-header align-items-center justify-content-between">
+                        <div class="d-flex gap-2 align-items-center">
+                            <span class="q-number-badge" id="qNumber">Câu 0/0</span>
                             <span class="q-type-badge" id="qType"></span>
                             <span class="q-level-badge level-easy" id="qLevel">Dễ</span>
                         </div>
+                        <button class="btn-flag" id="btnFlag" onclick="toggleFlag()">
+                            <i class="bi bi-flag"></i> <span>Đặt cờ</span>
+                        </button>
                     </div>
 
                     <div class="question-text" id="qText">
@@ -869,8 +908,9 @@
 
         let currentIndex = 0;
         let practiceId = null;
-        let userAnswers = {}; // questionId -> selectedAnswerId
-        let answeredCorrectly = {}; // questionId -> boolean (if showAnswer is on)
+        let userAnswers = {}; // qId -> val
+        let flaggedQuestions = new Set(); // qId set
+        let answeredCorrectly = {}; // qId -> boolean
         let practiceResult = null; // Store result details for review
         let confirmedAnswers = {}; // questionId -> boolean (used in showAnswer mode)
 
@@ -1007,6 +1047,11 @@
                 }
 
                 // Load saved progress from local session (if any, overwrites server if newer)
+                confirmedAnswers = JSON.parse(sessionStorage.getItem('practice_confirmed_answers') || '{}');
+                const savedFlags = sessionStorage.getItem('practice_flagged_questions');
+                if (savedFlags) {
+                    flaggedQuestions = new Set(JSON.parse(savedFlags));
+                }
                 const savedAnswers = sessionStorage.getItem('practice_user_answers');
                 if (savedAnswers) Object.assign(userAnswers, JSON.parse(savedAnswers));
 
@@ -1040,6 +1085,21 @@
             }
         }
 
+        function toggleFlag() {
+            const q = questions[currentIndex];
+            if (!q || practiceResult) return;
+            
+            if (flaggedQuestions.has(q.id)) {
+                flaggedQuestions.delete(q.id);
+            } else {
+                flaggedQuestions.add(q.id);
+            }
+            
+            sessionStorage.setItem('practice_flagged_questions', JSON.stringify([...flaggedQuestions]));
+            renderNav();
+            showQuestion(currentIndex);
+        }
+
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -1061,6 +1121,10 @@
                 dot.className = 'nav-dot';
                 dot.textContent = i + 1;
                 dot.id = `nav-${i}`;
+
+                if (flaggedQuestions.has(q.id)) {
+                    dot.classList.add('flagged');
+                }
 
                 // Coloring logic
                 if (practiceResult) {
@@ -1121,6 +1185,18 @@
 
             // Question Text
             document.getElementById('qText').textContent = q.text;
+
+            // Update Flag Button
+            const btnFlag = document.getElementById('btnFlag');
+            if (btnFlag) {
+                if (flaggedQuestions.has(q.id)) {
+                    btnFlag.classList.add('active');
+                    btnFlag.innerHTML = '<i class="bi bi-flag-fill"></i> <span>Đã đặt cờ</span>';
+                } else {
+                    btnFlag.classList.remove('active');
+                    btnFlag.innerHTML = '<i class="bi bi-flag"></i> <span>Đặt cờ</span>';
+                }
+            }
 
             // Answers
             const list = document.getElementById('answersList');
@@ -1337,11 +1413,14 @@
 
                 qBlock.innerHTML = `
                     <div class="d-flex justify-content-between mb-3">
-                        <span class="q-number-badge">Câu ${index + 1}</span>
-                        <div class="d-flex gap-2">
+                        <div class="d-flex gap-2 align-items-center">
+                            <span class="q-number-badge">Câu ${index + 1}</span>
                             <span class="q-type-badge">${q.type === 'MULTIPLE_CHOICE' ? 'CHỌN NHIỀU' : (q.type === 'FILL_IN_BLANK' ? 'ĐIỀN KHUYẾT' : 'CHỌN MỘT')}</span>
                             <span class="q-level-badge level-${q.level ? q.level.toLowerCase() : 'medium'}">${q.level || 'MEDIUM'}</span>
                         </div>
+                        <button class="btn-flag ${flaggedQuestions.has(q.id) ? 'active' : ''}" onclick="toggleFlagFor(${q.id})">
+                            <i class="bi bi-flag${flaggedQuestions.has(q.id) ? '-fill' : ''}"></i> <span>${flaggedQuestions.has(q.id) ? 'Đã đặt cờ' : 'Đặt cờ'}</span>
+                        </button>
                     </div>
                     <div class="question-text mb-4">${esc(q.text)}</div>
                     ${contentHtml}
@@ -1634,6 +1713,7 @@
             sessionStorage.removeItem('practice_confirmed_answers');
             sessionStorage.removeItem('practice_is_shuffled');
             sessionStorage.removeItem('practice_current_index');
+            sessionStorage.removeItem('practice_flagged_questions');
 
             if (!silent) {
                 showToast("Đã hoàn thành luyện tập!", "ok");
@@ -1740,11 +1820,13 @@
                 });
                 if (res.ok) {
                     userAnswers = {};
+                    flaggedQuestions = new Set();
                     answeredCorrectly = {};
                     confirmedAnswers = {};
                     sessionStorage.removeItem('practice_user_answers');
                     sessionStorage.removeItem('practice_answered_correctly');
                     sessionStorage.removeItem('practice_confirmed_answers');
+                    sessionStorage.removeItem('practice_flagged_questions');
                     
                     showToast("Đã làm mới bài tập, hãy bắt đầu lại nhé!", "ok");
                     
@@ -1762,6 +1844,25 @@
         }
 
         function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+        function toggleFlag() {
+            const qId = questions[currentIndex].id;
+            toggleFlagFor(qId);
+        }
+
+        function toggleFlagFor(qId) {
+            if (flaggedQuestions.has(qId)) {
+                flaggedQuestions.delete(qId);
+            } else {
+                flaggedQuestions.add(qId);
+            }
+            sessionStorage.setItem('practice_flagged_questions', JSON.stringify(Array.from(flaggedQuestions)));
+            
+            if (settings.displayMode === 'all') renderAllQuestions();
+            else showQuestion(currentIndex);
+            
+            renderNav();
+        }
 
         function showToast(msg, type = 'ok') {
             const w = document.getElementById('toastWrap');

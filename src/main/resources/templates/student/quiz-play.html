@@ -232,7 +232,7 @@
             padding: 5px;
         }
 
-        .q-dot { width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; border: 2px solid #f1f5f9; background: #fff; color: #64748b; }
+        .q-dot { position: relative; width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; border: 2px solid #f1f5f9; background: #fff; color: #64748b; }
         .q-dot:hover { border-color: #4f46e5; color: #4f46e5; }
 
         .q-dot.active { background: #eef2ff; color: #4f46e5; border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2); }
@@ -458,6 +458,46 @@
             50% { transform: scale(1.1); opacity: 0.7; }
             100% { transform: scale(1); opacity: 1; }
         }
+
+        /* ── Flag Feature ── */
+        .btn-flag {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+            padding: 4px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .btn-flag:hover {
+            background: #fffbeb;
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+
+        .btn-flag.active {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            color: #f59e0b;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
+        }
+
+        .q-dot.flagged {
+            border-color: #f59e0b !important;
+            background: #fffbeb !important;
+            color: #d97706 !important;
+        }
+
+        .q-dot.answered.flagged {
+            border-color: #f59e0b !important;
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.4);
+        }
     </style>
 </head>
 <body th:data-assigning-id="${quizId}">
@@ -522,9 +562,14 @@
                 <!-- Single Mode Container -->
                 <div id="singleModeView">
                     <div class="question-card" id="questionCard">
-                        <div class="q-meta">
-                            <span class="q-type-badge" id="qNumber">Câu 1</span>
-                            <span class="q-type-badge" id="qType">Trắc nghiệm</span>
+                        <div class="q-meta align-items-center justify-content-between">
+                            <div class="d-flex gap-2">
+                                <span class="q-type-badge" id="qNumber">Câu 1</span>
+                                <span class="q-type-badge" id="qType">Trắc nghiệm</span>
+                            </div>
+                            <button class="btn-flag" id="btnFlag" onclick="toggleFlag()">
+                                <i class="bi bi-flag"></i> <span>Đặt cờ</span>
+                            </button>
                         </div>
 
                         <div class="q-text" id="qText">
@@ -650,6 +695,7 @@
         let quizData = null;
         let currentIndex = 0;
         let userAnswers = {}; // questionId -> [answerIds] or string
+        let flaggedQuestions = new Set(); // set of questionIds
         let timerInterval = null;
         let endTime = null;
         let viewMode = 'single'; // 'single' or 'full'
@@ -716,6 +762,11 @@
                     if (localData.timestamp && localData.timestamp > serverStart) {
                         Object.assign(userAnswers, localData.answers);
                     }
+                }
+
+                const savedFlags = localStorage.getItem(`quiz_flags_${quizData.attemptId}`);
+                if (savedFlags) {
+                    flaggedQuestions = new Set(JSON.parse(savedFlags));
                 }
 
                 setupTimer();
@@ -792,6 +843,16 @@
             document.getElementById('qNumber').textContent = `Câu ${currentIndex + 1}`;
             document.getElementById('qType').textContent = q.type === 'SINGLE_CHOICE' ? 'CHỌN MỘT ĐÁP ÁN' : (q.type === 'FILL_IN_BLANK' ? 'ĐIỀN KHUYẾT' : 'CHỌN NHIỀU ĐÁP ÁN');
             
+            // Update Flag Button
+            const btnFlag = document.getElementById('btnFlag');
+            if (flaggedQuestions.has(q.id)) {
+                btnFlag.classList.add('active');
+                btnFlag.innerHTML = '<i class="bi bi-flag-fill"></i> <span>Đã đặt cờ</span>';
+            } else {
+                btnFlag.classList.remove('active');
+                btnFlag.innerHTML = '<i class="bi bi-flag"></i> <span>Đặt cờ</span>';
+            }
+
             const meta = document.querySelector('.q-meta');
             const existingLevel = meta.querySelector('.q-level-badge');
             if (existingLevel) existingLevel.remove();
@@ -860,11 +921,17 @@
                     });
                 }
 
+                const isFlagged = flaggedQuestions.has(q.id);
                 qDiv.innerHTML = `
-                    <div class="mb-3 d-flex gap-2">
-                        <span class="q-type-badge">Câu ${idx + 1}</span>
-                        <span class="q-type-badge">${q.type === 'SINGLE_CHOICE' ? 'CHỌN MỘT' : (q.type === 'FILL_IN_BLANK' ? 'ĐIỀN KHUYẾT' : 'CHỌN NHIỀU')}</span>
-                        <span class="q-level-badge level-${(q.level || 'medium').toLowerCase()}">${q.level || 'MEDIUM'}</span>
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div>
+                            <span class="q-type-badge">Câu ${idx + 1}</span>
+                            <span class="q-type-badge text-muted">${q.type === 'SINGLE_CHOICE' ? 'CHỌN MỘT ĐÁP ÁN' : (q.type === 'FILL_IN_BLANK' ? 'ĐIỀN KHUYẾT' : 'CHỌN NHIỀU ĐÁP ÁN')}</span>
+                            <span class="q-level-badge level-${(q.level || 'medium').toLowerCase()}">${q.level || 'MEDIUM'}</span>
+                        </div>
+                        <button class="btn-flag ${isFlagged ? 'active' : ''}" onclick="toggleFlagFor(${q.id})">
+                            <i class="bi bi-flag${isFlagged ? '-fill' : ''}"></i> <span>${isFlagged ? 'Đã đặt cờ' : 'Đặt cờ'}</span>
+                        </button>
                     </div>
                     <div class="fw-bold fs-5 mb-3">${q.text}</div>
                     <div class="answers-list">${answersHtml}</div>
@@ -908,6 +975,11 @@
 
         function isAnswerSelected(qId, ansId) {
             return Array.isArray(userAnswers[qId]) && userAnswers[qId].includes(ansId);
+        }
+
+        function isQuestionAnswered(qId) {
+            const ans = userAnswers[qId];
+            return (Array.isArray(ans) && ans.length > 0) || (typeof ans === 'string' && ans.trim() !== '');
         }
 
         function handleFillInput(qId, val, isFullMode = false) {
@@ -958,8 +1030,10 @@
             grid.innerHTML = '';
             quizData.questions.forEach((q, i) => {
                 const dot = document.createElement('div');
-                const hasAnswer = (Array.isArray(userAnswers[q.id]) && userAnswers[q.id].length > 0) || (typeof userAnswers[q.id] === 'string' && userAnswers[q.id].trim() !== '');
-                dot.className = `q-dot ${i === currentIndex ? 'active' : ''} ${hasAnswer ? 'answered' : ''}`;
+                const isAnswered = isQuestionAnswered(q.id);
+                const isFlagged = flaggedQuestions.has(q.id);
+                
+                dot.className = `q-dot ${i === currentIndex ? 'active' : ''} ${isAnswered ? 'answered' : ''} ${isFlagged ? 'flagged' : ''}`;
                 dot.textContent = i + 1;
                 dot.onclick = () => {
                     currentIndex = i;
@@ -1040,6 +1114,7 @@
                 if (response.ok) {
                     const result = await response.json();
                     localStorage.removeItem(`quiz_answers_${quizData.attemptId}`);
+                    localStorage.removeItem(`quiz_flags_${quizData.attemptId}`);
                     window.location.href = `/student/quiz/result/${result.id}`;
                 } else {
                     throw new Error("Lỗi khi nộp bài");
@@ -1057,6 +1132,26 @@
 
         function confirmExit() {
             new bootstrap.Modal(document.getElementById('exitModal')).show();
+        }
+
+        function toggleFlag() {
+            const qId = quizData.questions[currentIndex].id;
+            toggleFlagFor(qId);
+        }
+
+        function toggleFlagFor(qId) {
+            if (flaggedQuestions.has(qId)) {
+                flaggedQuestions.delete(qId);
+            } else {
+                flaggedQuestions.add(qId);
+            }
+            saveFlagsToLocal();
+            renderView();
+            renderGrid();
+        }
+
+        function saveFlagsToLocal() {
+            localStorage.setItem(`quiz_flags_${quizData.attemptId}`, JSON.stringify(Array.from(flaggedQuestions)));
         }
 
         function executeExit() {
