@@ -11,6 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.example.quizhub.dto.quiz.request.QuizRequestDTO;
 import com.example.quizhub.dto.quiz.request.QuizGenerateRequestDTO;
+import com.example.quizhub.dto.quiz.request.BulkQuizCreateRequestDTO;
+import com.example.quizhub.dto.question.QuestionRequestDTO;
+import com.example.quizhub.service.QuestionService;
+import com.example.quizhub.dto.question.QuestionResponseDTO;
+import java.util.ArrayList;
 import com.example.quizhub.dto.quiz.response.QuizResponseDTO;
 import com.example.quizhub.dto.quiz.response.QuizSummaryDTO;
 import com.example.quizhub.entity.Category;
@@ -41,6 +46,7 @@ public class QuizServiceImpl implements QuizService {
     private final com.example.quizhub.repository.QuizTakingRepository quizTakingRepository;
     private final com.example.quizhub.repository.AttemptRepository attemptRepository;
     private final com.example.quizhub.service.CategoryService categoryService;
+    private final QuestionService questionService;
 
     // Helper
 
@@ -51,7 +57,7 @@ public class QuizServiceImpl implements QuizService {
     }
 
     private Category resolveCategory(Long categoryId) {
-        if (categoryId == null) return null;
+        if (categoryId == null || categoryId == -1L) return null;
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
     }
@@ -79,6 +85,41 @@ public class QuizServiceImpl implements QuizService {
 
         quiz.setQuestions(questions);
         // Khi gọi save(), Hibernate sẽ tự động chèn data vào bảng trung gian _question_creating
+        return quizMapper.toResponseDTO(quizRepository.save(quiz));
+    }
+
+    @Override
+    @Transactional
+    public QuizResponseDTO bulkCreateQuiz(BulkQuizCreateRequestDTO request) {
+        User currentUser = getCurrentUser();
+        Category category = resolveCategory(request.getCategoryId());
+
+        // Phase 1: Batch create all questions and harvest IDs
+        List<Long> questionIds = new ArrayList<>();
+        for (QuestionRequestDTO qDto : request.getQuestions()) {
+            // Force correct category onto raw questions to match parent quiz choice if blank
+            if (qDto.getCategoryId() == null && category != null) {
+                qDto.setCategoryId(category.getId());
+            }
+            QuestionResponseDTO savedQ = questionService.createNewQuestion(currentUser.getId(), qDto);
+            questionIds.add(savedQ.getId());
+        }
+
+        // Phase 2: Create Quiz using standard entity assembly
+        Quiz quiz = Quiz.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .imageUrl(request.getImageUrl())
+                .category(category)
+                .creator(currentUser)
+                .isDraft(false)
+                .isExam(false)
+                .isEnable(true)
+                .build();
+
+        List<Question> questions = questionRepository.findAllById(questionIds);
+        quiz.setQuestions(questions);
+
         return quizMapper.toResponseDTO(quizRepository.save(quiz));
     }
 

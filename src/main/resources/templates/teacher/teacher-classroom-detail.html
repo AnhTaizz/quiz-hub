@@ -241,76 +241,35 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script th:inline="javascript">
         /*<![CDATA[*/
-        const myCategories = /*[[${myCategories}]]*/ [];
-        const publicCategories = /*[[${publicCategories}]]*/ [];
+        window.myCategories = /*[[${myCategories}]]*/ [];
+        window.publicCategories = /*[[${publicCategories}]]*/ [];
         /*]]>*/
     </script>
     <script th:inline="javascript">
-        function renderTreeNodes(categories) {
-            if (!categories || categories.length === 0) return '';
+
+        window.handleCategorySelection = function(id, name, target) {
+            if (id === null) {
+                document.getElementById('categoryFilterValue').value = '';
+                document.getElementById('categoryFilterDisplay').value = 'Tất cả danh mục';
+                document.getElementById('clearCatBtn').style.display = 'none';
+                filterQuizzesByCategory('');
+                return;
+            }
             
-            return `<ul class="list-unstyled ps-3 mt-1">
-                ${categories.map(cat => {
-                    const hasChildren = cat.children && cat.children.length > 0;
-                    const toggleHtml = hasChildren 
-                        ? `<i class="bi bi-chevron-right me-1 text-primary folder-toggle" onclick="toggleFolderNode(event, this)"></i>` 
-                        : `<i class="bi bi-dot me-1 text-muted"></i>`;
-                    
-                    const childrenHtml = hasChildren 
-                        ? `<div class="children-node" style="display: none;">${renderTreeNodes(cat.children)}</div>` 
-                        : '';
-                    
-                    return `
-                        <li class="mb-2">
-                            <div class="d-flex align-items-center gap-2 category-node-row">
-                                ${toggleHtml}
-                                <span class="category-selectable-name text-dark fw-semibold" onclick="selectCategoryFromTree(${cat.id}, '${escapeHTML(escapeJS(cat.name))}')">
-                                    <i class="bi ${hasChildren ? 'bi-folder-fill text-warning' : 'bi-folder text-secondary'}"></i>
-                                    ${escapeHTML(cat.name)}
-                                </span>
-                            </div>
-                            ${childrenHtml}
-                        </li>
-                    `;
-                }).join('')}
-            </ul>`;
-        }
-
-        function toggleFolderNode(e, el) {
-            e.stopPropagation();
-            const childrenDiv = el.closest('li').querySelector('.children-node');
-            if (childrenDiv) {
-                const isHidden = childrenDiv.style.display === 'none';
-                childrenDiv.style.display = isHidden ? 'block' : 'none';
-                el.classList.toggle('bi-chevron-right', !isHidden);
-                el.classList.toggle('bi-chevron-down', isHidden);
+            if (id === -1) {
+                document.getElementById('categoryFilterValue').value = -1;
+                document.getElementById('categoryFilterDisplay').value = 'Chưa phân mục';
+                document.getElementById('clearCatBtn').style.display = 'inline-block';
+                filterQuizzesByCategory(-1);
+                return;
             }
-        }
-
-        function openCategoryExplorer() {
-            const privateContainer = document.getElementById('private-category-tree-container');
-            if (privateContainer) {
-                privateContainer.innerHTML = renderTreeNodes(myCategories) || '<div class="text-muted text-center my-4">Không có danh mục nào</div>';
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('categoryExplorerPrivateModal')).show();
-            }
-        }
-
-        function selectCategoryFromTree(id, name) {
+            
             document.getElementById('categoryFilterValue').value = id;
             document.getElementById('categoryFilterDisplay').value = name;
             document.getElementById('clearCatBtn').style.display = 'inline-block';
 
-            const modalIds = ['categoryExplorerModal', 'categoryExplorerPrivateModal', 'categoryExplorerPublicModal'];
-            modalIds.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    const m = bootstrap.Modal.getInstance(el);
-                    if (m) m.hide();
-                }
-            });
-
             filterQuizzesByCategory(id);
-        }
+        };
 
         function clearCategoryFilter() {
             document.getElementById('categoryFilterValue').value = '';
@@ -347,21 +306,45 @@
 
             select.value = "";
 
-            if (!catId) {
+            if (catId === null || catId === undefined || catId === '') {
                 options.forEach(opt => opt.style.display = 'block');
                 return;
             }
 
+            // Specialized handling for 'No category' (represented by -1 in our code)
+            if (catId === -1) {
+                options.forEach(opt => {
+                    if (opt.value === "") {
+                        opt.style.display = 'block';
+                        return;
+                    }
+                    const optCatId = opt.getAttribute('data-category-id');
+                    if (!optCatId || optCatId.trim() === '') {
+                        opt.style.display = 'block';
+                    } else {
+                        opt.style.display = 'none';
+                    }
+                });
+                return;
+            }
+
             // Get all child IDs recursively
-            const childIds = getAllChildIds(catId, [...myCategories, ...publicCategories]);
+            const listToCheck = [...(window.myCategories || []), ...(window.publicCategories || [])];
+            const childIds = getAllChildIds(catId, listToCheck);
 
             options.forEach(opt => {
                 if (opt.value === "") {
                     opt.style.display = 'block';
                     return;
                 }
-                const optCatId = parseInt(opt.getAttribute('data-category-id'));
-                if (childIds.includes(optCatId)) {
+                const optCatIdStr = opt.getAttribute('data-category-id');
+                if (!optCatIdStr || optCatIdStr.trim() === '') {
+                    opt.style.display = 'none'; // Doesn't match our filtered category
+                    return;
+                }
+                
+                const optCatId = parseInt(optCatIdStr);
+                if (!isNaN(optCatId) && childIds.includes(optCatId)) {
                     opt.style.display = 'block';
                 } else {
                     opt.style.display = 'none';

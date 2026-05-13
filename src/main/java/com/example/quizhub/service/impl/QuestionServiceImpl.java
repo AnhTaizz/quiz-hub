@@ -89,7 +89,7 @@ public class QuestionServiceImpl implements QuestionService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         Category category = null;
-        if (request.getCategoryId() != null) {
+        if (request.getCategoryId() != null && request.getCategoryId() != -1L) {
             category = categoryRepository.findById(request.getCategoryId())
                     .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
         }
@@ -131,7 +131,7 @@ public class QuestionServiceImpl implements QuestionService {
         }
 
         Category category = null;
-        if (request.getCategoryId() != null) {
+        if (request.getCategoryId() != null && request.getCategoryId() != -1L) {
             category = categoryRepository.findById(request.getCategoryId())
                     .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
         }
@@ -369,10 +369,52 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     @Transactional
     public void bulkRequestShareAllQuestions(Long teacherId, Long categoryId, QuestionType type, String keyword) {
+        boolean useCategoryFilter = false;
+        List<Long> categoryIds = new java.util.ArrayList<>();
+        if (categoryId != null) {
+            if (categoryId == -1L) {
+                categoryIds.add(-1L);
+            } else {
+                collectCategoryIds(categoryId, categoryIds);
+            }
+            useCategoryFilter = true;
+        }
+
         String searchKeyword = (keyword != null && !keyword.isEmpty()) ? "%" + keyword.toLowerCase() + "%" : null;
-        List<Long> ids = questionRepository.findIdsByFilters(teacherId, QuestionStatus.PRIVATE, categoryId, type,
+        List<Long> ids = questionRepository.findIdsByFilters(teacherId, QuestionStatus.PRIVATE, useCategoryFilter, categoryIds, type,
                 searchKeyword);
         bulkRequestShareQuestions(ids, teacherId);
+    }
+
+    @Override
+    @Transactional
+    public void bulkDeleteQuestions(List<Long> questionIds, Long teacherId) {
+        if (questionIds == null || questionIds.isEmpty())
+            return;
+        for (Long id : questionIds) {
+            deleteQuestion(teacherId, id);
+        }
+    }
+
+    @Override
+    @Transactional
+    public void bulkDeleteAllQuestions(Long teacherId, Long categoryId, QuestionType type, String keyword) {
+        boolean useCategoryFilter = false;
+        List<Long> categoryIds = new java.util.ArrayList<>();
+        if (categoryId != null) {
+            if (categoryId == -1L) {
+                categoryIds.add(-1L);
+            } else {
+                collectCategoryIds(categoryId, categoryIds);
+            }
+            useCategoryFilter = true;
+        }
+
+        String searchKeyword = (keyword != null && !keyword.isEmpty()) ? "%" + keyword.toLowerCase() + "%" : null;
+        // Pass status = null to find and delete ANY of the teacher's non-deleted questions matching current filter!
+        List<Long> ids = questionRepository.findIdsByFilters(teacherId, null, useCategoryFilter, categoryIds, type,
+                searchKeyword);
+        bulkDeleteQuestions(ids, teacherId);
     }
 
     // Admin duyệt
@@ -383,7 +425,7 @@ public class QuestionServiceImpl implements QuestionService {
                 .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
 
         Category category = null;
-        if (categoryId != null) {
+        if (categoryId != null && categoryId != -1L) {
             category = categoryRepository.findById(categoryId)
                     .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
         }
@@ -528,8 +570,11 @@ public class QuestionServiceImpl implements QuestionService {
     public void moveQuestionByAdmin(Long questionId, Long categoryId) {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
-        Category category = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+        Category category = null;
+        if (categoryId != null && categoryId != -1L) {
+            category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+        }
         question.setCategory(category);
         questionRepository.save(question);
     }

@@ -50,8 +50,10 @@ public interface QuestionService {
     void requestShareQuestion(Long questionId, Long teacherId);
 
     void bulkRequestShareQuestions(List<Long> questionIds, Long teacherId);
-
     void bulkRequestShareAllQuestions(Long teacherId, Long categoryId, QuestionType type, String keyword);
+
+    void bulkDeleteQuestions(List<Long> questionIds, Long teacherId);
+    void bulkDeleteAllQuestions(Long teacherId, Long categoryId, QuestionType type, String keyword);
 
     //Admin
     void approveQuestion(Long questionId, Long categoryId);

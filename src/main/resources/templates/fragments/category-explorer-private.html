@@ -38,13 +38,8 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="mb-3">
                         <p class="text-muted small mb-0"><i class="bi bi-info-circle me-1"></i> Bấm vào tên danh mục để chọn.</p>
-                        <div id="explorer-create-btn-wrapper">
-                            <button type="button" class="btn btn-sm btn-outline-primary fw-bold px-3" onclick="openCreateCategoryModal(null, null, event)" style="border-radius: 20px; font-size: 0.85rem;">
-                                <i class="bi bi-plus-circle me-1"></i> Tạo mới
-                            </button>
-                        </div>
                     </div>
 
                     <div id="private-category-tree-container" style="max-height: 400px; overflow-y: auto; padding: 5px;">
@@ -193,7 +188,7 @@
                         }
 
                         if (targetIdEl) {
-                            targetIdEl.value = (id === -1 || id === null) ? '' : id;
+                            targetIdEl.value = (id === null) ? '' : id;
                             if (targetDispEl) {
                                 if (targetDispEl.tagName === 'INPUT') targetDispEl.value = name;
                                 else targetDispEl.textContent = name;
@@ -262,8 +257,16 @@
                     const pvtBtnWrap = document.getElementById('explorer-create-btn-wrapper');
                     const pubBtnWrap = document.getElementById('explorer-public-create-btn-wrapper');
                     
-                    if (pvtBtnWrap) pvtBtnWrap.style.display = (source === 'private' && target !== 'categoryCreateParent') ? 'block' : 'none';
-                    if (pubBtnWrap) pubBtnWrap.style.display = (source === 'public' && (USER_TYPE === 'admin' || USER_TYPE === 'public')) ? 'block' : 'none';
+                    const isFilterMode = ['filter', 'search', 'moderation'].includes(target);
+                    
+                    if (pvtBtnWrap) {
+                        const showPvt = source === 'private' && target !== 'categoryCreateParent' && !isFilterMode;
+                        pvtBtnWrap.style.display = showPvt ? 'block' : 'none';
+                    }
+                    if (pubBtnWrap) {
+                        const showPub = source === 'public' && !isFilterMode && (USER_TYPE === 'admin' || USER_TYPE === 'public');
+                        pubBtnWrap.style.display = showPub ? 'block' : 'none';
+                    }
 
                     const containerId = source === 'public' ? 'public-category-tree-container' : 'private-category-tree-container';
                     const modalId = source === 'public' ? 'categoryExplorerPublicModal' : 'categoryExplorerPrivateModal';
@@ -291,16 +294,23 @@
                                 </div>
                             </div>`;
                         } else if (target === 'filter' || target === 'moderation') {
-                             const label = source === 'private' ? 'Chưa phân mục' : 'Tất cả danh mục';
-                             const icon = source === 'private' ? 'bi-folder-x text-danger' : 'bi-folder2-open text-primary';
-                             const colorClass = source === 'private' ? 'text-danger' : 'text-primary';
-                             
-                             html = `<div class="mb-3">
-                                <div class="d-flex align-items-center gap-2 category-node-row" onclick="selectCategoryFromTree(-1, '${label}', '${target}')">
-                                    <i class="bi ${icon}" style="font-size: 1.1rem;"></i>
-                                    <span class="${colorClass} fw-bold small flex-grow-1 category-selectable-name">${label}</span>
+                             html = `<div class="mb-2">
+                                <div class="d-flex align-items-center gap-2 category-node-row" onclick="selectCategoryFromTree(null, 'Tất cả danh mục', '${target}')">
+                                    <i class="bi bi-globe-americas text-primary" style="font-size: 1.1rem;"></i>
+                                    <span class="text-primary fw-bold small flex-grow-1 category-selectable-name">Tất cả danh mục</span>
                                 </div>
                             </div>`;
+                            
+                            if (source === 'private') {
+                                html += `<div class="mb-3 border-bottom pb-2">
+                                    <div class="d-flex align-items-center gap-2 category-node-row" onclick="selectCategoryFromTree(-1, 'Chưa phân mục', '${target}')">
+                                        <i class="bi bi-folder-x text-danger" style="font-size: 1.1rem;"></i>
+                                        <span class="text-danger fw-bold small flex-grow-1 category-selectable-name">Chưa phân mục</span>
+                                    </div>
+                                </div>`;
+                            } else {
+                                html += `<div class="mb-3 border-bottom pb-1"></div>`;
+                            }
                         }
                         
                         html += renderTreeNodes(nodes, target);
@@ -316,8 +326,12 @@
                 };
                 
                 window.openCategoryTreePicker = function(target) {
-                    const sourceEl = document.getElementById('q-source');
-                    const source = (sourceEl && sourceEl.value === 'public') ? 'public' : 'private';
+                    let source = 'private';
+                    // Only allow public tree browsing when the purpose is filtering content, otherwise stick to private folders
+                    if (target === 'filter') {
+                        const sourceEl = document.getElementById('q-source');
+                        source = (sourceEl && sourceEl.value === 'public') ? 'public' : 'private';
+                    }
                     openCategoryExplorer(target, source);
                 };
                 window.openCategoryModal = function(target) { openCategoryExplorer(target || 'filter'); };

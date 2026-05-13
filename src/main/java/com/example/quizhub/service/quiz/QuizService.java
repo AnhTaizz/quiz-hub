@@ -7,8 +7,12 @@ import com.example.quizhub.dto.quiz.response.QuizResponseDTO;
 import com.example.quizhub.dto.quiz.response.QuizSummaryDTO;
 import com.example.quizhub.dto.quiz.request.QuizGenerateRequestDTO;
 
+import com.example.quizhub.dto.quiz.request.BulkQuizCreateRequestDTO;
+
 public interface QuizService {
     QuizResponseDTO createNewQuiz(QuizRequestDTO request);
+    
+    QuizResponseDTO bulkCreateQuiz(BulkQuizCreateRequestDTO request);
 
     QuizResponseDTO getQuizById(String id);
 
