@@ -345,9 +345,31 @@
                 <h1 class="page-title">📝 Quản Lý Đề Thi</h1>
                 <p class="page-sub">Xem, tìm kiếm và quản lý toàn bộ đề thi của bạn.</p>
             </div>
-            <a href="/teacher/quizzes/create" class="btn-new-quiz d-flex align-items-center gap-2">
-                <i class="bi bi-plus-lg"></i> Soạn Đề Thi Mới
-            </a>
+            <div class="dropdown">
+                <button class="btn-new-quiz d-flex align-items-center gap-2 dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="border-radius:14px;">
+                    <i class="bi bi-plus-lg"></i> Soạn Đề Thi Mới
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 mt-2 p-2" style="width: 260px; animation: fadeIn 0.2s ease;">
+                    <li>
+                        <a class="dropdown-item p-3 rounded-3 d-flex align-items-center gap-3 mb-1" href="/teacher/quizzes/create">
+                            <div style="background:#eff6ff; color:#3b82f6; width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem;"><i class="bi bi-pencil-square"></i></div>
+                            <div>
+                                <div class="fw-bold text-dark small">Soạn thủ công</div>
+                                <div class="text-muted" style="font-size:0.7rem;">Từng bước chọn câu hỏi</div>
+                            </div>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item p-3 rounded-3 d-flex align-items-center gap-3" href="/teacher/quizzes/quick-create">
+                            <div style="background:#f0fdf4; color:#16a34a; width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem;"><i class="bi bi-magic"></i></div>
+                            <div>
+                                <div class="fw-bold text-dark small">Tạo nhanh (Magic)</div>
+                                <div class="text-muted" style="font-size:0.7rem;">Visual Designer: Excel/JSON</div>
+                            </div>
+                        </a>
+                    </li>
+                </ul>
+            </div>
         </div>
 
         <!-- Filter bar -->

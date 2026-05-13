@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.transaction.annotation.Propagation;
 import java.util.List;
 
 @Service
@@ -20,7 +21,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final UserRepository userRepository;
 
     @Override
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void createNotification(Long userId, String title, String message, NotificationType type, String link) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) return;

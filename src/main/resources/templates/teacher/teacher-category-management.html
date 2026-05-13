@@ -955,9 +955,31 @@
                         <button class="btn-tool btn-new-folder" id="btnNewFolder" onclick="openCatModal(null)">
                             <i class="bi bi-folder-plus"></i> Thêm thư mục
                         </button>
-                        <button class="btn-tool btn-new-quiz" id="btnNewQuiz" onclick="openQuizCreate(null)">
-                            <i class="bi bi-file-earmark-plus-fill"></i> Tạo đề thi
-                        </button>
+                        <div class="dropdown" id="dropdownQuizWrap">
+                            <button class="btn-tool btn-new-quiz dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btnNewQuiz">
+                                <i class="bi bi-file-earmark-plus-fill"></i> Tạo đề thi
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 mt-2 p-2" style="width: 260px; animation: fadeIn 0.2s ease; z-index:1050;">
+                                <li>
+                                    <a class="dropdown-item p-3 rounded-3 d-flex align-items-center gap-3 mb-1" href="javascript:void(0)" onclick="goCreate('manual')">
+                                        <div style="background:#eff6ff; color:#3b82f6; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1rem;"><i class="bi bi-pencil-square"></i></div>
+                                        <div>
+                                            <div class="fw-bold text-dark" style="font-size:0.8rem;">Soạn thủ công</div>
+                                            <div class="text-muted" style="font-size:0.65rem;">Chọn câu hỏi từng bước</div>
+                                        </div>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item p-3 rounded-3 d-flex align-items-center gap-3" href="javascript:void(0)" onclick="goCreate('quick')">
+                                        <div style="background:#f0fdf4; color:#16a34a; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1rem;"><i class="bi bi-magic"></i></div>
+                                        <div>
+                                            <div class="fw-bold text-dark" style="font-size:0.8rem;">Tạo nhanh (Magic)</div>
+                                            <div class="text-muted" style="font-size:0.65rem;">Visual Designer: Excel/JSON</div>
+                                        </div>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
                 <div class="content-scroll" id="contentScroll">
@@ -1097,7 +1119,8 @@
             const tf = document.getElementById('toolbarActions');
             tf.style.display = 'flex';
             document.getElementById('btnNewFolder').style.display = OWN_MODE ? 'flex' : 'none';
-            document.getElementById('btnNewQuiz').style.display = OWN_MODE ? 'flex' : 'none';
+            const dropdownWrap = document.getElementById('dropdownQuizWrap');
+            if (dropdownWrap) dropdownWrap.style.display = OWN_MODE ? 'block' : 'none';
             const treeGlobal = document.getElementById('treeGlobalActions');
             if (treeGlobal) treeGlobal.style.display = OWN_MODE ? 'flex' : 'none';
 
@@ -1278,7 +1301,6 @@
 
             // Reset toolbar buttons to no category context
             document.getElementById('btnNewFolder').onclick = () => openCatModal(null);
-            document.getElementById('btnNewQuiz').onclick = () => openQuizCreate(null);
         }
 
         function navigateTo(id, name) {
@@ -1300,7 +1322,6 @@
 
             // Cập nhật toolbars tạo mới
             document.getElementById('btnNewFolder').onclick = () => openCatModal(id);
-            document.getElementById('btnNewQuiz').onclick = () => openQuizCreate(id);
 
             loadFolderContent(id);
         }
@@ -1394,7 +1415,31 @@
             <p>${OWN_MODE ? 'Hãy thêm thư mục con hoặc tạo đề thi mới vào đây.' : 'Thư mục này hiện chưa có đề thi nào.'}</p>
             ${OWN_MODE ? `<div style="display:flex;gap:12px;margin-top:8px;">
                 <button class="btn-tool btn-new-folder" onclick="openCatModal(${parentId})"><i class="bi bi-folder-plus"></i> Thêm thư mục con</button>
-                <button class="btn-tool btn-new-quiz"   onclick="openQuizCreate(${parentId})"><i class="bi bi-file-earmark-plus-fill"></i> Tạo đề thi</button>
+                <div class="dropdown">
+                    <button class="btn-tool btn-new-quiz dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-file-earmark-plus-fill"></i> Tạo đề thi
+                    </button>
+                    <ul class="dropdown-menu shadow border-0 rounded-4 mt-2 p-2" style="width: 260px; animation: fadeIn 0.2s ease;">
+                        <li>
+                            <a class="dropdown-item p-3 rounded-3 d-flex align-items-center gap-3 mb-1" href="javascript:void(0)" onclick="goCreate('manual')">
+                                <div style="background:#eff6ff; color:#3b82f6; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1rem;"><i class="bi bi-pencil-square"></i></div>
+                                <div>
+                                    <div class="fw-bold text-dark" style="font-size:0.8rem;">Soạn thủ công</div>
+                                    <div class="text-muted" style="font-size:0.65rem;">Chọn câu hỏi từng bước</div>
+                                </div>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item p-3 rounded-3 d-flex align-items-center gap-3" href="javascript:void(0)" onclick="goCreate('quick')">
+                                <div style="background:#f0fdf4; color:#16a34a; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1rem;"><i class="bi bi-magic"></i></div>
+                                <div>
+                                    <div class="fw-bold text-dark" style="font-size:0.8rem;">Tạo nhanh (Magic)</div>
+                                    <div class="text-muted" style="font-size:0.65rem;">Visual Designer: Excel/JSON</div>
+                                </div>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>` : ''}
         </div>`;
             }
@@ -1608,8 +1653,14 @@
         /* ══════════════════════════════════════════════
            QUIZ ACTIONS
         ══════════════════════════════════════════════ */
-        function openQuizCreate(catId) {
-            window.location.href = `/teacher/quizzes/create${catId ? '?categoryId=' + catId : ''}`;
+        function goCreate(mode) {
+            const catId = (navStack.length > 0) ? navStack[navStack.length - 1].id : '';
+            const suffix = catId ? `?categoryId=${catId}` : '';
+            if (mode === 'manual') {
+                window.location.href = `/teacher/quizzes/create${suffix}`;
+            } else {
+                window.location.href = `/teacher/quizzes/quick-create${suffix}`;
+            }
         }
 
         async function deleteQuiz(id) {

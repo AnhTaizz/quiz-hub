@@ -15,10 +15,13 @@ import com.example.quizhub.entity.enums.QuestionType;
 import com.example.quizhub.exception.AppException;
 import com.example.quizhub.exception.ErrorCode;
 import com.example.quizhub.repository.UserRepository;
+import com.example.quizhub.service.QuestionImportService;
 import com.example.quizhub.service.QuestionService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/teacher/questions")
@@ -28,12 +31,27 @@ public class TeacherQuestionController {
 
     private final QuestionService questionService;
     private final UserRepository userRepository;
+    private final QuestionImportService questionImportService;
 
     private Long getCurrentUserId() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         return user.getId();
+    }
+
+    @PostMapping("/import")
+    public ResponseEntity<Map<String, Object>> importQuestions(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(required = false) Long categoryId) {
+        Map<String, Object> result = questionImportService.importQuestionsFromExcel(file, categoryId, getCurrentUserId());
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/parse-only")
+    public ResponseEntity<java.util.List<QuestionRequestDTO>> parseQuestionsOnly(
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(questionImportService.parseExcelOnly(file));
     }
 
     @PostMapping

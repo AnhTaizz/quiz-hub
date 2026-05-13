@@ -81,16 +81,18 @@
                         <p class="text-muted small mb-0" id="selected-count">Đã chọn 0 câu hỏi</p>
                     </div>
                 </div>
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-sm btn-outline-primary fw-bold px-3 py-2"
-                        onclick="openQuestionEditor()"
-                        style="border-radius:12px; border-color:#e0e7ff !important; color:#4f46e5 !important; background: #f5f7ff;">
-                        <i class="bi bi-plus-circle me-1"></i>Tạo nhanh
-                    </button>
-                    <button type="button" class="btn btn-sm btn-indigo text-white fw-bold px-3 py-2"
-                        onclick="previewQuiz()" style="border-radius:12px; background: #4338ca;">
-                        <i class="bi bi-eye me-1"></i>Xem đề
-                    </button>
+                <div class="d-flex flex-column gap-1 align-items-end">
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-primary fw-bold px-3 py-2"
+                            onclick="openQuestionEditor()"
+                            style="border-radius:12px; border-color:#e0e7ff !important; color:#4f46e5 !important; background: #f5f7ff;">
+                            <i class="bi bi-plus-circle me-1"></i>Tạo nhanh
+                        </button>
+                        <button type="button" class="btn btn-sm btn-indigo text-white fw-bold px-3 py-2"
+                            onclick="previewQuiz()" style="border-radius:12px; background: #4338ca;">
+                            <i class="bi bi-eye me-1"></i>Xem đề
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -492,11 +494,33 @@
 
             // Unified opening logic is now in category-explorer-private-scripts
 
+            // --- Explicit routing for shared Category Picker results ---
+            window.handleCategorySelection = function(id, name, currentTarget) {
+                if (currentTarget === 'quiz') {
+                    const idEl = document.getElementById('quiz-category');
+                    const dispEl = document.getElementById('quiz-category-display');
+                    if (idEl) idEl.value = (id === -1 || id === null) ? '' : id;
+                    if (dispEl) dispEl.value = name || 'Chọn danh mục...';
+                } else if (currentTarget === 'filter') {
+                    const idEl = document.getElementById('q-category-filter');
+                    const dispEl = document.getElementById('q-category-filter-display');
+                    if (idEl) idEl.value = (id === -1 || id === null) ? '' : id;
+                    if (dispEl) {
+                        dispEl.value = name || 'Tất cả danh mục';
+                        dispEl.style.color = id ? '#4338ca' : '#6c757d'; // Add visual cue if active
+                    }
+                    loadQuestions(); // Trigger auto-reload
+                }
+            };
+
             window.clearCategoryFilterSelection = function () {
                 const idEl = document.getElementById('q-category-filter');
                 const dispEl = document.getElementById('q-category-filter-display');
                 if (idEl) idEl.value = '';
-                if (dispEl) dispEl.value = 'Tất cả danh mục';
+                if (dispEl) {
+                    dispEl.value = 'Tất cả danh mục';
+                    dispEl.style.color = '#6c757d';
+                }
                 loadQuestions();
             }
 
@@ -527,6 +551,73 @@
                     renderQuestions(questionsList);
                 }
             };
+
+            window.handleQuizEditorExcelImport = async function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                event.target.value = ''; // reset
+
+                const targetCategoryId = document.getElementById('quiz-category').value || '';
+
+                const formData = new FormData();
+                formData.append('file', file);
+                if (targetCategoryId) formData.append('categoryId', targetCategoryId);
+
+                showToast('Đang phân tích file...', 'success');
+                
+                const uploadUrl = USER_TYPE === 'teacher' ? '/api/teacher/questions/import' : ''; 
+                if (!uploadUrl) return;
+
+                try {
+                    const res = await fetch(uploadUrl, {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + token },
+                        body: formData
+                    });
+                    
+                    if (!res.ok) throw new Error('Không thể nạp file.');
+                    
+                    const result = await res.json();
+                    const count = result.successCount || 0;
+                    const list = result.importedQuestions || [];
+                    
+                    if (count > 0) {
+                        showToast(`Đã nhập và chọn ${count} câu hỏi!`, 'success');
+                        // 1. Thêm các câu mới vào đầu mảng QuestionsList
+                        list.reverse().forEach(q => {
+                            questionsList.unshift(q);
+                            selectedQuestionIds.add(q.id);
+                        });
+                        // 2. Cập nhật đếm và render
+                        updateSelectedCount();
+                        renderQuestions(questionsList);
+                    } else {
+                        showToast('Không tìm thấy câu hỏi hợp lệ.', 'error');
+                    }
+                    
+                    if (result.errorCount > 0) {
+                        console.warn('Excel Errors:', result.errors);
+                        alert('Một số dòng bị lỗi:\n' + result.errors.slice(0, 3).join('\n') + (result.errors.length > 3 ? '\n...' : ''));
+                    }
+                } catch(e) {
+                    showToast('Lỗi: ' + e.message, 'error');
+                }
+            };
+
+            // Heartbeat to visually echo chosen Category Name under the Excel upload button
+            setInterval(function() {
+                const badge = document.getElementById('import-target-badge');
+                if (!badge) return;
+                const displayInput = document.getElementById('quiz-category-display');
+                const currentVal = displayInput ? displayInput.value : '';
+                const name = (currentVal && currentVal !== 'Chọn danh mục...') ? currentVal : 'Mặc định';
+                
+                // Only update text if changed to prevent annoying repaint jitters
+                const expectedHTML = `<i class="bi bi-box-arrow-in-down me-1"></i>Lưu vào: ${name}`;
+                if (badge.innerHTML !== expectedHTML) {
+                    badge.innerHTML = expectedHTML;
+                }
+            }, 600);
 
         })();
     </script>

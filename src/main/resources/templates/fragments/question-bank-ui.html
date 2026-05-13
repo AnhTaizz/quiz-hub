@@ -311,8 +311,24 @@
                 <h1 class="page-title">Ngân hàng Câu hỏi</h1>
                 <p class="page-sub">Quản lý và soạn thảo câu hỏi trắc nghiệm của bạn</p>
             </div>
-            <div class="action-btns">
-                <button class="btn-premium" onclick="showCreateModal()">
+            <div class="action-btns d-flex align-items-start gap-2">
+                <!-- Group 1: Excel Trigger and dynamic target tracker -->
+                <div th:if="${userType == 'teacher'}" class="d-flex flex-column align-items-center gap-1" style="margin-top:0px;">
+                    <input type="file" id="excel-import-input" accept=".xlsx, .xls" style="display:none;" onchange="handleExcelImport(event)">
+                    <button class="btn btn-outline-secondary fw-bold" style="border-radius: 12px; border-color: #cbd5e1; color: #334155; background:#ffffff; height: 42px;" onclick="document.getElementById('excel-import-input').click()">
+                        <i class="bi bi-file-earmark-spreadsheet-fill me-1 text-success"></i> Nhập Excel
+                    </button>
+                    <div style="width: 100%; display:flex; justify-content:center;">
+                        <span class="badge text-indigo bg-indigo-subtle border border-indigo-subtle px-2 py-1 shadow-sm" 
+                              id="q-import-dest-badge" 
+                              style="font-size: 0.68rem; font-weight: 600; text-align: center; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                            <i class="bi bi-box-arrow-in-down me-1"></i>Lưu vào: Mặc định
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Group 2: General Manual creation -->
+                <button class="btn-premium" onclick="showCreateModal()" style="height: 42px;">
                     <i class="bi bi-plus-circle-fill"></i> Soạn câu hỏi mới
                 </button>
             </div>
@@ -830,9 +846,66 @@
                 openQuestionEditor();
             }
 
+            async function handleExcelImport(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                // Reset input value to allow re-importing the same file
+                event.target.value = '';
+
+                const categoryId = document.getElementById('filter-category').value || '';
+
+                const formData = new FormData();
+                formData.append('file', file);
+                if (categoryId) formData.append('categoryId', categoryId);
+
+                showToast('Đang xử lý file Excel...', 'success');
+
+                try {
+                    const response = await fetch(BASE_API + '/import', {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + token },
+                        body: formData
+                    });
+
+                    if (!response.ok) throw new Error('Import thất bại.');
+
+                    const result = await response.json();
+                    const success = result.successCount || 0;
+                    const error = result.errorCount || 0;
+
+                    if (error === 0) {
+                        showToast(`Thành công! Đã nhập ${success} câu hỏi.`, 'success');
+                    } else {
+                        showToast(`Hoàn tất! ${success} thành công, ${error} dòng lỗi.`, 'error');
+                        console.error('Excel Import Errors:', result.errors);
+                        if (result.errors && result.errors.length > 0) {
+                            alert('Chi tiết lỗi nhập file:\n' + result.errors.slice(0, 5).join('\n') + (result.errors.length > 5 ? '\n...' : ''));
+                        }
+                    }
+                    fetchQuestions(); // Reload list
+                } catch (e) {
+                    showToast('Lỗi hệ thống khi nhập file: ' + e.message, 'error');
+                }
+            }
+
             document.addEventListener('DOMContentLoaded', function() {
                 fetchQuestions();
                 fetchCategories();
+                
+                // Dest Badge Sync Engine
+                setInterval(function() {
+                    const badge = document.getElementById('q-import-dest-badge');
+                    if (!badge) return;
+                    const input = document.getElementById('filter-category-display');
+                    const currentVal = input ? input.value : '';
+                    const name = (currentVal && currentVal !== 'Tất cả danh mục') ? currentVal : 'Mặc định';
+                    const expectedHtml = `<i class="bi bi-box-arrow-in-down me-1"></i>Lưu vào: ${name}`;
+                    if (badge.innerHTML !== expectedHtml) {
+                        badge.innerHTML = expectedHtml;
+                        badge.title = "Lưu vào: " + name; // Hover tooltip for long category names
+                    }
+                }, 600);
             });
         </script>
 

@@ -17,6 +17,7 @@ import com.example.quizhub.dto.quiz.request.QuizGenerateRequestDTO;
 import com.example.quizhub.dto.quiz.request.QuizRequestDTO;
 import com.example.quizhub.dto.quiz.response.QuizResponseDTO;
 import com.example.quizhub.dto.quiz.response.QuizSummaryDTO;
+import com.example.quizhub.dto.quiz.request.BulkQuizCreateRequestDTO;
 import com.example.quizhub.service.quiz.QuizService;
 
 import jakarta.validation.Valid;
@@ -38,6 +39,11 @@ public class TeacherQuizController {
     @PostMapping
     public ResponseEntity<QuizResponseDTO> createQuiz(@RequestBody @Valid QuizRequestDTO request){
         return ResponseEntity.status(HttpStatus.CREATED).body(quizService.createNewQuiz(request));
+    }
+
+    @PostMapping("/bulk-create")
+    public ResponseEntity<QuizResponseDTO> bulkCreateQuiz(@RequestBody @Valid BulkQuizCreateRequestDTO request){
+        return ResponseEntity.status(HttpStatus.CREATED).body(quizService.bulkCreateQuiz(request));
     }
 
     @GetMapping("/{id}")
