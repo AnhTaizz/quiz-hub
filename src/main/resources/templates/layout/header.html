@@ -182,6 +182,10 @@
             flex-shrink: 0;
         }
     </style>
+
+    <!-- Toast Notification Dependencies -->
+    <link rel="stylesheet" th:href="@{/css/toast.css}">
+    <script th:src="@{/js/toast.js}"></script>
     </header>
 
     <header th:fragment="admin-header" id="header-nav">
@@ -311,12 +315,8 @@
         }
 
         function showCpwAlert(msg, isSuccess) {
-            const el = document.getElementById('cpw-alert');
-            el.style.display = 'block';
-            el.style.background = isSuccess ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)';
-            el.style.color = isSuccess ? '#065f46' : '#b91c1c';
-            el.style.border = isSuccess ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(239,68,68,0.3)';
-            el.innerHTML = `<i class="bi bi-${isSuccess ? 'check-circle' : 'exclamation-circle'}-fill me-2"></i>${msg}`;
+            if (isSuccess) toast.success(msg);
+            else toast.error(msg);
         }
 
         async function submitChangePassword() {
@@ -587,6 +587,7 @@
             }
         })();
     </script>
+    <div id="toast-container"></div>
 
 </body>
 
