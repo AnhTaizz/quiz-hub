@@ -125,4 +125,19 @@ public class TeacherQuestionController {
         questionService.bulkRequestShareAllQuestions(getCurrentUserId(), categoryId, type, keyword);
         return ResponseEntity.ok("All matching questions have been submitted for approval");
     }
+
+    @DeleteMapping("/bulk-delete")
+    public ResponseEntity<String> bulkDeleteQuestions(@RequestBody java.util.List<Long> ids) {
+        questionService.bulkDeleteQuestions(ids, getCurrentUserId());
+        return ResponseEntity.ok("Questions have been successfully deleted");
+    }
+
+    @DeleteMapping("/bulk-delete-all")
+    public ResponseEntity<String> bulkDeleteAllQuestions(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) QuestionType type,
+            @RequestParam(required = false) String keyword) {
+        questionService.bulkDeleteAllQuestions(getCurrentUserId(), categoryId, type, keyword);
+        return ResponseEntity.ok("All matching questions have been successfully deleted");
+    }
 }

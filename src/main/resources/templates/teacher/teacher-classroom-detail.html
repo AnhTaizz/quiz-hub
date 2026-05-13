@@ -248,7 +248,15 @@
     <script th:inline="javascript">
 
         window.handleCategorySelection = function(id, name, target) {
-            if (id === -1 || id === null) {
+            if (id === null) {
+                document.getElementById('categoryFilterValue').value = '';
+                document.getElementById('categoryFilterDisplay').value = 'Tất cả danh mục';
+                document.getElementById('clearCatBtn').style.display = 'none';
+                filterQuizzesByCategory('');
+                return;
+            }
+            
+            if (id === -1) {
                 document.getElementById('categoryFilterValue').value = -1;
                 document.getElementById('categoryFilterDisplay').value = 'Chưa phân mục';
                 document.getElementById('clearCatBtn').style.display = 'inline-block';

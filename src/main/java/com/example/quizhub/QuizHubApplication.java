@@ -11,7 +11,6 @@ import jakarta.annotation.PostConstruct;
 @EnableScheduling
 @SpringBootApplication
 public class QuizHubApplication {
-
 	@PostConstruct
 	public void init() {
 		// Thiết lập múi giờ mặc định cho toàn bộ ứng dụng là giờ Việt Nam

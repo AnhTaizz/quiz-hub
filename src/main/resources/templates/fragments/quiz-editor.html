@@ -504,7 +504,7 @@
                 } else if (currentTarget === 'filter') {
                     const idEl = document.getElementById('q-category-filter');
                     const dispEl = document.getElementById('q-category-filter-display');
-                    if (idEl) idEl.value = (id === -1 || id === null) ? '' : id;
+                    if (idEl) idEl.value = (id === null) ? '' : id;
                     if (dispEl) {
                         dispEl.value = name || 'Tất cả danh mục';
                         dispEl.style.color = id ? '#4338ca' : '#6c757d'; // Add visual cue if active

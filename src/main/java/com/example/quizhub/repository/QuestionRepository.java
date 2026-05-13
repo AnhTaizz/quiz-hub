@@ -140,12 +140,16 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
 
        @Query("SELECT q.id FROM Question q " +
                      "WHERE q.creator.id = :teacherId " +
-                     "AND q.questionStatus = :status " +
-                     "AND (:categoryId IS NULL OR q.category.id = :categoryId) " +
+                     "AND (:status IS NULL OR q.questionStatus = :status) " +
+                     "AND q.questionStatus != com.example.quizhub.entity.enums.QuestionStatus.DELETED " +
+                     "AND (:useCategoryFilter = false OR (-1 IN :categoryIds AND q.category IS NULL) OR q.category.id IN :categoryIds) " +
                      "AND (:type IS NULL OR q.type = :type) " +
                      "AND (:keyword IS NULL OR LOWER(CAST(q.text AS string)) LIKE :keyword)")
-       List<Long> findIdsByFilters(@Param("teacherId") Long teacherId, @Param("status") QuestionStatus status,
-                     @Param("categoryId") Long categoryId, @Param("type") QuestionType type,
+       List<Long> findIdsByFilters(@Param("teacherId") Long teacherId, 
+                     @Param("status") QuestionStatus status,
+                     @Param("useCategoryFilter") boolean useCategoryFilter,
+                     @Param("categoryIds") List<Long> categoryIds, 
+                     @Param("type") QuestionType type,
                      @Param("keyword") String keyword);
 
        @Query("SELECT q.id FROM Question q " +

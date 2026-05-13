@@ -57,7 +57,7 @@ public class QuizServiceImpl implements QuizService {
     }
 
     private Category resolveCategory(Long categoryId) {
-        if (categoryId == null) return null;
+        if (categoryId == null || categoryId == -1L) return null;
         return categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
     }
