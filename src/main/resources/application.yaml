@@ -19,7 +19,7 @@ spring:
       ddl-auto: update
   sql:
     init:
-      mode: always
+      mode: never
       encoding: UTF-8
       data-locations: classpath:data.sql
     show-sql: true
