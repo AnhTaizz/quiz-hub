@@ -702,30 +702,44 @@
                     if (el.checked) { if(!selectedIds.includes(id)) selectedIds.push(id); }
                     else { selectedIds = selectedIds.filter(function(sid) { return sid !== id; }); }
                 });
-                var area = document.getElementById('select-all-all-area');
-                if (el.checked && lastTotalElements > cbs.length) {
-                    area.innerHTML = 'Đã chọn ' + cbs.length + '. <a href="javascript:void(0)" onclick="selectAllResults()" class="fw-bold">Chọn tất cả ' + lastTotalElements + '?</a>';
-                    area.style.display = 'block';
-                } else area.style.display = 'none';
                 updateBulkUI();
             }
             function selectAllResults() {
                 isSelectAllResults = true;
-                document.getElementById('select-all-all-area').innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> Đã chọn tất cả ' + lastTotalElements + '. <a href="javascript:void(0)" onclick="clearSelection()" class="text-danger ms-2">Hủy</a>';
                 updateBulkUI();
             }
             function toggleSelect(id, el) {
                 if (isSelectAllResults && !el.checked) {
                     isSelectAllResults = false;
                     selectedIds = Array.from(document.querySelectorAll('.question-checkbox:checked')).map(function(cb) { return parseInt(cb.dataset.id); });
-                    document.getElementById('select-all-all-area').style.display = 'none';
                 } else if (el.checked) { if(!selectedIds.includes(id)) selectedIds.push(id); }
                 else { selectedIds = selectedIds.filter(function(sid) { return sid !== id; }); }
                 updateBulkUI();
             }
             function updateBulkUI() {
+                var cbs = document.querySelectorAll('.question-checkbox');
+                var totalOnPage = cbs.length;
+                var allCheckedOnPage = totalOnPage > 0 && Array.from(cbs).every(function(cb) { return cb.checked; });
+
+                // Sync header checkbox
+                var headerCB = document.getElementById('selectAllQuestions');
+                if (headerCB) headerCB.checked = allCheckedOnPage || isSelectAllResults;
+
                 var count = isSelectAllResults ? lastTotalElements : selectedIds.length;
                 document.getElementById('selected-count-badge').innerText = count + ' đã chọn';
+
+                // Sync banner (select-all-all-area)
+                var area = document.getElementById('select-all-all-area');
+                if (isSelectAllResults) {
+                    area.innerHTML = '<i class="bi bi-check-circle-fill text-success"></i> Đã chọn tất cả ' + lastTotalElements + '. <a href="javascript:void(0)" onclick="clearSelection()" class="text-danger ms-2">Hủy</a>';
+                    area.style.display = 'block';
+                } else if (count > 0 && lastTotalElements > totalOnPage) {
+                    area.innerHTML = 'Đã chọn ' + count + '. <a href="javascript:void(0)" onclick="selectAllResults()" class="fw-bold">Chọn tất cả ' + lastTotalElements + '?</a>';
+                    area.style.display = 'block';
+                } else {
+                    area.style.display = 'none';
+                }
+
                 document.getElementById('bulk-selection-bar').classList.toggle('active', count > 0 && currentTab === 'mine');
                 document.querySelectorAll('.question-card').forEach(function(card) {
                     var cb = card.querySelector('.question-checkbox');

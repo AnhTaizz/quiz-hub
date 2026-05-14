@@ -551,29 +551,19 @@
         }
 
         function toggleQuestionSelection(id, checkbox) {
-            const card = document.getElementById(`q-card-${id}`);
             if (isSelectAllResults && !checkbox.checked) {
                 isSelectAllResults = false;
-                selectedIds = [];
-                document.querySelectorAll('.q-checkbox').forEach(cb => {
-                    if (cb.checked) selectedIds.push(parseInt(cb.value));
-                });
-                document.getElementById('select-all-all-area').style.display = 'none';
-                document.getElementById('selectAllQuestions').checked = false;
+                selectedIds = Array.from(document.querySelectorAll('.q-checkbox:checked')).map(cb => parseInt(cb.value));
             } else if (checkbox.checked) {
                 if (!selectedIds.includes(id)) selectedIds.push(id);
-                if (card) card.classList.add('selected');
             } else {
                 selectedIds = selectedIds.filter(item => item !== id);
-                if (card) card.classList.remove('selected');
-                document.getElementById('selectAllQuestions').checked = false;
             }
             updateBulkUI();
         }
 
         function toggleSelectAll(checkbox) {
             const checkboxes = document.querySelectorAll('.q-checkbox');
-            const totalOnPage = checkboxes.length;
             
             checkboxes.forEach(cb => {
                 cb.checked = checkbox.checked;
@@ -581,21 +571,10 @@
                 const card = document.getElementById(`q-card-${id}`);
                 if (checkbox.checked) {
                     if (!selectedIds.includes(id)) selectedIds.push(id);
-                    if (card) card.classList.add('selected');
                 } else {
                     selectedIds = selectedIds.filter(sid => sid !== id);
-                    if (card) card.classList.remove('selected');
                 }
             });
-
-            const selectAllAllArea = document.getElementById('select-all-all-area');
-            if (checkbox.checked && lastTotalElements > totalOnPage) {
-                selectAllAllArea.innerHTML = `Bạn đã chọn <b>${totalOnPage}</b> câu hỏi trên trang này. <a href="javascript:void(0)" onclick="selectAllResults()" class="fw-bold text-decoration-underline ms-1">Chọn tất cả ${lastTotalElements} câu hỏi?</a>`;
-                selectAllAllArea.style.display = 'block';
-            } else {
-                selectAllAllArea.style.display = 'none';
-            }
-            
             updateBulkUI();
         }
 
@@ -609,18 +588,33 @@
         function updateBulkUI() {
             const bar = document.getElementById('bulk-selection-bar');
             const countBadge = document.getElementById('selected-count-badge');
+            const checkboxes = document.querySelectorAll('.q-checkbox');
+            const totalOnPage = checkboxes.length;
+            const allCheckedOnPage = totalOnPage > 0 && Array.from(checkboxes).every(cb => cb.checked);
+
+            // Sync header checkbox
+            const headerCB = document.getElementById('selectAllQuestions');
+            if (headerCB) headerCB.checked = allCheckedOnPage || isSelectAllResults;
 
             const count = isSelectAllResults ? lastTotalElements : selectedIds.length;
             countBadge.innerText = `${count} đã chọn`;
+
+            // Sync banner
+            const area = document.getElementById('select-all-all-area');
+            if (isSelectAllResults) {
+                area.innerHTML = `<i class="bi bi-check-circle-fill text-success me-1"></i> Đã chọn tất cả <b>${lastTotalElements}</b> câu hỏi. <a href="javascript:void(0)" onclick="clearSelection()" class="text-danger ms-2">Bỏ chọn</a>`;
+                area.style.display = 'block';
+            } else if (count > 0 && lastTotalElements > totalOnPage) {
+                area.innerHTML = `Bạn đã chọn <b>${count}</b> câu hỏi. <a href="javascript:void(0)" onclick="selectAllResults()" class="fw-bold text-decoration-underline ms-1">Chọn tất cả ${lastTotalElements} câu hỏi?</a>`;
+                area.style.display = 'block';
+            } else {
+                area.style.display = 'none';
+            }
 
             if (count > 0) {
                 bar.classList.add('active');
             } else {
                 bar.classList.remove('active');
-            }
-
-            if (isSelectAllResults) {
-                document.getElementById('selectAllQuestions').checked = true;
             }
 
             document.querySelectorAll('.question-card').forEach(card => {

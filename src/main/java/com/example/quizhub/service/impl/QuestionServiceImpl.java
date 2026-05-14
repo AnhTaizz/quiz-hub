@@ -361,8 +361,37 @@ public class QuestionServiceImpl implements QuestionService {
     public void bulkRequestShareQuestions(List<Long> questionIds, Long teacherId) {
         if (questionIds == null || questionIds.isEmpty())
             return;
-        for (Long id : questionIds) {
-            requestShareQuestion(id, teacherId);
+
+        List<Question> questions = questionRepository.findAllById(questionIds);
+        List<Question> toUpdate = new ArrayList<>();
+        String teacherName = "";
+
+        for (Question q : questions) {
+            // Kiểm tra quyền sở hữu và trạng thái
+            if (q.getCreator().getId().equals(teacherId) && q.getQuestionStatus() == QuestionStatus.PRIVATE) {
+                q.setQuestionStatus(QuestionStatus.PENDING);
+                toUpdate.add(q);
+                if (teacherName.isEmpty()) teacherName = q.getCreator().getFullName();
+            }
+        }
+
+        if (toUpdate.isEmpty()) return;
+
+        questionRepository.saveAll(toUpdate);
+
+        // Gửi 1 thông báo duy nhất cho Admin
+        try {
+            String finalTeacherName = teacherName;
+            userRepository.findByRole(com.example.quizhub.entity.enums.Role.ADMIN).forEach(admin -> {
+                notificationService.createNotification(
+                        admin.getId(),
+                        "Yêu cầu duyệt câu hỏi hàng loạt",
+                        "Giáo viên " + finalTeacherName + " vừa gửi " + toUpdate.size() + " câu hỏi mới chờ duyệt.",
+                        NotificationType.SYSTEM_ALERT,
+                        "/admin/moderation");
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -391,8 +420,16 @@ public class QuestionServiceImpl implements QuestionService {
     public void bulkDeleteQuestions(List<Long> questionIds, Long teacherId) {
         if (questionIds == null || questionIds.isEmpty())
             return;
-        for (Long id : questionIds) {
-            deleteQuestion(teacherId, id);
+        List<Question> questions = questionRepository.findAllById(questionIds);
+        List<Question> toDelete = new ArrayList<>();
+        for (Question q : questions) {
+            if (q.getCreator().getId().equals(teacherId)) {
+                q.setQuestionStatus(QuestionStatus.DELETED);
+                toDelete.add(q);
+            }
+        }
+        if (!toDelete.isEmpty()) {
+            questionRepository.saveAll(toDelete);
         }
     }
 
@@ -474,9 +511,65 @@ public class QuestionServiceImpl implements QuestionService {
     public void bulkApproveQuestions(List<Long> questionIds, Long categoryId) {
         if (questionIds == null || questionIds.isEmpty())
             return;
-        for (Long id : questionIds) {
-            approveQuestion(id, categoryId);
+
+        List<Question> originals = questionRepository.findAllById(questionIds);
+        Category category = null;
+        if (categoryId != null && categoryId != -1L) {
+            category = categoryRepository.findById(categoryId).orElse(null);
         }
+
+        List<Question> clones = new ArrayList<>();
+        List<Answer> allClonedAnswers = new ArrayList<>();
+        java.util.Map<Long, Integer> teacherApprovalCount = new java.util.HashMap<>();
+
+        for (Question orig : originals) {
+            if (orig.getQuestionStatus() != QuestionStatus.PENDING) continue;
+
+            // Clone Question
+            Question clone = new Question();
+            clone.setText(orig.getText());
+            clone.setType(orig.getType());
+            clone.setLevel(orig.getLevel());
+            clone.setCreator(orig.getCreator());
+            clone.setCategory(category);
+            clone.setQuestionStatus(QuestionStatus.PUBLIC);
+            clones.add(clone);
+
+            // Clone Answers (will save after question to get ID)
+            if (orig.getAnswers() != null) {
+                for (Answer ans : orig.getAnswers()) {
+                    Answer clonedAns = new Answer();
+                    clonedAns.setText(ans.getText());
+                    clonedAns.setIsCorrect(ans.getIsCorrect());
+                    clonedAns.setQuestion(clone);
+                    allClonedAnswers.add(clonedAns);
+                }
+            }
+
+            // Mark original as PRIVATE
+            orig.setQuestionStatus(QuestionStatus.PRIVATE);
+            
+            // Count for notification
+            Long tId = orig.getCreator().getId();
+            teacherApprovalCount.put(tId, teacherApprovalCount.getOrDefault(tId, 0) + 1);
+        }
+
+        if (clones.isEmpty()) return;
+
+        questionRepository.saveAll(clones);
+        answerRepository.saveAll(allClonedAnswers);
+        questionRepository.saveAll(originals);
+
+        // Send consolidated notifications to teachers
+        teacherApprovalCount.forEach((tId, count) -> {
+            notificationService.createNotification(
+                tId,
+                "Câu hỏi được phê duyệt hàng loạt",
+                "Có " + count + " câu hỏi của bạn đã được Admin phê duyệt vào kho chung.",
+                NotificationType.QUESTION_APPROVED,
+                "/teacher/questions"
+            );
+        });
     }
 
     @Override
@@ -526,9 +619,31 @@ public class QuestionServiceImpl implements QuestionService {
     public void bulkRejectQuestions(List<Long> questionIds) {
         if (questionIds == null || questionIds.isEmpty())
             return;
-        for (Long id : questionIds) {
-            rejectQuestion(id);
+        
+        List<Question> questions = questionRepository.findAllById(questionIds);
+        java.util.Map<Long, Integer> teacherRejectCount = new java.util.HashMap<>();
+
+        for (Question q : questions) {
+            if (q.getQuestionStatus() == QuestionStatus.PENDING) {
+                q.setQuestionStatus(QuestionStatus.PRIVATE);
+                Long tId = q.getCreator().getId();
+                teacherRejectCount.put(tId, teacherRejectCount.getOrDefault(tId, 0) + 1);
+            }
         }
+
+        if (questions.isEmpty()) return;
+        questionRepository.saveAll(questions);
+
+        // Consolidated notifications
+        teacherRejectCount.forEach((tId, count) -> {
+            notificationService.createNotification(
+                tId,
+                "Câu hỏi bị từ chối hàng loạt",
+                "Có " + count + " câu hỏi của bạn đã bị Admin từ chối chia sẻ.",
+                NotificationType.QUESTION_REJECTED,
+                "/teacher/questions"
+            );
+        });
     }
 
     @Override
