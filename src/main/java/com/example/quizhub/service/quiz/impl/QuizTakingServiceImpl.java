@@ -699,7 +699,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         }
 
         // Fetch saved answers for this attempt
-        java.util.Map<Long, List<Long>> selectedAnswers = userAttemptAnswerRepository.findByAttemptId(attempt.getId())
+        Map<Long, List<Long>> selectedAnswers = userAttemptAnswerRepository.findByAttemptId(attempt.getId())
                 .stream()
                 .filter(uaa -> uaa.getAnswer() != null)
                 .collect(Collectors.groupingBy(

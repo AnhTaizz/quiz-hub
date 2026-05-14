@@ -227,20 +227,7 @@ public class PracticeServiceImpl implements PracticeService {
         practiceDetailRepository.save(detail);
     }
 
-    @Override
-    @Transactional
-    public void resetPractice(Long categoryId, Integer limit, Integer offset) {
-        User user = getCurrentUser();
-        Practice practice = practiceRepository
-                .findFirstByUserIdAndCategoryIdAndPracticeLimitAndPracticeOffsetAndIsCompletedFalseOrderByCreatedAtDesc(
-                        user.getId(), categoryId, limit, offset)
-                .orElse(null);
 
-        if (practice != null) {
-            practice.getDetails().clear();
-            practiceRepository.save(practice);
-        }
-    }
 
     @Override
     @Transactional(readOnly = true)

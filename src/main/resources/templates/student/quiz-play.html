@@ -232,7 +232,7 @@
             padding: 5px;
         }
 
-        .q-dot { position: relative; width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; border: 2px solid #f1f5f9; background: #fff; color: #64748b; }
+        .q-dot { position: relative; overflow: hidden; width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; border: 2px solid #f1f5f9; background: #fff; color: #64748b; }
         .q-dot:hover { border-color: #4f46e5; color: #4f46e5; }
 
         .q-dot.active { background: #eef2ff; color: #4f46e5; border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2); }
@@ -488,15 +488,21 @@
             box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
         }
 
-        .q-dot.flagged {
-            border-color: #f59e0b !important;
-            background: #fffbeb !important;
-            color: #d97706 !important;
+        .q-dot.flagged::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 14px 14px 0;
+            border-color: transparent #f59e0b transparent transparent;
+            z-index: 2;
         }
 
-        .q-dot.answered.flagged {
-            border-color: #f59e0b !important;
-            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.4);
+        .q-dot.flagged {
+            border-color: #f59e0b;
         }
     </style>
 </head>

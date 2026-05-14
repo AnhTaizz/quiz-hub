@@ -16,7 +16,7 @@ public interface PracticeService {
     
     void saveAnswer(Long practiceId, PracticeAnswerRequestDTO answerRequest);
 
-    void resetPractice(Long categoryId, Integer limit, Integer offset);
+
 
     List<PracticeQuestionResponseDTO> previewPractice(PracticeStartRequestDTO request);
 

@@ -24,6 +24,7 @@ import com.example.quizhub.service.classroom.ClassroomService;
 import com.example.quizhub.service.notification.NotificationService;
 import com.example.quizhub.entity.enums.JoinStatus;
 import com.example.quizhub.entity.enums.NotificationType;
+import com.example.quizhub.entity.enums.TakingStatus;
 
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -253,7 +254,7 @@ public class ClassroomServiceImpl implements ClassroomService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public ClassroomResponseDTO updateClassroom(Long classroomId, ClassroomRequestDTO request, String teacherEmail) {
         Classroom classroom = classroomRepository.findById(classroomId)
                 .orElseThrow(() -> new AppException(ErrorCode.CLASSROOM_NOT_FOUND));
@@ -284,7 +285,7 @@ public class ClassroomServiceImpl implements ClassroomService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional
+    @Transactional
     public void deleteClassroom(Long classroomId, String teacherEmail) {
         Classroom classroom = classroomRepository.findById(classroomId)
                 .orElseThrow(() -> new AppException(ErrorCode.CLASSROOM_NOT_FOUND));
@@ -347,11 +348,13 @@ public class ClassroomServiceImpl implements ClassroomService {
 
                 if (existingJoining.isPresent()) {
                     ClassJoining joining = existingJoining.get();
-                    if (joining.getStatus() == JoinStatus.APPROVED || joining.getStatus() == JoinStatus.PENDING) {
+                    if (joining.getStatus() == JoinStatus.APPROVED) {
                         alreadyJoinedEmails.add(email);
                         continue;
                     } else {
-                        // Nếu đã bị xóa hoặc bị từ chối, giáo viên import lại thì cho vào luôn
+                        JoinStatus oldStatus = joining.getStatus();
+                        // Nếu đang chờ duyệt (PENDING), đã bị xóa hoặc bị từ chối, giáo viên import lại
+                        // thì cho vào luôn
                         joining.setStatus(JoinStatus.APPROVED);
                         joining.setJoinedAt(LocalDateTime.now());
                         classJoiningRepository.save(joining);
@@ -359,10 +362,16 @@ public class ClassroomServiceImpl implements ClassroomService {
 
                         // Notify student
                         try {
+                            String title = oldStatus == JoinStatus.PENDING ? "Yêu cầu tham gia lớp học được phê duyệt"
+                                    : "Đã được thêm lại vào lớp học";
+                            String content = oldStatus == JoinStatus.PENDING
+                                    ? "Yêu cầu tham gia lớp \"" + classroom.getName() + "\" của bạn đã được phê duyệt."
+                                    : "Giáo viên đã thêm bạn lại vào lớp \"" + classroom.getName() + "\".";
+
                             notificationService.createNotification(
                                     learner.getId(),
-                                    "Đã được thêm lại vào lớp học",
-                                    "Giáo viên đã thêm bạn lại vào lớp \"" + classroom.getName() + "\".",
+                                    title,
+                                    content,
                                     NotificationType.JOIN_APPROVED,
                                     "/student/classrooms");
                         } catch (Exception e) {
@@ -423,9 +432,9 @@ public class ClassroomServiceImpl implements ClassroomService {
         int inProgressCount = 0;
         int notStartedCount = 0;
 
-        java.math.BigDecimal sum = java.math.BigDecimal.ZERO;
-        java.math.BigDecimal highest = null;
-        java.math.BigDecimal lowest = null;
+        BigDecimal sum = BigDecimal.ZERO;
+        BigDecimal highest = null;
+        BigDecimal lowest = null;
         int scoresCount = 0;
 
         Map<String, Integer> distribution = new HashMap<>();
@@ -445,7 +454,7 @@ public class ClassroomServiceImpl implements ClassroomService {
             }
 
             QuizTaking taking = takingOpt.get();
-            if (taking.getStatus() == com.example.quizhub.entity.enums.TakingStatus.COMPLETED) {
+            if (taking.getStatus() == TakingStatus.COMPLETED) {
                 completedCount++;
             } else {
                 inProgressCount++;

@@ -76,10 +76,16 @@
                 <h1 class="fw-black mb-1" th:text="${classroom.name}">Tên lớp học</h1>
                 <p class="text-muted mb-0">Mã lớp: <strong class="text-primary" th:text="${classroom.code}">CODE123</strong></p>
             </div>
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 align-items-center">
                 <button class="btn btn-outline-success fw-bold d-flex align-items-center gap-2" 
                         style="border-radius: 12px; padding: 10px 24px;"
-                        onclick="document.getElementById('excelFileInput').click()">
+                        onclick="document.getElementById('excelFileInput').click()"
+                        data-bs-toggle="popover" 
+                        data-bs-trigger="hover focus"
+                        data-bs-placement="bottom"
+                        data-bs-html="true"
+                        title="<i class='bi bi-info-circle-fill text-success me-2'></i> Hướng dẫn định dạng"
+                        data-bs-content="File Excel của bạn cần có cấu trúc sau:<br><ul class='small mt-2 mb-0 ps-3'><li><b>Cột A:</b> Email sinh viên (bắt buộc)</li><li>Dòng 1 là dòng tiêu đề (sẽ được bỏ qua)</li><li>Email phải trùng với email sinh viên đã đăng ký tài khoản.</li></ul>">
                     <i class="bi bi-file-earmark-excel"></i>
                     Nhập từ Excel
                 </button>
@@ -220,6 +226,12 @@
                     tab.classList.add('active');
                     document.getElementById('tab-' + target).classList.add('active');
                 });
+            });
+
+            // Initialize Popovers
+            const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+            popoverTriggerList.map(function (popoverTriggerEl) {
+                return new bootstrap.Popover(popoverTriggerEl)
             });
 
             // Sidebar Toggle

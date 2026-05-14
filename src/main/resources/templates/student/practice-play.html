@@ -160,6 +160,7 @@
 
         .nav-dot {
             position: relative;
+            overflow: hidden; /* Ensure corner flag is contained */
             width: 36px;
             height: 36px;
             border-radius: 12px;
@@ -723,10 +724,21 @@
             box-shadow: 0 2px 8px rgba(245, 158, 11, 0.15);
         }
 
+        .nav-dot.flagged::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 0 14px 14px 0;
+            border-color: transparent #f59e0b transparent transparent;
+            z-index: 2;
+        }
+
         .nav-dot.flagged {
-            border-color: #f59e0b !important;
-            background: #fffbeb !important;
-            color: #d97706 !important;
+            border-color: #f59e0b;
         }
     </style>
 </head>
@@ -752,9 +764,6 @@
             <h1 class="practice-session-title">Chế độ Tự Luyện</h1>
         </div>
         <div class="practice-actions d-flex gap-2">
-            <button class="btn-reset" onclick="confirmReset()" id="btnReset">
-                <i class="bi bi-arrow-counterclockwise"></i> <span>Làm lại</span>
-            </button>
             <button class="btn-exit" onclick="confirmExit()" id="btnExit">
                 <i class="bi bi-box-arrow-left"></i> <span>Thoát</span>
             </button>
@@ -874,26 +883,7 @@
 
     <div id="toastWrap"></div>
 
-    <!-- Custom Confirm Modal -->
-    <div class="modal fade" id="resetConfirmModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" style="max-width: 380px;">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 28px; overflow: hidden;">
-                <div class="modal-body p-4 text-center">
-                    <div class="mb-3">
-                        <div class="d-inline-flex align-items-center justify-content-center bg-danger bg-opacity-10 text-danger rounded-circle" style="width: 70px; height: 70px;">
-                            <i class="bi bi-arrow-counterclockwise fs-2"></i>
-                        </div>
-                    </div>
-                    <h4 class="fw-bold text-dark mb-2">Làm lại bài này?</h4>
-                    <p class="text-muted small px-3 mb-0">Tất cả đáp án bạn đã chọn sẽ bị xóa sạch để bạn bắt đầu lại từ đầu. Thao tác này không thể hoàn tác.</p>
-                    <div class="d-flex gap-2 justify-content-center mt-4 pt-2">
-                        <button type="button" class="btn btn-light rounded-pill px-4 fw-bold text-muted border shadow-sm" data-bs-dismiss="modal">Hủy bỏ</button>
-                        <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm" onclick="executeReset()">Xác nhận xóa</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script th:inline="javascript">
@@ -1039,44 +1029,37 @@
                 }
 
                 // Handle shuffle persistence
-                const isShuffled = sessionStorage.getItem('practice_is_shuffled');
+                const isShuffled = sessionStorage.getItem(`practice_is_shuffled_${practiceId}`);
                 if (settings.shuffle && !isShuffled) {
                     shuffleArray(questions);
                     sessionStorage.setItem('practice_questions', JSON.stringify(questions));
-                    sessionStorage.setItem('practice_is_shuffled', 'true');
+                    sessionStorage.setItem(`practice_is_shuffled_${practiceId}`, 'true');
                 }
 
                 // Load saved progress from local session (if any, overwrites server if newer)
-                confirmedAnswers = JSON.parse(sessionStorage.getItem('practice_confirmed_answers') || '{}');
-                const savedFlags = sessionStorage.getItem('practice_flagged_questions');
+                const savedFlags = sessionStorage.getItem(`practice_flagged_questions_${practiceId}`);
                 if (savedFlags) {
                     flaggedQuestions = new Set(JSON.parse(savedFlags));
                 }
-                const savedAnswers = sessionStorage.getItem('practice_user_answers');
+                const savedAnswers = sessionStorage.getItem(`practice_user_answers_${practiceId}`);
                 if (savedAnswers) Object.assign(userAnswers, JSON.parse(savedAnswers));
 
-                const savedCorrectly = sessionStorage.getItem('practice_answered_correctly');
+                const savedCorrectly = sessionStorage.getItem(`practice_answered_correctly_${practiceId}`);
                 if (savedCorrectly) Object.assign(answeredCorrectly, JSON.parse(savedCorrectly));
 
-                const savedConfirmed = sessionStorage.getItem('practice_confirmed_answers');
+                const savedConfirmed = sessionStorage.getItem(`practice_confirmed_answers_${practiceId}`);
                 if (savedConfirmed) Object.assign(confirmedAnswers, JSON.parse(savedConfirmed));
 
                 document.getElementById('topCategoryName').textContent = categoryName || "Danh mục";
                 renderNav();
 
-                const savedIndex = sessionStorage.getItem('practice_current_index');
+                const savedIndex = sessionStorage.getItem(`practice_current_index_${practiceId}`);
                 const startIndex = savedIndex ? parseInt(savedIndex) : 0;
                 showQuestion(startIndex);
 
                 // Hide loader
                 const loader = document.getElementById('pageLoading');
                 if (loader) loader.style.display = 'none';
-
-                // Hide reset button if in review mode
-                if (practiceResult) {
-                    const btnReset = document.getElementById('btnReset');
-                    if (btnReset) btnReset.style.display = 'none';
-                }
             } catch (e) {
                 console.error(e);
                 showToast("Lỗi dữ liệu luyện tập", "err");
@@ -1095,7 +1078,7 @@
                 flaggedQuestions.add(q.id);
             }
             
-            sessionStorage.setItem('practice_flagged_questions', JSON.stringify([...flaggedQuestions]));
+            sessionStorage.setItem(`practice_flagged_questions_${practiceId}`, JSON.stringify([...flaggedQuestions]));
             renderNav();
             showQuestion(currentIndex);
         }
@@ -1165,7 +1148,7 @@
             }
 
             currentIndex = index;
-            sessionStorage.setItem('practice_current_index', index);
+            sessionStorage.setItem(`practice_current_index_${practiceId}`, index);
             const q = questions[index];
             if (!q) return;
 
@@ -1481,11 +1464,11 @@
 
             if (q.type === 'SINGLE_CHOICE' && settings.showAnswer) {
                 confirmedAnswers[qId] = true;
-                sessionStorage.setItem('practice_confirmed_answers', JSON.stringify(confirmedAnswers));
+                sessionStorage.setItem(`practice_confirmed_answers_${practiceId}`, JSON.stringify(confirmedAnswers));
             }
 
-            sessionStorage.setItem('practice_user_answers', JSON.stringify(userAnswers));
-            sessionStorage.setItem('practice_answered_correctly', JSON.stringify(answeredCorrectly));
+            sessionStorage.setItem(`practice_user_answers_${practiceId}`, JSON.stringify(userAnswers));
+            sessionStorage.setItem(`practice_answered_correctly_${practiceId}`, JSON.stringify(answeredCorrectly));
 
             const currentIdx = (index !== undefined) ? index : currentIndex;
             const dot = document.getElementById(`nav-${currentIdx}`);
@@ -1536,8 +1519,8 @@
             const correctTexts = q.answers.filter(a => a.isCorrect).map(a => a.text.trim());
             answeredCorrectly[qId] = correctTexts.includes(val.trim());
 
-            sessionStorage.setItem('practice_user_answers', JSON.stringify(userAnswers));
-            sessionStorage.setItem('practice_answered_correctly', JSON.stringify(answeredCorrectly));
+            sessionStorage.setItem(`practice_user_answers_${practiceId}`, JSON.stringify(userAnswers));
+            sessionStorage.setItem(`practice_answered_correctly_${practiceId}`, JSON.stringify(answeredCorrectly));
 
             const currentIdx = (index !== undefined) ? index : currentIndex;
             const dot = document.getElementById(`nav-${currentIdx}`);
@@ -1571,7 +1554,7 @@
             }
 
             confirmedAnswers[qId] = true;
-            sessionStorage.setItem('practice_confirmed_answers', JSON.stringify(confirmedAnswers));
+            sessionStorage.setItem(`practice_confirmed_answers_${practiceId}`, JSON.stringify(confirmedAnswers));
 
             if (settings.displayMode === 'all') {
                 renderAllQuestions();
@@ -1740,10 +1723,6 @@
             const mainCol = document.querySelector('.col-lg-12');
             if (mainCol) mainCol.className = 'col-lg-9';
 
-            // Hide reset button
-            const btnReset = document.getElementById('btnReset');
-            if (btnReset) btnReset.style.display = 'none';
-
             const area = document.getElementById('questionArea');
             area.style.display = 'block';
 
@@ -1798,50 +1777,7 @@
             window.location.href = '/student/categories';
         }
 
-        function confirmReset() {
-            const modal = new bootstrap.Modal(document.getElementById('resetConfirmModal'));
-            modal.show();
-        }
 
-        async function executeReset() {
-            const modalEl = document.getElementById('resetConfirmModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) modal.hide();
-
-            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            const limit = questions.length;
-            const offset = parseInt(sessionStorage.getItem('practice_offset') || 0);
-
-            try {
-                const res = await fetch('/api/student/practice/reset', {
-                    method: 'POST',
-                    headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ categoryId, limit, offset })
-                });
-                if (res.ok) {
-                    userAnswers = {};
-                    flaggedQuestions = new Set();
-                    answeredCorrectly = {};
-                    confirmedAnswers = {};
-                    sessionStorage.removeItem('practice_user_answers');
-                    sessionStorage.removeItem('practice_answered_correctly');
-                    sessionStorage.removeItem('practice_confirmed_answers');
-                    sessionStorage.removeItem('practice_flagged_questions');
-                    
-                    showToast("Đã làm mới bài tập, hãy bắt đầu lại nhé!", "ok");
-                    
-                    if (settings.displayMode === 'all') {
-                        renderAllQuestions();
-                    }
-                    renderNav();
-                    showQuestion(0);
-                } else {
-                    showToast("Không thể reset bài làm", "err");
-                }
-            } catch (e) {
-                showToast("Lỗi kết nối", "err");
-            }
-        }
 
         function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 
@@ -1856,7 +1792,7 @@
             } else {
                 flaggedQuestions.add(qId);
             }
-            sessionStorage.setItem('practice_flagged_questions', JSON.stringify(Array.from(flaggedQuestions)));
+            sessionStorage.setItem(`practice_flagged_questions_${practiceId}`, JSON.stringify(Array.from(flaggedQuestions)));
             
             if (settings.displayMode === 'all') renderAllQuestions();
             else showQuestion(currentIndex);

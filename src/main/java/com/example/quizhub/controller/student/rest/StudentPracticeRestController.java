@@ -44,11 +44,7 @@ public class StudentPracticeRestController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/reset")
-    public ResponseEntity<Void> resetPractice(@RequestBody @Valid PracticeStartRequestDTO request) {
-        practiceService.resetPractice(request.getCategoryId(), request.getLimit(), request.getOffset());
-        return ResponseEntity.ok().build();
-    }
+
 
     @PostMapping("/preview")
     public ResponseEntity<List<PracticeQuestionResponseDTO>> previewPractice(
