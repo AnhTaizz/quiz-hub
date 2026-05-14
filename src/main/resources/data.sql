@@ -15915,18 +15915,18 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (102674, 'Các b�
 INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (99000, 'Danh mục Luyện tập Chung (Public)', 9999, true, NULL);
 
 -- Câu hỏi Điền khuyết (FILL_IN_BLANK) - Public
-INSERT INTO _question (id, text, type, category_id, created_id, approval_status, question_level) VALUES (299001, 'Năm Bác Hồ ra đi tìm đường cứu nước là năm nào?', 'FILL_IN_BLANK', 99000, 9999, 'PUBLIC', 'MEDIUM');
+INSERT INTO _question (id, text, type, category_id, created_id, approval_status, question_level) VALUES (299001, 'Năm Bác Hồ ra đi tìm đường cứu nước là năm nào?', 'FILL_IN_BLANK', 99000, 9998, 'PUBLIC', 'MEDIUM');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (299001, '1911', true, 299001);
 
 -- Câu hỏi Nhiều lựa chọn (MULTIPLE_CHOICE) - Public
-INSERT INTO _question (id, text, type, category_id, created_id, approval_status, question_level) VALUES (299002, 'Các thành phần cơ bản của mạng máy tính bao gồm:', 'MULTIPLE_CHOICE', 99000, 9999, 'PUBLIC', 'MEDIUM');
+INSERT INTO _question (id, text, type, category_id, created_id, approval_status, question_level) VALUES (299002, 'Các thành phần cơ bản của mạng máy tính bao gồm:', 'MULTIPLE_CHOICE', 99000, 9998, 'PUBLIC', 'MEDIUM');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (299002, 'Thiết bị đầu cuối', true, 299002);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (299003, 'Môi trường truyền dẫn', true, 299002);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (299004, 'Giao thức mạng', true, 299002);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (299005, 'Bàn phím cơ', false, 299002);
 
 -- Câu hỏi Chọn một (SINGLE_CHOICE) - Public
-INSERT INTO _question (id, text, type, category_id, created_id, approval_status, question_level) VALUES (299003, 'Giao thức nào được sử dụng để duyệt web?', 'SINGLE_CHOICE', 99000, 9999, 'PUBLIC', 'EASY');
+INSERT INTO _question (id, text, type, category_id, created_id, approval_status, question_level) VALUES (299003, 'Giao thức nào được sử dụng để duyệt web?', 'SINGLE_CHOICE', 99000, 9998, 'PUBLIC', 'EASY');
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (299006, 'HTTP', true, 299003);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (299007, 'FTP', false, 299003);
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (299008, 'SMTP', false, 299003);
