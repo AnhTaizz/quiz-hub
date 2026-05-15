@@ -67,6 +67,10 @@ public class Practice {
     @Builder.Default
     Boolean isCompleted = false;
 
+    @Column(name = "is_random")
+    @Builder.Default
+    Boolean isRandom = false;
+
     @OneToMany(mappedBy = "practice", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     List<PracticeDetail> details;
 }
