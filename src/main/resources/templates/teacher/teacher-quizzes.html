@@ -334,7 +334,7 @@
 </head>
 
 <body>
-    <script>(function () { if (localStorage.getItem('sidebar-collapsed') === 'true') document.body.classList.add('sidebar-collapsed'); })()</script>
+
     <aside th:replace="~{layout/sidebar :: teacher-sidebar('quizzes')}"></aside>
     <header th:replace="~{layout/header :: teacher-header}"></header>
 
@@ -521,14 +521,7 @@
         let allQuizzes = [];
 
         document.addEventListener('DOMContentLoaded', () => {
-            const toggleBtn = document.querySelector('.toggle-btn');
-            if (toggleBtn) {
-                toggleBtn.addEventListener('click', e => {
-                    e.preventDefault();
-                    document.body.classList.toggle('sidebar-collapsed');
-                    localStorage.setItem('sidebar-collapsed', document.body.classList.contains('sidebar-collapsed'));
-                });
-            }
+
             loadQuizzes();
             if (typeof fetchCategories === 'function') fetchCategories();
         });

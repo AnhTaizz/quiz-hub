@@ -21,6 +21,7 @@ public interface QuestionService {
 
     Page<QuestionResponseDTO> searchMyQuestion(Long userId, Long categoryId,
                                                     QuestionType type,
+                                                    QuestionLevel level,
                                                     String keyword,
                                                     int page,
                                                     int size,
@@ -29,6 +30,7 @@ public interface QuestionService {
 
     Page<QuestionResponseDTO> searchPublicQuestion(Long categoryId,
                                                    QuestionType type,
+                                                   QuestionLevel level,
                                                    String keyword,
                                                    int page,
                                                    int size,

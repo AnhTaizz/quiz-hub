@@ -37,6 +37,7 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
                      "AND (:useCategoryFilter = false OR (-1 IN :categoryIds AND q.category IS NULL) OR q.category.id IN :categoryIds) "
                      +
                      "AND (:type IS NULL OR q.type = :type) " +
+                     "AND (:level IS NULL OR q.level = :level) " +
                      "AND (:keyword IS NULL OR LOWER(CAST(q.text AS string)) LIKE :keyword)", countQuery = "SELECT COUNT(q) FROM Question q "
                                    +
                                    "WHERE q.creator.id = :userId " +
@@ -44,11 +45,13 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
                                    "AND (:useCategoryFilter = false OR (-1 IN :categoryIds AND q.category IS NULL) OR q.category.id IN :categoryIds) "
                                    +
                                    "AND (:type IS NULL OR q.type = :type) " +
+                                   "AND (:level IS NULL OR q.level = :level) " +
                                    "AND (:keyword IS NULL OR LOWER(CAST(q.text AS string)) LIKE :keyword)")
        Page<Question> searchMyQuestion(@Param("userId") Long userId,
                      @Param("useCategoryFilter") boolean useCategoryFilter,
                      @Param("categoryIds") List<Long> categoryIds,
                      @Param("type") QuestionType type,
+                     @Param("level") QuestionLevel level,
                      @Param("keyword") String keyword,
                      Pageable pageable);
 
@@ -58,16 +61,19 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
                      "AND (:useCategoryFilter = false OR (-1 IN :categoryIds AND q.category IS NULL) OR q.category.id IN :categoryIds) "
                      +
                      "AND (:type IS NULL OR q.type = :type) " +
+                     "AND (:level IS NULL OR q.level = :level) " +
                      "AND (:keyword IS NULL OR LOWER(CAST(q.text AS string)) LIKE :keyword)", countQuery = "SELECT COUNT(q) FROM Question q "
                                    +
                                    "WHERE q.questionStatus = :status " +
                                    "AND (:useCategoryFilter = false OR (-1 IN :categoryIds AND q.category IS NULL) OR q.category.id IN :categoryIds) "
                                    +
                                    "AND (:type IS NULL OR q.type = :type) " +
+                                   "AND (:level IS NULL OR q.level = :level) " +
                                    "AND (:keyword IS NULL OR LOWER(CAST(q.text AS string)) LIKE :keyword)")
        Page<Question> searchPublicQuestion(@Param("useCategoryFilter") boolean useCategoryFilter,
                      @Param("categoryIds") List<Long> categoryIds,
                      @Param("type") QuestionType type,
+                     @Param("level") QuestionLevel level,
                      @Param("keyword") String keyword,
                      @Param("status") QuestionStatus status,
                      Pageable pageable);

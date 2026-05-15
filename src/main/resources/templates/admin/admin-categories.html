@@ -1125,9 +1125,7 @@ function treeNodeHtml(node) {
 }
 
 function calcTotal(node) {
-    let t = node.quizCount || 0;
-    if (node.children) node.children.forEach(c => t += calcTotal(c));
-    return t;
+    return node.quizCount || 0;
 }
 
 function treeClick(id, name, e) {
