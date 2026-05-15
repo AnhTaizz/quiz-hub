@@ -42,6 +42,7 @@ public class StudentHomeController {
     private final UserRepository userRepository;
     private final ClassJoiningRepository classJoiningRepository;
     private final QuizAssigningRepository quizAssigningRepository;
+    private final com.example.quizhub.service.PracticeService practiceService;
 
     @GetMapping
     public String home(Model model) {
@@ -306,9 +307,8 @@ public class StudentHomeController {
         List<Attempt> quizAttempts = attemptRepository
                 .findByQuizTakingLearnerIdAndEndedAtIsNotNullOrderByStartedAtDesc(student.getId());
 
-        // Get all finished practice sessions
-        List<Practice> practiceHistory = practiceRepository
-                .findByUserIdAndIsCompletedTrueOrderByCreatedAtDesc(student.getId());
+        // Get all practice sessions (DTOs with answered count)
+        List<com.example.quizhub.dto.practice.PracticeHistoryResponseDTO> practiceHistory = practiceService.getMyPracticeHistory();
 
         model.addAttribute("quizAttempts", quizAttempts);
         model.addAttribute("practiceHistory", practiceHistory);

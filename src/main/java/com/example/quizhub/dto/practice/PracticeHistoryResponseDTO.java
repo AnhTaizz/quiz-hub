@@ -22,5 +22,10 @@ public class PracticeHistoryResponseDTO {
     String categoryName;
     Integer totalQuestions;
     Integer correctAnswers;
+    Integer answeredQuestions;
     LocalDateTime createdAt;
+    Boolean isCompleted;
+    Boolean isRandom;
+    Integer practiceLimit;
+    Integer practiceOffset;
 }

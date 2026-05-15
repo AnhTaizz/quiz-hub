@@ -22,8 +22,11 @@ public interface PracticeRepository extends JpaRepository<Practice, Long> {
 
     List<Practice> findByUserIdOrderByCreatedAtDesc(Long userId);
 
-    Optional<Practice> findFirstByUserIdAndCategoryIdAndPracticeLimitAndPracticeOffsetAndIsCompletedFalseOrderByCreatedAtDesc(
-            Long userId, Long categoryId, Integer practiceLimit, Integer practiceOffset);
+    Optional<Practice> findFirstByUserIdAndCategoryIdAndPracticeLimitAndPracticeOffsetAndIsRandomAndIsCompletedFalseOrderByCreatedAtDesc(
+            Long userId, Long categoryId, Integer practiceLimit, Integer practiceOffset, Boolean isRandom);
+
+    Optional<Practice> findFirstByUserIdAndCategoryIdAndIsRandomAndIsCompletedFalseOrderByCreatedAtDesc(
+            Long userId, Long categoryId, Boolean isRandom);
 
     List<Practice> findByUserIdAndCategoryIdAndIsCompletedTrueOrderByCreatedAtDesc(Long userId, Long categoryId);
 

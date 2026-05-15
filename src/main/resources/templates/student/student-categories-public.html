@@ -29,6 +29,24 @@
             border: 1px solid #e2e8f0;
         }
 
+        /* ── Practice Mode Tabs ── */
+        .practice-tabs .nav-link {
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+            background: #fff;
+            transition: all 0.3s ease;
+        }
+        .practice-tabs .nav-link:hover {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+        }
+        .practice-tabs .nav-link.active {
+            border-color: #4f46e5 !important;
+            color: #4f46e5 !important;
+            background: #eef2ff !important;
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.1) !important;
+        }
+
         /* ── Header Area ── */
         .explore-header {
             text-align: center;
@@ -955,7 +973,7 @@
             <div class="row g-4 mt-3 mb-5" id="practiceSetupSection">
                 <!-- Left Column: Chế độ Tự Luyện -->
                 <div class="col-lg-7">
-                    <div class="p-4 bg-white rounded-4 border shadow-sm h-100 d-flex flex-column" style="border-color:#e2e8f0 !important;">
+                    <div class="p-4 bg-white rounded-4 border shadow-sm d-flex flex-column" style="border-color:#e2e8f0 !important;">
                         <div class="mb-3 d-flex align-items-center justify-content-between">
                             <div>
                                 <h4 class="fw-bold mb-1" style="color:#1e1b4b;"><i class="bi bi-joystick text-primary me-2"></i>Chế độ Tự Luyện: <span id="practiceCatName">${esc(node.name)}</span></h4>
@@ -966,60 +984,84 @@
                             </span>
                         </div>
 
-                        <!-- Row: Chọn số lượng câu hỏi -->
-                        <div class="practice-setting-row py-3">
-                            <div class="practice-setting-label">
-                                Chọn số lượng câu hỏi
-                                <small>Tổng số câu sẽ được bốc ngẫu nhiên</small>
-                            </div>
-                            <input type="number" id="practiceLimit" class="prac-number" value="10" min="1" max="100000">
-                        </div>
+                        <!-- Tabs for Modes -->
+                        <ul class="nav nav-tabs border-0 mb-3 practice-tabs" id="practiceTabs" role="tablist" style="gap: 10px;">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active rounded-pill px-4 fw-bold shadow-sm" id="tabSequential" data-bs-toggle="tab" data-bs-target="#panelSequential" type="button" role="tab"
+                                    onclick="document.getElementById('btnPreviewPractice').style.display='inline-block'; document.getElementById('limitHint').textContent='Lấy câu hỏi theo dải bạn đã chọn phía trên';">
+                                    <i class="bi bi-list-ol me-1"></i> Luyện theo dải
+                                </button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link rounded-pill px-4 fw-bold shadow-sm" id="tabRandom" data-bs-toggle="tab" data-bs-target="#panelRandom" type="button" role="tab"
+                                    onclick="document.getElementById('btnPreviewPractice').style.display='none'; document.getElementById('limitHint').textContent='Hệ thống sẽ bốc ngẫu nhiên số câu bạn nhập từ toàn bộ danh mục';">
+                                    <i class="bi bi-dice-5 me-1"></i> Luyện tập ngẫu nhiên
+                                </button>
+                            </li>
+                        </ul>
 
-                        <!-- Row: Chọn dải câu hỏi (Range) -->
-                        <div class="practice-setting-row flex-column align-items-start gap-2 py-3">
-                            <div class="d-flex align-items-center justify-content-between w-100">
-                                <div class="practice-setting-label m-0">Chọn dải câu hỏi</div>
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <input type="radio" class="btn-check" name="rangeMode" id="rangeModeQuick" value="quick" checked onchange="switchRangeMode('quick')">
-                                    <label class="btn btn-outline-primary" for="rangeModeQuick" style="font-size:0.75rem; font-weight:600;">Chọn nhanh</label>
+                        <div class="tab-content" id="practiceTabsContent">
+                            <!-- Panel: Sequential (Range-based) -->
+                            <div class="tab-pane fade show active" id="panelSequential" role="tabpanel" aria-labelledby="tabSequential">
+                                <!-- Row: Chọn dải câu hỏi (Range) -->
+                                <div class="practice-setting-row flex-column align-items-start gap-2 py-3">
+                                    <div class="d-flex align-items-center justify-content-between w-100">
+                                        <div class="practice-setting-label m-0">Chọn dải câu hỏi</div>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <input type="radio" class="btn-check" name="rangeMode" id="rangeModeQuick" value="quick" checked onchange="switchRangeMode('quick')">
+                                            <label class="btn btn-outline-primary" for="rangeModeQuick" style="font-size:0.75rem; font-weight:600;">Chọn nhanh</label>
 
-                                    <input type="radio" class="btn-check" name="rangeMode" id="rangeModeCustom" value="custom" onchange="switchRangeMode('custom')">
-                                    <label class="btn btn-outline-primary" for="rangeModeCustom" style="font-size:0.75rem; font-weight:600;">Tùy chọn</label>
-                                </div>
-                            </div>
-
-                            <!-- Quick Range Section -->
-                            <div id="quickRangeArea" class="w-100">
-                                <div class="d-flex align-items-center gap-2 mb-2 mt-1">
-                                    <span class="text-muted small fw-bold" style="font-size:0.8rem;">Số câu mỗi dải:</span>
-                                    <select id="selectChunkSize" class="form-select form-select-sm" style="width: 120px; border-radius: 8px; font-weight: 600;" onchange="onChunkSizeChange()">
-                                        <option value="25">25 câu</option>
-                                        <option value="50" selected>50 câu</option>
-                                        <option value="75">75 câu</option>
-                                        <option value="100">100 câu</option>
-                                    </select>
-                                </div>
-                                <div class="range-group" id="rangeGroup"></div>
-                            </div>
-
-                            <!-- Custom Range Section -->
-                            <div id="customRangeArea" class="w-100 d-none">
-                                <div class="row g-2 align-items-center mt-1">
-                                    <div class="col-6">
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text bg-white text-muted">Từ câu</span>
-                                            <input type="number" id="customStartQuestion" class="form-control" value="1" min="1" onchange="validateCustomRange()">
+                                            <input type="radio" class="btn-check" name="rangeMode" id="rangeModeCustom" value="custom" onchange="switchRangeMode('custom')">
+                                            <label class="btn btn-outline-primary" for="rangeModeCustom" style="font-size:0.75rem; font-weight:600;">Tùy chọn</label>
                                         </div>
                                     </div>
-                                    <div class="col-6">
-                                        <div class="input-group input-group-sm">
-                                            <span class="input-group-text bg-white text-muted">Đến câu</span>
-                                            <input type="number" id="customEndQuestion" class="form-control" value="10" min="1" onchange="validateCustomRange()">
+
+                                    <!-- Quick Range Section -->
+                                    <div id="quickRangeArea" class="w-100">
+                                        <div class="d-flex align-items-center gap-2 mb-2 mt-1">
+                                            <span class="text-muted small fw-bold" style="font-size:0.8rem;">Số câu mỗi dải:</span>
+                                            <select id="selectChunkSize" class="form-select form-select-sm" style="width: 120px; border-radius: 8px; font-weight: 600;" onchange="onChunkSizeChange()">
+                                                <option value="25">25 câu</option>
+                                                <option value="50" selected>50 câu</option>
+                                                <option value="75">75 câu</option>
+                                                <option value="100">100 câu</option>
+                                            </select>
+                                        </div>
+                                        <div class="range-group" id="rangeGroup"></div>
+                                    </div>
+
+                                    <!-- Custom Range Section -->
+                                    <div id="customRangeArea" class="w-100 d-none">
+                                        <div class="row g-2 align-items-center mt-1">
+                                            <div class="col-6">
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text bg-white text-muted">Từ câu</span>
+                                                    <input type="number" id="customStartQuestion" class="form-control" value="1" min="1" onchange="validateCustomRange()">
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="input-group input-group-sm">
+                                                    <span class="input-group-text bg-white text-muted">Đến câu</span>
+                                                    <input type="number" id="customEndQuestion" class="form-control" value="10" min="1" onchange="validateCustomRange()">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="text-muted mt-2 ps-1" id="customRangeHint" style="font-size: 0.8rem; font-style: italic;">
+                                            Danh mục có tổng cộng <span id="customRangeTotal">0</span> câu hỏi.
                                         </div>
                                     </div>
                                 </div>
-                                <div class="text-muted mt-2 ps-1" id="customRangeHint" style="font-size: 0.8rem; font-style: italic;">
-                                    Danh mục có tổng cộng <span id="customRangeTotal">0</span> câu hỏi.
+                            </div>
+
+                            <!-- Panel: Random Challenge -->
+                            <div class="tab-pane fade" id="panelRandom" role="tabpanel" aria-labelledby="tabRandom">
+                                <!-- Row: Chọn số lượng câu hỏi -->
+                                <div class="practice-setting-row py-3">
+                                    <div class="practice-setting-label">
+                                        Số lượng câu hỏi muốn luyện tập
+                                        <small id="limitHint">Hệ thống sẽ bốc ngẫu nhiên số câu bạn nhập từ toàn bộ danh mục</small>
+                                    </div>
+                                    <input type="number" id="practiceLimit" class="prac-number" value="10" min="1" max="100000" onchange="validateRandomLimit()">
                                 </div>
                             </div>
                         </div>
@@ -1043,7 +1085,7 @@
                         </div>
 
                         <!-- Row: Xáo trộn câu hỏi -->
-                        <div class="practice-setting-row py-3 mb-4">
+                        <div class="practice-setting-row py-3" style="border-bottom: none;">
                             <div class="practice-setting-label">Xáo trộn câu hỏi</div>
                             <label class="prac-toggle">
                                 <input type="checkbox" id="toggleShuffle">
@@ -1052,7 +1094,7 @@
                         </div>
 
                         <!-- Action Buttons -->
-                        <div class="d-flex justify-content-end gap-3 mt-auto pt-3 border-top" style="border-color:#f1f5f9 !important;">
+                        <div class="d-flex justify-content-end gap-3 mt-3">
                             <button type="button" class="btn btn-outline-primary fw-bold px-4 py-2 rounded-pill shadow-sm" id="btnPreviewPractice" onclick="previewQuestions()" style="border-color:#4f46e5; color:#4f46e5;">
                                 <i class="bi bi-eye me-1"></i> Xem trước
                             </button>
@@ -1068,7 +1110,7 @@
                     <div class="p-4 bg-white rounded-4 border shadow-sm h-100 d-flex flex-column" style="border-color:#e2e8f0 !important;">
                         <h4 class="fw-bold mb-1" style="color:#1e1b4b;"><i class="bi bi-clock-history text-success me-2"></i>Lịch sử Luyện tập</h4>
                         <p class="text-muted mb-4" style="font-size:0.85rem;">Các lượt tự luyện của bạn gần đây nhất trong danh mục này.</p>
-                        <div id="practiceHistoryArea" style="max-height: 480px; overflow-y: auto;">
+                        <div id="practiceHistoryArea" style="max-height: 650px; overflow-y: auto;">
                             <div class="text-center text-muted p-3">Đang tải lịch sử...</div>
                         </div>
                     </div>
@@ -1132,16 +1174,30 @@
 
                     let html = '<div class="d-flex flex-column gap-3">';
                     history.forEach(item => {
+                        const isCompleted = item.isCompleted;
+                        const isRandom = item.isRandom;
                         const percent = item.totalQuestions > 0 ? Math.round((item.correctAnswers / item.totalQuestions) * 100) : 0;
                         const date = new Date(item.createdAt).toLocaleString('vi-VN', {
                             day: '2-digit', month: '2-digit', year: 'numeric',
                             hour: '2-digit', minute: '2-digit'
                         });
 
-                        html += `
-                <div class="bg-light p-3 rounded-4 border d-flex flex-column gap-2 mb-2" style="border-color: #e2e8f0 !important; transition: var(--transition);">
+                        let rangeText = '';
+                        if (!isRandom) {
+                            const startQ = (item.practiceOffset || 0) + 1;
+                            const endQ = (item.practiceOffset || 0) + (item.totalQuestions || 0);
+                            rangeText = `<span class="badge bg-info bg-opacity-10 text-info rounded-pill" style="font-size:0.68rem;"><i class="bi bi-list-ol me-1"></i>Câu ${startQ} - ${endQ}</span>`;
+                        }
+
+                        if (isCompleted) {
+                            // Completed practice: show score and "Xem lại"
+                            html += `
+                <div class="bg-light p-3 rounded-4 border d-flex flex-column gap-2" style="border-color: #e2e8f0 !important;">
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="text-muted fw-semibold" style="font-size:0.8rem;"><i class="bi bi-calendar3 me-1"></i> ${date}</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted fw-semibold" style="font-size:0.8rem;"><i class="bi bi-calendar3 me-1"></i>${date}</span>
+                            ${isRandom ? '<span class="badge bg-primary bg-opacity-10 text-primary rounded-pill" style="font-size:0.68rem;"><i class="bi bi-dice-5 me-1"></i>Ngẫu nhiên</span>' : rangeText}
+                        </div>
                         <a href="/student/practice/review/${item.id}" class="btn btn-sm btn-dark py-1 px-3 rounded-pill fw-bold shadow-sm" style="font-size:0.7rem; text-decoration:none;">
                             <i class="bi bi-eye-fill me-1"></i> Xem lại
                         </a>
@@ -1155,6 +1211,29 @@
                         </div>
                     </div>
                 </div>`;
+                        } else {
+                            // In-progress practice: same card structure as completed, yellow Làm tiếp button
+                            html += `
+                <div class="bg-light p-3 rounded-4 border d-flex flex-column gap-2" style="border-color: #e2e8f0 !important;">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted fw-semibold" style="font-size:0.8rem;"><i class="bi bi-calendar3 me-1"></i>${date}</span>
+                            ${isRandom ? '<span class="badge bg-primary bg-opacity-10 text-primary rounded-pill" style="font-size:0.68rem;"><i class="bi bi-dice-5 me-1"></i>Ngẫu nhiên</span>' : rangeText}
+                        </div>
+                        <button class="btn btn-sm btn-warning fw-bold rounded-pill px-3 shadow-sm" style="font-size:0.7rem;" onclick="resumePractice(${item.id}, ${!!item.isRandom}, ${item.practiceLimit || 10}, ${item.practiceOffset || 0})">
+                            <i class="bi bi-play-fill me-1"></i> Làm tiếp
+                        </button>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                        <span class="badge bg-secondary bg-opacity-10 text-secondary rounded-pill" style="font-size:0.75rem; padding: 5px 12px;">
+                            Đã làm ${item.answeredQuestions || 0}/${item.totalQuestions} câu
+                        </span>
+                        <div class="flex-grow-1 ms-3" style="height: 6px; border-radius: 10px; overflow: hidden; background-color:#e2e8f0;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: ${item.totalQuestions > 0 ? (item.answeredQuestions / item.totalQuestions) * 100 : 0}%; height:100%;"></div>
+                        </div>
+                    </div>
+                </div>`;
+                        }
                     });
                     html += '</div>';
                     area.innerHTML = html;
@@ -1163,6 +1242,78 @@
                 }
             } catch (e) {
                 area.innerHTML = `<div class="text-center text-danger p-3">Lỗi khi tải lịch sử luyện tập.</div>`;
+            }
+        }
+
+        async function resumePractice(practiceId, isRandom, practiceLimit, practiceOffset) {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            try {
+                let data = null;
+                sessionStorage.removeItem('practice_user_answers');
+                sessionStorage.removeItem('practice_answered_correctly');
+                sessionStorage.removeItem('practice_confirmed_answers');
+                sessionStorage.removeItem('practice_current_index');
+                sessionStorage.removeItem('practice_is_shuffled');
+                sessionStorage.removeItem('practice_questions');
+
+                if (isRandom) {
+                    // RANDOM: Questions are pre-saved in PracticeDetail, load them via history/detail
+                    const res = await fetch(`/api/student/practice/history/detail?id=${practiceId}`, {
+                        headers: { 'Authorization': 'Bearer ' + token }
+                    });
+                    if (!res.ok) throw new Error('Không thể tải bài luyện tập');
+                    data = await res.json();
+
+                    const questions = data.details.map(d => ({
+                        id: d.questionId,
+                        text: d.questionText,
+                        type: d.questionType,
+                        level: d.questionLevel,
+                        answers: d.answers,
+                        selectedAnswerIds: d.selectedAnswerIds || null,
+                        selectedText: d.selectedText || null,
+                        isCorrect: d.isCorrect !== undefined ? d.isCorrect : null
+                    }));
+
+                    sessionStorage.setItem('practice_questions', JSON.stringify(questions));
+                    sessionStorage.setItem('practice_id', practiceId);
+                    sessionStorage.removeItem(`practice_is_shuffled_${practiceId}`);
+                } else {
+                    // RANGE: Re-call startPractice with same limit/offset - backend finds existing incomplete practice
+                    const limit = practiceLimit || 10;
+                    const offset = practiceOffset || 0;
+                    const payload = { categoryId: currentPracticeCategoryId, limit, offset, isRandom: false, forceNew: false, practiceId: practiceId };
+                    const res = await fetch('/api/student/practice/start', {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!res.ok) throw new Error('Không thể tải bài luyện tập');
+                    data = await res.json();
+
+                    sessionStorage.setItem('practice_questions', JSON.stringify(data.questions));
+                    sessionStorage.setItem('practice_id', data.practiceId);
+                    sessionStorage.removeItem(`practice_is_shuffled_${data.practiceId}`);
+                }
+
+                sessionStorage.setItem('practice_category_id', currentPracticeCategoryId);
+                sessionStorage.setItem('practice_category_name', document.getElementById('practiceCatName').textContent);
+                
+                const finalId = data ? data.practiceId : practiceId;
+                let currentSettings = JSON.parse(sessionStorage.getItem(`practice_settings_${finalId}`) || 'null');
+                if (!currentSettings) {
+                    currentSettings = JSON.parse(sessionStorage.getItem('practice_settings') || 'null');
+                }
+                if (!currentSettings) {
+                    currentSettings = { showAnswer: true, shuffle: false, displayMode: 'sequential' };
+                }
+                sessionStorage.setItem('practice_settings', JSON.stringify(currentSettings));
+                sessionStorage.setItem(`practice_settings_${finalId}`, JSON.stringify(currentSettings));
+                
+                showToast('Tiếp tục bài luyện tập, hãy cố lên! 💪', 'ok');
+                setTimeout(() => { window.location.href = '/student/practice/play'; }, 800);
+            } catch (e) {
+                showToast(e.message, 'err');
             }
         }
 
@@ -1189,16 +1340,18 @@
             }
         }
 
+        function validateRandomLimit() {
+            const input = document.getElementById('practiceLimit');
+            let val = parseInt(input.value) || 0;
+            // Immediate warnings removed per user request
+        }
+
         function validateCustomRange() {
             let start = parseInt(document.getElementById('customStartQuestion').value) || 1;
             let end = parseInt(document.getElementById('customEndQuestion').value) || start;
 
-            if (start < 1) { start = 1; document.getElementById('customStartQuestion').value = 1; }
-            if (start > currentPracticeTotalQuestions) { start = currentPracticeTotalQuestions; document.getElementById('customStartQuestion').value = start; }
-            if (end < start) { end = start; document.getElementById('customEndQuestion').value = end; }
-            if (end > currentPracticeTotalQuestions) { end = currentPracticeTotalQuestions; document.getElementById('customEndQuestion').value = end; }
-
-            const count = end - start + 1;
+            // Immediate warnings removed per user request
+            const count = (end >= start && end <= currentPracticeTotalQuestions && start >= 1) ? (end - start + 1) : 0;
             document.getElementById('practiceLimit').value = count;
         }
 
@@ -1235,6 +1388,18 @@
 
             // Build range buttons dynamically based on actual total questions
             buildRangeButtons(currentPracticeTotalQuestions);
+
+            // Update limits and hints
+            const limitInput = document.getElementById('practiceLimit');
+            if (limitInput) {
+                limitInput.max = currentPracticeTotalQuestions;
+            }
+
+            const customTotalSpan = document.getElementById('customRangeTotal');
+            if (customTotalSpan) {
+                customTotalSpan.textContent = currentPracticeTotalQuestions;
+            }
+
             const modal = new bootstrap.Modal(document.getElementById('practiceModal'));
             modal.show();
         }
@@ -1277,6 +1442,24 @@
             }
         }
 
+        function setRandomLimit(limit) {
+            document.getElementById('practiceLimit').value = limit;
+        }
+
+        // Add event listeners for tabs to update UI hints
+        document.addEventListener('DOMContentLoaded', () => {
+            const tabSequential = document.getElementById('tabSequential');
+            const tabRandom = document.getElementById('tabRandom');
+            if (tabSequential && tabRandom) {
+                tabSequential.addEventListener('shown.bs.tab', () => {
+                    document.getElementById('btnPreviewPractice').style.display = 'inline-block';
+                });
+                tabRandom.addEventListener('shown.bs.tab', () => {
+                    document.getElementById('btnPreviewPractice').style.display = 'none';
+                });
+            }
+        });
+
         async function submitStartPractice() {
             // Reset old practice session data
             sessionStorage.removeItem('practice_user_answers');
@@ -1286,35 +1469,44 @@
             sessionStorage.removeItem('practice_is_shuffled');
             sessionStorage.removeItem('practice_questions');
 
-            const limit = parseInt(document.getElementById('practiceLimit').value);
-            if (isNaN(limit) || limit < 1 || limit > 100000) {
-                showToast('Vui lòng nhập số câu từ 1 đến 100000', 'err');
-                return;
-            }
             const showAnswer = document.getElementById('toggleShowAnswer').checked;
             const shuffle = document.getElementById('toggleShuffle').checked;
             const displayMode = document.getElementById('selectDisplayMode').value;
 
-            let startQ = 1;
-            let endQ = currentPracticeTotalQuestions;
-            if (currentRangeMode === 'quick') {
-                const activeRange = document.querySelector('.range-btn.active');
-                if (activeRange) {
-                    startQ = parseInt(activeRange.dataset.start) || 1;
-                    endQ = parseInt(activeRange.dataset.end) || startQ;
+            // Detect if Random Mode is active
+            const isRandom = document.getElementById('tabRandom').classList.contains('active');
+
+            let limit;
+            let offset = 0;
+
+            if (!isRandom) {
+                let startQ = 1;
+                let endQ = currentPracticeTotalQuestions;
+                if (currentRangeMode === 'quick') {
+                    const activeRange = document.querySelector('.range-btn.active');
+                    if (activeRange) {
+                        startQ = parseInt(activeRange.dataset.start) || 1;
+                        endQ = parseInt(activeRange.dataset.end) || startQ;
+                    }
+                } else {
+                    startQ = parseInt(document.getElementById('customStartQuestion').value) || 1;
+                    endQ = parseInt(document.getElementById('customEndQuestion').value) || startQ;
+
+                    if (startQ < 1 || endQ > currentPracticeTotalQuestions || startQ > endQ) {
+                        showToast(`Dải câu hỏi không hợp lệ (Dải hiện có: 1 - ${currentPracticeTotalQuestions})`, 'err');
+                        return;
+                    }
                 }
+
+                limit = endQ - startQ + 1; // calculate limit implicitly
+                offset = startQ - 1;
             } else {
-                startQ = parseInt(document.getElementById('customStartQuestion').value) || 1;
-                endQ = parseInt(document.getElementById('customEndQuestion').value) || startQ;
+                limit = parseInt(document.getElementById('practiceLimit').value);
+                if (isNaN(limit) || limit < 1 || limit > currentPracticeTotalQuestions) {
+                    showToast(`Số lượng câu hỏi không hợp lệ (Tối đa: ${currentPracticeTotalQuestions})`, 'err');
+                    return;
+                }
             }
-
-            const maxLimit = endQ - startQ + 1;
-            if (limit > maxLimit) {
-                showToast(`Bạn chỉ được chọn tối đa ${maxLimit} câu hỏi trong dải đã chọn!`, 'err');
-                return;
-            }
-
-            const offset = startQ - 1;
 
             const btn = document.getElementById('btnStartPractice');
             const origHtml = btn.innerHTML;
@@ -1323,7 +1515,7 @@
 
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             try {
-                const payload = { categoryId: currentPracticeCategoryId, limit, offset };
+                const payload = { categoryId: currentPracticeCategoryId, limit, offset, isRandom, forceNew: true };
                 const res = await fetch('/api/student/practice/start', {
                     method: 'POST',
                     headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
@@ -1337,17 +1529,21 @@
                 // Save everything to sessionStorage for the play page
                 sessionStorage.setItem('practice_questions', JSON.stringify(data.questions));
                 sessionStorage.setItem('practice_id', data.practiceId);
+                sessionStorage.removeItem(`practice_is_shuffled_${data.practiceId}`);
                 sessionStorage.setItem('practice_offset', offset);
                 sessionStorage.setItem('practice_category_id', currentPracticeCategoryId);
                 sessionStorage.setItem('practice_category_name', document.getElementById('practiceCatName').textContent);
-                sessionStorage.setItem('practice_settings', JSON.stringify({ showAnswer, shuffle, displayMode }));
-                // Hide modal if exists (though for public categories it's usually inline)
+                sessionStorage.setItem(`practice_settings_${data.practiceId}`, JSON.stringify({ showAnswer, shuffle, displayMode, isRandom }));
+                // Also set a generic one for compatibility if needed, but per-ID is priority
+                sessionStorage.setItem('practice_settings', JSON.stringify({ showAnswer, shuffle, displayMode, isRandom }));
+                
+                // Hide modal if exists
                 const modalEl = document.getElementById('practiceModal');
                 if (modalEl) {
                     const modal = bootstrap.Modal.getInstance(modalEl);
                     if (modal) modal.hide();
                 }
-                showToast('Đã tạo bộ câu hỏi, chuẩn bị làm bài...', 'ok');
+                showToast('Chuẩn bị bài luyện tập thành công!', 'ok');
                 setTimeout(() => { window.location.href = '/student/practice/play'; }, 800);
             } catch (e) {
                 showToast(e.message, 'err');

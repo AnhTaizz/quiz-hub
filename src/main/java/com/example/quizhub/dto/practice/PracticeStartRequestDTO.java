@@ -24,4 +24,10 @@ public class PracticeStartRequestDTO {
     Integer limit;
 
     Integer offset;
+
+    Boolean isRandom;
+
+    Boolean forceNew;
+
+    Long practiceId;
 }

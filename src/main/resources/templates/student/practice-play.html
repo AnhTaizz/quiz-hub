@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Nunito+Sans:wght@700;800;900&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Nunito+Sans:wght@700;800;900&subset=vietnamese&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -28,7 +28,7 @@
 
         body {
             background-color: var(--bg-body);
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
             color: var(--text-main);
             overflow-x: hidden;
         }
@@ -995,13 +995,13 @@
                 }
 
                 const rawQ = sessionStorage.getItem('practice_questions');
-                const rawS = sessionStorage.getItem('practice_settings');
+                practiceId = sessionStorage.getItem('practice_id');
+                const rawS = sessionStorage.getItem(`practice_settings_${practiceId}`) || sessionStorage.getItem('practice_settings');
                 const idRaw = sessionStorage.getItem('practice_category_id');
                 categoryId = idRaw ? parseInt(idRaw) : null;
                 categoryName = sessionStorage.getItem('practice_category_name');
                 questions = JSON.parse(rawQ);
                 if (rawS) settings = JSON.parse(rawS);
-                practiceId = sessionStorage.getItem('practice_id');
 
                 // Load progress from questions themselves (newly supported)
                 questions.forEach(q => {
@@ -1031,7 +1031,7 @@
                 // Handle shuffle persistence
                 const isShuffled = sessionStorage.getItem(`practice_is_shuffled_${practiceId}`);
                 if (settings.shuffle && !isShuffled) {
-                    shuffleArray(questions);
+                    shuffleArray(questions, practiceId);
                     sessionStorage.setItem('practice_questions', JSON.stringify(questions));
                     sessionStorage.setItem(`practice_is_shuffled_${practiceId}`, 'true');
                 }
@@ -1083,9 +1083,20 @@
             showQuestion(currentIndex);
         }
 
-        function shuffleArray(array) {
+        function shuffleArray(array, seed) {
+            let rng = Math.random;
+            if (seed !== undefined) {
+                // Simple deterministic seed-based RNG (Mulberry32)
+                let s = parseInt(seed) || 0;
+                rng = function() {
+                    let t = s += 0x6D2B79F5;
+                    t = Math.imul(t ^ t >>> 15, t | 1);
+                    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+                    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+                };
+            }
             for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
+                const j = Math.floor(rng() * (i + 1));
                 [array[i], array[j]] = [array[j], array[i]];
             }
         }
@@ -1105,7 +1116,7 @@
                 dot.textContent = i + 1;
                 dot.id = `nav-${i}`;
 
-                if (flaggedQuestions.has(q.id)) {
+                if (!practiceResult && flaggedQuestions.has(q.id)) {
                     dot.classList.add('flagged');
                 }
 
@@ -1172,12 +1183,18 @@
             // Update Flag Button
             const btnFlag = document.getElementById('btnFlag');
             if (btnFlag) {
-                if (flaggedQuestions.has(q.id)) {
-                    btnFlag.classList.add('active');
-                    btnFlag.innerHTML = '<i class="bi bi-flag-fill"></i> <span>Đã đặt cờ</span>';
+                // Hide flag button when in review mode
+                if (practiceResult) {
+                    btnFlag.style.display = 'none';
                 } else {
-                    btnFlag.classList.remove('active');
-                    btnFlag.innerHTML = '<i class="bi bi-flag"></i> <span>Đặt cờ</span>';
+                    btnFlag.style.display = '';
+                    if (flaggedQuestions.has(q.id)) {
+                        btnFlag.classList.add('active');
+                        btnFlag.innerHTML = '<i class="bi bi-flag-fill"></i> <span>Đã đặt cờ</span>';
+                    } else {
+                        btnFlag.classList.remove('active');
+                        btnFlag.innerHTML = '<i class="bi bi-flag"></i> <span>Đặt cờ</span>';
+                    }
                 }
             }
 
@@ -1401,9 +1418,10 @@
                             <span class="q-type-badge">${q.type === 'MULTIPLE_CHOICE' ? 'CHỌN NHIỀU' : (q.type === 'FILL_IN_BLANK' ? 'ĐIỀN KHUYẾT' : 'CHỌN MỘT')}</span>
                             <span class="q-level-badge level-${q.level ? q.level.toLowerCase() : 'medium'}">${q.level || 'MEDIUM'}</span>
                         </div>
+                        ${!practiceResult ? `
                         <button class="btn-flag ${flaggedQuestions.has(q.id) ? 'active' : ''}" onclick="toggleFlagFor(${q.id})">
                             <i class="bi bi-flag${flaggedQuestions.has(q.id) ? '-fill' : ''}"></i> <span>${flaggedQuestions.has(q.id) ? 'Đã đặt cờ' : 'Đặt cờ'}</span>
-                        </button>
+                        </button>` : ''}
                     </div>
                     <div class="question-text mb-4">${esc(q.text)}</div>
                     ${contentHtml}

@@ -127,6 +127,10 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
        List<Long> findQuestionIdsByCategoryInAndStatus(@Param("categoryIds") List<Long> categoryIds,
                      @Param("status") QuestionStatus status);
 
+       @Query(value = "SELECT * FROM _question WHERE category_id IN :categoryIds AND approval_status = 'PUBLIC' ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
+       List<Question> findRandomPublicQuestionsByCategories(@Param("categoryIds") List<Long> categoryIds,
+                     @Param("limit") int limit);
+
        @Query(value = "SELECT * FROM _question WHERE category_id = :categoryId AND approval_status = 'PUBLIC' ORDER BY RANDOM() LIMIT :limit", nativeQuery = true)
        List<Question> findRandomPublicQuestionsByCategory(@Param("categoryId") Long categoryId,
                      @Param("limit") int limit);
