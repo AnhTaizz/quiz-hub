@@ -92,6 +92,15 @@ public class QuestionServiceImpl implements QuestionService {
         if (request.getCategoryId() != null && request.getCategoryId() != -1L) {
             category = categoryRepository.findById(request.getCategoryId())
                     .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+            
+            // BẢO MẬT: Chỉ cho phép gán danh mục riêng của bản thân nếu không phải ADMIN
+            if (creator.getRole() != com.example.quizhub.entity.enums.Role.ADMIN) {
+                if (Boolean.TRUE.equals(category.getIsPublic()) || 
+                    category.getCreator() == null || 
+                    !category.getCreator().getId().equals(userId)) {
+                    throw new AppException(ErrorCode.UNAUTHORIZED);
+                }
+            }
         }
 
         // Tạo question entity
@@ -123,6 +132,9 @@ public class QuestionServiceImpl implements QuestionService {
     public QuestionResponseDTO updateQuestion(Long userId, Long id, QuestionRequestDTO request) {
         validateQuestionLogic(request.getType(), request.getAnswers()); // ktra logic
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
         Question oldQuestion = questionRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
 
@@ -134,6 +146,15 @@ public class QuestionServiceImpl implements QuestionService {
         if (request.getCategoryId() != null && request.getCategoryId() != -1L) {
             category = categoryRepository.findById(request.getCategoryId())
                     .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+            
+            // BẢO MẬT: Chỉ cho phép gán danh mục riêng của bản thân nếu không phải ADMIN
+            if (user.getRole() != com.example.quizhub.entity.enums.Role.ADMIN) {
+                if (Boolean.TRUE.equals(category.getIsPublic()) || 
+                    category.getCreator() == null || 
+                    !category.getCreator().getId().equals(userId)) {
+                    throw new AppException(ErrorCode.UNAUTHORIZED);
+                }
+            }
         }
 
         boolean isUsedInQuiz = questionRepository.isQuestionUsedInQuiz(id);
@@ -210,7 +231,7 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     @Transactional(readOnly = true)
     public Page<QuestionResponseDTO> searchMyQuestion(Long userId, Long categoryId, QuestionType type,
-            String keyword,
+            QuestionLevel level, String keyword,
             int page, int size,
             String sortBy, String sortDir) {
 
@@ -234,7 +255,7 @@ public class QuestionServiceImpl implements QuestionService {
         String searchKeyword = (keyword == null || keyword.trim().isEmpty()) ? null
                 : "%" + keyword.trim().toLowerCase() + "%";
         Page<Question> questionPage = questionRepository.searchMyQuestion(userId, useCategoryFilter, categoryIds, type,
-                searchKeyword, pageable);
+                level, searchKeyword, pageable);
 
         return questionPage.map(questionMapper::toResponseDTO);
     }
@@ -242,7 +263,7 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     @Transactional(readOnly = true)
     public Page<QuestionResponseDTO> searchPublicQuestion(Long categoryId, QuestionType type,
-            String keyword, int page, int size,
+            QuestionLevel level, String keyword, int page, int size,
             String sortBy, String sortDir) {
 
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name())
@@ -265,7 +286,7 @@ public class QuestionServiceImpl implements QuestionService {
         String searchKeyword = (keyword == null || keyword.trim().isEmpty()) ? null
                 : "%" + keyword.trim().toLowerCase() + "%";
         Page<Question> questionPage = questionRepository.searchPublicQuestion(useCategoryFilter, categoryIds, type,
-                searchKeyword, QuestionStatus.PUBLIC, pageable);
+                level, searchKeyword, QuestionStatus.PUBLIC, pageable);
 
         return questionPage.map(questionMapper::toResponseDTO);
     }

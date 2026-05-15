@@ -73,7 +73,7 @@
     </style>
 </head>
 <body>
-    <script>(function () { if (localStorage.getItem('sidebar-collapsed') === 'true') document.body.classList.add('sidebar-collapsed'); })()</script>
+
     <aside th:replace="~{layout/sidebar :: teacher-sidebar('categories-mine')}"></aside>
     <header th:replace="~{layout/header :: teacher-header}"></header>
 
@@ -117,14 +117,7 @@
         const quizId = document.getElementById('quizIdInput').value;
 
         document.addEventListener('DOMContentLoaded', async () => {
-            const toggleBtn = document.querySelector('.toggle-btn');
-            if (toggleBtn) {
-                toggleBtn.addEventListener('click', e => {
-                    e.preventDefault();
-                    document.body.classList.toggle('sidebar-collapsed');
-                    localStorage.setItem('sidebar-collapsed', document.body.classList.contains('sidebar-collapsed'));
-                });
-            }
+
 
             if (quizId) {
                 await loadQuizDetails();

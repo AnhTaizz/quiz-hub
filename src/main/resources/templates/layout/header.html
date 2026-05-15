@@ -42,9 +42,9 @@
                         <li><a class="nav-link" th:classappend="${activePage == 'history' ? 'active' : ''}"
                                 th:href="@{/student/history}">Lịch sử làm bài</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'qbank' ? 'active' : ''}"
-                                th:href="@{/student/categories(type='public')}">Ngân hàng đề thi</a></li>
+                                th:href="@{/student/categories(type='public')}">Ngân hàng câu hỏi</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'myqbank' ? 'active' : ''}"
-                                th:href="@{/student/categories(type='mine')}">Đề thi của tôi</a></li>
+                                th:href="@{/student/categories(type='mine')}">Thư viện của tôi</a></li>
                     </ul>
                     <i class="bi bi-list mobile-nav-toggle"></i>
                 </nav>
@@ -133,139 +133,9 @@
     </header>
 
     <!-- Notification Styles (Dùng chung cho tất cả header) -->
-    <style th:fragment="notification-styles">
-        .notification-dropdown .notification-btn {
-            position: relative;
-            width: 40px;
-            height: 40px;
-            background: #f1f5f9;
-            border: none;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #1e1b4b;
-            transition: all 0.2s;
-            cursor: pointer;
-            text-decoration: none;
-        }
-
-        #header-nav {
-            position: fixed;
-            top: 0;
-            left: var(--sidebar-width, 260px);
-            right: 0;
-            height: var(--header-height, 70px);
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--border, #e2e8f0);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 32px;
-            z-index: 999;
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-        }
-
-        body.sidebar-collapsed #header-nav {
-            left: 75px;
-        }
-
-        .header-left, .header-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-
-        .toggle-btn {
-            background: #f1f5f9;
-            border: none;
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #1e293b;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-
-        .toggle-btn:hover {
-            background: #e2e8f0;
-            color: #2563eb;
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            padding: 6px 12px;
-            border-radius: 12px;
-            transition: all 0.2s;
-        }
-
-        .user-profile:hover {
-            background: #f8fafc;
-        }
-
-        .user-profile img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid #fff;
-            box-shadow: 0 0 0 1px var(--border, #e2e8f0);
-        }
-
-        .user-profile span {
-            font-weight: 700;
-            color: #1e293b;
-            font-size: 14px;
-        }
-
-        .user-profile .dropdown-menu {
-            min-width: 220px;
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--border, #e2e8f0);
-            padding: 8px;
-            margin-top: 15px !important;
-        }
-
-        .notification-dropdown .notification-btn:hover {
-            background: #e2e8f0;
-            color: #28a745;
-        }
-
-        .notification-dropdown .badge {
-            position: absolute;
-            top: -2px;
-            right: -2px;
-            width: 12px;
-            height: 12px;
-            background-color: #ef4444;
-            border: 2px solid #fff;
-            border-radius: 50%;
-            padding: 0;
-        }
-
-        .notification-item:hover {
-            background-color: #f8fafc !important;
-        }
-
-        .notification-icon-sm {
-            width: 36px;
-            height: 36px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 10px;
-            background: #f1f5f9;
-            flex-shrink: 0;
-        }
-    </style>
+    <th:block th:fragment="notification-styles">
+        <link rel="stylesheet" th:href="@{/css/layout/notifications.css}">
+    </th:block>
 
     <!-- Toast Notification Dependencies -->
     <link rel="stylesheet" th:href="@{/css/toast.css}">
@@ -301,18 +171,7 @@
                 </ul>
             </div>
         </div>
-        <script>
-            (function () {
-                const toggleBtn = document.getElementById('sidebarToggle') || document.querySelector('.toggle-btn');
-                if (toggleBtn) {
-                    toggleBtn.addEventListener('click', function (e) {
-                        e.preventDefault();
-                        const isCollapsed = document.body.classList.toggle('sidebar-collapsed');
-                        localStorage.setItem('sidebar-collapsed', isCollapsed);
-                    });
-                }
-            })();
-        </script>
+
         <style th:replace="~{layout/header :: notification-styles}"></style>
         <script th:replace="~{layout/header :: notification-scripts}"></script>
         <script th:replace="~{layout/header :: logout-script}"></script>
@@ -385,90 +244,9 @@
         </div>
     </div>
 
-    <script th:fragment="change-password-script">
-        function togglePwdVisibility(inputId, btn) {
-            const input = document.getElementById(inputId);
-            const icon = btn.querySelector('i');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.className = 'bi bi-eye-slash';
-            } else {
-                input.type = 'password';
-                icon.className = 'bi bi-eye';
-            }
-        }
-
-        function showCpwAlert(msg, isSuccess) {
-            if (isSuccess) toast.success(msg);
-            else toast.error(msg);
-        }
-
-        async function submitChangePassword() {
-            const current = document.getElementById('cpw-current').value.trim();
-            const newPwd = document.getElementById('cpw-new').value.trim();
-            const confirm = document.getElementById('cpw-confirm').value.trim();
-
-            if (!current || !newPwd || !confirm) { showCpwAlert('Vui lòng điền đầy đủ các trường!', false); return; }
-            if (newPwd.length < 6) { showCpwAlert('Mật khẩu mới phải ít nhất 6 ký tự!', false); return; }
-            if (newPwd !== confirm) { showCpwAlert('Mật khẩu xác nhận không khớp!', false); return; }
-
-            const btn = document.getElementById('cpw-submit-btn');
-            btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Đang xử lý...';
-
-            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-            try {
-                const res = await fetch('/api/users/change-password', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-                    body: JSON.stringify({ oldPassword: current, newPassword: newPwd, confirmNewPassword: confirm })
-                });
-                const text = await res.text();
-                if (res.ok) {
-                    showCpwAlert('Đổi mật khẩu thành công!', true);
-                    setTimeout(() => {
-                        document.getElementById('cpw-current').value = '';
-                        document.getElementById('cpw-new').value = '';
-                        document.getElementById('cpw-confirm').value = '';
-                        document.getElementById('cpw-alert').style.display = 'none';
-                        bootstrap.Modal.getInstance(document.getElementById('changePasswordModal')).hide();
-                    }, 1500);
-                } else {
-                    let errorMsg = text;
-                    try {
-                        const json = JSON.parse(text);
-                        errorMsg = json.message || text;
-                    } catch (e) { }
-
-                    let msg = errorMsg || 'Có lỗi xảy ra!';
-                    if (errorMsg.includes('hiện tại') || errorMsg.includes('incorrect')) {
-                        msg = 'Mật khẩu hiện tại không đúng!';
-                    } else if (errorMsg.includes('same as the old password') || errorMsg.includes('PASSWORD_SAME')) {
-                        msg = 'Mật khẩu mới không được trùng với mật khẩu hiện tại!';
-                    }
-                    showCpwAlert(msg, false);
-                }
-            } catch (e) {
-                showCpwAlert('Lỗi kết nối mạng!', false);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-check-lg me-1"></i> Cập nhật';
-            }
-        }
-
-        // Reset form khi đóng modal
-        document.addEventListener('DOMContentLoaded', () => {
-            const modal = document.getElementById('changePasswordModal');
-            if (modal) {
-                modal.addEventListener('hidden.bs.modal', () => {
-                    document.getElementById('cpw-current').value = '';
-                    document.getElementById('cpw-new').value = '';
-                    document.getElementById('cpw-confirm').value = '';
-                    document.getElementById('cpw-alert').style.display = 'none';
-                });
-            }
-        });
-    </script>
+    <th:block th:fragment="change-password-script">
+        <script th:src="@{/js/layout/change-password.js}"></script>
+    </th:block>
 
     <th:block th:fragment="dashboard-student-header">
         <header id="header-nav" class="bg-white">
@@ -508,16 +286,9 @@
         <script th:replace="~{layout/header :: notification-scripts}"></script>
     </th:block>
 
-    <script th:fragment="logout-script">
-        function doLogout() {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            sessionStorage.removeItem('token');
-            sessionStorage.removeItem('user');
-            document.cookie = 'jwt=; path=/; max-age=0;';
-            window.location.href = '/login';
-        }
-    </script>
+    <th:block th:fragment="logout-script">
+        <script th:src="@{/js/layout/header-layout.js}"></script>
+    </th:block>
 
     <!-- Join Class Modal Fragment -->
     <div th:fragment="student-modals">
@@ -570,107 +341,9 @@
     </div>
 
     <!-- Notification Scripts Fragment -->
-    <script th:fragment="notification-scripts">
-        (function () {
-            document.addEventListener('DOMContentLoaded', function () {
-                updateUnreadCount();
-                // Tự động cập nhật mỗi 1 phút
-                setInterval(updateUnreadCount, 60000);
-            });
-
-            window.updateUnreadCount = async function () {
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                if (!token) return;
-                try {
-                    const res = await fetch('/api/notifications/unread-count', {
-                        headers: { 'Authorization': 'Bearer ' + token }
-                    });
-                    if (res.ok) {
-                        const count = await res.json();
-                        const badge = document.getElementById('unreadCount');
-                        if (badge) {
-                            badge.style.display = count > 0 ? 'block' : 'none';
-                        }
-                    }
-                } catch (e) { }
-            }
-
-            window.loadNotifications = async function () {
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                const list = document.getElementById('notificationList');
-                if (!list) return;
-
-                try {
-                    const res = await fetch('/api/notifications', {
-                        headers: { 'Authorization': 'Bearer ' + token }
-                    });
-                    if (res.ok) {
-                        const notifications = await res.json();
-                        if (notifications.length === 0) {
-                            list.innerHTML = '<div class="p-4 text-center text-muted small">Không có thông báo nào</div>';
-                            return;
-                        }
-                        list.innerHTML = notifications.map(n => `
-                            <div class="notification-item p-3 border-bottom ${n.read ? '' : 'bg-light'}" onclick="handleNotificationClick(${n.id}, '${n.link}')" style="cursor: pointer; transition: background 0.2s;">
-                                <div class="d-flex gap-3">
-                                    <div class="notification-icon-sm text-primary">
-                                        <i class="bi ${getNotificationIcon(n.type)}"></i>
-                                    </div>
-                                    <div>
-                                        <h6 class="mb-1 fw-bold" style="font-size: 14px;">${n.title}</h6>
-                                        <p class="mb-1 text-muted small" style="line-height: 1.4;">${n.message}</p>
-                                        <small class="text-primary" style="font-size: 11px;">${formatTime(n.createdAt)}</small>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('');
-                    }
-                } catch (e) {
-                    list.innerHTML = '<div class="p-3 text-center text-danger small">Lỗi tải thông báo</div>';
-                }
-            }
-
-            function getNotificationIcon(type) {
-                switch (type) {
-                    case 'QUESTION_APPROVED': return 'bi-check-circle-fill text-success';
-                    case 'QUESTION_REJECTED': return 'bi-x-circle-fill text-danger';
-                    case 'JOIN_REQUEST': return 'bi-person-plus-fill text-primary';
-                    case 'JOIN_APPROVED': return 'bi-person-check-fill text-success';
-                    case 'QUIZ_SUBMITTED': return 'bi-file-earmark-check-fill text-info';
-                    case 'QUIZ_ASSIGNED': return 'bi-journal-check text-primary';
-                    case 'JOIN_REJECTED': return 'bi-x-circle-fill text-danger';
-                    default: return 'bi-info-circle-fill';
-                }
-            }
-
-            window.handleNotificationClick = async function (id, link) {
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                await fetch(`/api/notifications/${id}/read`, {
-                    method: 'PUT',
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                if (link) window.location.href = link;
-                else updateUnreadCount();
-            }
-
-            window.markAllAsRead = async function () {
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                const res = await fetch('/api/notifications/read-all', {
-                    method: 'PUT',
-                    headers: { 'Authorization': 'Bearer ' + token }
-                });
-                if (res.ok) {
-                    updateUnreadCount();
-                    loadNotifications();
-                }
-            }
-
-            function formatTime(dateTimeStr) {
-                const date = new Date(dateTimeStr);
-                return date.toLocaleDateString('vi-VN') + ' ' + date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-            }
-        })();
-    </script>
+    <th:block th:fragment="notification-scripts">
+        <script th:src="@{/js/layout/notifications.js}"></script>
+    </th:block>
     <div id="toast-container"></div>
 
 </body>

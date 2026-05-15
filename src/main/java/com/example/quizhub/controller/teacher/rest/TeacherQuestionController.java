@@ -65,6 +65,7 @@ public class TeacherQuestionController {
     public ResponseEntity<Page<QuestionResponseDTO>> getQuestionsByTeacher(
             @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) QuestionType type,
+            @RequestParam(required = false) com.example.quizhub.entity.enums.QuestionLevel level,
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "false") Boolean isPublicTab,
             @RequestParam(defaultValue = "0") int page,
@@ -76,10 +77,10 @@ public class TeacherQuestionController {
 
         if (isPublicTab) {
             // Lấy kho hệ thống
-            response = questionService.searchPublicQuestion(categoryId, type, keyword, page, size, sortBy, sortDir);
+            response = questionService.searchPublicQuestion(categoryId, type, level, keyword, page, size, sortBy, sortDir);
         } else {
             // Lấy kho cá nhân
-            response = questionService.searchMyQuestion(getCurrentUserId(), categoryId, type, keyword, page, size, sortBy, sortDir);
+            response = questionService.searchMyQuestion(getCurrentUserId(), categoryId, type, level, keyword, page, size, sortBy, sortDir);
         }
 
         return ResponseEntity.ok(response);

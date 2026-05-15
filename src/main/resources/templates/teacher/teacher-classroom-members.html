@@ -52,13 +52,7 @@
     </style>
 </head>
 <body>
-    <script>
-        (function () {
-            if (localStorage.getItem('sidebar-collapsed') === 'true') {
-                document.body.classList.add('sidebar-collapsed');
-            }
-        })();
-    </script>
+
 
     <!-- Sidebar Fragment -->
     <aside th:replace="~{layout/sidebar :: teacher-sidebar('classrooms')}"></aside>
@@ -234,15 +228,7 @@
                 return new bootstrap.Popover(popoverTriggerEl)
             });
 
-            // Sidebar Toggle
-            const toggleBtn = document.querySelector('.toggle-btn');
-            const body = document.querySelector('body');
-            if (toggleBtn) {
-                toggleBtn.addEventListener('click', () => {
-                    body.classList.toggle('sidebar-collapsed');
-                    localStorage.setItem('sidebar-collapsed', body.classList.contains('sidebar-collapsed'));
-                });
-            }
+
         });
 
         function confirmRemoveStudent(btn) {
