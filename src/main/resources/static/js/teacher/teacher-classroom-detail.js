@@ -462,4 +462,18 @@
             modal.show();
         }
     };
+
+    // --- Initialization ---
+    document.addEventListener('DOMContentLoaded', () => {
+        flatpickr('.flatpickr-datetime', {
+            enableTime: true,
+            altInput: true,
+            altFormat: "d/m/Y H:i",
+            dateFormat: "Y-m-dTH:i",
+            time_24hr: true,
+            locale: "vn",
+            allowInput: true,
+            minDate: "today"
+        });
+    });
 })();

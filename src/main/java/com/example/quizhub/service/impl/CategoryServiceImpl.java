@@ -57,7 +57,8 @@ public class CategoryServiceImpl implements CategoryService {
         // JOIN FETCH đảm bảo parent được load trong transaction
         List<Category> publicCats = categoryRepository.findAllPublicWithParent();
         List<CategoryResponseDTO> dtos = buildTree(publicCats, null);
-        attachPublicQuizCount(dtos);
+        List<Category> allCategories = categoryRepository.findAll();
+        attachPublicQuizCount(dtos, allCategories);
         return dtos;
     }
 
@@ -67,7 +68,8 @@ public class CategoryServiceImpl implements CategoryService {
         // JOIN FETCH đảm bảo parent được load trong transaction
         List<Category> myCats = categoryRepository.findAllByCreatorIdWithParent(me.getId());
         List<CategoryResponseDTO> dtos = buildTree(myCats, null);
-        attachMyQuizCount(dtos, me.getId());
+        List<Category> allCategories = categoryRepository.findAll();
+        attachMyQuizCount(dtos, me.getId(), allCategories);
         return dtos;
     }
 
@@ -90,22 +92,22 @@ public class CategoryServiceImpl implements CategoryService {
         return roots;
     }
 
-    private void attachPublicQuizCount(List<CategoryResponseDTO> dtos) {
+    private void attachPublicQuizCount(List<CategoryResponseDTO> dtos, List<Category> allCategories) {
         for (CategoryResponseDTO dto : dtos) {
-            List<Long> allIds = getAllDescendantIds(dto.getId());
+            List<Long> allIds = getAllDescendantIds(dto.getId(), allCategories);
             // Đối với danh mục công khai, đếm số câu hỏi thay vì số đề thi
             long count = questionRepository.countPublicQuestionsByCategories(allIds, QuestionStatus.PUBLIC);
             dto.setQuizCount(count);
-            if (dto.getChildren() != null) attachPublicQuizCount(dto.getChildren());
+            if (dto.getChildren() != null) attachPublicQuizCount(dto.getChildren(), allCategories);
         }
     }
 
-    private void attachMyQuizCount(List<CategoryResponseDTO> dtos, Long creatorId) {
+    private void attachMyQuizCount(List<CategoryResponseDTO> dtos, Long creatorId, List<Category> allCategories) {
         for (CategoryResponseDTO dto : dtos) {
-            List<Long> allIds = getAllDescendantIds(dto.getId());
+            List<Long> allIds = getAllDescendantIds(dto.getId(), allCategories);
             long count = quizRepository.countByCategoryIdInAndCreatorId(allIds, creatorId);
             dto.setQuizCount(count);
-            if (dto.getChildren() != null) attachMyQuizCount(dto.getChildren(), creatorId);
+            if (dto.getChildren() != null) attachMyQuizCount(dto.getChildren(), creatorId, allCategories);
         }
     }
 
@@ -234,6 +236,10 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional(readOnly = true)
     public List<Long> getAllDescendantIds(Long categoryId) {
         List<Category> allCategories = categoryRepository.findAll();
+        return getAllDescendantIds(categoryId, allCategories);
+    }
+
+    private List<Long> getAllDescendantIds(Long categoryId, List<Category> allCategories) {
         List<Long> descendantIds = new ArrayList<>();
         if (categoryId == null) return descendantIds;
         

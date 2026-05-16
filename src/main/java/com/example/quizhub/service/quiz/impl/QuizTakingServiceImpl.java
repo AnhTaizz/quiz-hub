@@ -65,6 +65,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
     private final AttemptViolationRepository attemptViolationRepository;
     private final QuizRepository quizRepository;
     private final NotificationService notificationService;
+    private final com.example.quizhub.repository.ClassJoiningRepository classJoiningRepository;
 
     @Override
     @Transactional
@@ -74,14 +75,12 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         QuizAssigning quizAssigning = quizAssigningRepository.findById(quizAssigningId)
                 .orElseThrow(() -> new AppException(ErrorCode.QUIZ_NOT_FOUND));
 
-        // Check quiz schedule
-        LocalDateTime now = LocalDateTime.now();
-        if (quizAssigning.getStartDate() != null && now.isBefore(quizAssigning.getStartDate())) {
-            throw new AppException(ErrorCode.QUIZ_NOT_STARTED);
-        }
-        if (quizAssigning.getDueDate() != null && now.isAfter(quizAssigning.getDueDate())) {
-            throw new AppException(ErrorCode.QUIZ_EXPIRED);
-        }
+        validateQuizSchedule(quizAssigning);
+
+        // Check if student is in the class
+        classJoiningRepository.findByClassroomIdAndLearnerId(quizAssigning.getClassroom().getId(), studentId)
+                .filter(cj -> cj.getStatus() == com.example.quizhub.entity.enums.JoinStatus.APPROVED)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_CLASS));
 
         Quiz quiz = quizAssigning.getQuiz();
         QuizTaking quizTaking = quizTakingRepository.findByLearnerIdAndQuizAssigningId(studentId, quizAssigningId)
@@ -184,28 +183,14 @@ public class QuizTakingServiceImpl implements QuizTakingService {
     @Transactional
     public void saveAnswer(Long studentId, Long attemptId, Long questionId,
             SaveAnswerRequestDTO request) {
-        Attempt attempt = attemptRepository.findById(attemptId)
-                .orElseThrow(() -> new AppException(ErrorCode.ATTEMPT_NOT_FOUND));
-
-        if (!attempt.getQuizTaking().getLearner().getId().equals(studentId)) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
+        Attempt attempt = getValidAttempt(attemptId, studentId);
 
         if (attempt.getEndedAt() != null) {
             throw new AppException(ErrorCode.ATTEMPT_ALREADY_SUBMITTED);
         }
 
         // Check schedule if assigned
-        QuizAssigning quizAssigning = attempt.getQuizTaking().getQuizAssigning();
-        if (quizAssigning != null) {
-            LocalDateTime now = LocalDateTime.now();
-            if (quizAssigning.getStartDate() != null && now.isBefore(quizAssigning.getStartDate())) {
-                throw new AppException(ErrorCode.QUIZ_NOT_STARTED);
-            }
-            if (quizAssigning.getDueDate() != null && now.isAfter(quizAssigning.getDueDate())) {
-                throw new AppException(ErrorCode.QUIZ_EXPIRED);
-            }
-        }
+        validateQuizSchedule(attempt.getQuizTaking().getQuizAssigning());
 
         // Remove old answers for this question in this attempt
         userAttemptAnswerRepository.deleteByAttemptIdAndQuestionId(attemptId, questionId);
@@ -220,18 +205,26 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                     .timestamp(LocalDateTime.now())
                     .build();
             userAttemptAnswerRepository.save(uaa);
-        } else if (request.getAnswerIds() != null) {
-            for (Long answerId : request.getAnswerIds()) {
-                Answer answer = answerRepository.findById(answerId)
-                        .orElseThrow(() -> new AppException(ErrorCode.ANSWER_NOT_FOUND));
+        } else if (request.getAnswerIds() != null && !request.getAnswerIds().isEmpty()) {
+            List<UserAttemptAnswer> answersToSave = new java.util.ArrayList<>();
+            Map<Long, Answer> answerMap = answerRepository.findAllById(request.getAnswerIds()).stream()
+                    .collect(Collectors.toMap(Answer::getId, a -> a));
 
-                UserAttemptAnswer uaa = UserAttemptAnswer.builder()
+            for (Long answerId : request.getAnswerIds()) {
+                Answer answer = answerMap.get(answerId);
+                if (answer == null) {
+                    throw new AppException(ErrorCode.ANSWER_NOT_FOUND);
+                }
+
+                answersToSave.add(UserAttemptAnswer.builder()
                         .attempt(attempt)
                         .question(question)
                         .answer(answer)
                         .timestamp(LocalDateTime.now())
-                        .build();
-                userAttemptAnswerRepository.save(uaa);
+                        .build());
+            }
+            if (!answersToSave.isEmpty()) {
+                userAttemptAnswerRepository.saveAll(answersToSave);
             }
         }
     }
@@ -315,28 +308,14 @@ public class QuizTakingServiceImpl implements QuizTakingService {
     @Override
     @Transactional
     public Attempt submitQuizAttempt(Long studentId, QuizSubmitRequestDTO requestDTO) {
-        Attempt attempt = attemptRepository.findById(requestDTO.getAttemptId())
-                .orElseThrow(() -> new AppException(ErrorCode.ATTEMPT_NOT_FOUND));
-
-        if (!attempt.getQuizTaking().getLearner().getId().equals(studentId)) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
+        Attempt attempt = getValidAttempt(requestDTO.getAttemptId(), studentId);
 
         if (attempt.getEndedAt() != null) {
             throw new AppException(ErrorCode.ATTEMPT_ALREADY_SUBMITTED);
         }
 
         // Check schedule if assigned
-        QuizAssigning quizAssigning = attempt.getQuizTaking().getQuizAssigning();
-        if (quizAssigning != null) {
-            LocalDateTime now = LocalDateTime.now();
-            if (quizAssigning.getStartDate() != null && now.isBefore(quizAssigning.getStartDate())) {
-                throw new AppException(ErrorCode.QUIZ_NOT_STARTED);
-            }
-            if (quizAssigning.getDueDate() != null && now.isAfter(quizAssigning.getDueDate())) {
-                throw new AppException(ErrorCode.QUIZ_EXPIRED);
-            }
-        }
+        validateQuizSchedule(attempt.getQuizTaking().getQuizAssigning());
 
         Quiz quiz = attempt.getQuizTaking().getQuiz();
         int totalQuestion = attempt.getTotalQuestNum();
@@ -348,6 +327,20 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                         QuestionSubmitRequestDTO::getQuestionId,
                         q -> q,
                         (existing, replacement) -> existing));
+
+        userAttemptAnswerRepository.deleteByAttemptId(attempt.getId());
+        List<UserAttemptAnswer> answersToSave = new java.util.ArrayList<>();
+
+        List<Long> allSubmittedAnswerIds = new java.util.ArrayList<>();
+        if (requestDTO.getQuestions() != null) {
+            for (QuestionSubmitRequestDTO qReq : requestDTO.getQuestions()) {
+                if (qReq.getAnswerIds() != null) {
+                    allSubmittedAnswerIds.addAll(qReq.getAnswerIds());
+                }
+            }
+        }
+        Map<Long, Answer> answerMap = answerRepository.findAllById(allSubmittedAnswerIds).stream()
+                .collect(Collectors.toMap(Answer::getId, a -> a));
 
         // Chấm điểm từng câu
         for (Question question : quiz.getQuestions()) {
@@ -363,8 +356,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                 if (isCorrect)
                     correctCount++;
 
-                userAttemptAnswerRepository.deleteByAttemptIdAndQuestionId(attempt.getId(), question.getId());
-                userAttemptAnswerRepository.save(UserAttemptAnswer.builder()
+                answersToSave.add(UserAttemptAnswer.builder()
                         .attempt(attempt)
                         .question(question)
                         .selectedText(studentText)
@@ -383,12 +375,13 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                     correctCount++;
                 }
 
-                userAttemptAnswerRepository.deleteByAttemptIdAndQuestionId(attempt.getId(), question.getId());
                 for (Long answerId : submitedAnswersIds) {
-                    Answer answer = answerRepository.findById(answerId)
-                            .orElseThrow(() -> new AppException(ErrorCode.ANSWER_NOT_FOUND));
+                    Answer answer = answerMap.get(answerId);
+                    if (answer == null) {
+                        throw new AppException(ErrorCode.ANSWER_NOT_FOUND);
+                    }
 
-                    userAttemptAnswerRepository.save(UserAttemptAnswer.builder()
+                    answersToSave.add(UserAttemptAnswer.builder()
                             .attempt(attempt)
                             .question(question)
                             .answer(answer)
@@ -396,6 +389,10 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                             .build());
                 }
             }
+        }
+
+        if (!answersToSave.isEmpty()) {
+            userAttemptAnswerRepository.saveAll(answersToSave);
         }
 
         // Tính điểm
@@ -431,12 +428,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
 
     @Override
     public QuizResultResponseDTO getQuizResult(Long studentId, Long attemptId) {
-        Attempt attempt = attemptRepository.findById(attemptId)
-                .orElseThrow(() -> new AppException(ErrorCode.ATTEMPT_NOT_FOUND));
-
-        if (!attempt.getQuizTaking().getLearner().getId().equals(studentId)) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
+        Attempt attempt = getValidAttempt(attemptId, studentId);
 
         Quiz quiz = attempt.getQuizTaking().getQuiz();
         QuizAssigning quizAssigning = attempt.getQuizTaking().getQuizAssigning();
@@ -533,8 +525,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
     @Override
     @Transactional
     public Attempt recordViolation(ViolationRequestDTO request) {
-        Attempt attempt = attemptRepository.findById(request.getAttemptId())
-                .orElseThrow(() -> new AppException(ErrorCode.ATTEMPT_NOT_FOUND));
+        Attempt attempt = getValidAttempt(request.getAttemptId(), null); // Simplified for now as student context isn't passed here
 
         if (attempt.getEndedAt() != null) {
             return attempt;
@@ -645,27 +636,14 @@ public class QuizTakingServiceImpl implements QuizTakingService {
     @Override
     @Transactional(readOnly = true)
     public QuizTakingResponseDTO getQuizTakingState(Long studentId, Long attemptId) {
-        Attempt attempt = attemptRepository.findById(attemptId)
-                .orElseThrow(() -> new AppException(ErrorCode.ATTEMPT_NOT_FOUND));
-
-        if (!attempt.getQuizTaking().getLearner().getId().equals(studentId)) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
+        Attempt attempt = getValidAttempt(attemptId, studentId);
 
         QuizTaking quizTaking = attempt.getQuizTaking();
         Quiz quiz = quizTaking.getQuiz();
         QuizAssigning quizAssigning = quizTaking.getQuizAssigning();
 
         // Check schedule if assigned
-        if (quizAssigning != null) {
-            LocalDateTime now = LocalDateTime.now();
-            if (quizAssigning.getStartDate() != null && now.isBefore(quizAssigning.getStartDate())) {
-                throw new AppException(ErrorCode.QUIZ_NOT_STARTED);
-            }
-            if (quizAssigning.getDueDate() != null && now.isAfter(quizAssigning.getDueDate())) {
-                throw new AppException(ErrorCode.QUIZ_EXPIRED);
-            }
-        }
+        validateQuizSchedule(quizAssigning);
 
         return buildQuizTakingResponseDTO(attempt, quiz, quizAssigning);
     }
@@ -714,5 +692,27 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                 .questions(questionDTOs)
                 .selectedAnswers(selectedAnswers)
                 .build();
+    }
+
+    private void validateQuizSchedule(QuizAssigning quizAssigning) {
+        if (quizAssigning != null) {
+            LocalDateTime now = LocalDateTime.now();
+            if (quizAssigning.getStartDate() != null && now.isBefore(quizAssigning.getStartDate())) {
+                throw new AppException(ErrorCode.QUIZ_NOT_STARTED);
+            }
+            if (quizAssigning.getDueDate() != null && now.isAfter(quizAssigning.getDueDate())) {
+                throw new AppException(ErrorCode.QUIZ_EXPIRED);
+            }
+        }
+    }
+
+    private Attempt getValidAttempt(Long attemptId, Long studentId) {
+        Attempt attempt = attemptRepository.findById(attemptId)
+                .orElseThrow(() -> new AppException(ErrorCode.ATTEMPT_NOT_FOUND));
+
+        if (studentId != null && !attempt.getQuizTaking().getLearner().getId().equals(studentId)) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+        return attempt;
     }
 }

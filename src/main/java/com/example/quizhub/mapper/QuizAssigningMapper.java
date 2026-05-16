@@ -24,5 +24,6 @@ public interface QuizAssigningMapper {
     @Mapping(target = "quiz", ignore = true)      // Sẽ set tay trong service
     @Mapping(target = "topic", ignore = true)     // Sẽ set tay trong service
     @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "isDeleted", ignore = true)
     QuizAssigning toEntity(QuizAssigningRequestDTO requestDTO);
 }

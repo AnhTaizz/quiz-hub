@@ -13,7 +13,10 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.example.quizhub.dto.ErrorResponse;
 
+import lombok.extern.slf4j.Slf4j;
+
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandle {
     @ExceptionHandler(AppException.class)
     public ResponseEntity<ErrorResponse> handleAppException(AppException e) {
@@ -29,12 +32,12 @@ public class GlobalExceptionHandle {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException e) {
-        e.printStackTrace();
+        log.error("Unhandled Exception: ", e);
         ErrorCode errorCode = ErrorCode.UNCATEGORIZED_EXCEPTION;
         ErrorResponse errorResponse = ErrorResponse.builder()
                 .code(errorCode.getCode())
                 .status(errorCode.getStatusCode().value())
-                .message(e.getClass().getSimpleName() + ": " + e.getMessage())
+                .message("Đã có lỗi hệ thống xảy ra, vui lòng thử lại sau.")
                 .timestamp(LocalDateTime.now())
                 .build();
         return ResponseEntity.status(errorCode.getStatusCode()).body(errorResponse);
