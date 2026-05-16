@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuizHub | Phòng thi trực tuyến</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Nunito+Sans:wght@700;800;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Nunito+Sans:wght@700;800;900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/style.css}">
-    
+
     <style>
         :root {
             --exam-primary: #1e1b4b;
@@ -43,7 +46,7 @@
             align-items: center;
             padding: 0 40px;
             border-bottom: 2px solid #f1f5f9;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.02);
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.02);
         }
 
         .exam-logo {
@@ -91,7 +94,7 @@
             font-family: 'Nunito Sans', sans-serif;
             transition: all 0.3s ease;
         }
-        
+
         .timer-warning {
             background: #fee2e2 !important;
             border-color: #fecaca !important;
@@ -100,9 +103,17 @@
         }
 
         @keyframes timerPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
 
         .timer-text {
@@ -111,7 +122,7 @@
             letter-spacing: 1px;
             color: #334155;
         }
-        
+
         .timer-warning .timer-text {
             color: #ef4444;
         }
@@ -185,7 +196,7 @@
         .toggle-btn-mode.active {
             background: #fff;
             color: #10b981;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
         /* ── Full Mode Styles ── */
@@ -222,7 +233,7 @@
             padding: 25px;
             position: sticky;
             top: 110px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         }
 
         .q-grid {
@@ -232,10 +243,35 @@
             padding: 5px;
         }
 
-        .q-dot { position: relative; overflow: hidden; width: 36px; height: 36px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; border: 2px solid #f1f5f9; background: #fff; color: #64748b; }
-        .q-dot:hover { border-color: #4f46e5; color: #4f46e5; }
+        .q-dot {
+            position: relative;
+            overflow: hidden;
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid #f1f5f9;
+            background: #fff;
+            color: #64748b;
+        }
 
-        .q-dot.active { background: #eef2ff; color: #4f46e5; border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2); }
+        .q-dot:hover {
+            border-color: #4f46e5;
+            color: #4f46e5;
+        }
+
+        .q-dot.active {
+            background: #eef2ff;
+            color: #4f46e5;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+        }
 
         .q-dot.answered {
             background: var(--exam-accent);
@@ -255,7 +291,7 @@
             background: white;
             border-radius: 24px;
             padding: 40px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
             margin-bottom: 25px;
             min-height: 450px;
             position: relative;
@@ -267,7 +303,8 @@
             gap: 10px;
         }
 
-        .q-type-badge, .q-level-badge {
+        .q-type-badge,
+        .q-level-badge {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -284,9 +321,23 @@
             border: 1px solid #e2e8f0;
         }
 
-        .q-level-badge.level-easy { background: #dcfce7; color: #15803d; border-color: #bbf7d0; }
-        .q-level-badge.level-medium { background: #fef3c7; color: #d97706; border-color: #fde68a; }
-        .q-level-badge.level-hard { background: #fee2e2; color: #dc2626; border-color: #fecaca; }
+        .q-level-badge.level-easy {
+            background: #dcfce7;
+            color: #15803d;
+            border-color: #bbf7d0;
+        }
+
+        .q-level-badge.level-medium {
+            background: #fef3c7;
+            color: #d97706;
+            border-color: #fde68a;
+        }
+
+        .q-level-badge.level-hard {
+            background: #fee2e2;
+            color: #dc2626;
+            border-color: #fecaca;
+        }
 
         .q-text {
             font-size: 1.4rem;
@@ -353,11 +404,45 @@
         }
 
         /* ── Toast ── */
-        #toastWrap { position:fixed; top:22px; right:22px; z-index:9999; display:flex; flex-direction:column; gap:8px; }
-        .toast-msg { background:#1e1b4b; color:#fff; border-radius:14px; padding:12px 18px; font-weight:600; font-size:0.88rem; display:flex; align-items:center; gap:9px; box-shadow:0 8px 24px rgba(0,0,0,0.18); opacity:0; transform:translateX(16px); transition:all 0.3s ease; pointer-events:none; }
-        .toast-msg.show { opacity:1; transform:translateX(0); }
-        .toast-msg.ok i { color:#4ade80; }
-        .toast-msg.err i { color:#fb7185; }
+        #toastWrap {
+            position: fixed;
+            top: 22px;
+            right: 22px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast-msg {
+            background: #1e1b4b;
+            color: #fff;
+            border-radius: 14px;
+            padding: 12px 18px;
+            font-weight: 600;
+            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+            opacity: 0;
+            transform: translateX(16px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .toast-msg.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .toast-msg.ok i {
+            color: #4ade80;
+        }
+
+        .toast-msg.err i {
+            color: #fb7185;
+        }
 
         /* ── Fill in Blank ── */
         .fill-input {
@@ -371,6 +456,7 @@
             outline: none;
             transition: all 0.2s;
         }
+
         .fill-input:focus {
             border-color: var(--exam-accent);
             background: #f8fafc;
@@ -387,7 +473,7 @@
             font-weight: 800;
             box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
         }
-        
+
         .btn-submit:hover {
             background: #059669;
             transform: translateY(-2px);
@@ -415,16 +501,79 @@
         }
 
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
-        .error-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); z-index: 9999; display: none; align-items: center; justify-content: center; text-align: center; padding: 20px; }
-        .error-content { max-width: 500px; background: #fff; padding: 40px; border-radius: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); border: 1px solid #eee; }
-        .error-icon { font-size: 80px; margin-bottom: 24px; display: inline-block; }
-        .error-title { font-size: 24px; font-weight: 800; color: #1e293b; margin-bottom: 12px; }
-        .error-msg { color: #64748b; font-size: 16px; margin-bottom: 30px; line-height: 1.6; }
-        .btn-back { background: #312e81; color: #fff; border: none; padding: 14px 32px; border-radius: 50px; font-weight: 700; font-size: 16px; transition: all 0.3s ease; text-decoration: none; display: inline-block; }
-        .btn-back:hover { background: #1e1b4b; transform: translateY(-5px); box-shadow: 0 10px 20px rgba(49, 46, 129, 0.2); color: #fff; }
+
+        .error-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .error-content {
+            max-width: 500px;
+            background: #fff;
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid #eee;
+        }
+
+        .error-icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+            display: inline-block;
+        }
+
+        .error-title {
+            font-size: 24px;
+            font-weight: 800;
+            color: #1e293b;
+            margin-bottom: 12px;
+        }
+
+        .error-msg {
+            color: #64748b;
+            font-size: 16px;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .btn-back {
+            background: #312e81;
+            color: #fff;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-back:hover {
+            background: #1e1b4b;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(49, 46, 129, 0.2);
+            color: #fff;
+        }
 
         /* Fullscreen Enforcement Styles */
         #fullscreenOverlay {
@@ -439,24 +588,38 @@
             text-align: center;
             color: white;
         }
+
         .fs-card {
             max-width: 500px;
             padding: 40px;
             background: #fff;
             border-radius: 30px;
             color: #1e293b;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
         }
+
         .fs-icon {
             font-size: 4rem;
             color: #4f46e5;
             margin-bottom: 20px;
             animation: pulse-purple 2s infinite;
         }
+
         @keyframes pulse-purple {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.7; }
-            100% { transform: scale(1); opacity: 1; }
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 0.7;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         /* ── Flag Feature ── */
@@ -506,6 +669,7 @@
         }
     </style>
 </head>
+
 <body th:data-assigning-id="${quizId}">
 
     <div id="pageLoading">
@@ -521,7 +685,7 @@
             </div>
             <h3 class="fw-bold mb-3">Yêu cầu Toàn màn hình</h3>
             <p class="text-muted mb-4" id="fsMessage">
-                Để đảm bảo tính công bằng, bài thi yêu cầu hoạt động ở chế độ toàn màn hình. 
+                Để đảm bảo tính công bằng, bài thi yêu cầu hoạt động ở chế độ toàn màn hình.
                 Bạn sẽ không thể làm bài nếu thoát chế độ này.
             </p>
             <button class="btn btn-primary btn-lg rounded-pill px-5 fw-bold" onclick="requestFullScreen()">
@@ -555,8 +719,10 @@
                 <i class="bi bi-door-open me-1"></i>Thoát
             </button>
             <div class="user-mini d-none d-md-flex">
-                <span class="fw-bold small" th:text="${currentUser != null ? currentUser.fullName : 'Học Sinh'}">Học Sinh</span>
-                <img th:src="${currentUser != null && currentUser.avatarUrl != null && !currentUser.avatarUrl.isEmpty() ? currentUser.avatarUrl : 'https://ui-avatars.com/api/?name=' + (currentUser != null ? currentUser.fullName : 'Student') + '&background=10b981&color=fff'}" alt="Avatar">
+                <span class="fw-bold small" th:text="${currentUser != null ? currentUser.fullName : 'Học Sinh'}">Học
+                    Sinh</span>
+                <img th:src="${currentUser != null && currentUser.avatarUrl != null && !currentUser.avatarUrl.isEmpty() ? currentUser.avatarUrl : 'https://ui-avatars.com/api/?name=' + (currentUser != null ? currentUser.fullName : 'Student') + '&background=10b981&color=fff'}"
+                    alt="Avatar">
             </div>
         </div>
     </header>
@@ -656,10 +822,13 @@
                         <i class="bi bi-exclamation-circle" style="font-size: 4rem;"></i>
                     </div>
                     <h4 class="fw-bold">Xác nhận nộp bài?</h4>
-                    <p class="text-muted">Bạn vẫn còn <span id="remainingTimeInfo">--:--</span> thời gian. Bạn có chắc chắn muốn kết thúc bài thi ngay bây giờ?</p>
+                    <p class="text-muted">Bạn vẫn còn <span id="remainingTimeInfo">--:--</span> thời gian. Bạn có chắc
+                        chắn muốn kết thúc bài thi ngay bây giờ?</p>
                     <div class="d-flex gap-2 justify-content-center mt-4">
-                        <button class="btn btn-light px-4 rounded-pill fw-bold" data-bs-dismiss="modal">Kiểm tra lại</button>
-                        <button class="btn btn-primary px-4 rounded-pill fw-bold" onclick="executeSubmit()">Đồng ý nộp bài</button>
+                        <button class="btn btn-light px-4 rounded-pill fw-bold" data-bs-dismiss="modal">Kiểm tra
+                            lại</button>
+                        <button class="btn btn-primary px-4 rounded-pill fw-bold" onclick="executeSubmit()">Đồng ý nộp
+                            bài</button>
                     </div>
                 </div>
             </div>
@@ -674,10 +843,12 @@
                         <i class="bi bi-door-open-fill" style="font-size: 3rem;"></i>
                     </div>
                     <h5 class="fw-bold">Thoát phòng thi?</h5>
-                    <p class="small text-muted">Dữ liệu bài thi đang được lưu lại. Bạn có chắc chắn muốn rời đi? Hệ thống sẽ ghi nhận hành động này là một lần thoát bài thi sớm.</p>
+                    <p class="small text-muted">Dữ liệu bài thi đang được lưu lại. Bạn có chắc chắn muốn rời đi? Hệ
+                        thống sẽ ghi nhận hành động này là một lần thoát bài thi sớm.</p>
                     <div class="d-grid gap-2 mt-4">
                         <button class="btn btn-danger rounded-pill fw-bold" onclick="executeExit()">Thoát ngay</button>
-                        <button class="btn btn-light rounded-pill fw-bold" data-bs-dismiss="modal">Tiếp tục làm bài</button>
+                        <button class="btn btn-light rounded-pill fw-bold" data-bs-dismiss="modal">Tiếp tục làm
+                            bài</button>
                     </div>
                 </div>
             </div>
@@ -715,9 +886,9 @@
             const icon = document.getElementById('errorIcon');
 
             overlay.style.display = 'flex';
-            
+
             // Map error codes
-            switch(err.code) {
+            switch (err.code) {
                 case 1029: // QUIZ_EXPIRED
                     title.innerText = "Bài thi đã kết thúc";
                     msg.innerText = "Rất tiếc, thời gian làm bài của kỳ thi này đã hết. Bạn không thể bắt đầu lượt làm bài mới.";
@@ -815,7 +986,7 @@
 
             const mins = Math.floor(diff / 1000 / 60);
             const secs = Math.floor((diff / 1000) % 60);
-            
+
             const display = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
             document.getElementById('timerDisplay').textContent = display;
 
@@ -828,10 +999,10 @@
             viewMode = mode;
             document.getElementById('btnSingleMode').classList.toggle('active', mode === 'single');
             document.getElementById('btnFullMode').classList.toggle('active', mode === 'full');
-            
+
             document.getElementById('singleModeView').style.display = mode === 'single' ? 'block' : 'none';
             document.getElementById('fullModeView').style.display = mode === 'full' ? 'block' : 'none';
-            
+
             renderView();
             renderGrid();
         }
@@ -848,7 +1019,7 @@
             const q = quizData.questions[currentIndex];
             document.getElementById('qNumber').textContent = `Câu ${currentIndex + 1}`;
             document.getElementById('qType').textContent = q.type === 'SINGLE_CHOICE' ? 'CHỌN MỘT ĐÁP ÁN' : (q.type === 'FILL_IN_BLANK' ? 'ĐIỀN KHUYẾT' : 'CHỌN NHIỀU ĐÁP ÁN');
-            
+
             // Update Flag Button
             const btnFlag = document.getElementById('btnFlag');
             if (flaggedQuestions.has(q.id)) {
@@ -862,7 +1033,7 @@
             const meta = document.querySelector('.q-meta');
             const existingLevel = meta.querySelector('.q-level-badge');
             if (existingLevel) existingLevel.remove();
-            
+
             const levelBadge = document.createElement('span');
             levelBadge.className = `q-level-badge level-${(q.level || 'medium').toLowerCase()}`;
             levelBadge.textContent = q.level || 'MEDIUM';
@@ -911,14 +1082,14 @@
                 const qDiv = document.createElement('div');
                 qDiv.className = 'full-mode-question';
                 qDiv.id = `q-full-${idx}`;
-                
+
                 let answersHtml = '';
                 if (q.type === 'FILL_IN_BLANK') {
                     answersHtml = `<input type="text" class="fill-input" placeholder="Nhập câu trả lời..." value="${userAnswers[q.id] || ''}" oninput="handleFillInput(${q.id}, this.value, true)">`;
                 } else {
                     q.answers.forEach((ans, i) => {
                         answersHtml += `
-                            <div class="answer-opt ${isAnswerSelected(q.id, ans.id) ? 'selected' : ''}" 
+                            <div class="answer-opt ${isAnswerSelected(q.id, ans.id) ? 'selected' : ''}"
                                  onclick="toggleAnswer(${q.id}, ${ans.id}, '${q.type}')">
                                 <div class="opt-prefix">${String.fromCharCode(65 + i)}</div>
                                 <div class="opt-text">${ans.text}</div>
@@ -971,7 +1142,7 @@
                 if (idx > -1) userAnswers[qId].splice(idx, 1);
                 else userAnswers[qId].push(ansId);
             }
-            
+
             saveToLocal();
             saveToServer(qId, userAnswers[qId]);
             renderView();
@@ -1020,7 +1191,7 @@
             try {
                 await fetch(`/api/student/quiz/save-answer?attemptId=${quizData.attemptId}&questionId=${qId}`, {
                     method: 'POST',
-                    headers: { 
+                    headers: {
                         'Authorization': 'Bearer ' + token,
                         'Content-Type': 'application/json'
                     },
@@ -1038,7 +1209,7 @@
                 const dot = document.createElement('div');
                 const isAnswered = isQuestionAnswered(q.id);
                 const isFlagged = flaggedQuestions.has(q.id);
-                
+
                 dot.className = `q-dot ${i === currentIndex ? 'active' : ''} ${isAnswered ? 'answered' : ''} ${isFlagged ? 'flagged' : ''}`;
                 dot.textContent = i + 1;
                 dot.onclick = () => {
@@ -1107,7 +1278,7 @@
 
                 const response = await fetch('/api/student/quiz/submit', {
                     method: 'POST',
-                    headers: { 
+                    headers: {
                         'Authorization': 'Bearer ' + token,
                         'Content-Type': 'application/json'
                     },
@@ -1222,7 +1393,7 @@
         }
 
         async function logViolation(code, isBeacon = false) {
-            if(!quizData || !quizData.attemptId) return;
+            if (!quizData || !quizData.attemptId) return;
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             const url = '/api/student/quiz/log-violation';
             const data = JSON.stringify({
@@ -1239,7 +1410,7 @@
             try {
                 await fetch(url, {
                     method: 'POST',
-                    headers: { 
+                    headers: {
                         'Authorization': 'Bearer ' + token,
                         'Content-Type': 'application/json'
                     },
@@ -1253,10 +1424,10 @@
 
         function showToast(msg, type = 'ok') {
             const wrap = document.getElementById('toastWrap');
-            if(!wrap) return;
+            if (!wrap) return;
             const t = document.createElement('div');
             t.className = `toast-msg show ${type}`;
-            t.innerHTML = `<i class="bi ${type==='ok'?'bi-check-circle-fill':'bi-exclamation-triangle-fill'}"></i> <span>${msg}</span>`;
+            t.innerHTML = `<i class="bi ${type === 'ok' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}"></i> <span>${msg}</span>`;
             wrap.appendChild(t);
             setTimeout(() => {
                 t.classList.remove('show');
@@ -1265,4 +1436,5 @@
         }
     </script>
 </body>
+
 </html>

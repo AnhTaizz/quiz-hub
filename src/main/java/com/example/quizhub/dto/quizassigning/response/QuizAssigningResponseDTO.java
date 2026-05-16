@@ -1,6 +1,5 @@
 package com.example.quizhub.dto.quizassigning.response;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
