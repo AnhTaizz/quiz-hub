@@ -61,9 +61,9 @@ public class AdminDashboardController {
                 .pendingQuestions(questionRepository.countByQuestionStatus(QuestionStatus.PENDING))
                 .privateQuestions(questionRepository.countByQuestionStatus(QuestionStatus.PRIVATE))
                 // Score Distribution
-                .scoreLow(attemptRepository.countByResultLessThan(new BigDecimal("5.0")))
-                .scoreMedium(attemptRepository.countByResultBetween(new BigDecimal("5.0"), new BigDecimal("8.0")))
-                .scoreHigh(attemptRepository.countByResultGreaterThanEqual(new BigDecimal("8.0")))
+                .scoreLow(attemptRepository.countByResultLessThanAndEndedAtIsNotNull(new BigDecimal("5.0")))
+                .scoreMedium(attemptRepository.countByResultBetweenAndEndedAtIsNotNull(new BigDecimal("5.0"), new BigDecimal("8.0")))
+                .scoreHigh(attemptRepository.countByResultGreaterThanEqualAndEndedAtIsNotNull(new BigDecimal("8.0")))
                 // Recent Activity (Merged Attempts & Practices)
                 .recentAttempts(getCombinedRecentActivity())
                 .build();
@@ -75,7 +75,7 @@ public class AdminDashboardController {
         List<RecentAttemptResponse> activities = new ArrayList<>();
 
         // Add Recent Quiz Attempts
-        attemptRepository.findTop10ByOrderByStartedAtDesc().forEach(attempt -> {
+        attemptRepository.findTop10ByEndedAtIsNotNullOrderByStartedAtDesc().forEach(attempt -> {
             activities.add(RecentAttemptResponse.builder()
                     .id(attempt.getId())
                     .studentName(attempt.getQuizTaking().getLearner().getFullName())
@@ -87,7 +87,7 @@ public class AdminDashboardController {
         });
 
         // Add Recent Practices
-        practiceRepository.findTop10ByOrderByCreatedAtDesc().forEach(p -> {
+        practiceRepository.findTop10ByIsCompletedTrueOrderByCreatedAtDesc().forEach(p -> {
             BigDecimal score = BigDecimal.ZERO;
             if (p.getTotalQuestions() != null && p.getTotalQuestions() > 0) {
                 double calc = (p.getCorrectAnswers() * 10.0) / p.getTotalQuestions();

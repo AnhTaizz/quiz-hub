@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết bài làm - QuizHub</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Nunito+Sans:wght@700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard-layout.css}">
+
+    <style>
+        /* ── Summary Card ── */
+        .summary-card {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 28px 36px;
+            margin-bottom: 36px;
+            border: 1px solid var(--border, #e2e8f0);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        }
+
+        /* Score circle – clean ring style */
+        .score-ring {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: #eff6ff;
+            border: 6px solid #2563eb;
+            box-shadow: 0 0 0 4px #dbeafe, 0 6px 20px rgba(37,99,235,0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .score-ring .val { font-size: 28px; font-weight: 900; color: #2563eb; line-height: 1; }
+        .score-ring .lbl { font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.8px; margin-top: 3px; }
+
+        .quiz-meta-name { font-size: 20px; font-weight: 800; color: #1e293b; margin-bottom: 4px; }
+        .quiz-meta-date { font-size: 13px; color: #94a3b8; font-weight: 500; }
+
+        /* Stat pills on white bg */
+        .stat-pill {
+            display: flex; align-items: center; gap: 12px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 14px 20px;
+            min-width: 130px;
+            transition: all 0.2s;
+        }
+        .stat-pill:hover { background: #f1f5f9; border-color: #cbd5e1; transform: translateY(-2px); }
+        .stat-pill .sp-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+        .stat-pill .sp-val { font-size: 20px; font-weight: 800; color: #1e293b; line-height: 1; }
+        .stat-pill .sp-lbl { font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase; }
+
+        .sp-green .sp-icon { background: #dcfce7; color: #16a34a; }
+        .sp-red   .sp-icon { background: #fee2e2; color: #dc2626; }
+        .sp-slate .sp-icon { background: #f1f5f9; color: #64748b; }
+        .sp-blue  .sp-icon { background: #dbeafe; color: #2563eb; }
+
+        /* ── Question cards (identical to student page) ── */
+        .q-result-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+            transition: transform 0.2s;
+        }
+        .q-result-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.03); }
+
+        .q-badge, .q-level-badge {
+            font-size: 0.75rem;
+            font-weight: 800;
+            padding: 6px 12px;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 28px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid #e2e8f0;
+        }
+        .badge-correct   { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+        .badge-wrong     { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
+        .badge-warning   { background: #fef9c3; color: #854d0e; border-color: #fef08a; }
+        .q-level-badge.level-easy   { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+        .q-level-badge.level-medium { background: #fffbeb; color: #d97706; border-color: #fde68a; }
+        .q-level-badge.level-hard   { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
+
+        .ans-opt {
+            padding: 12px 18px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1.5px solid #f1f5f9;
+        }
+        .ans-opt.correct       { background: #f0fdf4; border-color: #22c55e; box-shadow: 0 0 0 1px #22c55e; }
+        .ans-opt.selected-wrong{ background: #fff1f2; border-color: #ef4444; box-shadow: 0 0 0 1px #ef4444; }
+
+        .opt-icon {
+            width: 24px; height: 24px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; font-size: 0.8rem;
+        }
+        .icon-correct { background: #4ade80; color: white; }
+        .icon-wrong   { background: #fb7185; color: white; }
+        .icon-none    { background: #e2e8f0; color: #94a3b8; }
+
+        /* ── Loading ── */
+        #resultLoading {
+            position: fixed; inset: 0; background: white;
+            z-index: 1000; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+        }
+        .loader-spinner {
+            width: 50px; height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* ── Section heading ── */
+        .review-title { margin-top: 40px; margin-bottom: 22px; font-weight: 800; color: #334155; }
+    </style>
+</head>
+<body>
+    <aside th:replace="~{layout/sidebar :: teacher-sidebar('classrooms')}"></aside>
+    <header th:replace="~{layout/header :: teacher-header}"></header>
+
+    <div id="resultLoading">
+        <div class="loader-spinner mb-3"></div>
+        <p class="fw-bold text-muted">Đang tải kết quả bài làm...</p>
+    </div>
+
+    <main id="main-content">
+        <div class="container-fluid py-4">
+
+            <!-- Back button -->
+            <div class="d-flex align-items-center mb-4">
+                <button class="btn btn-outline-secondary rounded-pill px-3 me-3" onclick="if(history.length > 1){ history.back(); } else { window.location.href='/teacher/classrooms'; }">
+                    <i class="bi bi-arrow-left me-1"></i> Quay lại
+                </button>
+                <h5 class="fw-800 m-0" style="color:#1e293b;">Chi tiết bài làm của học sinh</h5>
+            </div>
+
+            <div id="result-content" style="display:none;">
+                <!-- ── Summary Card ── -->
+                <div class="summary-card">
+                    <div class="d-flex flex-wrap align-items-center gap-4">
+                        <!-- Score ring -->
+                        <div class="score-ring">
+                            <span class="val" id="score-val">0.0</span>
+                            <span class="lbl">Điểm</span>
+                        </div>
+
+                        <!-- Name + date -->
+                        <div class="me-auto">
+                            <div class="quiz-meta-name" id="quiz-title">Đang tải...</div>
+                            <div class="quiz-meta-date" id="started-at">Ngày làm: ...</div>
+                        </div>
+
+                        <!-- Stat pills -->
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="stat-pill sp-green">
+                                <div class="sp-icon"><i class="bi bi-check-circle-fill"></i></div>
+                                <div>
+                                    <div class="sp-val" id="correct-num">0</div>
+                                    <div class="sp-lbl">Câu đúng</div>
+                                </div>
+                            </div>
+                            <div class="stat-pill sp-red">
+                                <div class="sp-icon"><i class="bi bi-x-circle-fill"></i></div>
+                                <div>
+                                    <div class="sp-val" id="incorrect-num">0</div>
+                                    <div class="sp-lbl">Câu sai</div>
+                                </div>
+                            </div>
+                            <div class="stat-pill sp-slate">
+                                <div class="sp-icon"><i class="bi bi-list-ol"></i></div>
+                                <div>
+                                    <div class="sp-val" id="total-num">0</div>
+                                    <div class="sp-lbl">Tổng câu</div>
+                                </div>
+                            </div>
+                            <div class="stat-pill sp-blue">
+                                <div class="sp-icon"><i class="bi bi-clock-fill"></i></div>
+                                <div>
+                                    <div class="sp-val" id="duration">0p</div>
+                                    <div class="sp-lbl">Thời gian</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Question Review ── -->
+                <h4 class="review-title"><i class="bi bi-journal-text me-2 text-primary"></i>Xem lại chi tiết từng câu</h4>
+                <div id="questionsReviewList"></div>
+            </div>
+
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:inline="javascript">
+        const attemptId = /*[[${attemptId}]]*/ null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+                const response = await fetch(`/api/teacher/classrooms/assigned-quizzes/attempts/${attemptId}/result`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (!response.ok) throw new Error('Không thể tải kết quả');
+                const data = await response.json();
+                renderSummary(data);
+                renderReview(data.questions);
+
+                document.getElementById('resultLoading').style.display = 'none';
+                document.getElementById('result-content').style.display = 'block';
+            } catch (error) {
+                console.error(error);
+                alert('Lỗi khi tải kết quả bài làm.');
+            }
+        });
+
+        function renderSummary(data) {
+            document.getElementById('score-val').textContent  = data.score !== null ? data.score.toFixed(1) : '—';
+            document.getElementById('quiz-title').textContent = data.quizTitle;
+            document.getElementById('correct-num').textContent   = data.correctNum ?? '—';
+            document.getElementById('incorrect-num').textContent = data.incorrectNum ?? '—';
+            document.getElementById('total-num').textContent     = data.totalNum ?? '—';
+
+            const start = new Date(data.startedAt);
+            const end   = new Date(data.endedAt);
+            const diffMs   = end - start;
+            const diffMins = Math.floor(diffMs / 1000 / 60);
+            const diffSecs = Math.floor((diffMs / 1000) % 60);
+            document.getElementById('duration').textContent  = `${diffMins}p ${diffSecs}s`;
+            document.getElementById('started-at').textContent = 'Ngày làm: ' + start.toLocaleString('vi-VN');
+        }
+
+        function renderReview(questions) {
+            const list = document.getElementById('questionsReviewList');
+            if (!questions || questions.length === 0) {
+                list.innerHTML = '<p class="text-muted text-center py-5">Không có dữ liệu chi tiết câu hỏi.</p>';
+                return;
+            }
+
+            list.innerHTML = '';
+            questions.forEach((q, idx) => {
+                const card = document.createElement('div');
+                card.className = 'q-result-card';
+
+                const canShowResult = q.isCorrect !== null;
+                const hasAnswered = q.type === 'FILL_IN_BLANK'
+                    ? (q.selectedText && q.selectedText.trim() !== '')
+                    : (q.selectedAnswerIds && q.selectedAnswerIds.length > 0);
+
+                let badge = '';
+                if (canShowResult) {
+                    if (q.isCorrect) {
+                        badge = '<span class="q-badge badge-correct"><i class="bi bi-check-circle-fill me-1"></i>Chính xác</span>';
+                    } else if (!hasAnswered) {
+                        badge = '<span class="q-badge badge-warning"><i class="bi bi-exclamation-circle-fill me-1"></i>Chưa trả lời</span>';
+                    } else {
+                        badge = '<span class="q-badge badge-wrong"><i class="bi bi-x-circle-fill me-1"></i>Chưa chính xác</span>';
+                    }
+                } else {
+                    badge = '<span class="q-badge bg-light text-secondary"><i class="bi bi-info-circle-fill me-1"></i>Đã ghi nhận</span>';
+                }
+
+                let answersHtml = '';
+                if (q.type === 'FILL_IN_BLANK') {
+                    const studentText   = q.selectedText || '(Trống)';
+                    const correctAnswers = q.answers.filter(a => a.isCorrect).map(a => a.text).join(', ');
+
+                    let statusClass = '';
+                    let iconClass   = 'icon-none';
+                    let icon        = '<i class="bi bi-pencil-fill"></i>';
+
+                    if (canShowResult) {
+                        statusClass = q.isCorrect ? 'correct' : 'selected-wrong';
+                        iconClass   = q.isCorrect ? 'icon-correct' : 'icon-wrong';
+                        icon        = `<i class="bi ${q.isCorrect ? 'bi-check-lg' : 'bi-x-lg'}"></i>`;
+                    }
+
+                    answersHtml = `
+                        <div class="ans-opt ${statusClass}">
+                            <div class="opt-icon ${iconClass}">${icon}</div>
+                            <div>
+                                <div class="small text-muted fw-bold">Câu trả lời của học sinh:</div>
+                                <div class="fw-bold">${studentText}</div>
+                            </div>
+                        </div>
+                        ${canShowResult && !q.isCorrect ? `
+                        <div class="ans-opt correct mt-2">
+                            <div class="opt-icon icon-correct"><i class="bi bi-check-lg"></i></div>
+                            <div>
+                                <div class="small text-muted fw-bold">Đáp án đúng:</div>
+                                <div class="fw-bold">${correctAnswers}</div>
+                            </div>
+                        </div>` : ''}
+                    `;
+                } else {
+                    q.answers.forEach((ans, i) => {
+                        const isSelected = q.selectedAnswerIds.includes(ans.answerId);
+                        const isCorrect  = ans.isCorrect;
+
+                        let statusClass = '';
+                        let iconClass   = 'icon-none';
+                        let icon        = String.fromCharCode(65 + i);
+
+                        if (canShowResult) {
+                            if (isCorrect) {
+                                statusClass = 'correct';
+                                iconClass   = 'icon-correct';
+                                icon        = '<i class="bi bi-check-lg"></i>';
+                            } else if (isSelected && !isCorrect) {
+                                statusClass = 'selected-wrong';
+                                iconClass   = 'icon-wrong';
+                                icon        = '<i class="bi bi-x-lg"></i>';
+                            }
+                        } else if (isSelected) {
+                            statusClass = 'bg-light border-primary';
+                            iconClass   = 'bg-primary text-white';
+                        }
+
+                        answersHtml += `
+                            <div class="ans-opt ${statusClass}">
+                                <div class="opt-icon ${iconClass}">${icon}</div>
+                                <div class="opt-text">${ans.text}</div>
+                            </div>
+                        `;
+                    });
+                }
+
+                const typeLabel = q.type === 'SINGLE_CHOICE' ? 'CHỌN MỘT' : (q.type === 'FILL_IN_BLANK' ? 'ĐIỀN KHUYẾT' : 'CHỌN NHIỀU');
+
+                card.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="w-100">
+                            <div class="d-flex align-items-center flex-wrap gap-2 mb-3">
+                                ${badge}
+                                <span class="q-badge bg-light text-muted">${typeLabel}</span>
+                                <span class="q-level-badge level-${(q.level || 'medium').toLowerCase()}">${q.level || 'MEDIUM'}</span>
+                            </div>
+                            <h5 class="fw-bold mb-3">Câu ${idx + 1}: ${q.text}</h5>
+                        </div>
+                    </div>
+                    <div class="answers-list">${answersHtml}</div>
+                `;
+                list.appendChild(card);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -15,7 +15,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.quizhub.dto.classroom.request.ClassroomRequestDTO;
 import com.example.quizhub.dto.classroom.response.ClassroomResponseDTO;
 import com.example.quizhub.dto.classroom.response.MemberResponseDTO;
+import com.example.quizhub.dto.quiztaking.response.QuizResultResponseDTO;
+import com.example.quizhub.exception.AppException;
+import com.example.quizhub.exception.ErrorCode;
 import com.example.quizhub.service.classroom.ClassroomService;
+import com.example.quizhub.service.quiz.QuizTakingService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 public class TeacherClassroomController {
 
     private final ClassroomService classroomService;
+    private final QuizTakingService quizTakingService;
     private final com.example.quizhub.repository.ClassroomRepository classroomRepository;
     private final com.example.quizhub.repository.UserRepository userRepository;
     private final com.example.quizhub.repository.ClassJoiningRepository classJoiningRepository;
@@ -131,6 +136,35 @@ public class TeacherClassroomController {
         return ResponseEntity.ok(list);
     }
 
+    @GetMapping("/assigned-quizzes/{assigningId}/students/{studentId}/history")
+    public ResponseEntity<List<com.example.quizhub.dto.quiztaking.response.QuizAttemptSummaryDTO>> getStudentAttemptHistory(
+            @PathVariable Long assigningId,
+            @PathVariable Long studentId) {
+        
+        java.util.Optional<com.example.quizhub.entity.QuizTaking> takingOpt = quizTakingRepository
+                .findByLearnerIdAndQuizAssigningId(studentId, assigningId);
+        
+        if (takingOpt.isEmpty()) {
+            return ResponseEntity.ok(java.util.Collections.emptyList());
+        }
+        
+        List<com.example.quizhub.dto.quiztaking.response.QuizAttemptSummaryDTO> list = attemptRepository
+                .findByQuizTakingId(takingOpt.get().getId()).stream()
+                .map(a -> com.example.quizhub.dto.quiztaking.response.QuizAttemptSummaryDTO.builder()
+                        .id(a.getId())
+                        .result(a.getResult())
+                        .totalQuestNum(a.getTotalQuestNum())
+                        .correctNum(a.getCorrectNum())
+                        .incorrectNum(a.getIncorrectNum())
+                        .startedAt(a.getStartedAt())
+                        .endedAt(a.getEndedAt())
+                        .build())
+                .sorted((a1, a2) -> a2.getStartedAt().compareTo(a1.getStartedAt()))
+                .toList();
+                
+        return ResponseEntity.ok(list);
+    }
+
     @GetMapping("/assigned-quizzes/{assigningId}/statistics")
     public ResponseEntity<com.example.quizhub.dto.classroom.response.AssignmentStatisticsDTO> getAssignmentStatistics(
             Principal principal,
@@ -160,5 +194,14 @@ public class TeacherClassroomController {
             @PathVariable Long classroomId,
             @org.springframework.web.bind.annotation.RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
         return ResponseEntity.ok(classroomService.importStudentsFromExcel(classroomId, file, principal.getName()));
+    }
+
+    @GetMapping("/assigned-quizzes/attempts/{attemptId}/result")
+    public ResponseEntity<QuizResultResponseDTO> getQuizResult(
+            Principal principal,
+            @PathVariable Long attemptId) {
+        com.example.quizhub.entity.User user = userRepository.findByEmail(principal.getName())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return ResponseEntity.ok(quizTakingService.getQuizResult(user.getId(), attemptId));
     }
 }
