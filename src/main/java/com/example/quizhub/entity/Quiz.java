@@ -3,6 +3,7 @@ package com.example.quizhub.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.hibernate.annotations.UuidGenerator;
@@ -70,5 +71,6 @@ public class Quiz {
         joinColumns = @JoinColumn(name = "quiz_id"),
         inverseJoinColumns = @JoinColumn(name = "quest_id")
     )
+    @BatchSize(size = 30)
     List<Question> questions;
 }

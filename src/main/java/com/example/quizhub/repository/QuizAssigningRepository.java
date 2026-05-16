@@ -11,15 +11,15 @@ import java.util.UUID;
 @Repository
 public interface QuizAssigningRepository extends JpaRepository<QuizAssigning, Long> {
 
-    @EntityGraph(attributePaths = {"quiz", "topic"})
+    @EntityGraph(attributePaths = {"quiz", "quiz.category", "quiz.creator", "topic"})
     List<QuizAssigning> findByClassroomId(Long classroomId);
 
-    @EntityGraph(attributePaths = {"quiz", "topic"})
+    @EntityGraph(attributePaths = {"quiz", "quiz.category", "quiz.creator", "topic"})
     List<QuizAssigning> findByQuizId(UUID quizId);
 
-    @EntityGraph(attributePaths = {"quiz", "topic"})
+    @EntityGraph(attributePaths = {"quiz", "quiz.category", "quiz.creator", "topic"})
     List<QuizAssigning> findByClassroomIdAndQuizId(Long classroomId, UUID quizId);
 
-    @EntityGraph(attributePaths = {"quiz", "topic"})
+    @EntityGraph(attributePaths = {"quiz", "quiz.category", "quiz.creator", "topic"})
     List<QuizAssigning> findByClassroomCreatorId(Long teacherId);
 }

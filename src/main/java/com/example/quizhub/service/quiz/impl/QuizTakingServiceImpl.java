@@ -127,9 +127,19 @@ public class QuizTakingServiceImpl implements QuizTakingService {
 
         Random random = new Random(attempt.getId());
 
+        // Batch fetch all answers for all questions in this quiz
+        List<Long> questionIds = quiz.getQuestions().stream()
+                .map(Question::getId)
+                .collect(Collectors.toList());
+        
+        List<Answer> allAnswers = answerRepository.findByQuestionIdIn(questionIds);
+        Map<Long, List<Answer>> answersByQuestionId = allAnswers.stream()
+                .collect(Collectors.groupingBy(a -> a.getQuestion().getId()));
+
         List<QuestionTakingResponseDTO> questionDTOs = quiz.getQuestions().stream()
                 .map(question -> {
-                    List<AnswerTakingResponseDTO> answerDTOs = question.getAnswers().stream()
+                    List<Answer> questionAnswers = answersByQuestionId.getOrDefault(question.getId(), Collections.emptyList());
+                    List<AnswerTakingResponseDTO> answerDTOs = questionAnswers.stream()
                             .map(ans -> new AnswerTakingResponseDTO(
                                     ans.getId(),
                                     ans.getText()))
