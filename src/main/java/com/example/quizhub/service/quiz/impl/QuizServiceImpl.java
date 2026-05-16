@@ -62,6 +62,19 @@ public class QuizServiceImpl implements QuizService {
                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
     }
 
+    private Category resolveAndValidateCategory(Long categoryId, User currentUser) {
+        Category category = resolveCategory(categoryId);
+        if (category != null) {
+            boolean isAdmin = currentUser.getRole().name().equalsIgnoreCase("ADMIN");
+            if (!isAdmin) {
+                if (category.getCreator() == null || !category.getCreator().getId().equals(currentUser.getId())) {
+                    throw new AppException(ErrorCode.UNAUTHORIZED);
+                }
+            }
+        }
+        return category;
+    }
+
     private Quiz findQuiz(String id) {
         return quizRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new AppException(ErrorCode.QUIZ_NOT_FOUND));
@@ -72,9 +85,10 @@ public class QuizServiceImpl implements QuizService {
     @Override
     @Transactional
     public QuizResponseDTO createNewQuiz(QuizRequestDTO request) {
+        User currentUser = getCurrentUser();
         Quiz quiz = quizMapper.toEntity(request);
-        quiz.setCreator(getCurrentUser());
-        quiz.setCategory(resolveCategory(request.getCategoryId()));
+        quiz.setCreator(currentUser);
+        quiz.setCategory(resolveAndValidateCategory(request.getCategoryId(), currentUser));
         quiz.setIsEnable(true);
 
         List<Question> questions = questionRepository.findAllById(request.getQuestionIds());
@@ -92,7 +106,7 @@ public class QuizServiceImpl implements QuizService {
     @Transactional
     public QuizResponseDTO bulkCreateQuiz(BulkQuizCreateRequestDTO request) {
         User currentUser = getCurrentUser();
-        Category category = resolveCategory(request.getCategoryId());
+        Category category = resolveAndValidateCategory(request.getCategoryId(), currentUser);
 
         // Phase 1: Batch create all questions and harvest IDs
         List<Long> questionIds = new ArrayList<>();
@@ -132,8 +146,10 @@ public class QuizServiceImpl implements QuizService {
     @Transactional
     public QuizResponseDTO updateQuiz(String id, QuizRequestDTO request) {
         Quiz quiz = findQuiz(id);
+        User currentUser = getCurrentUser();
+        boolean isAdmin = currentUser.getRole().name().equalsIgnoreCase("ADMIN");
 
-        if(!quiz.getCreator().getId().equals(getCurrentUser().getId())){
+        if(!isAdmin && !quiz.getCreator().getId().equals(currentUser.getId())){
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
@@ -142,7 +158,7 @@ public class QuizServiceImpl implements QuizService {
         quiz.setImageUrl(request.getImageUrl());
         quiz.setIsDraft(request.getIsDraft());
         quiz.setIsExam(request.getIsExam());
-        quiz.setCategory(resolveCategory(request.getCategoryId()));
+        quiz.setCategory(resolveAndValidateCategory(request.getCategoryId(), currentUser));
 
         List<Question> questions = questionRepository.findAllById(request.getQuestionIds());
         if (questions.size() != request.getQuestionIds().size()) {
@@ -158,6 +174,13 @@ public class QuizServiceImpl implements QuizService {
     @Transactional
     public void deleteQuiz(String id) {
         Quiz quiz = findQuiz(id);
+        User currentUser = getCurrentUser();
+        boolean isAdmin = currentUser.getRole().name().equalsIgnoreCase("ADMIN");
+
+        if(!isAdmin && !quiz.getCreator().getId().equals(currentUser.getId())){
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
         // Soft delete
         quiz.setIsEnable(false);
         quizRepository.save(quiz);
@@ -244,7 +267,7 @@ public class QuizServiceImpl implements QuizService {
                 .isDraft(false)
                 .isEnable(true)
                 .isExam(false)
-                .category(category)
+                .category(null)
                 .creator(getCurrentUser())
                 .questions(questions)
                 .build();

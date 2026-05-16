@@ -67,7 +67,7 @@ public class QuizAssigning {
     @JoinColumn(name = "classroom_id")
     Classroom classroom;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "quiz_id")
     Quiz quiz;
 
@@ -75,7 +75,7 @@ public class QuizAssigning {
     @Column(name = "created_at")
     LocalDateTime createdAt;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "topic_id")
     private ClassTopic topic; // Có thể null nếu giáo viên không muốn gom vào topic nào
 

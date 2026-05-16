@@ -32,14 +32,31 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
     private final ClassTopicRepository classTopicRepository;
     private final ClassJoiningRepository classJoiningRepository;
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
+
+    private com.example.quizhub.entity.User getCurrentUser() {
+        String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    }
 
     @Override
     @org.springframework.transaction.annotation.Transactional
     public QuizAssigningResponseDTO create(QuizAssigningRequestDTO request) {
+        com.example.quizhub.entity.User currentUser = getCurrentUser();
         Classroom classroom = classroomRepository.findById(request.getClassroomId())
                 .orElseThrow(() -> new AppException(ErrorCode.CLASSROOM_NOT_FOUND));
+        
+        if (!classroom.getCreator().getId().equals(currentUser.getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
         Quiz quiz = quizRepository.findById(request.getQuizId())
                 .orElseThrow(() -> new AppException(ErrorCode.QUIZ_NOT_FOUND));
+
+        if (!quiz.getCreator().getId().equals(currentUser.getId()) && Boolean.TRUE.equals(quiz.getIsDraft())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
 
         QuizAssigning quizAssigning = quizAssigningMapper.toEntity(request);
 
@@ -51,6 +68,10 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
         }
 
         // Validation logic
+        if (quizAssigning.getDueDate().isBefore(java.time.LocalDateTime.now())) {
+            throw new AppException(ErrorCode.INVALID_DATE_RANGE);
+        }
+
         if (quizAssigning.getDueDate().isBefore(quizAssigning.getStartDate()) ||
                 quizAssigning.getDueDate().isEqual(quizAssigning.getStartDate())) {
             throw new AppException(ErrorCode.INVALID_DATE_RANGE);
@@ -67,7 +88,7 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
                 throw new AppException(ErrorCode.INVALID_DURATION);
             }
         }
-        if (quizAssigning.getMaxAttempt() == null) {
+        if (quizAssigning.getMaxAttempt() == null || quizAssigning.getMaxAttempt() <= 0) {
             quizAssigning.setMaxAttempt(1);
         }
         if (quizAssigning.getQuestionShuffled() == null) {

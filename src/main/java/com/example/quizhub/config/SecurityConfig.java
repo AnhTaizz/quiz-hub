@@ -15,6 +15,7 @@ import com.example.quizhub.security.JwtAuthenticationEntryPoint;
 import com.example.quizhub.security.JwtAuthenticationFilter;
 import com.example.quizhub.security.CustomAccessDeniedHandler;
 import com.example.quizhub.security.OAuth2AuthenticationSuccessHandler;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,14 +40,16 @@ public class SecurityConfig {
                         "/login", "/register", "/forgot-password", "/oauth2-redirect.html", "/oauth2-choose-role.html",
                         "/api/auth/register", "/api/auth/login", "/api/auth/check-email", "/api/auth/oauth2-register",
                         "/api/auth/forgot-password", "/api/auth/reset-password",
-                        "/error", "api/questions/**", "/test/**",
-                        "/api/teacher/categories/**", "/api/student/categories/**" };
+                        "/error" };
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 http
-                                // Tắt CSRF (REST API stateless không cần)
-                                .csrf(AbstractHttpConfigurer::disable)
+                                // Kích hoạt CSRF nhưng bỏ qua các REST API (Stateless)
+                                .csrf(csrf -> csrf
+                                                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                                                .ignoringRequestMatchers("/api/**")
+                                )
 
                                 // Phân quyền theo HTTP path
                                 .authorizeHttpRequests(auth -> auth

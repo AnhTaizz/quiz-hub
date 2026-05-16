@@ -19,4 +19,9 @@ public interface UserAttemptAnswerRepository extends JpaRepository<UserAttemptAn
     @Modifying
     @Transactional
     void deleteByAttemptIdAndQuestionId(Long attemptId, Long questionId);
+
+    @Modifying
+    @Transactional
+    @org.springframework.data.jpa.repository.Query("DELETE FROM UserAttemptAnswer u WHERE u.attempt.id = :attemptId")
+    void deleteByAttemptId(@org.springframework.data.repository.query.Param("attemptId") Long attemptId);
 }

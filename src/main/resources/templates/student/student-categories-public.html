@@ -901,18 +901,13 @@
             const content = document.getElementById('exploreContent');
             content.innerHTML = `
         <div class="cat-grid">${[1, 2].map(() => `<div class="skeleton skeleton-cat"></div>`).join('')}</div>
-        <div class="quiz-grid">${[1, 2, 3].map(() => `<div class="skeleton skeleton-quiz"></div>`).join('')}</div>
     `;
 
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
             const node = findNode(TREE_DATA, id);
             const subCats = node ? (node.children || []) : [];
 
-            let quizzes = [];
-            try {
-                const res = await fetch(QUIZ_API.replace('{id}', id), { headers: { Authorization: 'Bearer ' + token } });
-                if (res.ok) quizzes = await res.json();
-            } catch (_) { }
+            // Removed quiz fetching logic per user request
 
             let html = '';
 
@@ -931,27 +926,7 @@
                 html += `</div>`;
             }
 
-            if (quizzes.length > 0) {
-                html += `<h2 class="section-title"><i class="bi bi-journal-text text-success"></i> Đề thi & Quiz</h2>`;
-                html += `<div class="quiz-grid">`;
-                quizzes.forEach(q => {
-                    const typeBadge = q.isExam ? `<span class="qbadge qbadge-exam"><i class="bi bi-mortarboard-fill"></i> Đề thi</span>` : `<span class="qbadge qbadge-quiz"><i class="bi bi-journal-check"></i> Quiz</span>`;
-
-                    html += `<div class="quiz-card">
-                <div class="quiz-badge-row">${typeBadge}</div>
-                <h3 class="quiz-title">${esc(q.title) || '(Chưa có tiêu đề)'}</h3>
-                <p class="quiz-desc">${esc(q.description) || '<span style="color:#cbd5e1;font-style:italic;">Không có mô tả.</span>'}</p>
-                <div class="quiz-chips">
-                    <span class="chip"><i class="bi bi-list-check text-success"></i> ${q.questionCount} câu</span>
-                    ${q.creatorName ? `<span class="chip"><i class="bi bi-person text-primary"></i> ${esc(q.creatorName)}</span>` : ''}
-                </div>
-                <button class="btn-start" onclick="startAttempt('${q.id}', '${escJs(q.title)}', this)">
-                    <i class="bi bi-play-fill"></i> Làm bài
-                </button>
-            </div>`;
-                });
-                html += `</div>`;
-            }
+            // Removed quiz rendering block per user request
 
             if (id) {
                 // Fetch question count first
@@ -1118,7 +1093,7 @@
                 }
             }
 
-            if (subCats.length === 0 && quizzes.length === 0 && (!id || currentPracticeTotalQuestions === 0)) {
+            if (subCats.length === 0 && (!id || currentPracticeTotalQuestions === 0)) {
                 html += `<div class="empty-state">
             <i class="bi bi-box-seam"></i>
             <h3>Thư mục trống</h3>
