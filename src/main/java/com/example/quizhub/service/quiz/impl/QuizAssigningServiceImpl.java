@@ -19,6 +19,7 @@ import com.example.quizhub.service.notification.NotificationService;
 import com.example.quizhub.entity.enums.JoinStatus;
 import com.example.quizhub.entity.enums.NotificationType;
 import com.example.quizhub.repository.ClassJoiningRepository;
+import com.example.quizhub.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
