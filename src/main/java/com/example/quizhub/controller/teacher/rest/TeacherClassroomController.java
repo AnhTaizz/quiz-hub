@@ -105,21 +105,33 @@ public class TeacherClassroomController {
 
             if (takingOpt.isPresent()) {
                 com.example.quizhub.entity.QuizTaking taking = takingOpt.get();
-                if (taking.getStatus() == com.example.quizhub.entity.enums.TakingStatus.IN_PROGRESS) {
-                    status = "Đang làm bài";
-                } else if (taking.getStatus() == com.example.quizhub.entity.enums.TakingStatus.COMPLETED) {
-                    status = "Đã nộp bài";
-                }
 
                 List<com.example.quizhub.entity.Attempt> attempts = attemptRepository
                         .findByQuizTakingId(taking.getId());
                 attemptCount = attempts.size();
+
+                // Tính điểm cao nhất từ các lượt đã nộp (có endedAt)
                 for (com.example.quizhub.entity.Attempt att : attempts) {
                     if (att.getResult() != null) {
                         if (highestScore == null || att.getResult().compareTo(highestScore) > 0) {
                             highestScore = att.getResult();
                         }
                     }
+                }
+
+                // Xác định trạng thái dựa trên lượt làm thực tế:
+                // - Nếu có ít nhất 1 lượt đã nộp (endedAt != null) → "Đã nộp bài"
+                // - Nếu có lượt đang làm nhưng chưa nộp lần nào → "Đang làm bài"
+                // - Không có lượt nào → "Chưa bắt đầu" (handled below)
+                boolean hasSubmitted = attempts.stream()
+                        .anyMatch(att -> att.getEndedAt() != null);
+                boolean hasInProgress = attempts.stream()
+                        .anyMatch(att -> att.getEndedAt() == null);
+
+                if (hasSubmitted) {
+                    status = "Đã nộp bài";
+                } else if (hasInProgress) {
+                    status = "Đang làm bài";
                 }
             }
 
