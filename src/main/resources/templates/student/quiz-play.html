@@ -965,9 +965,13 @@
         }
 
         function setupTimer() {
-            const startedAt = new Date(quizData.startedAt);
+            if (!quizData.durationInMins) {
+                document.getElementById('timerDisplay').textContent = "Không giới hạn";
+                return;
+            }
+            const startTime = quizData.startedAtMillis || new Date(quizData.startedAt).getTime();
             const durationMs = quizData.durationInMins * 60 * 1000;
-            endTime = new Date(startedAt.getTime() + durationMs);
+            endTime = new Date(startTime + durationMs);
 
             updateTimer();
             timerInterval = setInterval(updateTimer, 1000);
@@ -1116,18 +1120,32 @@
                 container.appendChild(qDiv);
             });
 
-            // --- Scroll Spy for Full Mode ---
+            // Add spacer at bottom to allow last questions to scroll up
+            const spacer = document.createElement('div');
+            spacer.style.height = '60vh';
+            spacer.className = 'full-mode-spacer';
+            container.appendChild(spacer);
+
             if (window.scrollObserver) window.scrollObserver.disconnect();
+            const intersectingIndices = new Set();
             window.scrollObserver = new IntersectionObserver((entries) => {
-                const visibleEntry = entries.find(e => e.isIntersecting);
-                if (visibleEntry) {
-                    const idx = parseInt(visibleEntry.target.id.replace('q-full-', ''));
-                    currentIndex = idx;
-                    renderGrid();
-                    updateStats();
+                entries.forEach(entry => {
+                    const idx = parseInt(entry.target.id.replace('q-full-', ''));
+                    if (entry.isIntersecting) intersectingIndices.add(idx);
+                    else intersectingIndices.delete(idx);
+                });
+
+                if (intersectingIndices.size > 0) {
+                    // Pick the smallest index among those currently in the "active" zone
+                    const bestIdx = Math.min(...Array.from(intersectingIndices));
+                    if (bestIdx !== currentIndex) {
+                        currentIndex = bestIdx;
+                        renderGrid();
+                        updateStats();
+                    }
                 }
             }, {
-                rootMargin: '-10% 0px -80% 0px',
+                rootMargin: '-15% 0px -75% 0px',
                 threshold: 0
             });
             document.querySelectorAll('.full-mode-question').forEach(q => window.scrollObserver.observe(q));

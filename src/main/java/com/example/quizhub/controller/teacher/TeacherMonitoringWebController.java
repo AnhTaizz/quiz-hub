@@ -41,4 +41,10 @@ public class TeacherMonitoringWebController {
 
         return "teacher/monitoring-log";
     }
+
+    @GetMapping("/attempt/{attemptId}")
+    public String viewAttemptDetail(@PathVariable Long attemptId, Model model) {
+        model.addAttribute("attemptId", attemptId);
+        return "teacher/teacher-quiz-result";
+    }
 }

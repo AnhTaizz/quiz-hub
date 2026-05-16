@@ -454,14 +454,21 @@ public class ClassroomServiceImpl implements ClassroomService {
             }
 
             QuizTaking taking = takingOpt.get();
-            if (taking.getStatus() == TakingStatus.COMPLETED) {
+            List<Attempt> attempts = attemptRepository.findByQuizTakingId(taking.getId());
+
+            // Xác định trạng thái dựa trên các lượt làm
+            boolean hasSubmitted = attempts.stream().anyMatch(att -> att.getEndedAt() != null);
+            boolean hasInProgress = attempts.stream().anyMatch(att -> att.getEndedAt() == null);
+
+            if (hasSubmitted) {
                 completedCount++;
-            } else {
+            } else if (hasInProgress) {
                 inProgressCount++;
+            } else {
+                notStartedCount++;
             }
 
             // Find highest score for this student in this assignment
-            List<Attempt> attempts = attemptRepository.findByQuizTakingId(taking.getId());
             BigDecimal studentBest = null;
             for (Attempt att : attempts) {
                 if (att.getResult() != null) {

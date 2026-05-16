@@ -51,9 +51,11 @@ import com.example.quizhub.dto.quiztaking.response.QuizAttemptSummaryDTO;
 import com.example.quizhub.dto.quiztaking.request.SaveAnswerRequestDTO;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class QuizTakingServiceImpl implements QuizTakingService {
     private final UserRepository userRepository;
     private final QuizTakingRepository quizTakingRepository;
@@ -232,9 +234,31 @@ public class QuizTakingServiceImpl implements QuizTakingService {
     @Override
     @Transactional
     public void autoSubmitExpiredAttempts() {
-        List<Attempt> expiredAttempts = attemptRepository.findExpiredAttempts(LocalDateTime.now());
-        for (Attempt attempt : expiredAttempts) {
-            finalizeAttempt(attempt);
+        LocalDateTime now = LocalDateTime.now();
+        List<Attempt> activeAttempts = attemptRepository.findActiveAttemptsWithAssigning();
+        
+        for (Attempt attempt : activeAttempts) {
+            boolean expired = false;
+            QuizAssigning assigning = attempt.getQuizTaking().getQuizAssigning();
+            
+            // 1. Kiểm tra hạn chót nộp bài (DueDate)
+            if (assigning.getDueDate() != null && now.isAfter(assigning.getDueDate())) {
+                expired = true;
+            }
+            
+            // 2. Kiểm tra thời lượng làm bài (Duration)
+            if (!expired && assigning.getDurationInMins() != null) {
+                // Thêm 1 phút bù trừ độ trễ mạng/hệ thống
+                LocalDateTime limitTime = attempt.getStartedAt().plusMinutes(assigning.getDurationInMins()).plusMinutes(1);
+                if (now.isAfter(limitTime)) {
+                    expired = true;
+                }
+            }
+            
+            if (expired) {
+                log.info("Auto-submitting expired attempt ID: {}", attempt.getId());
+                finalizeAttempt(attempt);
+            }
         }
     }
 

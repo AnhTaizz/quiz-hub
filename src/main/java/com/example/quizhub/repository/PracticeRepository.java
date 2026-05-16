@@ -13,6 +13,7 @@ public interface PracticeRepository extends JpaRepository<Practice, Long> {
     List<Practice> findByUserIdAndCategoryIdOrderByCreatedAtDesc(Long userId, Long categoryId);
 
     List<Practice> findTop10ByOrderByCreatedAtDesc();
+    List<Practice> findTop10ByIsCompletedTrueOrderByCreatedAtDesc();
 
     long countByUserId(Long userId);
 

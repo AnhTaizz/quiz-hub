@@ -17,11 +17,11 @@ public interface AttemptRepository extends JpaRepository<Attempt, Long> {
     List<Attempt> findByQuizTakingIdOrderByStartedAtDesc(Long quizTakingId);
     int countByQuizTakingId(Long quizTakingId);
 
-    long countByResultLessThan(BigDecimal score);
-    long countByResultBetween(BigDecimal min, BigDecimal max);
-    long countByResultGreaterThanEqual(BigDecimal score);
+    long countByResultLessThanAndEndedAtIsNotNull(BigDecimal score);
+    long countByResultBetweenAndEndedAtIsNotNull(BigDecimal min, BigDecimal max);
+    long countByResultGreaterThanEqualAndEndedAtIsNotNull(BigDecimal score);
 
-    List<Attempt> findTop10ByOrderByStartedAtDesc();
+    List<Attempt> findTop10ByEndedAtIsNotNullOrderByStartedAtDesc();
 
     long countByQuizTakingLearnerId(Long learnerId);
     long countByQuizTakingLearnerIdAndEndedAtIsNotNull(Long learnerId);
@@ -30,7 +30,10 @@ public interface AttemptRepository extends JpaRepository<Attempt, Long> {
     List<Attempt> findByQuizTakingLearnerIdAndEndedAtIsNotNullOrderByStartedAtDesc(Long learnerId);
 
     @Query("SELECT a FROM Attempt a WHERE a.endedAt IS NULL AND a.quizTaking.quizAssigning.dueDate < :now")
-    List<Attempt> findExpiredAttempts(@Param("now") LocalDateTime now);
+    List<Attempt> findExpiredAttemptsByDueDate(@Param("now") LocalDateTime now);
+
+    @Query("SELECT a FROM Attempt a WHERE a.endedAt IS NULL AND a.quizTaking.quizAssigning IS NOT NULL")
+    List<Attempt> findActiveAttemptsWithAssigning();
 
     long countByQuizTakingIdAndEndedAtIsNotNull(Long quizTakingId);
 }
