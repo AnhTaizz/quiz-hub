@@ -19,7 +19,7 @@
             </div>
             <div class="action-btns d-flex align-items-start gap-2">
                 <!-- Group 1: Excel Trigger and dynamic target tracker -->
-                <div th:if="${userType == 'teacher'}" id="excel-import-container" class="d-flex flex-column align-items-center gap-1" style="margin-top:0px;">
+                <div th:if="${userType == 'teacher' || userType == 'student'}" id="excel-import-container" class="d-flex flex-column align-items-center gap-1" style="margin-top:0px;">
                     <input type="file" id="excel-import-input" accept=".xlsx, .xls" style="display:none;" onchange="handleExcelImport(event)">
                     <button class="btn btn-outline-secondary fw-bold" style="border-radius: 12px; border-color: #cbd5e1; color: #334155; background:#ffffff; height: 42px;" onclick="document.getElementById('excel-import-input').click()">
                         <i class="bi bi-file-earmark-spreadsheet-fill me-1 text-success"></i> Nhập Excel

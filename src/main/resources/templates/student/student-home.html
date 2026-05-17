@@ -10,7 +10,9 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito+Sans:wght@600;700;800;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito+Sans:wght@600;700;800;900&display=swap"
+        rel="stylesheet">
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
@@ -32,24 +34,30 @@
             <div class="dash-blob dash-blob-1"></div>
             <div class="dash-blob dash-blob-2"></div>
 
-            <div class="hero-content d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4">
+            <div
+                class="hero-content d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4">
                 <div>
                     <h1 class="hero-title"><span th:text="${greeting}">Chào buổi sáng</span>, <span
                             th:text="${currentUser != null ? currentUser.fullName : 'Học sinh'}">Học sinh</span>
                         👋
                     </h1>
-                    <p class="hero-subtitle">Mọi thứ đang đi đúng hướng! Bạn có <strong th:text="${pendingThisWeekCount != null ? pendingThisWeekCount : 0}">0</strong> bài kiểm tra sắp đến
+                    <p class="hero-subtitle">Mọi thứ đang đi đúng hướng! Bạn có <strong
+                            th:text="${pendingThisWeekCount != null ? pendingThisWeekCount : 0}">0</strong> bài kiểm tra
+                        sắp đến
                         hạn trong tuần này. Hãy hoàn thành sớm để giữ vững phong độ nhé.</p>
 
                     <div class="hero-stats-row">
                         <div class="hero-stat-glass">
-                            <i class="bi bi-check2-circle text-success"></i> Đã làm: <span th:text="${totalCompleted != null ? totalCompleted : 0}">0</span> Bài thi
+                            <i class="bi bi-check2-circle text-success"></i> Đã làm: <span
+                                th:text="${totalCompleted != null ? totalCompleted : 0}">0</span> Bài thi
                         </div>
                         <div class="hero-stat-glass">
-                            <i class="bi bi-graph-up text-info"></i> TB Luyện tập: <span th:text="${practiceAvg != null ? practiceAvg : '0.0'}">0.0</span>
+                            <i class="bi bi-graph-up text-info"></i> TB Luyện tập: <span
+                                th:text="${practiceAvg != null ? practiceAvg : '0.0'}">0.0</span>
                         </div>
                         <div class="hero-stat-glass">
-                            <i class="bi bi-award text-warning"></i> TB Kiểm tra: <span th:text="${quizAvg != null ? quizAvg : '0.0'}">0.0</span>
+                            <i class="bi bi-award text-warning"></i> TB Kiểm tra: <span
+                                th:text="${quizAvg != null ? quizAvg : '0.0'}">0.0</span>
                         </div>
                     </div>
                 </div>
@@ -82,7 +90,7 @@
 
                 <!-- Empty State -->
                 <div th:if="${assignedQuizzes == null || assignedQuizzes.isEmpty()}"
-                     class="dash-card py-5 text-center bg-white bg-opacity-50 border-dashed mb-4">
+                    class="dash-card py-5 text-center bg-white bg-opacity-50 border-dashed mb-4">
                     <i class="bi bi-emoji-smile fs-1 text-muted d-block mb-3"></i>
                     <p class="text-muted mb-0">Tuyệt vời! Bạn không còn bài thi nào đang chờ.</p>
                 </div>
@@ -97,26 +105,34 @@
                             <div>
                                 <h4 class="task-title" th:text="${info.assigning.quiz.title}">Tên bài thi</h4>
                                 <div class="task-chips">
-                                    <div class="info-chip"><i class="bi bi-clock"></i> <span th:text="${info.assigning.durationInMins}">0</span> Phút</div>
-                                    <div class="info-chip"><i class="bi bi-list-check"></i> <span th:text="${info.assigning.quiz.questions != null ? info.assigning.quiz.questions.size() : 0}">0</span> Câu</div>
-                                    <div class="info-chip" th:classappend="${info.attemptsMade > 0 ? 'text-primary border-primary' : ''}">
-                                        <i class="bi bi-person-walking"></i> 
-                                        Lượt: <span th:text="${info.attemptsMade}">0</span> / <span th:text="${info.assigning.maxAttempt != null && info.assigning.maxAttempt > 0 ? info.assigning.maxAttempt : '∞'}">∞</span>
+                                    <div class="info-chip"><i class="bi bi-clock"></i> <span
+                                            th:text="${info.assigning.durationInMins}">0</span> Phút</div>
+                                    <div class="info-chip"><i class="bi bi-list-check"></i> <span
+                                            th:text="${info.assigning.quiz.questions != null ? info.assigning.quiz.questions.size() : 0}">0</span>
+                                        Câu</div>
+                                    <div class="info-chip"
+                                        th:classappend="${info.attemptsMade > 0 ? 'text-primary border-primary' : ''}">
+                                        <i class="bi bi-person-walking"></i>
+                                        Lượt: <span th:text="${info.attemptsMade}">0</span> / <span
+                                            th:text="${info.assigning.maxAttempt != null && info.assigning.maxAttempt > 0 ? info.assigning.maxAttempt : '∞'}">∞</span>
                                     </div>
                                     <div class="info-chip safe">
-                                        <i class="bi bi-calendar-event"></i> 
-                                        Hạn: <span th:text="${info.assigning.dueDate != null ? #temporals.format(info.assigning.dueDate, 'HH:mm dd/MM/yyyy') : 'Không thời hạn'}">--/--/----</span>
+                                        <i class="bi bi-calendar-event"></i>
+                                        Hạn: <span
+                                            th:text="${info.assigning.dueDate != null ? #temporals.format(info.assigning.dueDate, 'HH:mm dd/MM/yyyy') : 'Không thời hạn'}">--/--/----</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="d-flex gap-2">
-                            <a th:href="@{'/student/quiz/history/' + ${info.assigning.id}}" class="btn btn-outline-primary rounded-pill px-4 text-nowrap text-decoration-none d-flex align-items-center">
-                                <i class="bi bi-clock-history me-1"></i> 
+                            <a th:href="@{'/student/quiz/history/' + ${info.assigning.id}}"
+                                class="btn btn-outline-primary rounded-pill px-4 text-nowrap text-decoration-none d-flex align-items-center">
+                                <i class="bi bi-clock-history me-1"></i>
                                 <span>Lịch sử</span>
                             </a>
-                            <a th:href="@{/student/quiz/play/{id}(id=${info.assigning.id})}" class="btn-green rounded-pill px-4 text-nowrap text-decoration-none d-flex align-items-center">
-                                <i class="bi bi-pencil-square me-1"></i> 
+                            <a th:href="@{/student/quiz/play/{id}(id=${info.assigning.id})}"
+                                class="btn-green rounded-pill px-4 text-nowrap text-decoration-none d-flex align-items-center">
+                                <i class="bi bi-pencil-square me-1"></i>
                                 <span>Làm bài</span>
                             </a>
                         </div>
@@ -143,6 +159,9 @@
                         </a>
                         <a th:href="@{/student/quiz/create}" class="btn-quick">
                             <i class="bi bi-file-earmark-plus text-primary"></i> Lắp ráp Đề thi
+                        </a>
+                        <a th:href="@{/student/quiz/quick-create}" class="btn-quick">
+                            <i class="bi bi-magic text-indigo"></i> Tạo nhanh (Excel/JSON)
                         </a>
                     </div>
                 </div>

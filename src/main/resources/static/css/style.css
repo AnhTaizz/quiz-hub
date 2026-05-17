@@ -60,6 +60,7 @@
 html {
   scroll-behavior: smooth;
   font-size: 16px;
+  zoom: 85%;
 }
 
 body {
@@ -2397,5 +2398,34 @@ img {
     height: 32px;
     font-size: 0.95rem;
   }
+}
+
+/* ─── Fix Bootstrap modals and backdrops under zoom: 85% ─── */
+.modal-backdrop {
+  width: calc(100vw / 0.85) !important;
+  height: calc(100vh / 0.85) !important;
+}
+.modal {
+  width: calc(100vw / 0.85) !important;
+  height: calc(100vh / 0.85) !important;
+}
+
+/* ─── Fix full screen layouts under zoom: 85% ─── */
+.hero-section,
+.auth-wrapper,
+.login-wrapper,
+#wrapper,
+.min-vh-100,
+.vh-100,
+.designer-layout {
+  min-height: calc(100vh / 0.85) !important;
+}
+
+.explorer-container {
+  height: calc(100vh / 0.85 - 70px) !important;
+}
+
+.explore-shell {
+  min-height: calc(100vh / 0.85 - 120px) !important;
 }
 
