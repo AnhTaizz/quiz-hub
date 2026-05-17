@@ -33,9 +33,11 @@ import com.example.quizhub.service.QuestionService;
 import com.example.quizhub.service.notification.NotificationService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class QuestionServiceImpl implements QuestionService {
 
     private final UserRepository userRepository;
@@ -373,7 +375,7 @@ public class QuestionServiceImpl implements QuestionService {
                         "/admin/moderation");
             });
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Gửi thông báo yêu cầu duyệt câu hỏi cho Admin thất bại: questionId={}, teacherId={}", questionId, teacherId, e);
         }
     }
 
@@ -412,7 +414,7 @@ public class QuestionServiceImpl implements QuestionService {
                         "/admin/moderation");
             });
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Gửi thông báo duyệt câu hỏi hàng loạt cho Admin thất bại: teacherId={}, count={}", teacherId, toUpdate.size(), e);
         }
     }
 

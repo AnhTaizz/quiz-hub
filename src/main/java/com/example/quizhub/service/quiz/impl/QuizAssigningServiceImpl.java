@@ -22,9 +22,11 @@ import com.example.quizhub.repository.ClassJoiningRepository;
 import com.example.quizhub.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class QuizAssigningServiceImpl implements QuizAssigningService {
     private final QuizAssigningRepository quizAssigningRepository;
     private final QuizAssigningMapper quizAssigningMapper;
@@ -122,7 +124,7 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
                     NotificationType.SYSTEM_ALERT,
                     "/teacher/classrooms/" + classroom.getId());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Gửi thông báo xác nhận giao bài kiểm tra cho giáo viên thất bại: classroomId={}, quizId={}", classroom.getId(), quiz.getId(), e);
         }
 
         // Notify students in the classroom
@@ -137,7 +139,7 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
                                 "/student/classrooms/" + classroom.getId());
                     });
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Gửi thông báo bài kiểm tra mới cho học sinh trong lớp thất bại: classroomId={}, quizId={}", classroom.getId(), quiz.getId(), e);
         }
 
         return quizAssigningMapper.toResponseDTO(savedQuizAssigning);

@@ -1,27 +1,35 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visual Quiz Designer | QuizHub Teacher</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Nunito+Sans:wght@800;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Nunito+Sans:wght@800;900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard-layout.css}">
     <style>
-        body { background: #f3f4f6; font-family: 'Inter', sans-serif; height: 100vh; overflow: hidden; }
-        
-        /* Edge-to-edge fit using core layout engine */
-        .designer-layout { 
-            display: flex; 
-            flex-direction: column;
-            height: calc(100vh - 70px) !important; 
-            padding: 0 !important; 
-            margin-top: 70px !important; 
+        body {
+            background: #f3f4f6;
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
             overflow: hidden;
         }
-        
+
+        /* Edge-to-edge fit using core layout engine */
+        .designer-layout {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 70px) !important;
+            padding: 0 !important;
+            margin-top: 70px !important;
+            overflow: hidden;
+        }
+
         /* Top Action Bar optimized for minimal vertical footprint */
         .designer-topbar {
             background: #ffffff;
@@ -40,7 +48,7 @@
             overflow: hidden;
             position: relative;
         }
-        
+
         /* Splitting Handle (The Resizer) */
         .gutter-resizer {
             width: 6px;
@@ -55,7 +63,12 @@
             align-items: center;
             justify-content: center;
         }
-        .gutter-resizer:hover, .gutter-resizer.is-resizing { background: #4f46e5; }
+
+        .gutter-resizer:hover,
+        .gutter-resizer.is-resizing {
+            background: #4f46e5;
+        }
+
         .gutter-resizer::after {
             content: '||';
             font-size: 8px;
@@ -64,54 +77,103 @@
         }
 
         /* Side A: Preview Engine */
-        .preview-pane { 
-            flex: 1; 
+        .preview-pane {
+            flex: 1;
             min-width: 300px;
-            background: #f8fafc; 
-            overflow-y: auto; 
-            padding: 25px; 
-            position: relative; 
+            background: #f8fafc;
+            overflow-y: auto;
+            padding: 25px;
+            position: relative;
         }
-        .preview-pane::-webkit-scrollbar { width: 6px; }
-        .preview-pane::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        
+
+        .preview-pane::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .preview-pane::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
         /* Side B: Source Input Controller - Switch fixed to flexible initial width */
-        .source-pane { width: 40%; min-width: 350px; flex-shrink: 0; background: white; display: flex; flex-direction: column; height: 100%; }
-        
-        .paper-sheet { 
-            background: white; 
-            min-height: 100%; 
+        .source-pane {
+            width: 40%;
+            min-width: 350px;
+            flex-shrink: 0;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .paper-sheet {
+            background: white;
+            min-height: 100%;
             padding: 35px;
             width: 100%;
             margin: 0;
             border-radius: 12px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.02);
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.02);
         }
-        
-        .q-preview-card { padding: 20px 0; border-bottom: 1px dashed #e2e8f0; }
-        .q-preview-card:last-child { border-bottom: none; }
-        
-        .opt-pill { padding: 8px 15px; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; margin-bottom: 6px; font-size: 0.9rem; display: flex; align-items: center; gap: 10px; }
-        .opt-pill.is-correct { background: #f0fdf4; border-color: #86efac; color: #166534; font-weight: 600; }
-        
-        .tab-btn { border: none; background: none; padding: 12px 15px; font-weight: 700; color: #64748b; border-bottom: 2px solid transparent; transition: all 0.2s; }
-        .tab-btn.active { color: #4f46e5; border-bottom-color: #4f46e5; }
-        
-        .code-area { 
-            font-family: 'JetBrains Mono', monospace; 
-            font-size: 0.92rem; 
-            background: #0f172a; 
-            color: #e2e8f0; 
-            border: none; 
-            border-radius: 0; 
-            width: 100%; 
-            height: 100%; 
-            padding: 25px; 
-            resize: none; 
+
+        .q-preview-card {
+            padding: 20px 0;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+
+        .q-preview-card:last-child {
+            border-bottom: none;
+        }
+
+        .opt-pill {
+            padding: 8px 15px;
+            border-radius: 8px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .opt-pill.is-correct {
+            background: #f0fdf4;
+            border-color: #86efac;
+            color: #166534;
+            font-weight: 600;
+        }
+
+        .tab-btn {
+            border: none;
+            background: none;
+            padding: 12px 15px;
+            font-weight: 700;
+            color: #64748b;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            color: #4f46e5;
+            border-bottom-color: #4f46e5;
+        }
+
+        .code-area {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.92rem;
+            background: #0f172a;
+            color: #e2e8f0;
+            border: none;
+            border-radius: 0;
+            width: 100%;
+            height: 100%;
+            padding: 25px;
+            resize: none;
             outline: none;
             line-height: 1.6;
         }
-        
+
         .dropzone {
             border: 2px dashed #cbd5e1;
             background: #f8fafc;
@@ -125,45 +187,98 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        .dropzone:hover { border-color: #6366f1; background: #eff6ff; }
-        .dropzone i { font-size: 2.5rem; color: #6366f1; margin-bottom: 10px; }
-        
-        .action-bar { padding: 15px 24px; background: #ffffff; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; z-index: 20; }
-        
+
+        .dropzone:hover {
+            border-color: #6366f1;
+            background: #eff6ff;
+        }
+
+        .dropzone i {
+            font-size: 2.5rem;
+            color: #6366f1;
+            margin-bottom: 10px;
+        }
+
+        .action-bar {
+            padding: 15px 24px;
+            background: #ffffff;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 20;
+        }
+
         /* Slim FC for top bar single-line design */
-        .fc-header { border-radius: 6px; border: 1px solid #cbd5e1; background: #ffffff; font-weight: 600; padding: 6px 12px; font-size: 0.85rem; }
-        .fc-header:focus { border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.05); }
-        
-        #empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 60vh; color: #94a3b8; }
-        
-        .toast-wrap { position: fixed; top: 20px; right: 20px; z-index: 9999; }
-        .badge-status { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; padding: 3px 8px; border-radius: 10px; }
+        .fc-header {
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            font-weight: 600;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+
+        .fc-header:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.05);
+        }
+
+        #empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 60vh;
+            color: #94a3b8;
+        }
+
+        .toast-wrap {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        .badge-status {
+            font-size: 0.65rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 3px 8px;
+            border-radius: 10px;
+        }
     </style>
 </head>
+
 <body>
     <aside th:replace="~{layout/sidebar :: teacher-sidebar('quizzes')}"></aside>
     <header th:replace="~{layout/header :: teacher-header}"></header>
-    
+
     <main id="main-content" class="designer-layout">
         <!-- COMPACT TOP BAR -->
         <div class="designer-topbar">
             <div class="d-flex align-items-center gap-3 flex-grow-1">
                 <div class="d-flex align-items-center gap-2" style="width: 400px;">
                     <span class="small fw-bold text-muted text-nowrap">Đề thi:</span>
-                    <input type="text" id="q-title" class="form-control fc-header w-100" placeholder="Nhập tiêu đề tại đây..." oninput="updateVisualMeta()">
+                    <input type="text" id="q-title" class="form-control fc-header w-100"
+                        placeholder="Nhập tiêu đề tại đây..." oninput="updateVisualMeta()">
                 </div>
                 <div class="d-flex align-items-center gap-2" style="width: 300px;">
                     <span class="small fw-bold text-muted text-nowrap">Lưu tại:</span>
                     <div class="position-relative flex-grow-1">
-                        <i class="bi bi-folder-symlink position-absolute top-50 end-0 translate-middle-y me-2 text-muted small"></i>
-                        <input type="text" id="quiz-category-display" class="form-control fc-header cursor-pointer w-100 pe-4" placeholder="Chọn danh mục..." readonly onclick="openCategoryTreePicker('quiz')">
+                        <i
+                            class="bi bi-folder-symlink position-absolute top-50 end-0 translate-middle-y me-2 text-muted small"></i>
+                        <input type="text" id="quiz-category-display"
+                            class="form-control fc-header cursor-pointer w-100 pe-4" placeholder="Chọn danh mục..."
+                            readonly onclick="openCategoryTreePicker('quiz')">
                     </div>
                     <input type="hidden" id="quiz-category">
                 </div>
             </div>
-            
+
             <div class="d-flex align-items-center gap-2">
-                <div class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1" style="font-size: 0.6rem;"><i class="bi bi-record-circle-fill me-1 blink"></i> LIVE</div>
+                <div class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1"
+                    style="font-size: 0.6rem;"><i class="bi bi-record-circle-fill me-1 blink"></i> LIVE</div>
                 <a href="/teacher/quizzes" class="btn btn-sm btn-light fw-bold border rounded-pill px-3 shadow-sm">
                     <i class="bi bi-x-lg me-1"></i> Đóng
                 </a>
@@ -174,55 +289,61 @@
             <!-- LEFT: THE VISUAL ENGINE -->
             <div class="preview-pane" id="left-pane">
                 <div class="paper-sheet" id="render-target">
-                <!-- Empty State Loaded by Default -->
-                <div id="empty-state">
-                    <div style="background: #f1f5f9; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
-                        <i class="bi bi-file-earmark-text text-secondary fs-1"></i>
+                    <!-- Empty State Loaded by Default -->
+                    <div id="empty-state">
+                        <div
+                            style="background: #f1f5f9; width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                            <i class="bi bi-file-earmark-text text-secondary fs-1"></i>
+                        </div>
+                        <h5 class="fw-bold text-secondary">Chưa có nội dung render</h5>
+                        <p class="small">Kéo thả file Excel hoặc dán JSON ở cột phải để xem trước.</p>
                     </div>
-                    <h5 class="fw-bold text-secondary">Chưa có nội dung render</h5>
-                    <p class="small">Kéo thả file Excel hoặc dán JSON ở cột phải để xem trước.</p>
                 </div>
             </div>
-            </div>
-            
+
             <!-- THE RESIZER SPLITTER -->
             <div class="gutter-resizer" id="drag-gutter"></div>
-            
+
             <!-- RIGHT: THE SOURCES -->
             <div class="source-pane" id="right-pane">
                 <!-- Tabs Selector -->
                 <div class="d-flex border-bottom px-3 bg-light">
-                    <button class="tab-btn active" onclick="switchTab('excel', this)"><i class="bi bi-file-earmark-excel me-2"></i>Excel Source</button>
-                    <button class="tab-btn" onclick="switchTab('json', this)"><i class="bi bi-braces me-2"></i>Dữ liệu JSON</button>
+                    <button class="tab-btn active" onclick="switchTab('excel', this)"><i
+                            class="bi bi-file-earmark-excel me-2"></i>Excel Source</button>
+                    <button class="tab-btn" onclick="switchTab('json', this)"><i class="bi bi-braces me-2"></i>Dữ liệu
+                        JSON</button>
                 </div>
-            
-            <!-- Tab Contents Container -->
-            <div class="flex-grow-1 overflow-hidden position-relative" style="display: flex; flex-direction: column;">
-                <!-- Tab Excel -->
-                <div id="tab-excel" class="p-4 h-100">
-                    <div class="dropzone" id="excel-dropzone" onclick="document.getElementById('excel-file').click()">
-                        <i class="bi bi-cloud-arrow-up"></i>
-                        <h6 class="fw-bold mb-1">Nhấp vào đây để tải File</h6>
-                        <p class="text-muted small mb-0">Hỗ trợ .xlsx, .xls</p>
-                        <input type="file" id="excel-file" class="d-none" accept=".xlsx, .xls" onchange="handleExcelParse(event)">
+
+                <!-- Tab Contents Container -->
+                <div class="flex-grow-1 overflow-hidden position-relative"
+                    style="display: flex; flex-direction: column;">
+                    <!-- Tab Excel -->
+                    <div id="tab-excel" class="p-4 h-100">
+                        <div class="dropzone" id="excel-dropzone"
+                            onclick="document.getElementById('excel-file').click()">
+                            <i class="bi bi-cloud-arrow-up"></i>
+                            <h6 class="fw-bold mb-1">Nhấp vào đây để tải File</h6>
+                            <p class="text-muted small mb-0">Hỗ trợ .xlsx, .xls</p>
+                            <input type="file" id="excel-file" class="d-none" accept=".xlsx, .xls"
+                                onchange="handleExcelParse(event)">
+                        </div>
+                        <div class="mt-4">
+                            <h6 class="small fw-bold"><i class="bi bi-info-circle me-2 text-primary"></i>Hướng dẫn:</h6>
+                            <ol class="small text-muted ps-3">
+                                <li>Tải file Excel chứa câu hỏi lên hệ thống.</li>
+                                <li>Hệ thống parse dữ liệu và hiện thị xem trước bên trái.</li>
+                                <li>Bấm "Lưu chính thức" ở thanh dưới cùng để tạo đề.</li>
+                            </ol>
+                        </div>
+                        <div id="parse-loader" class="text-center d-none mt-4">
+                            <div class="spinner-border text-indigo" role="status"></div>
+                            <div class="small fw-bold mt-2 text-indigo">Đang phân tích dữ liệu...</div>
+                        </div>
                     </div>
-                    <div class="mt-4">
-                        <h6 class="small fw-bold"><i class="bi bi-info-circle me-2 text-primary"></i>Hướng dẫn:</h6>
-                        <ol class="small text-muted ps-3">
-                            <li>Tải file Excel chứa câu hỏi lên hệ thống.</li>
-                            <li>Hệ thống parse dữ liệu và hiện thị xem trước bên trái.</li>
-                            <li>Bấm "Lưu chính thức" ở thanh dưới cùng để tạo đề.</li>
-                        </ol>
-                    </div>
-                    <div id="parse-loader" class="text-center d-none mt-4">
-                        <div class="spinner-border text-indigo" role="status"></div>
-                        <div class="small fw-bold mt-2 text-indigo">Đang phân tích dữ liệu...</div>
-                    </div>
-                </div>
-                
-                <!-- Tab JSON -->
-                <div id="tab-json" class="d-none flex-grow-1 flex-column h-100">
-                    <textarea id="json-editor" class="code-area flex-grow-1" placeholder='[
+
+                    <!-- Tab JSON -->
+                    <div id="tab-json" class="d-none flex-grow-1 flex-column h-100">
+                        <textarea id="json-editor" class="code-area flex-grow-1" placeholder='[
   {
     "câu": "Thủ đô của Pháp là gì?",
     "đáp_án": ["London", "Paris", "Berlin"],
@@ -230,23 +351,25 @@
     "độ_khó": "EASY"
   }
 ]' spellcheck="false" oninput="handleJSONLive()"></textarea>
-                    <div id="json-status" class="bg-dark text-success small px-3 py-2 border-top border-secondary" style="font-size: 0.75rem; font-family: 'JetBrains Mono';">
-                        <i class="bi bi-check-circle-fill me-1"></i> JSON Sẵn sàng
+                        <div id="json-status" class="bg-dark text-success small px-3 py-2 border-top border-secondary"
+                            style="font-size: 0.75rem; font-family: 'JetBrains Mono';">
+                            <i class="bi bi-check-circle-fill me-1"></i> JSON Sẵn sàng
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- ACTION BOTTOM BAR -->
-            <div class="action-bar mt-auto">
-                <div>
-                    <span class="fw-bold text-dark fs-5" id="stat-count">0</span>
-                    <span class="text-muted small fw-bold"> CÂU HỎI</span>
+
+                <!-- ACTION BOTTOM BAR -->
+                <div class="action-bar mt-auto">
+                    <div>
+                        <span class="fw-bold text-dark fs-5" id="stat-count">0</span>
+                        <span class="text-muted small fw-bold"> CÂU HỎI</span>
+                    </div>
+                    <button class="btn btn-primary fw-bold rounded-pill px-4 py-2 shadow-sm" onclick="submitFinalQuiz()"
+                        id="btn-save" disabled>
+                        <i class="bi bi-rocket-takeoff-fill me-2"></i> LƯU ĐỀ THI
+                    </button>
                 </div>
-                <button class="btn btn-primary fw-bold rounded-pill px-4 py-2 shadow-sm" onclick="submitFinalQuiz()" id="btn-save" disabled>
-                    <i class="bi bi-rocket-takeoff-fill me-2"></i> LƯU ĐỀ THI
-                </button>
-            </div>
-        </div> <!-- End designer-body -->
+            </div> <!-- End designer-body -->
     </main>
 
     <!-- Notification Center -->
@@ -262,7 +385,7 @@
         function switchTab(tabName, btn) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-            
+
             document.getElementById('tab-excel').classList.add('d-none');
             document.getElementById('tab-json').classList.add('d-none');
             document.getElementById('tab-json').style.display = 'none'; // override flex utilities
@@ -276,13 +399,13 @@
             }
         }
 
-        function showToast(msg, type='ok') {
+        function showToast(msg, type = 'ok') {
             const container = document.getElementById('toastWrap');
             const t = document.createElement('div');
-            t.className = `alert alert-${type==='ok'?'success':'danger'} shadow border-0 py-2 px-3 rounded-3 fw-bold small mb-2`;
-            t.innerHTML = `<i class="bi bi-${type==='ok'?'check-circle':'exclamation-circle'} me-2"></i>${msg}`;
+            t.className = `alert alert-${type === 'ok' ? 'success' : 'danger'} shadow border-0 py-2 px-3 rounded-3 fw-bold small mb-2`;
+            t.innerHTML = `<i class="bi bi-${type === 'ok' ? 'check-circle' : 'exclamation-circle'} me-2"></i>${msg}`;
             container.appendChild(t);
-            setTimeout(()=> t.remove(), 3000);
+            setTimeout(() => t.remove(), 3000);
         }
 
         // --- 2. Excel Flow ---
@@ -305,9 +428,9 @@
                 });
                 if (!res.ok) throw new Error("Lỗi phân tích file");
                 const data = await res.json();
-                
+
                 currentQuestions = data;
-                
+
                 // SMART DUMP: Instead of dumping verbose API objects, distill into user-friendly minimal format!
                 const cleanViewData = data.map(q => ({
                     "câu": q.text,
@@ -318,7 +441,7 @@
 
                 // Sync beautiful minimal format to JSON editor
                 document.getElementById('json-editor').value = JSON.stringify(cleanViewData, null, 2);
-                
+
                 renderVisualPreview();
                 showToast(`Đã nạp ${data.length} câu từ Excel`);
             } catch (e) {
@@ -333,13 +456,13 @@
         function handleJSONLive() {
             clearTimeout(jsonTimer);
             const statusEl = document.getElementById('json-status');
-            
+
             jsonTimer = setTimeout(() => {
                 const raw = document.getElementById('json-editor').value.trim();
                 if (!raw) {
-                     statusEl.innerHTML = '<i class="bi bi-info-circle me-1"></i> Nhập JSON string...';
-                     statusEl.className = 'bg-dark text-white small px-3 py-2 border-top border-secondary';
-                     return;
+                    statusEl.innerHTML = '<i class="bi bi-info-circle me-1"></i> Nhập JSON string...';
+                    statusEl.className = 'bg-dark text-white small px-3 py-2 border-top border-secondary';
+                    return;
                 }
                 try {
                     const parsed = JSON.parse(raw);
@@ -348,10 +471,10 @@
                         currentQuestions = parsed.map(item => {
                             // Find key aliases for "text"
                             const rawText = item.câu || item.cau || item.question || item.q || item.text || "Câu hỏi trống";
-                            
+
                             // Find key aliases for choices/options list
                             const rawChoices = item.đáp_án || item.dap_an || item.options || item.choices || item.answers || item.a || [];
-                            
+
                             // Find correct key/marker
                             const correctMarker = item.đúng || item.dung || item.correct || item.ok || item.ans || null;
 
@@ -367,15 +490,15 @@
                                 finalAnswers = rawChoices.map(ans => {
                                     // If string, convert to object. If already object, keep it.
                                     const ansText = typeof ans === 'string' ? ans : (ans.text || String(ans));
-                                    
+
                                     // Check correct markers against this option
                                     const isCorrect = (correctMarker && String(ansText).trim().toLowerCase() === String(correctMarker).trim().toLowerCase())
-                                                     || (typeof ans === 'object' && (ans.correct === true || ans.isCorrect === true));
+                                        || (typeof ans === 'object' && (ans.correct === true || ans.isCorrect === true));
                                     return { text: ansText, correct: isCorrect };
                                 });
                             } else if (typeof rawChoices === 'object' && !Array.isArray(rawChoices)) {
                                 // support full expanded nested answer structure if supplied
-                                finalAnswers = Array.isArray(item.answers) ? item.answers.map(a => ({ text: a.text, correct: !!a.correct || !!a.isCorrect })) : []; 
+                                finalAnswers = Array.isArray(item.answers) ? item.answers.map(a => ({ text: a.text, correct: !!a.correct || !!a.isCorrect })) : [];
                             }
 
                             return {
@@ -450,8 +573,8 @@
                     </div>
                     <div class="ps-4 ms-2">
                         ${q.answers ? q.answers.map((ans, aIdx) => {
-                            const isActuallyCorrect = (ans.correct === true || ans.isCorrect === true);
-                            return `
+                    const isActuallyCorrect = (ans.correct === true || ans.isCorrect === true);
+                    return `
                             <div class="opt-pill ${isActuallyCorrect ? 'is-correct' : ''}">
                                 <div style="width: 20px; height: 20px; border-radius: 50%; background: white; border: 1px solid #cbd5e1; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.65rem;">
                                     ${String.fromCharCode(65 + aIdx)}
@@ -460,7 +583,7 @@
                                 ${isActuallyCorrect ? '<i class="bi bi-check-lg"></i>' : ''}
                             </div>
                             `;
-                        }).join('') : '<div class="text-muted small">Không có phương án.</div>'}
+                }).join('') : '<div class="text-muted small">Không có phương án.</div>'}
                     </div>
                 </div>
                 `;
@@ -473,7 +596,7 @@
         function updateVisualMeta() {
             if (currentQuestions.length > 0) renderVisualPreview();
         }
-        
+
         // Sync watcher for category display
         setInterval(() => {
             const val = document.getElementById('quiz-category-display').value;
@@ -522,7 +645,7 @@
                     // Redirect back to lists after a moment
                     setTimeout(() => { window.location.href = "/teacher/quizzes"; }, 1500);
                 } else {
-                    const err = await resp.json().catch(()=>({message:"Lỗi xử lý server"}));
+                    const err = await resp.json().catch(() => ({ message: "Lỗi xử lý server" }));
                     throw new Error(err.message || "Lỗi không xác định.");
                 }
             } catch (e) {
@@ -552,7 +675,7 @@
         }
 
         // --- RESIZER ENGINE IMPLEMENTATION ---
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const gutter = document.getElementById('drag-gutter');
             const leftPane = document.getElementById('left-pane');
             const rightPane = document.getElementById('right-pane');
@@ -560,7 +683,7 @@
 
             let isDragging = false;
 
-            gutter.addEventListener('mousedown', function(e) {
+            gutter.addEventListener('mousedown', function (e) {
                 isDragging = true;
                 document.body.style.cursor = 'col-resize';
                 gutter.classList.add('is-resizing');
@@ -568,32 +691,32 @@
                 document.body.style.userSelect = 'none';
             });
 
-            document.addEventListener('mousemove', function(e) {
+            document.addEventListener('mousemove', function (e) {
                 if (!isDragging) return;
 
                 const containerRect = container.getBoundingClientRect();
                 const containerWidth = containerRect.width;
-                
+
                 // Calculate absolute horizontal position of cursor relative to the work container
                 const pointerPos = e.clientX - containerRect.left;
-                
+
                 // Calculate left percentage width
                 let leftPercent = (pointerPos / containerWidth) * 100;
-                
+
                 // Constrain boundaries (min 25%, max 75%)
                 if (leftPercent < 25) leftPercent = 25;
                 if (leftPercent > 75) leftPercent = 75;
-                
+
                 const rightPercent = 100 - leftPercent;
 
                 leftPane.style.flex = `0 0 ${leftPercent}%`;
                 rightPane.style.flex = `0 0 ${rightPercent}%`;
-                
+
                 // Explicitly zero width in case flex interferes
-                rightPane.style.width = 'auto'; 
+                rightPane.style.width = 'auto';
             });
 
-            document.addEventListener('mouseup', function() {
+            document.addEventListener('mouseup', function () {
                 if (isDragging) {
                     isDragging = false;
                     document.body.style.cursor = '';
@@ -608,4 +731,5 @@
     <div th:replace="~{fragments/category-explorer-private :: category-explorer-private-modal}"></div>
     <div th:replace="~{fragments/category-explorer-private :: category-explorer-private-scripts('teacher')}"></div>
 </body>
+
 </html>

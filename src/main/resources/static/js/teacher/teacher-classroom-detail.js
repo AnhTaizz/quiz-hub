@@ -1,4 +1,4 @@
-(function() {
+(function () {
     // --- Configurations ---
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     const getClassroomId = () => window.CLASSROOM_ID || 0;
@@ -11,7 +11,7 @@
 
     function escapeHTML(str) {
         if (!str) return '';
-        return str.replace(/[&<>'"]/g, 
+        return str.replace(/[&<>'"]/g,
             tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
         );
     }
@@ -26,9 +26,9 @@
         t.innerHTML = `<i class="bi ${type === 'ok' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'} me-2"></i> ${msg}`;
         w.appendChild(t);
         setTimeout(() => t.style.opacity = '1', 10);
-        setTimeout(() => { 
-            t.style.opacity = '0'; 
-            setTimeout(() => t.remove(), 300); 
+        setTimeout(() => {
+            t.style.opacity = '0';
+            setTimeout(() => t.remove(), 300);
         }, 2500);
     }
 
@@ -55,7 +55,7 @@
     }
 
     // --- Category & Assignment Management ---
-    window.handleCategorySelection = function(id, name, target) {
+    window.handleCategorySelection = function (id, name, target) {
         if (id === null) {
             document.getElementById('categoryFilterValue').value = '';
             document.getElementById('categoryFilterDisplay').value = 'Tất cả danh mục';
@@ -64,7 +64,7 @@
             window.filterQuizzesByCategory('');
             return;
         }
-        
+
         if (id === -1) {
             document.getElementById('categoryFilterValue').value = -1;
             document.getElementById('categoryFilterDisplay').value = 'Chưa phân mục';
@@ -73,7 +73,7 @@
             window.filterQuizzesByCategory(-1);
             return;
         }
-        
+
         document.getElementById('categoryFilterValue').value = id;
         document.getElementById('categoryFilterDisplay').value = name;
         const clearBtn = document.getElementById('clearCatBtn');
@@ -82,7 +82,7 @@
         window.filterQuizzesByCategory(id);
     };
 
-    window.clearCategoryFilter = function() {
+    window.clearCategoryFilter = function () {
         document.getElementById('categoryFilterValue').value = '';
         document.getElementById('categoryFilterDisplay').value = '';
         const clearBtn = document.getElementById('clearCatBtn');
@@ -90,7 +90,7 @@
         window.filterQuizzesByCategory('');
     };
 
-    window.filterQuizzesByCategory = function(catId) {
+    window.filterQuizzesByCategory = function (catId) {
         const select = document.getElementById('quizSelect');
         if (!select) return;
         const options = select.querySelectorAll('option');
@@ -133,7 +133,7 @@
                 opt.style.display = 'none';
                 return;
             }
-            
+
             const optCatId = parseInt(optCatIdStr);
             if (!isNaN(optCatId) && childIds.includes(optCatId)) {
                 opt.style.display = 'block';
@@ -143,7 +143,7 @@
         });
     };
 
-    window.submitAssignment = function() {
+    window.submitAssignment = function () {
         const form = document.getElementById('assignQuizForm');
         if (!form) return;
         if (!form.checkValidity()) {
@@ -189,22 +189,22 @@
             },
             body: JSON.stringify(data)
         })
-        .then(res => {
-            if (res.ok) {
-                alert('Giao đề thi thành công!');
-                location.reload();
-            } else {
-                alert('Đã có lỗi xảy ra. Hãy thử lại!');
-            }
-        })
-        .catch(err => {
-            console.error(err);
-            alert('Lỗi kết nối. Vui lòng kiểm tra lại!');
-        });
+            .then(res => {
+                if (res.ok) {
+                    alert('Giao đề thi thành công!');
+                    location.reload();
+                } else {
+                    alert('Đã có lỗi xảy ra. Hãy thử lại!');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                alert('Lỗi kết nối. Vui lòng kiểm tra lại!');
+            });
     };
 
     // --- Topic CRUD Operations ---
-    window.createTopic = async function() {
+    window.createTopic = async function () {
         const newTopicInput = document.getElementById('newTopicName');
         if (!newTopicInput) return;
         const name = newTopicInput.value.trim();
@@ -231,7 +231,7 @@
         }
     };
 
-    window.deleteTopic = async function(topicId) {
+    window.deleteTopic = async function (topicId) {
         if (!confirm('Bạn có chắc chắn muốn xóa chủ đề này?')) return;
 
         try {
@@ -250,7 +250,7 @@
         }
     };
 
-    window.editTopic = async function(topicId, currentName) {
+    window.editTopic = async function (topicId, currentName) {
         const newName = prompt('Nhập tên chủ đề mới:', currentName);
         if (!newName || newName.trim() === '' || newName.trim() === currentName) return;
 
@@ -277,7 +277,7 @@
     };
 
     // --- Classroom Management ---
-    window.updateClassroom = async function() {
+    window.updateClassroom = async function () {
         const nameEl = document.getElementById('editClassName');
         const descEl = document.getElementById('editClassDesc');
         const approveEl = document.getElementById('editRequireApproval');
@@ -314,7 +314,7 @@
         }
     };
 
-    window.deleteClassroom = async function() {
+    window.deleteClassroom = async function () {
         if (!confirm('Bạn có chắc chắn muốn xóa lớp học này không? Hành động này không thể hoàn tác.')) return;
 
         const classroomId = getClassroomId();
@@ -337,7 +337,7 @@
     };
 
     // --- Visual Actions / Modals ---
-    window.openQuizPreviewModal = async function(id, event) {
+    window.openQuizPreviewModal = async function (id, event) {
         if (event) event.preventDefault();
         try {
             const res = await fetch(`/api/teacher/quizzes/${id}`, {
@@ -349,7 +349,7 @@
                 const descEl = document.getElementById('preview-quiz-desc');
                 const countEl = document.getElementById('preview-quiz-count');
                 const container = document.getElementById('preview-quiz-questions');
-                
+
                 if (titleEl) titleEl.textContent = q.title || 'Chưa có tiêu đề';
                 if (descEl) descEl.textContent = q.description || 'Chưa có mô tả.';
 
@@ -392,7 +392,7 @@
         }
     };
 
-    window.openTopicDetailsModal = function(topicId, topicName) {
+    window.openTopicDetailsModal = function (topicId, topicName) {
         const titleEl = document.getElementById('topicModalTitle');
         const container = document.getElementById('topicModalBody');
         if (titleEl) titleEl.innerText = 'Chủ đề: ' + topicName;

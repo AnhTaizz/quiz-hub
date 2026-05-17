@@ -1,15 +1,18 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>QuizHub | Nhật ký Vi phạm</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito+Sans:wght@700;800;900&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Nunito+Sans:wght@700;800;900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard-layout.css}">
-    
+
     <style>
         .violation-card {
             background: #fff;
@@ -19,9 +22,11 @@
             border: 1px solid var(--border);
             margin-bottom: 30px;
         }
+
         .log-table {
             width: 100%;
         }
+
         .log-table th {
             background: #f8fafc;
             padding: 15px;
@@ -31,33 +36,56 @@
             color: #64748b;
             border-bottom: 2px solid #f1f5f9;
         }
+
         .log-table td {
             padding: 20px 15px;
             border-bottom: 1px solid #f1f5f9;
             vertical-align: middle;
         }
+
         .student-info {
             display: flex;
             align-items: center;
             gap: 12px;
         }
+
         .student-info img {
             width: 40px;
             height: 40px;
             border-radius: 50%;
             object-fit: cover;
         }
+
         .v-type-badge {
             padding: 6px 12px;
             border-radius: 8px;
             font-weight: 700;
             font-size: 0.8rem;
         }
-        .v-TAB_SWITCH { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
-        .v-WINDOW_BLUR { background: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2; }
-        .v-TAB_CLOSE { background: #450a0a; color: #fecaca; }
-        .v-MANUAL_EXIT { background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0; }
-        
+
+        .v-TAB_SWITCH {
+            background: #fff7ed;
+            color: #c2410c;
+            border: 1px solid #ffedd5;
+        }
+
+        .v-WINDOW_BLUR {
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fee2e2;
+        }
+
+        .v-TAB_CLOSE {
+            background: #450a0a;
+            color: #fecaca;
+        }
+
+        .v-MANUAL_EXIT {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
+        }
+
         .severity-dot {
             width: 8px;
             height: 8px;
@@ -65,9 +93,18 @@
             display: inline-block;
             margin-right: 6px;
         }
-        .sev-1 { background: #f59e0b; }
-        .sev-2 { background: #ef4444; }
-        .sev-3 { background: #7f1d1d; }
+
+        .sev-1 {
+            background: #f59e0b;
+        }
+
+        .sev-2 {
+            background: #ef4444;
+        }
+
+        .sev-3 {
+            background: #7f1d1d;
+        }
 
         /* Stats Cards */
         .stat-card {
@@ -77,10 +114,12 @@
             border: 1px solid var(--border);
             transition: all 0.3s ease;
         }
+
         .stat-card:hover {
             transform: translateY(-5px);
             box-shadow: var(--shadow-card);
         }
+
         .stat-icon {
             width: 48px;
             height: 48px;
@@ -90,14 +129,31 @@
             justify-content: center;
             font-size: 1.5rem;
         }
-        .bg-soft-primary { background: #eff6ff; color: #2563eb; }
-        .bg-soft-danger { background: #fef2f2; color: #dc2626; }
-        .bg-soft-warning { background: #fffbeb; color: #d97706; }
-        .bg-soft-success { background: #f0fdf4; color: #16a34a; }
+
+        .bg-soft-primary {
+            background: #eff6ff;
+            color: #2563eb;
+        }
+
+        .bg-soft-danger {
+            background: #fef2f2;
+            color: #dc2626;
+        }
+
+        .bg-soft-warning {
+            background: #fffbeb;
+            color: #d97706;
+        }
+
+        .bg-soft-success {
+            background: #f0fdf4;
+            color: #16a34a;
+        }
 
         .high-risk-row {
             background-color: #fff1f2 !important;
         }
+
         .badge-count {
             background: #dc2626;
             color: #fff;
@@ -109,6 +165,7 @@
         }
     </style>
 </head>
+
 <body>
     <aside th:replace="~{layout/sidebar :: teacher-sidebar('dashboard')}"></aside>
     <header th:replace="~{layout/header :: teacher-header}"></header>
@@ -122,7 +179,8 @@
                         <li class="breadcrumb-item active">Nhật ký Vi phạm</li>
                     </ol>
                 </nav>
-                <h3 class="fw-bold m-0">Chi tiết vi phạm: <span th:text="${assignment.quiz.title}">Đề thi giữa kỳ</span></h3>
+                <h3 class="fw-bold m-0">Chi tiết vi phạm: <span th:text="${assignment.quiz.title}">Đề thi giữa kỳ</span>
+                </h3>
                 <p class="text-muted" th:text="${'Lớp: ' + assignment.classroom.name}">Lớp: Lập trình Java</p>
             </div>
             <button class="btn btn-outline-primary rounded-pill px-4" onclick="window.print()">
@@ -196,8 +254,10 @@
             <div class="col-12">
                 <div class="stat-card">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-bold m-0"><i class="bi bi-person-lines-fill me-2 text-danger"></i>Danh sách học sinh vi phạm</h5>
-                        <button class="btn btn-sm btn-light rounded-pill px-3" onclick="resetFilter()">Xem tất cả</button>
+                        <h5 class="fw-bold m-0"><i class="bi bi-person-lines-fill me-2 text-danger"></i>Danh sách học
+                            sinh vi phạm</h5>
+                        <button class="btn btn-sm btn-light rounded-pill px-3" onclick="resetFilter()">Xem tất
+                            cả</button>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-sm table-hover align-middle mb-0" id="violatorSummaryTable">
@@ -224,9 +284,8 @@
                 <span class="input-group-text bg-white border-0 ps-4">
                     <i class="bi bi-search text-primary"></i>
                 </span>
-                <input type="text" id="studentSearchInput" class="form-control border-0 py-3" 
-                    placeholder="Tìm kiếm theo tên hoặc email học sinh để xem vi phạm..." 
-                    onkeyup="filterByStudent()">
+                <input type="text" id="studentSearchInput" class="form-control border-0 py-3"
+                    placeholder="Tìm kiếm theo tên hoặc email học sinh để xem vi phạm..." onkeyup="filterByStudent()">
             </div>
         </div>
 
@@ -251,32 +310,39 @@
                     <tr th:each="v : ${violations}">
                         <td>
                             <div class="student-info">
-                                <img th:src="${v.attempt.quizTaking.learner.avatarUrl != null ? v.attempt.quizTaking.learner.avatarUrl : 'https://ui-avatars.com/api/?name=' + v.attempt.quizTaking.learner.fullName}" alt="Avatar">
+                                <img th:src="${v.attempt.quizTaking.learner.avatarUrl != null ? v.attempt.quizTaking.learner.avatarUrl : 'https://ui-avatars.com/api/?name=' + v.attempt.quizTaking.learner.fullName}"
+                                    alt="Avatar">
                                 <div>
-                                    <div class="fw-bold" th:text="${v.attempt.quizTaking.learner.fullName}">Nguyễn Văn A</div>
-                                    <div class="small text-muted" th:text="${v.attempt.quizTaking.learner.email}">student@gmail.com</div>
+                                    <div class="fw-bold" th:text="${v.attempt.quizTaking.learner.fullName}">Nguyễn Văn A
+                                    </div>
+                                    <div class="small text-muted" th:text="${v.attempt.quizTaking.learner.email}">
+                                        student@gmail.com</div>
                                 </div>
                             </div>
                         </td>
                         <td>
                             <div class="fw-bold" th:text="${#temporals.format(v.occurredAt, 'HH:mm:ss')}">10:30:05</div>
-                            <div class="small text-muted" th:text="${#temporals.format(v.occurredAt, 'dd/MM/yyyy')}">04/05/2026</div>
+                            <div class="small text-muted" th:text="${#temporals.format(v.occurredAt, 'dd/MM/yyyy')}">
+                                04/05/2026</div>
                         </td>
                         <td class="v-type-cell">
                             <span th:class="'badge v-type-badge sev-' + ${v.violationType.severityLevel}"
-                                  th:text="${v.violationType.violationCode == 'FULLSCREEN_EXIT' ? 'Thoát Toàn màn hình' : 
-                                            (v.violationType.violationCode == 'TAB_SWITCH' ? 'Chuyển Tab' : 
-                                            (v.violationType.violationCode == 'WINDOW_BLUR' ? 'Rời cửa sổ' : 
-                                            (v.violationType.violationCode == 'TAB_CLOSE' ? 'Đóng trình duyệt' : 
+                                th:text="${v.violationType.violationCode == 'FULLSCREEN_EXIT' ? 'Thoát Toàn màn hình' :
+                                            (v.violationType.violationCode == 'TAB_SWITCH' ? 'Chuyển Tab' :
+                                            (v.violationType.violationCode == 'WINDOW_BLUR' ? 'Rời cửa sổ' :
+                                            (v.violationType.violationCode == 'TAB_CLOSE' ? 'Đóng trình duyệt' :
                                             (v.violationType.violationCode == 'MANUAL_EXIT' ? 'Thoát thủ công' : v.violationType.violationCode))))}">
                                 Vi phạm
                             </span>
                         </td>
                         <td>
-                            <span class="severity-dot" th:classappend="'sev-' + ${v.violationType.severityLevel}"></span>
-                            <span th:text="${v.violationType.severityLevel == 1 ? 'Nhẹ' : (v.violationType.severityLevel == 2 ? 'Cảnh cáo' : 'Nghiêm trọng')}">Nhẹ</span>
+                            <span class="severity-dot"
+                                th:classappend="'sev-' + ${v.violationType.severityLevel}"></span>
+                            <span
+                                th:text="${v.violationType.severityLevel == 1 ? 'Nhẹ' : (v.violationType.severityLevel == 2 ? 'Cảnh cáo' : 'Nghiêm trọng')}">Nhẹ</span>
                         </td>
-                        <td class="text-muted small" th:text="${v.violationType.description}">Tự động ghi nhận bởi hệ thống.</td>
+                        <td class="text-muted small" th:text="${v.violationType.description}">Tự động ghi nhận bởi hệ
+                            thống.</td>
                     </tr>
                 </tbody>
             </table>
@@ -287,7 +353,7 @@
     <script>
 
 
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             // 1. Calculate Statistics
             calculateStats();
 
@@ -295,14 +361,14 @@
 
             // 3. Auto Refresh Logic
             let refreshInterval = setInterval(() => {
-                if(document.getElementById('autoRefresh').checked) {
+                if (document.getElementById('autoRefresh').checked) {
                     location.reload();
                 }
             }, 10000); // 10 seconds
 
-            document.getElementById('autoRefresh').onchange = function() {
+            document.getElementById('autoRefresh').onchange = function () {
                 const status = document.getElementById('liveStatus');
-                if(this.checked) {
+                if (this.checked) {
                     status.textContent = "Đang bật";
                     status.className = "small text-success fw-bold";
                 } else {
@@ -329,12 +395,12 @@
             });
 
             // Count high risk (> 3 violations)
-            for(let email in studentCounts) {
-                if(studentCounts[email] >= 3) {
+            for (let email in studentCounts) {
+                if (studentCounts[email] >= 3) {
                     highRisk++;
                     // Highlight rows for high risk students
                     rows.forEach(row => {
-                        if(row.querySelector('.text-muted.small').textContent === email) {
+                        if (row.querySelector('.text-muted.small').textContent === email) {
                             row.classList.add('high-risk-row');
                         }
                     });
@@ -344,8 +410,8 @@
             // Find most common violation
             let maxType = "---";
             let maxVal = 0;
-            for(let type in typeCounts) {
-                if(typeCounts[type] > maxVal) {
+            for (let type in typeCounts) {
+                if (typeCounts[type] > maxVal) {
                     maxVal = typeCounts[type];
                     maxType = type;
                 }
@@ -361,7 +427,7 @@
         function renderViolatorSummary(counts) {
             const body = document.getElementById('violatorSummaryBody');
             body.innerHTML = '';
-            
+
             // Convert to array and sort by count descending
             const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
 
@@ -372,15 +438,15 @@
 
             sorted.forEach(([email, count]) => {
                 // Find student info from the main table
-                const row = Array.from(document.querySelectorAll('.log-table tbody tr')).find(r => 
+                const row = Array.from(document.querySelectorAll('.log-table tbody tr')).find(r =>
                     r.querySelector('.text-muted.small').textContent === email
                 );
                 const name = row.querySelector('.fw-bold').textContent;
                 const avatar = row.querySelector('img').src;
 
-                const riskLevel = count >= 5 ? '<span class="badge bg-danger">Nghiêm trọng</span>' : 
-                                 (count >= 3 ? '<span class="badge bg-warning text-dark">Cảnh báo</span>' : 
-                                 '<span class="badge bg-info text-white">Nhẹ</span>');
+                const riskLevel = count >= 5 ? '<span class="badge bg-danger">Nghiêm trọng</span>' :
+                    (count >= 3 ? '<span class="badge bg-warning text-dark">Cảnh báo</span>' :
+                        '<span class="badge bg-info text-white">Nhẹ</span>');
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -396,7 +462,7 @@
                     <td class="text-center"><span class="badge rounded-pill bg-light text-dark border px-3">${count} lỗi</span></td>
                     <td>${riskLevel}</td>
                     <td class="text-end">
-                        <button class="btn btn-sm btn-outline-primary rounded-pill px-3" style="font-size:0.75rem;" 
+                        <button class="btn btn-sm btn-outline-primary rounded-pill px-3" style="font-size:0.75rem;"
                             onclick="quickFilter('${email}')">Xem chi tiết</button>
                     </td>
                 `;
@@ -425,7 +491,7 @@
             rows.forEach(row => {
                 const name = row.querySelector('.fw-bold').textContent.toLowerCase();
                 const email = row.querySelector('.text-muted.small').textContent.toLowerCase();
-                
+
                 if (name.includes(filter) || email.includes(filter)) {
                     row.style.display = "";
                     visibleCount++;
@@ -438,4 +504,5 @@
     <div th:replace="~{layout/header :: changePasswordModal}"></div>
     <script th:replace="~{layout/header :: change-password-script}"></script>
 </body>
+
 </html>

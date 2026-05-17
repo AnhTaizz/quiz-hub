@@ -20,8 +20,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtService jwtService;
@@ -36,11 +39,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         String picture = oAuth2User.getAttribute("picture");
 
         Optional<User> userOptional = userRepository.findByEmail(email);
-        System.out.println("OAuth2 Login - Email: " + email);
-        System.out.println("User exists in DB: " + userOptional.isPresent());
+        log.info("OAuth2 Login - Email: {}", email);
+        log.info("User exists in DB: {}", userOptional.isPresent());
 
         if (userOptional.isEmpty()) {
-            System.out.println("Redirecting to Choose Role page...");
+            log.info("Redirecting to Choose Role page for email: {}", email);
             String base64Name = Base64.getEncoder().encodeToString((name != null ? name : email).getBytes(StandardCharsets.UTF_8));
             String chooseRoleUrl = UriComponentsBuilder.fromUriString("/oauth2-choose-role.html")
                     .queryParam("email", email)
@@ -52,7 +55,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         }
 
         User user = userOptional.get();
-        System.out.println("User role: " + user.getRole());
+        log.info("User role: {}", user.getRole());
 
         if (!user.getIsEnable()) {
             getRedirectStrategy().sendRedirect(request, response, "/oauth2-redirect.html?error=" + URLEncoder.encode("Tài khoản đã bị khóa", StandardCharsets.UTF_8));
