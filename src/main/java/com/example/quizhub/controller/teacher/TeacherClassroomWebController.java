@@ -48,6 +48,15 @@ public class TeacherClassroomWebController {
         if (auth != null && auth.getPrincipal() instanceof User user) {
             List<Classroom> classrooms = classroomRepository.findByCreatorId(user.getId());
             model.addAttribute("classrooms", classrooms);
+            
+            // Calculate active member counts map
+            java.util.Map<Long, Long> memberCounts = classrooms.stream()
+                .collect(java.util.stream.Collectors.toMap(
+                    Classroom::getId,
+                    c -> classJoiningRepository.countByClassroomIdAndStatus(c.getId(), JoinStatus.APPROVED)
+                ));
+            model.addAttribute("memberCounts", memberCounts);
+            
             model.addAttribute("currentUser", user);
         }
         return "teacher/teacher-classrooms";

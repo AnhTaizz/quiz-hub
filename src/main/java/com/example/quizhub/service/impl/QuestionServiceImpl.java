@@ -29,8 +29,8 @@ import com.example.quizhub.repository.AnswerRepository;
 import com.example.quizhub.repository.CategoryRepository;
 import com.example.quizhub.repository.QuestionRepository;
 import com.example.quizhub.repository.UserRepository;
+import com.example.quizhub.service.NotificationService;
 import com.example.quizhub.service.QuestionService;
-import com.example.quizhub.service.notification.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -94,11 +94,11 @@ public class QuestionServiceImpl implements QuestionService {
         if (request.getCategoryId() != null && request.getCategoryId() != -1L) {
             category = categoryRepository.findById(request.getCategoryId())
                     .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-            
+
             // BẢO MẬT: Chỉ cho phép gán danh mục riêng của bản thân nếu không phải ADMIN
             if (creator.getRole() != com.example.quizhub.entity.enums.Role.ADMIN) {
-                if (Boolean.TRUE.equals(category.getIsPublic()) || 
-                    category.getCreator() == null || 
+                if (Boolean.TRUE.equals(category.getIsPublic()) ||
+                    category.getCreator() == null ||
                     !category.getCreator().getId().equals(userId)) {
                     throw new AppException(ErrorCode.UNAUTHORIZED);
                 }
@@ -148,11 +148,11 @@ public class QuestionServiceImpl implements QuestionService {
         if (request.getCategoryId() != null && request.getCategoryId() != -1L) {
             category = categoryRepository.findById(request.getCategoryId())
                     .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
-            
+
             // BẢO MẬT: Chỉ cho phép gán danh mục riêng của bản thân nếu không phải ADMIN
             if (user.getRole() != com.example.quizhub.entity.enums.Role.ADMIN) {
-                if (Boolean.TRUE.equals(category.getIsPublic()) || 
-                    category.getCreator() == null || 
+                if (Boolean.TRUE.equals(category.getIsPublic()) ||
+                    category.getCreator() == null ||
                     !category.getCreator().getId().equals(userId)) {
                     throw new AppException(ErrorCode.UNAUTHORIZED);
                 }
@@ -571,7 +571,7 @@ public class QuestionServiceImpl implements QuestionService {
 
             // Mark original as PRIVATE
             orig.setQuestionStatus(QuestionStatus.PRIVATE);
-            
+
             // Count for notification
             Long tId = orig.getCreator().getId();
             teacherApprovalCount.put(tId, teacherApprovalCount.getOrDefault(tId, 0) + 1);
@@ -642,7 +642,7 @@ public class QuestionServiceImpl implements QuestionService {
     public void bulkRejectQuestions(List<Long> questionIds) {
         if (questionIds == null || questionIds.isEmpty())
             return;
-        
+
         List<Question> questions = questionRepository.findAllById(questionIds);
         java.util.Map<Long, Integer> teacherRejectCount = new java.util.HashMap<>();
 

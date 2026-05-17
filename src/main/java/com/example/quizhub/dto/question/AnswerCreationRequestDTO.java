@@ -1,5 +1,6 @@
 package com.example.quizhub.dto.question;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.validation.constraints.NotBlank;
@@ -21,6 +22,7 @@ public class AnswerCreationRequestDTO {
     private String text;
 
     @JsonProperty("isCorrect")
+    @JsonAlias({"correct"})
     @NotNull(message = "Trạng thái đúng sai không được null")
     @Builder.Default
     private Boolean correct = false; // Gán mặc định là false nếu FE quên gửi

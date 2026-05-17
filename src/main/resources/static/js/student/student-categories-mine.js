@@ -136,7 +136,7 @@ window.loadFolder = function(id) {
                         <a class="dropdown-item p-2 rounded-3 d-flex align-items-center gap-2" href="/student/quiz/quick-create"
                            data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="left" data-bs-html="true"
                            title="<i class='bi bi-info-circle-fill text-success me-2'></i> Cấu hình file Excel đề thi"
-                           data-bs-content="File Excel đề thi của bạn cần có định dạng:<br><ul class='small mt-2 mb-0 ps-3'><li><b>Cột A:</b> Nội dung câu hỏi (bắt buộc)</li><li><b>Cột B:</b> Loại câu hỏi (<code>trắc nghiệm</code>, <code>chọn nhiều</code>, <code>điền khuyết</code>)</li><li><b>Cột C:</b> Mức độ (<code>dễ</code>, <code>trung bình</code>, <code>khó</code>)</li><li><b>Cột D -> K:</b> Các đáp án A -> H</li><li><b>Cột L:</b> Đáp án đúng (Ví dụ: <b>A</b>, hoặc <b>A,B</b>)</li><li>Dòng 1 là dòng tiêu đề (sẽ được bỏ qua)</li></ul>">
+                           data-bs-content="File Excel đề thi cần có định dạng:<br><ul class='small mt-2 mb-0 ps-3'><li><b>Cột A:</b> Nội dung câu hỏi (bắt buộc)</li><li><b>Cột B (Loại):</b> Trắc nghiệm 1, Trắc nghiệm nhiều, Điền khuyết</li><li><b>Cột C (Mức độ):</b> Dễ, Trung bình, Khó</li><li><b>Cột D &rarr; K:</b> Đáp án A &rarr; H (điền liên tiếp, bỏ trống ô dư)</li><li><b>Cột L (Đúng):</b> Chữ cái A-H (VD: <b>A</b> hoặc <b>A,B</b>). Với <i>Điền khuyết</i> hãy <b>để trống cột này</b></li><li>Dòng 1 là tiêu đề và sẽ được bỏ qua</li></ul>">
                             <i class="bi bi-magic text-success" style="font-size: 1.1rem;"></i>
                             <span class="fw-bold text-dark small">Tạo nhanh (Excel/JSON)</span>
                         </a>
@@ -146,28 +146,9 @@ window.loadFolder = function(id) {
         `;
     } else {
         actionBtn.innerHTML = `
-            <div class="dropdown d-inline-block">
-                <button class="btn-premium btn-accent dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="border: none;">
-                    <i class="bi bi-plus-lg me-1"></i> Tạo câu hỏi
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 mt-2 p-2" style="width: 240px; z-index: 1050;">
-                    <li>
-                        <button class="dropdown-item p-2 rounded-3 d-flex align-items-center gap-2 mb-1 border-0 bg-transparent text-start w-100" onclick="openQuestionEditor()">
-                            <i class="bi bi-pencil-square text-primary" style="font-size: 1.1rem;"></i>
-                            <span class="fw-bold text-dark small">Soạn thủ công</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button class="dropdown-item p-2 rounded-3 d-flex align-items-center gap-2 border-0 bg-transparent text-start w-100" onclick="document.getElementById('excel-question-import').click()"
-                                data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="left" data-bs-html="true"
-                                title="<i class='bi bi-info-circle-fill text-success me-2'></i> Cấu hình file Excel câu hỏi"
-                                data-bs-content="File Excel câu hỏi cần có cấu trúc:<br><ul class='small mt-2 mb-0 ps-3'><li><b>Cột A:</b> Nội dung câu hỏi (bắt buộc)</li><li><b>Cột B:</b> Loại câu hỏi (<code>trắc nghiệm</code>, <code>chọn nhiều</code>, <code>điền khuyết</code>)</li><li><b>Cột C:</b> Mức độ (<code>dễ</code>, <code>trung bình</code>, <code>khó</code>)</li><li><b>Cột D -> K:</b> Các đáp án A -> H</li><li><b>Cột L:</b> Đáp án đúng (Ví dụ: <b>A</b>, hoặc <b>A,B</b>)</li><li>Dòng 1 là dòng tiêu đề (sẽ được bỏ qua)</li></ul>">
-                            <i class="bi bi-file-earmark-excel text-success" style="font-size: 1.1rem;"></i>
-                            <span class="fw-bold text-dark small">Nhập từ Excel</span>
-                        </button>
-                    </li>
-                </ul>
-            </div>
+            <button class="btn-premium btn-accent" onclick="openQuestionEditor()" style="border: none;">
+                <i class="bi bi-plus-lg me-1"></i> Tạo câu hỏi
+            </button>
         `;
     }
 
@@ -199,7 +180,7 @@ window.switchContext = function(ctx) {
                         <a class="dropdown-item p-2 rounded-3 d-flex align-items-center gap-2" href="/student/quiz/quick-create"
                            data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="left" data-bs-html="true"
                            title="<i class='bi bi-info-circle-fill text-success me-2'></i> Cấu hình file Excel đề thi"
-                           data-bs-content="File Excel đề thi của bạn cần có định dạng:<br><ul class='small mt-2 mb-0 ps-3'><li><b>Cột A:</b> Nội dung câu hỏi (bắt buộc)</li><li><b>Cột B:</b> Loại câu hỏi (<code>trắc nghiệm</code>, <code>chọn nhiều</code>, <code>điền khuyết</code>)</li><li><b>Cột C:</b> Mức độ (<code>dễ</code>, <code>trung bình</code>, <code>khó</code>)</li><li><b>Cột D -> K:</b> Các đáp án A -> H</li><li><b>Cột L:</b> Đáp án đúng (Ví dụ: <b>A</b>, hoặc <b>A,B</b>)</li><li>Dòng 1 là dòng tiêu đề (sẽ được bỏ qua)</li></ul>">
+                           data-bs-content="File Excel đề thi cần có định dạng:<br><ul class='small mt-2 mb-0 ps-3'><li><b>Cột A:</b> Nội dung câu hỏi (bắt buộc)</li><li><b>Cột B (Loại):</b> Trắc nghiệm 1, Trắc nghiệm nhiều, Điền khuyết</li><li><b>Cột C (Mức độ):</b> Dễ, Trung bình, Khó</li><li><b>Cột D &rarr; K:</b> Đáp án A &rarr; H (điền liên tiếp, bỏ trống ô dư)</li><li><b>Cột L (Đúng):</b> Chữ cái A-H (VD: <b>A</b> hoặc <b>A,B</b>). Với <i>Điền khuyết</i> hãy <b>để trống cột này</b></li><li>Dòng 1 là tiêu đề và sẽ được bỏ qua</li></ul>">
                             <i class="bi bi-magic text-success" style="font-size: 1.1rem;"></i>
                             <span class="fw-bold text-dark small">Tạo nhanh (Excel/JSON)</span>
                         </a>
@@ -209,28 +190,9 @@ window.switchContext = function(ctx) {
         `;
     } else {
         actionBtn.innerHTML = `
-            <div class="dropdown d-inline-block">
-                <button class="btn-premium btn-accent dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="border: none;">
-                    <i class="bi bi-plus-lg me-1"></i> Tạo câu hỏi
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 mt-2 p-2" style="width: 240px; z-index: 1050;">
-                    <li>
-                        <button class="dropdown-item p-2 rounded-3 d-flex align-items-center gap-2 mb-1 border-0 bg-transparent text-start w-100" onclick="openQuestionEditor()">
-                            <i class="bi bi-pencil-square text-primary" style="font-size: 1.1rem;"></i>
-                            <span class="fw-bold text-dark small">Soạn thủ công</span>
-                        </button>
-                    </li>
-                    <li>
-                        <button class="dropdown-item p-2 rounded-3 d-flex align-items-center gap-2 border-0 bg-transparent text-start w-100" onclick="document.getElementById('excel-question-import').click()"
-                                data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="left" data-bs-html="true"
-                                title="<i class='bi bi-info-circle-fill text-success me-2'></i> Cấu hình file Excel câu hỏi"
-                                data-bs-content="File Excel câu hỏi cần có cấu trúc:<br><ul class='small mt-2 mb-0 ps-3'><li><b>Cột A:</b> Nội dung câu hỏi (bắt buộc)</li><li><b>Cột B:</b> Loại câu hỏi (<code>trắc nghiệm</code>, <code>chọn nhiều</code>, <code>điền khuyết</code>)</li><li><b>Cột C:</b> Mức độ (<code>dễ</code>, <code>trung bình</code>, <code>khó</code>)</li><li><b>Cột D -> K:</b> Các đáp án A -> H</li><li><b>Cột L:</b> Đáp án đúng (Ví dụ: <b>A</b>, hoặc <b>A,B</b>)</li><li>Dòng 1 là dòng tiêu đề (sẽ được bỏ qua)</li></ul>">
-                            <i class="bi bi-file-earmark-excel text-success" style="font-size: 1.1rem;"></i>
-                            <span class="fw-bold text-dark small">Nhập từ Excel</span>
-                        </button>
-                    </li>
-                </ul>
-            </div>
+            <button class="btn-premium btn-accent" onclick="openQuestionEditor()" style="border: none;">
+                <i class="bi bi-plus-lg me-1"></i> Tạo câu hỏi
+            </button>
         `;
     }
     
@@ -474,6 +436,7 @@ function renderQuizGrid(list) {
             </div>
             <div class="up-card-actions">
                 <button class="btn-play-up" onclick="startQuiz('${q.id}')">BẮT ĐẦU</button>
+                <a href="javascript:void(0)" onclick="openQuizPreviewModal('${q.id}', event)" class="btn-opt-up" title="Xem trước"><i class="bi bi-eye"></i></a>
                 <a href="/student/quiz/${q.id}/edit" class="btn-opt-up" title="Sửa đề thi"><i class="bi bi-pencil"></i></a>
                 <button class="btn-opt-up text-danger" title="Xóa đề thi" onclick="deleteQuiz('${q.id}')"><i class="bi bi-trash3"></i></button>
             </div>
@@ -615,45 +578,7 @@ window.deleteQuestion = async function(id) {
 
 function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 
-window.handleExcelQuestionImport = async function(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    event.target.value = ''; // reset to allow re-upload
 
-    const formData = new FormData();
-    formData.append('file', file);
-    if (currentFolderId && currentFolderId !== -1) {
-        formData.append('categoryId', currentFolderId);
-    }
-
-    alert('Đang xử lý tải và nhập dữ liệu từ Excel, vui lòng chờ...');
-
-    try {
-        const response = await fetch('/api/student/questions/import', {
-            method: 'POST',
-            headers: { 'Authorization': 'Bearer ' + token },
-            body: formData
-        });
-
-        if (!response.ok) throw new Error('Nhập dữ liệu Excel thất bại.');
-
-        const result = await response.json();
-        const success = result.successCount || 0;
-        const error = result.errorCount || 0;
-
-        if (error === 0) {
-            alert(`Thành công! Đã nhập thành công ${success} câu hỏi.`);
-        } else {
-            alert(`Hoàn tất! Đã nhập ${success} câu hỏi thành công, ${error} dòng lỗi.`);
-        }
-        
-        // Reload all data and refresh content area
-        await loadData();
-        refreshContent();
-    } catch (e) {
-        alert('Lỗi: ' + e.message);
-    }
-}
 
 window.initActionBtnPopovers = function() {
     if (typeof bootstrap === 'undefined') return;
@@ -672,4 +597,77 @@ window.initActionBtnPopovers = function() {
     popoverTriggerList.map(function (popoverTriggerEl) {
         return new bootstrap.Popover(popoverTriggerEl);
     });
+}
+
+window.openQuizPreviewModal = async function(id, event) {
+    if (event) event.preventDefault();
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    try {
+        const res = await fetch(`/api/student/quiz/${id}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+            const q = await res.json();
+            document.getElementById('preview-quiz-title').textContent = q.title || 'Chưa có tiêu đề';
+            document.getElementById('preview-quiz-desc').textContent = q.description || 'Chưa có mô tả.';
+
+            const container = document.getElementById('preview-quiz-questions');
+            container.innerHTML = '';
+
+            const list = q.questions || [];
+            document.getElementById('preview-quiz-count').textContent = list.length;
+
+            if (list.length === 0) {
+                container.innerHTML = `<div class="text-center text-muted py-4">Chưa có câu hỏi nào trong đề.</div>`;
+            } else {
+                container.innerHTML = list.map((item, idx) => {
+                    const levelClass = item.level === 'EASY' 
+                        ? 'modal-q-badge-easy'
+                        : item.level === 'MEDIUM'
+                        ? 'modal-q-badge-medium'
+                        : 'modal-q-badge-hard';
+                    
+                    const levelLabel = item.level === 'EASY' ? 'Dễ' : item.level === 'MEDIUM' ? 'Trung bình' : 'Khó';
+                    const levelBadge = `<span class="modal-q-badge ${levelClass}">${levelLabel}</span>`;
+
+                    const typeLabel = item.type === 'SINGLE_CHOICE'
+                        ? 'Trắc nghiệm 1 đáp án'
+                        : item.type === 'MULTIPLE_CHOICE'
+                        ? 'Trắc nghiệm nhiều đáp án'
+                        : 'Điền khuyết';
+
+                    let ansHtml = '';
+                    if (item.answers && item.answers.length > 0) {
+                        ansHtml = item.answers.map((a, i) => {
+                            const correctClass = a.isCorrect ? 'correct' : 'incorrect';
+                            const checkIcon = a.isCorrect ? '<i class="bi bi-check-circle-fill modal-ans-icon"></i>' : '';
+                            return `
+                                <div class="modal-ans-row ${correctClass}">
+                                    <span class="ans-letter">${String.fromCharCode(65 + i)}.</span>
+                                    <span>${esc(a.text || '')}</span>
+                                    ${checkIcon}
+                                </div>`;
+                        }).join('');
+                    } else {
+                        ansHtml = `<p class="text-muted small">Không có đáp án.</p>`;
+                    }
+
+                    return `
+                    <div class="modal-q-card mb-3">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="fw-bold" style="font-size: 0.82rem; color: #4338ca;">Câu hỏi ${idx + 1} (${typeLabel})</span>
+                            ${levelBadge}
+                        </div>
+                        <div class="fw-bold text-dark mb-2" style="font-size: 0.98rem; line-height: 1.5;">${esc(item.text || '')}</div>
+                        <div>${ansHtml}</div>
+                    </div>`;
+                }).join('');
+            }
+
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('previewQuizModal'));
+            modal.show();
+        }
+    } catch (err) {
+        console.error('Lỗi tải đề thi', err);
+    }
 }

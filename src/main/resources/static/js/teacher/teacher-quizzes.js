@@ -116,6 +116,7 @@ function renderQuizzes(list) {
 
         return `
         <div class="quiz-card">
+            <button class="btn-delete-absolute" onclick="openDeleteModal('${q.id}')" title="Xóa đề thi"><i class="bi bi-trash3"></i></button>
             <div class="quiz-badge-row">${typeBadge}</div>
             <h3 class="quiz-title">${esc(q.title) || '(Chưa có tiêu đề)'}</h3>
             <p class="quiz-desc">${esc(q.description) || '<span style="color:#cbd5e1; font-style:italic;">Chưa có mô tả.</span>'}</p>
@@ -127,7 +128,6 @@ function renderQuizzes(list) {
                 <a class="qact qact-edit" href="/teacher/quizzes/${q.id}/edit"><i class="bi bi-pencil-square"></i> Sửa</a>
                 <button class="qact qact-view" onclick="openPreviewModal('${q.id}', '${esc(q.title)}')"><i class="bi bi-eye"></i> Xem</button>
                 <button class="qact qact-assign" onclick="openAssignModal('${q.id}', '${esc(q.title)}')"><i class="bi bi-send-fill"></i> Giao bài</button>
-                <button class="qact qact-del" onclick="openDeleteModal('${q.id}')"><i class="bi bi-trash3"></i></button>
             </div>
         </div>`;
     }).join('');
@@ -317,11 +317,14 @@ async function openPreviewModal(id, title) {
         }
 
         document.getElementById('preview-quiz-questions').innerHTML = quiz.questions.map((q, idx) => {
-            const levelBadge = q.level === 'EASY' 
-                ? '<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">Dễ</span>'
+            const levelClass = q.level === 'EASY' 
+                ? 'modal-q-badge-easy'
                 : q.level === 'MEDIUM'
-                ? '<span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">Trung bình</span>'
-                : '<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">Khó</span>';
+                ? 'modal-q-badge-medium'
+                : 'modal-q-badge-hard';
+            
+            const levelLabel = q.level === 'EASY' ? 'Dễ' : q.level === 'MEDIUM' ? 'Trung bình' : 'Khó';
+            const levelBadge = `<span class="modal-q-badge ${levelClass}">${levelLabel}</span>`;
 
             const typeLabel = q.type === 'SINGLE_CHOICE'
                 ? 'Trắc nghiệm 1 đáp án'
@@ -330,28 +333,26 @@ async function openPreviewModal(id, title) {
                 : 'Điền khuyết';
 
             const answersHtml = q.answers && q.answers.length > 0
-                ? `<div class="mt-2 d-flex flex-column gap-2">
-                    ${q.answers.map(ans => {
-                        const icon = ans.isCorrect
-                            ? '<i class="bi bi-check-circle-fill text-success"></i>'
-                            : '<i class="bi bi-circle text-muted"></i>';
-                        const textStyle = ans.isCorrect
-                            ? 'fw-bold text-success'
-                            : '';
-                        return `<div class="d-flex align-items-center gap-2 p-2 rounded bg-light border border-light-subtle" style="font-size:0.88rem;">
-                            ${icon} <span class="${textStyle}">${esc(ans.text)}</span>
+                ? `<div class="mt-3 d-flex flex-column gap-2">
+                    ${q.answers.map((ans, i) => {
+                        const correctClass = ans.isCorrect ? 'correct' : 'incorrect';
+                        const checkIcon = ans.isCorrect ? '<i class="bi bi-check-circle-fill modal-ans-icon"></i>' : '';
+                        return `<div class="modal-ans-row ${correctClass}">
+                            <span class="ans-letter">${String.fromCharCode(65 + i)}.</span>
+                            <span>${esc(ans.text)}</span>
+                            ${checkIcon}
                         </div>`;
                     }).join('')}
                    </div>`
                 : '';
 
             return `
-            <div class="card border border-light-subtle rounded-3 p-3 shadow-sm bg-white">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted fw-bold" style="font-size: 0.8rem;">Câu hỏi ${idx + 1} (${typeLabel})</span>
+            <div class="modal-q-card mb-3">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <span class="fw-bold" style="font-size: 0.82rem; color: #4338ca;">Câu hỏi ${idx + 1} (${typeLabel})</span>
                     ${levelBadge}
                 </div>
-                <div class="fw-bold text-dark mb-2" style="font-size: 0.95rem; line-height: 1.5;">${esc(q.text)}</div>
+                <div class="fw-bold text-dark mb-2" style="font-size: 0.98rem; line-height: 1.5;">${esc(q.text)}</div>
                 ${answersHtml}
             </div>`;
         }).join('');

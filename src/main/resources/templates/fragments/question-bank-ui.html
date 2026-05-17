@@ -19,11 +19,27 @@
             </div>
             <div class="action-btns d-flex align-items-start gap-2">
                 <!-- Group 1: Excel Trigger and dynamic target tracker -->
-                <div th:if="${userType == 'teacher' || userType == 'student'}" id="excel-import-container" class="d-flex flex-column align-items-center gap-1" style="margin-top:0px;">
+                <div th:if="${userType == 'teacher' || userType == 'student'}" id="excel-import-container" class="d-flex flex-column align-items-center gap-1 position-relative excel-btn-wrapper" style="margin-top:0px;">
                     <input type="file" id="excel-import-input" accept=".xlsx, .xls" style="display:none;" onchange="handleExcelImport(event)">
                     <button class="btn btn-outline-secondary fw-bold" style="border-radius: 12px; border-color: #cbd5e1; color: #334155; background:#ffffff; height: 42px;" onclick="document.getElementById('excel-import-input').click()">
                         <i class="bi bi-file-earmark-spreadsheet-fill me-1 text-success"></i> Nhập Excel
                     </button>
+                    <!-- Custom Tooltip Guide -->
+                    <div class="excel-tooltip-guide">
+                        <div class="tooltip-hdr">
+                            <i class="bi bi-info-circle-fill me-1 text-primary"></i> Hướng dẫn định dạng Excel
+                        </div>
+                        <div class="tooltip-body">
+                            <p class="mb-2">Dữ liệu bắt đầu từ dòng 2 (bỏ qua tiêu đề dòng 1):</p>
+                            <ul class="tooltip-cols">
+                                <li><strong>Cột A:</strong> Nội dung câu hỏi</li>
+                                <li><strong>Cột B:</strong> Loại (<code>single_choice</code>, <code>multiple_choice</code>, <code>fill_in_blank</code>)</li>
+                                <li><strong>Cột C:</strong> Độ khó (<code>easy</code>, <code>medium</code>, <code>hard</code>)</li>
+                                <li><strong>Cột D -> K:</strong> Đáp án A -> H</li>
+                                <li><strong>Cột L:</strong> Đáp án đúng (Ví dụ: <code>A</code> hoặc <code>A,C</code>)</li>
+                            </ul>
+                        </div>
+                    </div>
                     <div style="width: 100%; display:flex; justify-content:center;">
                         <span class="badge px-2 py-1 shadow-sm" 
                               id="q-import-dest-badge" 

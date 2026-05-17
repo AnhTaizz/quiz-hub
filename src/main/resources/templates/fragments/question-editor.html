@@ -25,7 +25,7 @@
     </style>
 
     <div th:fragment="question-editor-modal" class="modal fade" id="questionEditorModal" tabindex="-1" aria-hidden="true" style="z-index: 1055;">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content" style="border-radius: 24px; border: none; box-shadow: 0 20px 60px rgba(0,0,0,0.15); overflow-x: hidden;">
                 <!-- Header -->
                 <div class="modal-header border-0 p-4" style="background: linear-gradient(135deg, #4f46e5, #4338ca);">
@@ -40,19 +40,19 @@
                         <input type="hidden" id="editor-q-id">
                         
                         <!-- Question Text -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-dark small text-uppercase tracking-wider mb-2">Nội dung câu hỏi <span class="text-danger">*</span></label>
-                            <textarea id="editor-q-text" class="form-control" rows="3" required 
-                                style="border-radius: 16px; border: 1.5px solid #e2e8f0; padding: 15px; font-weight: 500; font-size: 1rem; transition: all 0.2s;"
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark small text-uppercase tracking-wider mb-1">Nội dung câu hỏi <span class="text-danger">*</span></label>
+                            <textarea id="editor-q-text" class="form-control" rows="2" required 
+                                style="border-radius: 16px; border: 1.5px solid #e2e8f0; padding: 12px 15px; font-weight: 500; font-size: 0.95rem; transition: all 0.2s;"
                                 placeholder="Ví dụ: Thủ đô của Việt Nam là gì?"></textarea>
                         </div>
 
-                        <div class="row g-3 mb-4">
+                        <div class="row g-3 mb-3">
                             <!-- Question Type -->
                             <div class="col-lg-4 col-md-6">
-                                <label class="form-label fw-bold text-dark small text-uppercase tracking-wider mb-2">Loại câu hỏi <span class="text-danger">*</span></label>
+                                <label class="form-label fw-bold text-dark small text-uppercase tracking-wider mb-1">Loại câu hỏi <span class="text-danger">*</span></label>
                                 <select id="editor-q-type" class="form-select" onchange="adaptEditorAnswerUI()" required
-                                    style="border-radius: 12px; border: 1.5px solid #e2e8f0; padding: 0 8px 0 12px; font-weight: 600; cursor: pointer; height: 48px; font-size: 0.85rem;">
+                                    style="border-radius: 12px; border: 1.5px solid #e2e8f0; padding: 0 8px 0 12px; font-weight: 600; cursor: pointer; height: 44px; font-size: 0.85rem;">
                                     <option value="SINGLE_CHOICE" selected>Trắc nghiệm (1 đáp án)</option>
                                     <option value="MULTIPLE_CHOICE">Trắc nghiệm (Nhiều đáp án)</option>
                                     <option value="FILL_IN_BLANK">Điền khuyết</option>
@@ -60,9 +60,9 @@
                             </div>
                             <!-- Difficulty Level -->
                             <div class="col-lg-4 col-md-6">
-                                <label class="form-label fw-bold text-dark small text-uppercase tracking-wider mb-2">Độ khó <span class="text-danger">*</span></label>
+                                <label class="form-label fw-bold text-dark small text-uppercase tracking-wider mb-1">Độ khó <span class="text-danger">*</span></label>
                                 <select id="editor-q-level" class="form-select"
-                                    style="border-radius: 12px; border: 1.5px solid #e2e8f0; padding: 0 14px; font-weight: 600; cursor: pointer; height: 48px; font-size: 0.88rem;">
+                                    style="border-radius: 12px; border: 1.5px solid #e2e8f0; padding: 0 14px; font-weight: 600; cursor: pointer; height: 44px; font-size: 0.88rem;">
                                     <option value="EASY">Dễ</option>
                                     <option value="MEDIUM" selected>Trung bình</option>
                                     <option value="HARD">Khó</option>
@@ -70,9 +70,9 @@
                             </div>
                             <!-- Category Selection -->
                             <div class="col-lg-4 col-md-12" id="editor-q-cat-wrapper">
-                                <label class="form-label fw-bold text-dark small text-uppercase tracking-wider mb-2">Danh mục</label>
+                                <label class="form-label fw-bold text-dark small text-uppercase tracking-wider mb-1">Danh mục</label>
                                 <div class="position-relative editor-ctrl-wrapper" 
-                                     style="cursor: pointer; border-radius: 12px; border: 1.5px solid #e2e8f0; background: #fff; transition: all 0.2s; height: 48px; display: flex; align-items: center;">
+                                     style="cursor: pointer; border-radius: 12px; border: 1.5px solid #e2e8f0; background: #fff; transition: all 0.2s; height: 44px; display: flex; align-items: center;">
                                     <!-- Overlay to ensure clickability -->
                                     <div class="position-absolute" onclick="openEditorCategorySelector()" 
                                          style="top: 0; left: 0; right: 0; bottom: 0; z-index: 5; cursor: pointer;"></div>

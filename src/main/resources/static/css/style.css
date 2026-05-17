@@ -63,6 +63,13 @@ html {
   zoom: 85%;
 }
 
+/* Fix Bootstrap backdrop cutting off at the right/bottom under HTML zoom: 85% */
+.modal-backdrop {
+  width: 150vw !important;
+  height: 150vh !important;
+}
+
+
 body {
   font-family: 'Inter', sans-serif;
   color: var(--text-body);
@@ -237,6 +244,7 @@ img {
   color: var(--text-dark);
   letter-spacing: -0.5px;
   text-decoration: none;
+  margin-left: 20px;
 }
 
 .logo-icon {
@@ -257,7 +265,7 @@ img {
 }
 
 /* Nav links */
-.navbar > ul {
+.navbar>ul {
   display: flex;
   align-items: center;
   gap: 20px;
@@ -1936,8 +1944,13 @@ img {
   animation: slideInRight 0.3s ease both;
 }
 
-.toast.success i { color: #10b981; }
-.toast.error i { color: #ef4444; }
+.toast.success i {
+  color: #10b981;
+}
+
+.toast.error i {
+  color: #ef4444;
+}
 
 /* login-toast: tránh Bootstrap 5 override .toast { display: none } */
 .login-toast {
@@ -1957,14 +1970,33 @@ img {
   font-weight: 600;
   animation: slideInRight 0.3s ease both;
 }
-.login-toast.success { border-left: 3px solid #10b981; }
-.login-toast.success i { color: #10b981; }
-.login-toast.error { border-left: 3px solid #ef4444; }
-.login-toast.error i { color: #ef4444; }
+
+.login-toast.success {
+  border-left: 3px solid #10b981;
+}
+
+.login-toast.success i {
+  color: #10b981;
+}
+
+.login-toast.error {
+  border-left: 3px solid #ef4444;
+}
+
+.login-toast.error i {
+  color: #ef4444;
+}
 
 @keyframes slideInRight {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
 /* User Dropdown */
@@ -2060,8 +2092,8 @@ img {
   width: 100%;
   max-width: 460px;
   box-shadow: 0 50px 100px rgba(0, 0, 0, .6),
-              0 0 0 1px rgba(255, 255, 255, .07),
-              inset 0 1px 0 rgba(255, 255, 255, .08);
+    0 0 0 1px rgba(255, 255, 255, .07),
+    inset 0 1px 0 rgba(255, 255, 255, .08);
   position: relative;
   z-index: 2;
 }
@@ -2143,7 +2175,9 @@ img {
   transition: color 0.2s;
 }
 
-.toggle-pw:hover { color: rgba(255, 255, 255, 0.7); }
+.toggle-pw:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
 
 /* ── Primary submit button ─────────────────────────────────── */
 .btn-auth {
@@ -2187,7 +2221,11 @@ img {
   display: none;
 }
 
-@keyframes authSpin { to { transform: rotate(360deg); } }
+@keyframes authSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 /* ── Footer link ───────────────────────────────────────────── */
 .auth-footer {
@@ -2233,12 +2271,24 @@ img {
 }
 
 @keyframes toastIn {
-  from { opacity: 0; transform: translateX(40px); }
-  to   { opacity: 1; transform: none; }
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
-.toast-item.success i { color: #10b981; }
-.toast-item.error   i { color: #ef4444; }
+.toast-item.success i {
+  color: #10b981;
+}
+
+.toast-item.error i {
+  color: #ef4444;
+}
 
 /* ─── NAV DROPDOWN "Kho của tôi" ───────────────────────────── */
 .nav-item-dropdown {
@@ -2265,8 +2315,8 @@ img {
   width: 280px;
   background: #fff;
   border-radius: 18px;
-  border: 1px solid rgba(0,0,0,0.06);
-  box-shadow: 0 20px 50px rgba(0,0,0,0.12), 0 4px 16px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12), 0 4px 16px rgba(0, 0, 0, 0.06);
   padding: 10px;
   z-index: 1100;
   animation: navDropIn 0.2s cubic-bezier(0.165, 0.84, 0.44, 1) both;
@@ -2282,8 +2332,8 @@ img {
   width: 14px;
   height: 14px;
   background: #fff;
-  border-left: 1px solid rgba(0,0,0,0.06);
-  border-top: 1px solid rgba(0,0,0,0.06);
+  border-left: 1px solid rgba(0, 0, 0, 0.06);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 3px 0 0 0;
   rotate: 45deg;
 }
@@ -2293,8 +2343,15 @@ img {
 }
 
 @keyframes navDropIn {
-  from { opacity: 0; transform: translateX(-50%) translateY(-8px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 /* Dropdown items */
@@ -2400,32 +2457,4 @@ img {
   }
 }
 
-/* ─── Fix Bootstrap modals and backdrops under zoom: 85% ─── */
-.modal-backdrop {
-  width: calc(100vw / 0.85) !important;
-  height: calc(100vh / 0.85) !important;
-}
-.modal {
-  width: calc(100vw / 0.85) !important;
-  height: calc(100vh / 0.85) !important;
-}
-
-/* ─── Fix full screen layouts under zoom: 85% ─── */
-.hero-section,
-.auth-wrapper,
-.login-wrapper,
-#wrapper,
-.min-vh-100,
-.vh-100,
-.designer-layout {
-  min-height: calc(100vh / 0.85) !important;
-}
-
-.explorer-container {
-  height: calc(100vh / 0.85 - 70px) !important;
-}
-
-.explore-shell {
-  min-height: calc(100vh / 0.85 - 120px) !important;
-}
-
+/* Removed legacy zoom: 85% overrides to support native 100% zoom rendering. */

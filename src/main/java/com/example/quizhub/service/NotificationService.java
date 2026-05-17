@@ -1,4 +1,4 @@
-package com.example.quizhub.service.notification;
+package com.example.quizhub.service;
 
 import com.example.quizhub.entity.Notification;
 import com.example.quizhub.entity.enums.NotificationType;

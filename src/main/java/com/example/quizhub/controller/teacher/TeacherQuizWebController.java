@@ -38,9 +38,4 @@ public class TeacherQuizWebController {
         return "teacher/teacher-quiz-create";
     }
 
-    @GetMapping("/{id}/preview")
-    public String getPreviewQuizPage(@PathVariable String id, Model model) {
-        model.addAttribute("quizId", id);
-        return "teacher/teacher-quiz-preview";
-    }
 }

@@ -404,13 +404,17 @@ function quizCardHtml(q) {
         ? `<div class="quiz-actions">
      <a class="qact qact-edit" href="/teacher/quizzes/${q.id}/edit"><i class="bi bi-pencil-square"></i> Sửa</a>
      <a class="qact qact-view" href="javascript:void(0)" onclick="openQuizPreviewModal('${q.id}', event)"><i class="bi bi-eye"></i> Xem</a>
-     <button class="qact qact-del" onclick="deleteQuiz('${q.id}')"><i class="bi bi-trash3"></i></button>
    </div>`
         : `<div class="quiz-actions">
      <a class="qact qact-view" style="flex:1;" href="javascript:void(0)" onclick="openQuizPreviewModal('${q.id}', event)"><i class="bi bi-eye"></i> Xem thử</a>
    </div>`;
 
+    const deleteBtn = OWN_MODE
+        ? `<button class="btn-delete-absolute" onclick="deleteQuiz('${q.id}', event)" title="Xóa đề thi"><i class="bi bi-trash3"></i></button>`
+        : '';
+
     return `<div class="quiz-card">
+${deleteBtn}
 <div class="quiz-badge-row">${typeBadge}</div>
 <h3 class="quiz-title">${esc(q.title) || '(Chưa có tiêu đề)'}</h3>
 <p class="quiz-desc">${esc(q.description) || '<span style="color:#cbd5e1;font-style:italic;">Chưa có mô tả.</span>'}</p>
@@ -661,19 +665,44 @@ async function openQuizPreviewModal(id, event) {
                 container.innerHTML = `<div class="text-center text-muted py-4">Chưa có câu hỏi nào trong đề.</div>`;
             } else {
                 container.innerHTML = list.map((item, idx) => {
+                    const levelClass = item.level === 'EASY' 
+                        ? 'modal-q-badge-easy'
+                        : item.level === 'MEDIUM'
+                        ? 'modal-q-badge-medium'
+                        : 'modal-q-badge-hard';
+                    
+                    const levelLabel = item.level === 'EASY' ? 'Dễ' : item.level === 'MEDIUM' ? 'Trung bình' : 'Khó';
+                    const levelBadge = `<span class="modal-q-badge ${levelClass}">${levelLabel}</span>`;
+
+                    const typeLabel = item.type === 'SINGLE_CHOICE'
+                        ? 'Trắc nghiệm 1 đáp án'
+                        : item.type === 'MULTIPLE_CHOICE'
+                        ? 'Trắc nghiệm nhiều đáp án'
+                        : 'Điền khuyết';
+
                     let ansHtml = '';
                     if (item.answers && item.answers.length > 0) {
-                        ansHtml = item.answers.map((a, i) => `
-                            <div class="p-2 border rounded mb-2 d-flex align-items-center justify-content-between ${a.isCorrect ? 'bg-success bg-opacity-10 text-success fw-bold' : 'bg-light text-muted'}" style="border-radius:10px; font-size:0.95rem; border:1px solid #e2e8f0 !important;">
-                                <span>${String.fromCharCode(65 + i)}. ${esc(a.text || '')}</span>
-                                ${a.isCorrect ? '<i class="bi bi-check-circle-fill ms-2 text-success"></i>' : ''}
-                            </div>`).join('');
+                        ansHtml = item.answers.map((a, i) => {
+                            const correctClass = a.isCorrect ? 'correct' : 'incorrect';
+                            const checkIcon = a.isCorrect ? '<i class="bi bi-check-circle-fill modal-ans-icon"></i>' : '';
+                            return `
+                                <div class="modal-ans-row ${correctClass}">
+                                    <span class="ans-letter">${String.fromCharCode(65 + i)}.</span>
+                                    <span>${esc(a.text || '')}</span>
+                                    ${checkIcon}
+                                </div>`;
+                        }).join('');
                     } else {
                         ansHtml = `<p class="text-muted small">Không có đáp án.</p>`;
                     }
 
-                    return `<div class="p-3 border rounded-3 bg-white mb-3" style="border-color:#e2e8f0;">
-                        <div class="fw-bold mb-2" style="color: #1e1b4b;">Câu ${idx + 1}: ${esc(item.text || '')}</div>
+                    return `
+                    <div class="modal-q-card mb-3">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="fw-bold" style="font-size: 0.82rem; color: #4338ca;">Câu hỏi ${idx + 1} (${typeLabel})</span>
+                            ${levelBadge}
+                        </div>
+                        <div class="fw-bold text-dark mb-2" style="font-size: 0.98rem; line-height: 1.5;">${esc(item.text || '')}</div>
                         <div>${ansHtml}</div>
                     </div>`;
                 }).join('');
