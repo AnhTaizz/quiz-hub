@@ -404,7 +404,7 @@ public class ClassroomServiceImpl implements ClassroomService {
                 }
             }
         } catch (Exception e) {
-            throw new RuntimeException("Lỗi khi đọc file Excel: " + e.getMessage());
+            throw new AppException(ErrorCode.EXCEL_IMPORT_ERROR);
         }
 
         Map<String, Object> result = new HashMap<>();

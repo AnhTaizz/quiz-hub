@@ -46,7 +46,11 @@ public enum ErrorCode {
     QUIZ_NOT_STARTED(1030, "The quiz has not started yet", HttpStatus.BAD_REQUEST),
     INVALID_DATE_RANGE(1031, "Due date must be after start date", HttpStatus.BAD_REQUEST),
     INVALID_DURATION(1032, "Duration must be greater than 0 and not exceed the time range", HttpStatus.BAD_REQUEST),
-    PRACTICE_ALREADY_SUBMITTED(1031, "Practice already submitted", HttpStatus.BAD_REQUEST);
+    PRACTICE_ALREADY_SUBMITTED(1033, "Practice already submitted", HttpStatus.BAD_REQUEST),
+    EXCEL_IMPORT_ERROR(1034, "Error importing Excel file", HttpStatus.BAD_REQUEST),
+    INVALID_GENERATION_METHOD(1035, "Invalid method. Must be RANDOM or RANGE", HttpStatus.BAD_REQUEST),
+    QUESTION_TEXT_EMPTY(1036, "Question text cannot be empty", HttpStatus.BAD_REQUEST),
+    QUESTION_ANSWERS_EMPTY(1037, "Question must have at least one answer option", HttpStatus.BAD_REQUEST);
 
     final int code;
     final String message;

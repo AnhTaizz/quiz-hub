@@ -252,7 +252,7 @@ public class QuizServiceImpl implements QuizService {
             int limit = request.getLimit() != null ? request.getLimit() : 40;
             selectedIds = questionIds.stream().skip(offset).limit(limit).collect(Collectors.toList());
         } else {
-            throw new IllegalArgumentException("Invalid method. Must be RANDOM or RANGE");
+            throw new AppException(ErrorCode.INVALID_GENERATION_METHOD);
         }
 
         if (selectedIds.isEmpty()) {

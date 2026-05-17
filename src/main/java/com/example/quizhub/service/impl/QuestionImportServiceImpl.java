@@ -55,7 +55,7 @@ public class QuestionImportServiceImpl implements QuestionImportService {
         // Column 0: Nội dung câu hỏi
         String text = getCellValue(row, 0, formatter).trim();
         if (text.isEmpty()) {
-            throw new IllegalArgumentException("Nội dung câu hỏi bị trống.");
+            throw new AppException(ErrorCode.QUESTION_TEXT_EMPTY);
         }
 
         // Column 1: Loại câu hỏi
@@ -76,7 +76,7 @@ public class QuestionImportServiceImpl implements QuestionImportService {
         }
 
         if (rawAnswers.isEmpty()) {
-            throw new IllegalArgumentException("Câu hỏi không có lựa chọn đáp án nào.");
+            throw new AppException(ErrorCode.QUESTION_ANSWERS_EMPTY);
         }
 
         // Column 11: Đáp án đúng
