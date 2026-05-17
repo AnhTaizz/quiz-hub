@@ -1,7 +1,8 @@
 package com.example.quizhub.controller.rest;
 
 import com.example.quizhub.entity.Notification;
-import com.example.quizhub.service.notification.NotificationService;
+import com.example.quizhub.service.NotificationService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

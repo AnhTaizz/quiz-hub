@@ -22,17 +22,17 @@ public class StudentQuizWebController {
         return "student/student-quiz-create";
     }
 
+    @GetMapping("/quick-create")
+    public String getQuickCreateQuizPage(Model model) {
+        return "student/student-quiz-quick-create";
+    }
+
     @GetMapping("/{id}/edit")
     public String getEditQuizPage(@PathVariable String id, Model model) {
         model.addAttribute("quizId", id);
         return "student/student-quiz-create";
     }
 
-    @GetMapping("/{id}/preview")
-    public String getPreviewQuizPage(@PathVariable String id, Model model) {
-        model.addAttribute("quizId", id);
-        return "student/student-quiz-preview";
-    }
 
     @GetMapping("/play")
     public String getPlayQuizPage(@RequestParam(required = false) Long attemptId, @RequestParam(required = false) Long quizId, Model model) {

@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.quizhub.dto.question.QuestionRequestDTO;
 import com.example.quizhub.dto.question.QuestionResponseDTO;
@@ -15,9 +16,12 @@ import com.example.quizhub.exception.AppException;
 import com.example.quizhub.exception.ErrorCode;
 import com.example.quizhub.repository.UserRepository;
 import com.example.quizhub.service.QuestionService;
+import com.example.quizhub.service.QuestionImportService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/student/questions")
@@ -27,12 +31,27 @@ public class StudentQuestionRestController {
 
     private final QuestionService questionService;
     private final UserRepository userRepository;
+    private final QuestionImportService questionImportService;
 
     private Long getCurrentUserId() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         return user.getId();
+    }
+
+    @PostMapping("/import")
+    public ResponseEntity<Map<String, Object>> importQuestions(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(required = false) Long categoryId) {
+        Map<String, Object> result = questionImportService.importQuestionsFromExcel(file, categoryId, getCurrentUserId());
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/parse-only")
+    public ResponseEntity<java.util.List<QuestionRequestDTO>> parseQuestionsOnly(
+            @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(questionImportService.parseExcelOnly(file));
     }
 
     @PostMapping
@@ -80,5 +99,20 @@ public class StudentQuestionRestController {
     public ResponseEntity<Void> deleteQuestion(@PathVariable Long id) {
         questionService.deleteQuestion(getCurrentUserId(), id);
         return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/bulk-delete")
+    public ResponseEntity<String> bulkDeleteQuestions(@RequestBody List<Long> ids) {
+        questionService.bulkDeleteQuestions(ids, getCurrentUserId());
+        return ResponseEntity.ok("Questions have been successfully deleted");
+    }
+
+    @DeleteMapping("/bulk-delete-all")
+    public ResponseEntity<String> bulkDeleteAllQuestions(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) QuestionType type,
+            @RequestParam(required = false) String keyword) {
+        questionService.bulkDeleteAllQuestions(getCurrentUserId(), categoryId, type, keyword);
+        return ResponseEntity.ok("All matching questions have been successfully deleted");
     }
 }

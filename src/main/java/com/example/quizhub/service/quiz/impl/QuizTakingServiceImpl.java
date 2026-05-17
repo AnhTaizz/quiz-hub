@@ -39,8 +39,8 @@ import com.example.quizhub.repository.QuizTakingRepository;
 import com.example.quizhub.repository.UserAttemptAnswerRepository;
 import com.example.quizhub.repository.QuizRepository;
 import com.example.quizhub.repository.UserRepository;
+import com.example.quizhub.service.NotificationService;
 import com.example.quizhub.service.quiz.QuizTakingService;
-import com.example.quizhub.service.notification.NotificationService;
 import com.example.quizhub.entity.enums.NotificationType;
 import com.example.quizhub.repository.ExamViolationRepository;
 import com.example.quizhub.repository.AttemptViolationRepository;
@@ -131,7 +131,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         List<Long> questionIds = quiz.getQuestions().stream()
                 .map(Question::getId)
                 .collect(Collectors.toList());
-        
+
         List<Answer> allAnswers = answerRepository.findByQuestionIdIn(questionIds);
         Map<Long, List<Answer>> answersByQuestionId = allAnswers.stream()
                 .collect(Collectors.groupingBy(a -> a.getQuestion().getId()));
@@ -246,16 +246,16 @@ public class QuizTakingServiceImpl implements QuizTakingService {
     public void autoSubmitExpiredAttempts() {
         LocalDateTime now = LocalDateTime.now();
         List<Attempt> activeAttempts = attemptRepository.findActiveAttemptsWithAssigning();
-        
+
         for (Attempt attempt : activeAttempts) {
             boolean expired = false;
             QuizAssigning assigning = attempt.getQuizTaking().getQuizAssigning();
-            
+
             // 1. Kiểm tra hạn chót nộp bài (DueDate)
             if (assigning.getDueDate() != null && now.isAfter(assigning.getDueDate())) {
                 expired = true;
             }
-            
+
             // 2. Kiểm tra thời lượng làm bài (Duration)
             if (!expired && assigning.getDurationInMins() != null) {
                 // Thêm 1 phút bù trừ độ trễ mạng/hệ thống
@@ -264,7 +264,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                     expired = true;
                 }
             }
-            
+
             if (expired) {
                 log.info("Auto-submitting expired attempt ID: {}", attempt.getId());
                 finalizeAttempt(attempt);
@@ -473,7 +473,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         // 3. OR the deadline has passed (safety fallback, though usually showAnswer is the master switch)
         boolean deadlinePassed = quizAssigning == null || quizAssigning.getDueDate() == null
                 || quizAssigning.getDueDate().isBefore(LocalDateTime.now());
-        
+
         boolean shouldShowAnswer = quizAssigning == null
                 || Boolean.TRUE.equals(quizAssigning.getShowAnswer())
                 || deadlinePassed;

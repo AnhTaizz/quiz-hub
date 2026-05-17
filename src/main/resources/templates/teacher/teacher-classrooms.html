@@ -11,24 +11,7 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/dashboard-layout.css}">
 
-    <style>
-        .page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; }
-        .btn-create { background: var(--blue); color: #fff; padding: 12px 26px; border-radius: 14px; font-weight: 700; border: none; display: flex; align-items: center; gap: 10px; transition: all 0.3s; }
-        .btn-create:hover { background: #1d4ed8; transform: translateY(-2px); color: white !important; }
-
-        .class-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 30px; }
-        .class-card { background: #fff; border-radius: 20px; overflow: hidden; border: 1px solid var(--border); transition: all 0.3s; display: flex; flex-direction: column; position: relative; }
-        .class-card:hover { transform: translateY(-8px); box-shadow: 0 20px 40px rgba(0,0,0,0.08); border-color: var(--blue); }
-        .class-banner { height: 160px; background: linear-gradient(135deg, #6366f1, #a855f7); position: relative; }
-        .class-banner img { width: 100%; height: 100%; object-fit: cover; opacity: 0.9; }
-        .class-status-badge { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 50px; color: #fff; font-size: 11px; font-weight: 800; }
-        .class-body { padding: 24px; flex-grow: 1; }
-        .class-code { color: var(--blue); background: rgba(37,99,235,0.05); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800; margin-bottom: 10px; display: inline-block; }
-        .class-name { font-size: 18px; font-weight: 800; display: block; margin-bottom: 8px; color: var(--text-dark); text-decoration: none; }
-        .class-desc { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .class-footer { border-top: 1px solid #f1f5f9; padding-top: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .btn-manage { color: var(--blue); font-weight: 700; font-size: 13px; text-decoration: none; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/teacher/teacher-classrooms.css}">
 </head>
 <body>
 
@@ -41,9 +24,9 @@
 
     <main id="main-content">
         <div class="page-header">
-            <div class="page-title">
-                <h1>Kho Lớp Học</h1>
-                <p>Quản lý danh sách lớp học và phê duyệt thành viên mới của bạn.</p>
+            <div>
+                <h1 class="page-title">Kho Lớp Học</h1>
+                <p class="page-sub">Quản lý danh sách lớp học và phê duyệt thành viên mới của bạn.</p>
             </div>
             <button class="btn-create" data-bs-toggle="modal" data-bs-target="#createClassModal">
                 <i class="bi bi-plus-lg"></i> Tạo lớp học mới
@@ -62,8 +45,13 @@
                     <a th:href="@{'/teacher/classrooms/' + ${classroom.id}}" class="class-name stretched-link" th:text="${classroom.name}">Lớp học</a>
                     <p class="class-desc" th:text="${classroom.description}">Mô tả lớp học...</p>
                     <div class="class-footer">
-                        <a th:href="@{'/teacher/classrooms/' + ${classroom.id} + '/members'}" class="text-muted small d-inline-block" style="position: relative; z-index: 2; text-decoration: none;"><i class="bi bi-people me-1"></i> Thành viên</a>
-                        <a th:href="@{'/teacher/classrooms/' + ${classroom.id} + '/members'}" class="btn-manage" style="position: relative; z-index: 2;">Thành viên <i class="bi bi-chevron-right"></i></a>
+                        <span class="text-muted small" style="font-size: 13px; font-weight: 500; position: relative; z-index: 2;">
+                            <i class="bi bi-people-fill me-1 text-primary"></i> 
+                            <span th:text="${memberCounts[classroom.id] != null ? memberCounts[classroom.id] : 0}">0</span> học viên
+                        </span>
+                        <a th:href="@{'/teacher/classrooms/' + ${classroom.id} + '/members'}" class="btn-manage">
+                            Chi tiết <i class="bi bi-chevron-right"></i>
+                        </a>
                     </div>
                 </div>
             </div>

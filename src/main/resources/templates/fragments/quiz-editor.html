@@ -222,12 +222,15 @@
             const QUIZ_API = USER_TYPE === 'teacher' ? '/api/teacher/quizzes' : '/api/student/quiz';
             const REDIRECT_URL = USER_TYPE === 'teacher' ? '/teacher/categories?type=mine' : '/student/categories?type=mine';
 
-            const quizId = document.getElementById('quizIdInput').value;
-            const initialCategoryId = document.getElementById('categoryIdInput').value;
+            const quizIdEl = document.getElementById('quizIdInput');
+            const catIdEl = document.getElementById('categoryIdInput');
+            const quizId = quizIdEl ? quizIdEl.value : null;
+            const initialCategoryId = catIdEl ? catIdEl.value : null;
             const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
             let questionsList = [];
             let selectedQuestionIds = new Set();
+            let fullSelectedQuestionsMap = new Map();
             let categorySelectTarget = 'quiz';
             let previewingQuestionId = null;
 
@@ -242,11 +245,13 @@
             function updateQuizImagePreview(url) {
                 const preview = document.getElementById('quiz-image-preview');
                 const container = document.getElementById('quiz-image-preview-container');
-                if (url && (url.startsWith('http') || url.startsWith('/'))) {
-                    preview.src = url;
-                    container.style.display = 'block';
-                } else {
-                    container.style.display = 'none';
+                if (preview && container) {
+                    if (url && (url.startsWith('http') || url.startsWith('/'))) {
+                        preview.src = url;
+                        container.style.display = 'block';
+                    } else {
+                        container.style.display = 'none';
+                    }
                 }
             }
 
@@ -264,14 +269,25 @@
             }
 
             document.addEventListener('DOMContentLoaded', async () => {
-                await fetchCategories();
+                try {
+                    await fetchCategories();
+                } catch (e) {
+                    console.error('Failed to load categories', e);
+                }
+
                 if (quizId) {
-                    await fetchQuizToEdit();
+                    try {
+                        await fetchQuizToEdit();
+                    } catch (e) {
+                        console.error('Failed to load quiz details', e);
+                    }
                 } else if (initialCategoryId) {
                     const matched = findCategoryById(window.myCategories, parseInt(initialCategoryId));
+                    const quizCatEl = document.getElementById('quiz-category');
+                    const quizCatDispEl = document.getElementById('quiz-category-display');
                     if (matched) {
-                        document.getElementById('quiz-category').value = matched.id;
-                        document.getElementById('quiz-category-display').value = matched.name;
+                        if (quizCatEl) quizCatEl.value = matched.id;
+                        if (quizCatDispEl) quizCatDispEl.value = matched.name;
                     }
                     loadQuestions();
                 } else {
@@ -285,34 +301,66 @@
                         fetch(`${BASE_API}/categories/mine`, { headers: { Authorization: `Bearer ${token}` } }),
                         fetch(`${BASE_API}/categories/public`, { headers: { Authorization: `Bearer ${token}` } })
                     ]);
-                    window.myCategories = await m.json();
-                    window.publicCategories = await p.json();
-                } catch (e) { console.error('Failed to load categories', e); }
+                    const mJson = await m.json();
+                    const pJson = await p.json();
+                    window.myCategories = Array.isArray(mJson) ? mJson : [];
+                    window.publicCategories = Array.isArray(pJson) ? pJson : [];
+                } catch (e) { 
+                    console.error('Failed to load categories', e); 
+                    window.myCategories = [];
+                    window.publicCategories = [];
+                }
             }
 
             async function fetchQuizToEdit() {
                 try {
+                    console.log('Loading quiz details to edit for quizId:', quizId);
                     const res = await fetch(`${QUIZ_API}/${quizId}`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     if (res.ok) {
                         const q = await res.json();
-                        document.getElementById('quiz-title').value = q.title || '';
-                        document.getElementById('quiz-desc').value = q.description || '';
-                        document.getElementById('quiz-image').value = q.imageUrl || '';
-                        updateQuizImagePreview(q.imageUrl);
-                        document.getElementById('quiz-isExam').value = String(q.isExam || false);
-                        document.getElementById('quiz-isDraft').value = String(q.isDraft || false);
-                        if (q.categoryId) {
-                            document.getElementById('quiz-category').value = q.categoryId;
-                            document.getElementById('quiz-category-display').value = q.categoryName || 'Mặc định';
+                        console.log('Fetched quiz details:', q);
+                        
+                        const titleEl = document.getElementById('quiz-title');
+                        const descEl = document.getElementById('quiz-desc');
+                        const imgEl = document.getElementById('quiz-image');
+                        const isExamEl = document.getElementById('quiz-isExam');
+                        const isDraftEl = document.getElementById('quiz-isDraft');
+                        const catIdEl = document.getElementById('quiz-category');
+                        const catDispEl = document.getElementById('quiz-category-display');
+                        
+                        if (titleEl) titleEl.value = q.title || '';
+                        if (descEl) descEl.value = q.description || '';
+                        if (imgEl) {
+                            imgEl.value = q.imageUrl || '';
+                            updateQuizImagePreview(q.imageUrl);
                         }
-                        const ids = q.questionIds || (q.questions ? q.questions.map(qi => qi.id) : []);
-                        ids.forEach(id => selectedQuestionIds.add(Number(id)));
+                        if (isExamEl) isExamEl.value = String(q.isExam || false);
+                        if (isDraftEl) isDraftEl.value = String(q.isDraft || false);
+                        
+                        if (q.categoryId) {
+                            if (catIdEl) catIdEl.value = q.categoryId;
+                            if (catDispEl) catDispEl.value = q.categoryName || 'Mặc định';
+                        }
+                        
+                        selectedQuestionIds.clear();
+                        fullSelectedQuestionsMap.clear();
+                        const questions = q.questions || [];
+                        questions.forEach(qi => {
+                            fullSelectedQuestionsMap.set(Number(qi.id), qi);
+                            selectedQuestionIds.add(Number(qi.id));
+                        });
+                        if (selectedQuestionIds.size === 0) {
+                            const ids = q.questionIds || [];
+                            ids.forEach(id => selectedQuestionIds.add(Number(id)));
+                        }
                         updateSelectedCount();
                         loadQuestions();
+                    } else {
+                        console.error('Failed to load quiz, status code:', res.status);
                     }
-                } catch (e) { console.error('Failed to load quiz', e); }
+                } catch (e) { console.error('Failed to load quiz details', e); }
             }
 
             window.loadQuestions = async function () {
@@ -330,6 +378,11 @@
                     const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
                     const data = await res.json();
                     questionsList = data.content || [];
+                    questionsList.forEach(q => {
+                        if (selectedQuestionIds.has(Number(q.id))) {
+                            fullSelectedQuestionsMap.set(Number(q.id), q);
+                        }
+                    });
                     filterLocalQuestions();
                 } catch (e) { wrapper.innerHTML = '<div class="text-center text-danger">Lỗi tải dữ liệu</div>'; }
             }
@@ -377,8 +430,17 @@
             }
 
             window.toggleQuestionSelection = function (id) {
-                if (selectedQuestionIds.has(id)) selectedQuestionIds.delete(id);
-                else selectedQuestionIds.add(id);
+                const numId = Number(id);
+                if (selectedQuestionIds.has(numId)) {
+                    selectedQuestionIds.delete(numId);
+                    fullSelectedQuestionsMap.delete(numId);
+                } else {
+                    selectedQuestionIds.add(numId);
+                    const qObj = questionsList.find(x => Number(x.id) === numId);
+                    if (qObj) {
+                        fullSelectedQuestionsMap.set(numId, qObj);
+                    }
+                }
                 updateSelectedCount();
                 renderQuestions(questionsList);
             }
@@ -467,25 +529,36 @@
             window.previewQuiz = function () {
                 const title = document.getElementById('quiz-title').value || 'Chưa đặt tiêu đề';
                 const desc = document.getElementById('quiz-desc').value || 'Chưa có mô tả';
-                const selected = questionsList.filter(q => selectedQuestionIds.has(q.id));
+
+                const selected = [];
+                selectedQuestionIds.forEach(id => {
+                    const numId = Number(id);
+                    if (fullSelectedQuestionsMap.has(numId)) {
+                        selected.push(fullSelectedQuestionsMap.get(numId));
+                    }
+                });
 
                 document.getElementById('preview-quiz-title').textContent = title;
                 document.getElementById('preview-quiz-meta').textContent = `${selected.length} câu hỏi đã chọn`;
                 document.getElementById('preview-quiz-desc').textContent = desc;
 
                 const listWrap = document.getElementById('preview-quiz-questions-list');
-                listWrap.innerHTML = selected.map((q, idx) => `
-                    <div class="border-bottom pb-3">
-                        <div class="fw-bold mb-2">Câu ${idx + 1}: ${esc(q.text)}</div>
-                        <div class="ps-3 d-flex flex-column gap-1">
-                            ${q.answers.map((a, i) => `
-                                <div class="small ${a.isCorrect ? 'text-success fw-bold' : 'text-muted'}">
-                                    ${String.fromCharCode(65 + i)}. ${esc(a.text)}
-                                </div>
-                            `).join('')}
+                if (selected.length === 0) {
+                    listWrap.innerHTML = '<div class="text-center py-4 text-muted">Chưa có câu hỏi nào được chọn hoặc đang tải...</div>';
+                } else {
+                    listWrap.innerHTML = selected.map((q, idx) => `
+                        <div class="border-bottom pb-3">
+                            <div class="fw-bold mb-2">Câu ${idx + 1}: ${esc(q.text)}</div>
+                            <div class="ps-3 d-flex flex-column gap-1">
+                                ${q.answers ? q.answers.map((a, i) => `
+                                    <div class="small ${a.isCorrect ? 'text-success fw-bold' : 'text-muted'}">
+                                        ${String.fromCharCode(65 + i)}. ${esc(a.text)}
+                                    </div>
+                                `).join('') : ''}
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `).join('');
+                }
 
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('previewQuizModal')).show();
             }
@@ -525,7 +598,7 @@
             }
 
             function findCategoryById(nodes, id) {
-                if (!nodes) return null;
+                if (!nodes || !Array.isArray(nodes)) return null;
                 for (const n of nodes) {
                     if (n.id === id) return n;
                     if (n.children) {
@@ -538,15 +611,20 @@
 
             // Handle question saved from the shared editor
             window.onQuestionSaved = function(newQ, isEdit) {
+                const numId = Number(newQ.id);
                 if (isEdit) {
                     // Update in lists if present
-                    const idx = questionsList.findIndex(q => q.id === newQ.id);
+                    const idx = questionsList.findIndex(q => Number(q.id) === numId);
                     if (idx !== -1) questionsList[idx] = newQ;
+                    if (selectedQuestionIds.has(numId)) {
+                        fullSelectedQuestionsMap.set(numId, newQ);
+                    }
                     renderQuestions(questionsList);
                 } else {
                     // Prepend new question and auto-select it
                     questionsList.unshift(newQ);
-                    selectedQuestionIds.add(newQ.id);
+                    selectedQuestionIds.add(numId);
+                    fullSelectedQuestionsMap.set(numId, newQ);
                     updateSelectedCount();
                     renderQuestions(questionsList);
                 }
@@ -585,8 +663,10 @@
                         showToast(`Đã nhập và chọn ${count} câu hỏi!`, 'success');
                         // 1. Thêm các câu mới vào đầu mảng QuestionsList
                         list.reverse().forEach(q => {
+                            const numId = Number(q.id);
                             questionsList.unshift(q);
-                            selectedQuestionIds.add(q.id);
+                            selectedQuestionIds.add(numId);
+                            fullSelectedQuestionsMap.set(numId, q);
                         });
                         // 2. Cập nhật đếm và render
                         updateSelectedCount();

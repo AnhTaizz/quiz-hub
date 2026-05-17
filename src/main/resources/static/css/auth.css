@@ -1,5 +1,17 @@
 /* ── Auth shared styles (Login & Register) ─────────────────── */
 
+html {
+    zoom: 85% !important;
+}
+
+html, body {
+    background: #0f0c29 !important;
+}
+
+.hero-section {
+    min-height: 118vh !important;
+}
+
 .auth-wrapper, .login-wrapper {
     display: flex;
     align-items: center;

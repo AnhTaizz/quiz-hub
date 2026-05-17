@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,25 +10,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" th:href="@{/css/student.css}">
-    <style>
-        body { background-color: #f8fafc; font-family: 'Inter', sans-serif; color: #1e293b; }
-        main { padding-top: 30px; }
-        .nav-tabs { border: none; gap: 10px; }
-        #historyTabs .nav-link { border: none !important; border-radius: 12px !important; color: #64748b; font-weight: 600; padding: 12px 24px; transition: all 0.2s; }
-        #historyTabs .nav-link:hover { background: #f1f5f9; color: #1e293b; }
-        #historyTabs .nav-link.active { background: #312e81 !important; color: white !important; box-shadow: 0 4px 12px rgba(49, 46, 129, 0.2); }
-        .history-card { border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        .item-card { transition: all 0.2s; border-radius: 16px; border: 1px solid #f1f5f9; background: white; margin-bottom: 15px; }
-        .item-card:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(0,0,0,0.06); border-color: #e2e8f0; }
-        .score-badge { min-width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.1rem; }
-        .score-high { background: #dcfce7; color: #15803d; }
-        .score-mid { background: #fef3c7; color: #d97706; }
-        .score-low { background: #fee2e2; color: #dc2626; }
-        .btn-view { background: #f1f5f9; color: #475569; border: none; font-weight: 600; padding: 10px 20px; border-radius: 12px; }
-        .btn-view:hover { background: #e2e8f0; color: #1e293b; }
-        .icon-box { width: 45px; height: 45px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
-    </style>
+    <link rel="stylesheet" th:href="@{/css/student/student-history.css}">
 </head>
+
 <body>
     <header th:replace="~{layout/header :: student-header(activePage='history')}"></header>
 
@@ -35,7 +20,7 @@
         <section class="page-hero mb-5">
             <div class="hero-shape shape-1"></div>
             <div class="hero-shape shape-2"></div>
-            
+
             <div class="hero-content">
                 <h1 class="hero-title">Lịch sử làm bài</h1>
                 <p class="hero-subtitle">Theo dõi và xem lại kết quả tất cả các bài thi và bài luyện tập của bạn.</p>
@@ -47,12 +32,14 @@
 
                 <ul class="nav nav-tabs mb-4" id="historyTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="quiz-tab" data-bs-toggle="tab" data-bs-target="#quiz" type="button" role="tab">
+                        <button class="nav-link active" id="quiz-tab" data-bs-toggle="tab" data-bs-target="#quiz"
+                            type="button" role="tab">
                             <i class="bi bi-file-earmark-check me-2"></i> Bài thi & Bài tập
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="practice-tab" data-bs-toggle="tab" data-bs-target="#practice" type="button" role="tab">
+                        <button class="nav-link" id="practice-tab" data-bs-toggle="tab" data-bs-target="#practice"
+                            type="button" role="tab">
                             <i class="bi bi-pencil-square me-2"></i> Bài tự luyện tập
                         </button>
                     </li>
@@ -65,33 +52,46 @@
                             <i class="bi bi-journal-x text-muted mb-3" style="font-size: 4rem;"></i>
                             <h5 class="fw-bold">Chưa có dữ liệu</h5>
                             <p class="text-muted">Bạn chưa hoàn thành bất kỳ bài thi nào.</p>
-                            <a href="/student" class="btn btn-primary rounded-pill px-4 fw-bold mt-2">Đến Bảng điều khiển</a>
+                            <a href="/student" class="btn btn-primary rounded-pill px-4 fw-bold mt-2">Đến Bảng điều
+                                khiển</a>
                         </div>
                         <div th:unless="${#lists.isEmpty(quizAttempts)}">
                             <div th:each="attempt : ${quizAttempts}" class="item-card p-4">
-                                <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                                <div
+                                    class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
                                     <div class="d-flex align-items-center gap-4">
                                         <div th:class="'score-badge ' + (${attempt.result >= 8} ? 'score-high' : (${attempt.result >= 5} ? 'score-mid' : 'score-low'))"
-                                             th:text="${attempt.result}">
+                                            th:text="${attempt.result}">
                                             0.0
                                         </div>
                                         <div>
-                                            <h5 class="fw-bold mb-1" th:text="${attempt.quizTaking.quiz.title}">Tên đề thi</h5>
+                                            <h5 class="fw-bold mb-1" th:text="${attempt.quizTaking.quiz.title}">Tên đề
+                                                thi</h5>
                                             <div class="text-muted small">
-                                                <span class="badge bg-light text-dark me-2" th:text="${attempt.quizTaking.quizAssigning != null ? attempt.quizTaking.quizAssigning.classroom.name : 'Đề thi cá nhân'}">Tên lớp</span>
-                                                <i class="bi bi-calendar3 me-1"></i> <span th:text="${#temporals.format(attempt.startedAt, 'HH:mm dd/MM/yyyy')}">Thời gian</span>
+                                                <span class="badge bg-light text-dark me-2"
+                                                    th:text="${attempt.quizTaking.quizAssigning != null ? attempt.quizTaking.quizAssigning.classroom.name : 'Đề thi cá nhân'}">Tên
+                                                    lớp</span>
+                                                <i class="bi bi-calendar3 me-1"></i> <span
+                                                    th:text="${#temporals.format(attempt.startedAt, 'HH:mm dd/MM/yyyy')}">Thời
+                                                    gian</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="d-flex align-items-center gap-3">
                                         <div class="text-md-end d-none d-md-block me-3">
                                             <div class="text-muted small">Thời gian làm bài</div>
-                                            <div class="fw-bold" th:text="${attempt.endedAt != null ? (T(java.time.Duration).between(attempt.startedAt, attempt.endedAt).toMinutes()) + ' phút' : '--'}">--</div>
+                                            <div class="fw-bold"
+                                                th:text="${attempt.endedAt != null ? (T(java.time.Duration).between(attempt.startedAt, attempt.endedAt).toMinutes()) + ' phút' : '--'}">
+                                                --</div>
                                         </div>
-                                        <a th:if="${attempt.quizTaking.quizAssigning != null}" th:href="@{'/student/quiz/result/' + ${attempt.id}}" class="btn-view text-decoration-none">
+                                        <a th:if="${attempt.quizTaking.quizAssigning != null}"
+                                            th:href="@{'/student/quiz/result/' + ${attempt.id}}"
+                                            class="btn-view text-decoration-none">
                                             Xem chi tiết <i class="bi bi-chevron-right ms-1"></i>
                                         </a>
-                                        <a th:if="${attempt.quizTaking.quizAssigning == null}" th:href="@{'/student/quiz/result?attemptId=' + ${attempt.id}}" class="btn-view text-decoration-none">
+                                        <a th:if="${attempt.quizTaking.quizAssigning == null}"
+                                            th:href="@{'/student/quiz/result?attemptId=' + ${attempt.id}}"
+                                            class="btn-view text-decoration-none">
                                             Xem chi tiết <i class="bi bi-chevron-right ms-1"></i>
                                         </a>
                                     </div>
@@ -106,49 +106,79 @@
                             <i class="bi bi-pencil-square text-muted mb-3" style="font-size: 4rem;"></i>
                             <h5 class="fw-bold">Chưa có dữ liệu luyện tập</h5>
                             <p class="text-muted">Hãy bắt đầu luyện tập để cải thiện kỹ năng của bạn.</p>
-                            <a href="/student/categories?type=public" class="btn btn-primary rounded-pill px-4 fw-bold mt-2">Đến Ngân hàng đề</a>
+                            <a href="/student/categories?type=public"
+                                class="btn btn-primary rounded-pill px-4 fw-bold mt-2">Đến Ngân hàng đề</a>
                         </div>
                         <div th:unless="${#lists.isEmpty(practiceHistory)}">
                             <div th:each="practice : ${practiceHistory}" class="item-card p-4">
-                                <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3" th:if="${practice.isCompleted}">
+                                <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3"
+                                    th:if="${practice.isCompleted}">
                                     <div class="d-flex align-items-center gap-4">
                                         <div class="icon-box bg-success bg-opacity-10 text-success">
                                             <i class="bi bi-check2-circle"></i>
                                         </div>
                                         <div>
-                                            <h5 class="fw-bold mb-1" th:text="${practice.categoryName}">Tên danh mục luyện tập</h5>
+                                            <h5 class="fw-bold mb-1" th:text="${practice.categoryName}">Tên danh mục
+                                                luyện tập</h5>
                                             <div class="text-muted small">
-                                                <span class="text-success fw-bold me-2" th:text="${(practice.correctAnswers != null ? practice.correctAnswers : 0) + '/' + (practice.totalQuestions != null ? practice.totalQuestions : 0) + ' Đúng'}">10/10 Đúng</span>
-                                                <i class="bi bi-calendar3 me-1"></i> <span th:text="${#temporals.format(practice.createdAt, 'HH:mm dd/MM/yyyy')}">Thời gian</span>
-                                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill ms-1" th:if="${practice.isRandom != null && practice.isRandom}">Ngẫu nhiên</span>
-                                                <span class="badge bg-info bg-opacity-10 text-info rounded-pill ms-1" th:if="${(practice.isRandom == null || !practice.isRandom) && practice.practiceOffset != null}"><i class="bi bi-list-ol me-1"></i>Câu [[${practice.practiceOffset + 1}]] - [[${practice.practiceOffset + (practice.totalQuestions != null ? practice.totalQuestions : 0)}]]</span>
+                                                <span class="text-success fw-bold me-2"
+                                                    th:text="${(practice.correctAnswers != null ? practice.correctAnswers : 0) + '/' + (practice.totalQuestions != null ? practice.totalQuestions : 0) + ' Đúng'}">10/10
+                                                    Đúng</span>
+                                                <i class="bi bi-calendar3 me-1"></i> <span
+                                                    th:text="${#temporals.format(practice.createdAt, 'HH:mm dd/MM/yyyy')}">Thời
+                                                    gian</span>
+                                                <span
+                                                    class="badge bg-primary bg-opacity-10 text-primary rounded-pill ms-1"
+                                                    th:if="${practice.isRandom != null && practice.isRandom}">Ngẫu
+                                                    nhiên</span>
+                                                <span class="badge bg-info bg-opacity-10 text-info rounded-pill ms-1"
+                                                    th:if="${(practice.isRandom == null || !practice.isRandom) && practice.practiceOffset != null}"><i
+                                                        class="bi bi-list-ol me-1"></i>Câu [[${practice.practiceOffset +
+                                                    1}]] - [[${practice.practiceOffset + (practice.totalQuestions !=
+                                                    null ? practice.totalQuestions : 0)}]]</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div>
-                                        <a th:href="@{'/student/practice/review/' + ${practice.id}}" class="btn-view text-decoration-none">
+                                        <a th:href="@{'/student/practice/review/' + ${practice.id}}"
+                                            class="btn-view text-decoration-none">
                                             Xem kết quả <i class="bi bi-chevron-right ms-1"></i>
                                         </a>
                                     </div>
                                 </div>
-                                <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3" th:unless="${practice.isCompleted}">
+                                <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3"
+                                    th:unless="${practice.isCompleted}">
                                     <div class="d-flex align-items-center gap-4">
                                         <div class="icon-box bg-warning bg-opacity-10 text-warning">
                                             <i class="bi bi-hourglass-split"></i>
                                         </div>
                                         <div>
-                                            <h5 class="fw-bold mb-1" th:text="${practice.categoryName}">Tên danh mục luyện tập</h5>
+                                            <h5 class="fw-bold mb-1" th:text="${practice.categoryName}">Tên danh mục
+                                                luyện tập</h5>
                                             <div class="text-muted small">
-                                                <span class="badge bg-warning text-dark rounded-pill me-2"><i class="bi bi-hourglass-split me-1"></i>Đang làm</span>
-                                                <span class="text-primary fw-bold me-2"><i class="bi bi-check2-circle me-1"></i>[[${practice.answeredQuestions}]]/[[${practice.totalQuestions}]] câu</span>
-                                                <i class="bi bi-calendar3 me-1"></i> <span th:text="${#temporals.format(practice.createdAt, 'HH:mm dd/MM/yyyy')}">Thời gian</span>
-                                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill ms-1" th:if="${practice.isRandom != null && practice.isRandom}">Ngẫu nhiên</span>
-                                                <span class="badge bg-info bg-opacity-10 text-info rounded-pill ms-1" th:if="${(practice.isRandom == null || !practice.isRandom) && practice.practiceOffset != null}"><i class="bi bi-list-ol me-1"></i>Câu [[${practice.practiceOffset + 1}]] - [[${practice.practiceOffset + (practice.totalQuestions != null ? practice.totalQuestions : 0)}]]</span>
+                                                <span class="badge bg-warning text-dark rounded-pill me-2"><i
+                                                        class="bi bi-hourglass-split me-1"></i>Đang làm</span>
+                                                <span class="text-primary fw-bold me-2"><i
+                                                        class="bi bi-check2-circle me-1"></i>[[${practice.answeredQuestions}]]/[[${practice.totalQuestions}]]
+                                                    câu</span>
+                                                <i class="bi bi-calendar3 me-1"></i> <span
+                                                    th:text="${#temporals.format(practice.createdAt, 'HH:mm dd/MM/yyyy')}">Thời
+                                                    gian</span>
+                                                <span
+                                                    class="badge bg-primary bg-opacity-10 text-primary rounded-pill ms-1"
+                                                    th:if="${practice.isRandom != null && practice.isRandom}">Ngẫu
+                                                    nhiên</span>
+                                                <span class="badge bg-info bg-opacity-10 text-info rounded-pill ms-1"
+                                                    th:if="${(practice.isRandom == null || !practice.isRandom) && practice.practiceOffset != null}"><i
+                                                        class="bi bi-list-ol me-1"></i>Câu [[${practice.practiceOffset +
+                                                    1}]] - [[${practice.practiceOffset + (practice.totalQuestions !=
+                                                    null ? practice.totalQuestions : 0)}]]</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div>
-                                        <button class="btn btn-warning fw-bold shadow-sm" style="border-radius: 12px; padding: 10px 20px;"
+                                        <button class="btn btn-warning fw-bold shadow-sm"
+                                            style="border-radius: 12px; padding: 10px 20px;"
                                             th:data-practice-id="${practice.id}"
                                             th:data-is-random="${practice.isRandom}"
                                             th:data-limit="${practice.practiceLimit != null ? practice.practiceLimit : 10}"
@@ -169,81 +199,7 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        async function resumePractice(practiceId, isRandom, practiceLimit, practiceOffset, categoryId, categoryName) {
-            try {
-                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-                let data = null;
-                sessionStorage.removeItem('practice_user_answers');
-                sessionStorage.removeItem('practice_answered_correctly');
-                sessionStorage.removeItem('practice_confirmed_answers');
-                sessionStorage.removeItem('practice_current_index');
-                sessionStorage.removeItem('practice_is_shuffled');
-                sessionStorage.removeItem('practice_questions');
-
-                if (isRandom) {
-                    const res = await fetch(`/api/student/practice/history/detail?id=${practiceId}`, {
-                        headers: { 'Authorization': 'Bearer ' + token }
-                    });
-                    if (!res.ok) throw new Error('Không thể tải bài luyện tập');
-                    data = await res.json();
-                    const questions = data.details.map(d => ({
-                        id: d.questionId,
-                        text: d.questionText,
-                        type: d.questionType,
-                        level: d.questionLevel,
-                        answers: d.answers,
-                        selectedAnswerIds: d.selectedAnswerIds || null,
-                        selectedText: d.selectedText || null,
-                        isCorrect: d.isCorrect !== undefined ? d.isCorrect : null
-                    }));
-                    sessionStorage.setItem('practice_questions', JSON.stringify(questions));
-                    sessionStorage.setItem('practice_id', practiceId);
-                    sessionStorage.removeItem(`practice_is_shuffled_${practiceId}`);
-                } else {
-                    const limit = practiceLimit || 10;
-                    const offset = practiceOffset || 0;
-                    const payload = { categoryId: categoryId, limit, offset, isRandom: false, forceNew: false, practiceId: practiceId };
-                    const res = await fetch('/api/student/practice/start', {
-                        method: 'POST',
-                        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    if (!res.ok) throw new Error('Không thể tải bài luyện tập');
-                    data = await res.json();
-                    sessionStorage.setItem('practice_questions', JSON.stringify(data.questions));
-                    sessionStorage.setItem('practice_id', data.practiceId);
-                    sessionStorage.removeItem(`practice_is_shuffled_${data.practiceId}`);
-                }
-
-                sessionStorage.setItem('practice_category_id', categoryId);
-                sessionStorage.setItem('practice_category_name', categoryName);
-                
-                const finalId = (data && data.practiceId) ? data.practiceId : practiceId;
-                let currentSettings = JSON.parse(sessionStorage.getItem(`practice_settings_${finalId}`) || 'null');
-                if (!currentSettings) {
-                    currentSettings = JSON.parse(sessionStorage.getItem('practice_settings') || 'null');
-                }
-                if (!currentSettings) {
-                    currentSettings = { showAnswer: true, shuffle: false, displayMode: 'sequential' };
-                }
-                sessionStorage.setItem('practice_settings', JSON.stringify(currentSettings));
-                sessionStorage.setItem(`practice_settings_${finalId}`, JSON.stringify(currentSettings));
-                
-                if (typeof showToast === 'function') {
-                    showToast('Tiếp tục bài luyện tập, hãy cố lên! 💪', 'ok');
-                    setTimeout(() => { window.location.href = '/student/practice/play'; }, 800);
-                } else {
-                    window.location.href = '/student/practice/play';
-                }
-            } catch (e) {
-                if (typeof showToast === 'function') {
-                    showToast(e.message, 'err');
-                } else {
-                    alert(e.message);
-                }
-            }
-        }
-    </script>
+    <script th:src="@{/js/student/student-history.js}"></script>
 </body>
+
 </html>

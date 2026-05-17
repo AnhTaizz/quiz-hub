@@ -14,8 +14,8 @@ import com.example.quizhub.repository.ClassTopicRepository;
 import com.example.quizhub.repository.ClassroomRepository;
 import com.example.quizhub.repository.QuizAssigningRepository;
 import com.example.quizhub.repository.QuizRepository;
+import com.example.quizhub.service.NotificationService;
 import com.example.quizhub.service.quiz.QuizAssigningService;
-import com.example.quizhub.service.notification.NotificationService;
 import com.example.quizhub.entity.enums.JoinStatus;
 import com.example.quizhub.entity.enums.NotificationType;
 import com.example.quizhub.repository.ClassJoiningRepository;
@@ -49,7 +49,7 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
         com.example.quizhub.entity.User currentUser = getCurrentUser();
         Classroom classroom = classroomRepository.findById(request.getClassroomId())
                 .orElseThrow(() -> new AppException(ErrorCode.CLASSROOM_NOT_FOUND));
-        
+
         if (!classroom.getCreator().getId().equals(currentUser.getId())) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }

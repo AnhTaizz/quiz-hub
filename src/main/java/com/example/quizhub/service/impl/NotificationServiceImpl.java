@@ -1,17 +1,19 @@
-package com.example.quizhub.service.notification.impl;
+package com.example.quizhub.service.impl;
+
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.quizhub.entity.Notification;
 import com.example.quizhub.entity.User;
 import com.example.quizhub.entity.enums.NotificationType;
 import com.example.quizhub.repository.NotificationRepository;
 import com.example.quizhub.repository.UserRepository;
-import com.example.quizhub.service.notification.NotificationService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import com.example.quizhub.service.NotificationService;
 
-import org.springframework.transaction.annotation.Propagation;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor

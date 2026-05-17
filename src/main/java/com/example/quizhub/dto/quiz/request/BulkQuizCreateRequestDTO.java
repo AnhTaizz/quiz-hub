@@ -3,6 +3,7 @@ package com.example.quizhub.dto.quiz.request;
 import java.util.List;
 import com.example.quizhub.dto.question.QuestionRequestDTO;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.AccessLevel;
@@ -30,5 +31,5 @@ public class BulkQuizCreateRequestDTO {
     String imageUrl;
 
     @NotEmpty(message = "Bài quiz phải có ít nhất 1 câu hỏi")
-    List<QuestionRequestDTO> questions;
+    List<@Valid QuestionRequestDTO> questions;
 }
