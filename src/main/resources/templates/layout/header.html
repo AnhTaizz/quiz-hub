@@ -36,13 +36,13 @@
                 <nav id="navbar" class="navbar">
                     <ul>
                         <li><a class="nav-link" th:classappend="${activePage == 'dashboard' ? 'active' : ''}"
-                                th:href="@{/student}">Bảng điều khiển</a></li>
+                                th:href="@{/student}">Trang chủ</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'classrooms' ? 'active' : ''}"
-                                th:href="@{/student/classrooms}">Lớp học của tôi</a></li>
+                                th:href="@{/student/classrooms}">Lớp học</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'history' ? 'active' : ''}"
                                 th:href="@{/student/history}">Lịch sử làm bài</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'qbank' ? 'active' : ''}"
-                                th:href="@{/student/categories(type='public')}">Ngân hàng câu hỏi</a></li>
+                                th:href="@{/student/categories(type='public')}">Luyện tập</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'myqbank' ? 'active' : ''}"
                                 th:href="@{/student/categories(type='mine')}">Thư viện của tôi</a></li>
                     </ul>

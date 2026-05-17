@@ -133,10 +133,7 @@ window.loadFolder = function(id) {
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item p-2 rounded-3 d-flex align-items-center gap-2" href="/student/quiz/quick-create"
-                           data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="left" data-bs-html="true"
-                           title="<i class='bi bi-info-circle-fill text-success me-2'></i> Cấu hình file Excel đề thi"
-                           data-bs-content="File Excel đề thi cần có định dạng:<br><ul class='small mt-2 mb-0 ps-3'><li><b>Cột A:</b> Nội dung câu hỏi (bắt buộc)</li><li><b>Cột B (Loại):</b> Trắc nghiệm 1, Trắc nghiệm nhiều, Điền khuyết</li><li><b>Cột C (Mức độ):</b> Dễ, Trung bình, Khó</li><li><b>Cột D &rarr; K:</b> Đáp án A &rarr; H (điền liên tiếp, bỏ trống ô dư)</li><li><b>Cột L (Đúng):</b> Chữ cái A-H (VD: <b>A</b> hoặc <b>A,B</b>). Với <i>Điền khuyết</i> hãy <b>để trống cột này</b></li><li>Dòng 1 là tiêu đề và sẽ được bỏ qua</li></ul>">
+                        <a class="dropdown-item p-2 rounded-3 d-flex align-items-center gap-2" href="/student/quiz/quick-create">
                             <i class="bi bi-magic text-success" style="font-size: 1.1rem;"></i>
                             <span class="fw-bold text-dark small">Tạo nhanh (Excel/JSON)</span>
                         </a>
@@ -177,10 +174,7 @@ window.switchContext = function(ctx) {
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item p-2 rounded-3 d-flex align-items-center gap-2" href="/student/quiz/quick-create"
-                           data-bs-toggle="popover" data-bs-trigger="hover focus" data-bs-placement="left" data-bs-html="true"
-                           title="<i class='bi bi-info-circle-fill text-success me-2'></i> Cấu hình file Excel đề thi"
-                           data-bs-content="File Excel đề thi cần có định dạng:<br><ul class='small mt-2 mb-0 ps-3'><li><b>Cột A:</b> Nội dung câu hỏi (bắt buộc)</li><li><b>Cột B (Loại):</b> Trắc nghiệm 1, Trắc nghiệm nhiều, Điền khuyết</li><li><b>Cột C (Mức độ):</b> Dễ, Trung bình, Khó</li><li><b>Cột D &rarr; K:</b> Đáp án A &rarr; H (điền liên tiếp, bỏ trống ô dư)</li><li><b>Cột L (Đúng):</b> Chữ cái A-H (VD: <b>A</b> hoặc <b>A,B</b>). Với <i>Điền khuyết</i> hãy <b>để trống cột này</b></li><li>Dòng 1 là tiêu đề và sẽ được bỏ qua</li></ul>">
+                        <a class="dropdown-item p-2 rounded-3 d-flex align-items-center gap-2" href="/student/quiz/quick-create">
                             <i class="bi bi-magic text-success" style="font-size: 1.1rem;"></i>
                             <span class="fw-bold text-dark small">Tạo nhanh (Excel/JSON)</span>
                         </a>
@@ -435,10 +429,10 @@ function renderQuizGrid(list) {
                 </div>
             </div>
             <div class="up-card-actions">
-                <button class="btn-play-up" onclick="startQuiz('${q.id}')">BẮT ĐẦU</button>
-                <a href="javascript:void(0)" onclick="openQuizPreviewModal('${q.id}', event)" class="btn-opt-up" title="Xem trước"><i class="bi bi-eye"></i></a>
-                <a href="/student/quiz/${q.id}/edit" class="btn-opt-up" title="Sửa đề thi"><i class="bi bi-pencil"></i></a>
-                <button class="btn-opt-up text-danger" title="Xóa đề thi" onclick="deleteQuiz('${q.id}')"><i class="bi bi-trash3"></i></button>
+                <button class="btn-play-up" onclick="startQuiz('${q.id}')">Bắt đầu</button>
+                <a href="javascript:void(0)" onclick="openQuizPreviewModal('${q.id}', event)" class="btn-opt-up btn-opt-preview" title="Xem trước"><i class="bi bi-eye"></i></a>
+                <a href="/student/quiz/${q.id}/edit" class="btn-opt-up btn-opt-edit" title="Sửa đề thi"><i class="bi bi-pencil"></i></a>
+                <button class="btn-opt-up btn-opt-delete text-danger" title="Xóa đề thi" onclick="deleteQuiz('${q.id}')"><i class="bi bi-trash3"></i></button>
             </div>
         </div>
     `).join('') + `</div>`;
