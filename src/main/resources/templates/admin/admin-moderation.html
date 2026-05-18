@@ -247,7 +247,7 @@
     <!-- Main Content -->
     <main id="main-content">
         <div class="page-title-box">
-            <h4><i class="bi bi-clipboard2-check-fill text-primary me-2"></i>Duyệt nội dung</h4>
+            <h4>Duyệt nội dung</h4>
             <p>Admin phê duyệt hoặc từ chối các câu hỏi đang chờ kiểm duyệt và gán vào danh mục hệ thống</p>
         </div>
 
@@ -348,7 +348,7 @@
                 </div>
                 <div class="modal-body p-4 text-center">
                     <i class="bi bi-exclamation-octagon text-danger" style="font-size: 3.5rem;"></i>
-                    <h5 class="fw-bold mt-3 text-dark">Bạn có chắc chắn muốn từ chối câu hỏi này?</h5>
+                    <h5 class="fw-bold mt-3 text-dark" id="rejectModalMsg">Bạn có chắc chắn muốn từ chối câu hỏi này?</h5>
                     <p class="text-muted small">Hành động này sẽ từ chối đưa câu hỏi lên hệ thống công khai.</p>
                 </div>
                 <div class="modal-footer p-3 bg-light" style="border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;">
@@ -646,49 +646,56 @@
         }
 
 
-        async function confirmBulkReject() {
+        function confirmBulkReject() {
             const count = isSelectAllResults ? lastTotalElements : selectedIds.length;
             if (count === 0) {
                 showToast('Vui lòng chọn ít nhất một câu hỏi!', 'error');
                 return;
             }
 
-            if (!confirm(`Bạn có chắc chắn muốn từ chối ${count} câu hỏi đã chọn?`)) return;
+            const modalEl = document.getElementById('rejectModal');
+            const msgEl = document.getElementById('rejectModalMsg');
+            if (msgEl) msgEl.innerText = `Bạn có chắc chắn muốn từ chối ${count} câu hỏi đã chọn?`;
+            
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            document.getElementById('btnConfirmReject').onclick = async function() {
+                try {
+                    let url, options;
+                    if (isSelectAllResults) {
+                        const keyword = document.getElementById('filter-keyword').value;
+                        const creator = document.getElementById('filter-creator').value;
+                        const type = document.getElementById('filter-type').value;
+                        const level = document.getElementById('filter-level').value;
+                        url = `/api/admin/questions/bulk-reject-all?`;
+                        if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+                        if (creator) url += `&creatorName=${encodeURIComponent(creator)}`;
+                        if (type) url += `&type=${type}`;
+                        if (level) url += `&level=${level}`;
+                        options = { method: 'PUT' };
+                    } else {
+                        url = '/api/admin/questions/bulk-reject';
+                        options = {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(selectedIds)
+                        };
+                    }
 
-            try {
-                let url, options;
-                if (isSelectAllResults) {
-                    const keyword = document.getElementById('filter-keyword').value;
-                    const creator = document.getElementById('filter-creator').value;
-                    const type = document.getElementById('filter-type').value;
-                    const level = document.getElementById('filter-level').value;
-                    url = `/api/admin/questions/bulk-reject-all?`;
-                    if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
-                    if (creator) url += `&creatorName=${encodeURIComponent(creator)}`;
-                    if (type) url += `&type=${type}`;
-                    if (level) url += `&level=${level}`;
-                    options = { method: 'PUT' };
-                } else {
-                    url = '/api/admin/questions/bulk-reject';
-                    options = {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(selectedIds)
-                    };
+                    const res = await fetch(url, options);
+
+                    if (res.ok) {
+                        showToast(`Đã từ chối ${count} câu hỏi thành công!`, 'success');
+                        modal.hide();
+                        clearSelection();
+                        fetchPendingQuestions();
+                    } else {
+                        showToast('Có lỗi xảy ra khi từ chối hàng loạt!', 'error');
+                    }
+                } catch (err) {
+                    showToast(err.message, 'error');
                 }
-
-                const res = await fetch(url, options);
-
-                if (res.ok) {
-                    showToast(`Đã từ chối ${count} câu hỏi thành công!`, 'success');
-                    clearSelection();
-                    fetchPendingQuestions();
-                } else {
-                    showToast('Có lỗi xảy ra khi từ chối hàng loạt!', 'error');
-                }
-            } catch (err) {
-                showToast(err.message, 'error');
-            }
+            };
+            modal.show();
         }
 
         function openApproveModal(questionId) {
@@ -761,7 +768,9 @@
 
         function rejectQuestion(questionId) {
             const modalEl = document.getElementById('rejectModal');
-            const modal = new bootstrap.Modal(modalEl);
+            const msgEl = document.getElementById('rejectModalMsg');
+            if (msgEl) msgEl.innerText = 'Bạn có chắc chắn muốn từ chối câu hỏi này?';
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
             document.getElementById('btnConfirmReject').onclick = async function() {
                 try {
                     const res = await fetch(`/api/admin/questions/${questionId}/reject`, {

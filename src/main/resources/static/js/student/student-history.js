@@ -68,7 +68,7 @@ async function resumePractice(practiceId, isRandom, practiceLimit, practiceOffse
         if (typeof showToast === 'function') {
             showToast(e.message, 'err');
         } else {
-            alert(e.message);
+            showToast(e.message, 'error');
         }
     }
 }

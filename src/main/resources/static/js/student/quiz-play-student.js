@@ -67,8 +67,8 @@ async function initQuiz() {
         document.getElementById('pageLoading').style.display = 'none';
 
     } catch (error) {
-        alert(error.message);
-        window.location.href = sessionStorage.getItem('studentReturnUrl') || '/student';
+        showToast(error.message, 'err');
+        window.location.href = '/student';
     }
 }
 
@@ -381,13 +381,13 @@ async function executeSubmit() {
             throw new Error("Lỗi khi nộp bài");
         }
     } catch (error) {
-        alert(error.message);
+        showToast(error.message, 'err');
         document.getElementById('pageLoading').style.display = 'none';
     }
 }
 
 function autoSubmit() {
-    alert("Đã hết thời gian làm bài! Hệ thống sẽ tự động nộp bài.");
+    showToast("Đã hết thời gian làm bài! Hệ thống sẽ tự động nộp bài.", 'err');
     executeSubmit();
 }
 

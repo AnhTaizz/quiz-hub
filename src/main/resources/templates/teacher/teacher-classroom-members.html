@@ -97,7 +97,7 @@
                             <tr th:each="request : ${pendingRequests}">
                                 <td>
                                     <div class="user-info">
-                                        <img th:src="${request.learner.avatarUrl != null && !request.learner.avatarUrl.isEmpty() ? request.learner.avatarUrl : 'https://ui-avatars.com/api/?name=' + request.learner.fullName + '&background=random&color=fff'}"
+                                        <img th:src="${request.learner.avatarUrl != null && !request.learner.avatarUrl.isEmpty() ? request.learner.avatarUrl : 'https://ui-avatars.com/api/?name=' + request.learner.fullName + '&background=10b981&color=fff'}"
                                             class="user-avatar" alt="Avatar">
                                         <div>
                                             <span class="user-name" th:text="${request.learner.fullName}">Tên sinh
@@ -149,7 +149,7 @@
                             <tr th:each="member : ${activeMembers}">
                                 <td>
                                     <div class="user-info">
-                                        <img th:src="${member.learner.avatarUrl != null && !member.learner.avatarUrl.isEmpty() ? member.learner.avatarUrl : 'https://ui-avatars.com/api/?name=' + member.learner.fullName + '&background=random&color=fff'}"
+                                        <img th:src="${member.learner.avatarUrl != null && !member.learner.avatarUrl.isEmpty() ? member.learner.avatarUrl : 'https://ui-avatars.com/api/?name=' + member.learner.fullName + '&background=10b981&color=fff'}"
                                             class="user-avatar" alt="Avatar">
                                         <div>
                                             <span class="user-name" th:text="${member.learner.fullName}">Tên sinh
@@ -185,7 +185,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script th:inline="javascript">
-        window.classroomId = [[${classroom.id}]];
+        window.classroomId = /*[[${classroom.id}]]*/ 0;
     </script>
     <script th:src="@{/js/teacher/teacher-classroom-members.js}"></script>
 

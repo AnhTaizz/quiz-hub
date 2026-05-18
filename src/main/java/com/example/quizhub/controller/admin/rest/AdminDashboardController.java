@@ -117,7 +117,7 @@ public class AdminDashboardController {
 
         AdminDashboardDetailsResponse details = AdminDashboardDetailsResponse.builder()
                 // Recent Users
-                .recentUsers(userRepository.findTop5ByOrderByIdDesc().stream()
+                .recentUsers(userRepository.findTop5ByOrderByCreatedAtDesc().stream()
                         .map(u -> AdminDashboardDetailsResponse.DashboardUserResponse.builder()
                                 .fullName(u.getFullName())
                                 .email(u.getEmail())

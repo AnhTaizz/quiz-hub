@@ -108,8 +108,8 @@ async function initQuiz() {
 
     } catch (error) {
         console.error(error);
-        alert("Lỗi hệ thống khi tải bài thi.");
-        window.location.href = sessionStorage.getItem('studentReturnUrl') || '/student';
+        showToast("Lỗi hệ thống khi tải bài thi.", 'error');
+        window.location.href = '/student';
     }
 }
 
@@ -461,7 +461,7 @@ async function executeSubmit() {
             throw new Error("Lỗi khi nộp bài");
         }
     } catch (error) {
-        alert(error.message);
+        showToast(error.message, 'error');
         document.getElementById('pageLoading').style.display = 'none';
     }
 }

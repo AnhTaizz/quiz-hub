@@ -32,6 +32,48 @@ function handleSidebarToggle(e) {
 // Execute immediately if DOM is already ready, otherwise wait for event
 if (document.readyState !== 'loading') {
     initSidebarToggle();
+    syncHeaderProfile();
 } else {
-    document.addEventListener('DOMContentLoaded', initSidebarToggle);
+    document.addEventListener('DOMContentLoaded', () => {
+        initSidebarToggle();
+        syncHeaderProfile();
+    });
+}
+
+/**
+ * Synchronizes the topbar user profile (name and avatar) across all dashboards
+ * dynamically from the locally stored 'user' object in localStorage/sessionStorage.
+ */
+function syncHeaderProfile() {
+    try {
+        const userJson = localStorage.getItem('user') || sessionStorage.getItem('user');
+        if (!userJson) return;
+        const user = JSON.parse(userJson);
+        if (!user) return;
+
+        // 1. Update all user names in header
+        document.querySelectorAll('.user-header-name').forEach(el => {
+            if (user.fullName) {
+                el.textContent = user.fullName;
+            }
+        });
+
+        // 2. Update all user avatars in header
+        document.querySelectorAll('.user-header-avatar').forEach(el => {
+            if (user.avatarUrl) {
+                el.src = user.avatarUrl;
+            } else if (user.fullName) {
+                // Determine appropriate fallback background color by class
+                let bgColor = '10b981'; // default student green
+                if (el.classList.contains('admin-avatar')) {
+                    bgColor = 'dc3545'; // admin red
+                } else if (el.classList.contains('teacher-avatar')) {
+                    bgColor = '28a745'; // teacher green
+                }
+                el.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.fullName)}&background=${bgColor}&color=fff`;
+            }
+        });
+    } catch (e) {
+        console.error("Error syncing header profile:", e);
+    }
 }

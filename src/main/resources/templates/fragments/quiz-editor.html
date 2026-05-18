@@ -684,7 +684,7 @@
                     
                     if (result.errorCount > 0) {
                         console.warn('Excel Errors:', result.errors);
-                        alert('Một số dòng bị lỗi:\n' + result.errors.slice(0, 3).join('\n') + (result.errors.length > 3 ? '\n...' : ''));
+                        showToast('Một số dòng bị lỗi:\n' + result.errors.slice(0, 3).join('\n') + (result.errors.length > 3 ? '\n...' : ''), 'error');
                     }
                 } catch(e) {
                     showToast('Lỗi: ' + e.message, 'error');
