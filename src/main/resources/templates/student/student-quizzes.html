@@ -17,7 +17,7 @@
 </head>
 <body>
 
-    <header th:replace="~{layout/header :: student-header(activePage='dashboard')}"></header>
+    <header th:replace="~{layout/header :: student-header(activePage='quizzes')}"></header>
 
     <main class="container py-4">
         <!-- Premium Hero -->
@@ -27,12 +27,7 @@
             <div class="hero-blob" style="bottom: -150px; left: -100px; background: radial-gradient(circle, rgba(56, 189, 248, 0.2), transparent 70%);"></div>
             
             <div class="position-relative z-1">
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-3">
-                        <li class="breadcrumb-item"><a th:href="@{/student}" class="text-white opacity-75 text-decoration-none fw-bold">Bảng điều khiển</a></li>
-                        <li class="breadcrumb-item active text-white fw-bold ps-0" aria-current="page"><span class="mx-1">/</span> Bài thi của tôi</li>
-                    </ol>
-                </nav>
+
                 <div class="d-flex align-items-center gap-3 mb-3">
                     <h1 class="hero-title text-white mb-0">Bài thi <span class="text-info">của tôi</span></h1>
                     <span class="badge bg-info text-dark rounded-pill px-3 py-2 fw-bold" th:text="${(allQuizzes != null ? allQuizzes.size() : 0) + ' bài thi'}">0 bài thi</span>
