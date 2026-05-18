@@ -51,7 +51,7 @@ body {
 .filter-bar {
     background: var(--glass-bg);
     backdrop-filter: blur(12px);
-    border: 1px solid var(--glass-border);
+    border: 1px solid #cbd5e1;
     border-radius: 20px;
     padding: 12px;
     display: flex;
@@ -61,6 +61,12 @@ body {
     position: sticky;
     top: 100px;
     z-index: 100;
+    transition: all 0.3s;
+}
+
+.filter-bar:hover {
+    border-color: #94a3b8;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.06);
 }
 
 .search-input-wrap {
@@ -81,10 +87,14 @@ body {
     width: 100%;
     padding: 12px 12px 12px 48px;
     border-radius: 14px;
-    border: 2px solid transparent;
+    border: 2px solid #cbd5e1;
     background: #fff;
     font-weight: 600;
     transition: all 0.3s;
+}
+
+.search-input:hover {
+    border-color: #94a3b8;
 }
 
 .search-input:focus {
@@ -101,7 +111,7 @@ body {
     width: 100%;
     padding: 12px 20px;
     border-radius: 14px;
-    border: 2px solid transparent;
+    border: 2px solid #cbd5e1;
     background: #fff;
     font-weight: 600;
     appearance: none;
@@ -109,6 +119,17 @@ body {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 16px center;
+    transition: all 0.3s;
+}
+
+.classroom-select:hover {
+    border-color: #94a3b8;
+}
+
+.classroom-select:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
 
 /* ─── Quiz Cards ─── */

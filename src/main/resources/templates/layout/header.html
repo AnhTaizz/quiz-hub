@@ -37,6 +37,8 @@
                     <ul>
                         <li><a class="nav-link" th:classappend="${activePage == 'dashboard' ? 'active' : ''}"
                                 th:href="@{/student}">Trang chủ</a></li>
+                        <li><a class="nav-link" th:classappend="${activePage == 'quizzes' ? 'active' : ''}"
+                                th:href="@{/student/quizzes}">Bài thi của tôi</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'classrooms' ? 'active' : ''}"
                                 th:href="@{/student/classrooms}">Lớp học</a></li>
                         <li><a class="nav-link" th:classappend="${activePage == 'history' ? 'active' : ''}"
