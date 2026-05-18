@@ -513,7 +513,7 @@
                 showToast(`Hoàn tất! ${success} thành công, ${error} dòng lỗi.`, 'error');
                 console.error('Excel Import Errors:', result.errors);
                 if (result.errors && result.errors.length > 0) {
-                    alert('Chi tiết lỗi nhập file:\n' + result.errors.slice(0, 5).join('\n') + (result.errors.length > 5 ? '\n...' : ''));
+                    showToast('Chi tiết lỗi nhập file:\n' + result.errors.slice(0, 5).join('\n') + (result.errors.length > 5 ? '\n...' : ''), 'error');
                 }
             }
             window.fetchQuestions(); // Reload list

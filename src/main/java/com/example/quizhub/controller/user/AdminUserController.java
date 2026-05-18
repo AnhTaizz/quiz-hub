@@ -14,9 +14,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import com.example.quizhub.dto.user.request.CreateUserRequest;
 import com.example.quizhub.dto.user.response.UserProfileResponse;
 import com.example.quizhub.dto.user.response.UserResponseDTO;
+import com.example.quizhub.entity.User;
 import com.example.quizhub.entity.enums.Role;
 import com.example.quizhub.service.UserService;
 
@@ -71,8 +73,9 @@ public class AdminUserController {
     }
 
     @PostMapping
-    public ResponseEntity<String> createUser(@RequestBody CreateUserRequest request) {
-        userService.createUser(request);
+    public ResponseEntity<String> createUser(@Valid @RequestBody CreateUserRequest request,
+            @AuthenticationPrincipal User currentUser) {
+        userService.createUser(request, currentUser.getId());
         return ResponseEntity.status(HttpStatus.CREATED).body("Tạo tài khoản thành công!");
     }
 

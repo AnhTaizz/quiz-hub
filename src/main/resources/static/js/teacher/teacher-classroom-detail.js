@@ -32,6 +32,38 @@
         }, 2500);
     }
 
+    function showConfirmModal(title, message, onConfirm) {
+        let modalEl = document.getElementById('customConfirmModal');
+        if (!modalEl) {
+            document.body.insertAdjacentHTML('beforeend', `
+                <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-sm">
+                        <div class="modal-content text-center p-4" style="border-radius:20px; border:none; box-shadow:0 10px 30px rgba(0,0,0,0.1);">
+                            <div style="font-size:2.5rem;margin-bottom:8px;">⚠️</div>
+                            <h6 class="fw-bold mb-1" id="customConfirmTitle" style="font-size:1.1rem; color:#1e293b;"></h6>
+                            <p class="text-muted small mb-3" id="customConfirmMsg"></p>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-light w-50" data-bs-dismiss="modal" style="border-radius:12px;font-weight:600;height:42px;">Hủy</button>
+                                <button class="btn btn-danger w-50 fw-bold" id="customConfirmBtn" style="border-radius:12px;height:42px;">Xác nhận</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `);
+            modalEl = document.getElementById('customConfirmModal');
+        }
+        document.getElementById('customConfirmTitle').textContent = title;
+        document.getElementById('customConfirmMsg').textContent = message;
+        const btn = document.getElementById('customConfirmBtn');
+        btn.onclick = () => {
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+            onConfirm();
+        };
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+
     function getAllChildIds(catId, categories) {
         let ids = [parseInt(catId)];
         const findAndAdd = (list) => {
@@ -167,13 +199,13 @@
         const duration = parseInt(data.durationInMins);
 
         if (due <= start) {
-            alert('Thời gian kết thúc phải sau thời gian bắt đầu!');
+            showToast('Thời gian kết thúc phải sau thời gian bắt đầu!', 'error');
             return;
         }
 
         const windowMins = (due - start) / (1000 * 60);
         if (duration > windowMins) {
-            alert(`Thời gian làm bài (${duration} phút) không được vượt quá khoảng thời gian mở đề (${Math.floor(windowMins)} phút)!`);
+            showToast(`Thời gian làm bài (${duration} phút) không được vượt quá khoảng thời gian mở đề (${Math.floor(windowMins)} phút)!`, 'error');
             return;
         }
 
@@ -191,15 +223,15 @@
         })
             .then(res => {
                 if (res.ok) {
-                    alert('Giao đề thi thành công!');
-                    location.reload();
+                    showToast('Giao đề thi thành công!', 'ok');
+                    setTimeout(() => location.reload(), 1000);
                 } else {
-                    alert('Đã có lỗi xảy ra. Hãy thử lại!');
+                    showToast('Đã có lỗi xảy ra. Hãy thử lại!', 'error');
                 }
             })
             .catch(err => {
                 console.error(err);
-                alert('Lỗi kết nối. Vui lòng kiểm tra lại!');
+                showToast('Lỗi kết nối. Vui lòng kiểm tra lại!', 'error');
             });
     };
 
@@ -231,23 +263,23 @@
         }
     };
 
-    window.deleteTopic = async function (topicId) {
-        if (!confirm('Bạn có chắc chắn muốn xóa chủ đề này?')) return;
-
-        try {
-            const res = await fetch('/api/teacher/class-topics/' + topicId, {
-                method: 'DELETE',
-                headers: { Authorization: 'Bearer ' + token }
-            });
-            if (res.ok) {
-                showToast('Đã xóa chủ đề thành công!');
-                setTimeout(() => { location.reload(); }, 1200);
-            } else {
-                showToast('Có lỗi xảy ra khi xóa chủ đề.', 'error');
+    window.deleteTopic = function (topicId) {
+        showConfirmModal('Xóa chủ đề?', 'Bạn có chắc chắn muốn xóa chủ đề này?', async () => {
+            try {
+                const res = await fetch('/api/teacher/class-topics/' + topicId, {
+                    method: 'DELETE',
+                    headers: { Authorization: 'Bearer ' + token }
+                });
+                if (res.ok) {
+                    showToast('Đã xóa chủ đề thành công!', 'ok');
+                    setTimeout(() => { location.reload(); }, 1200);
+                } else {
+                    showToast('Có lỗi xảy ra khi xóa chủ đề.', 'error');
+                }
+            } catch (e) {
+                showToast('Lỗi kết nối mạng.', 'error');
             }
-        } catch (e) {
-            showToast('Lỗi kết nối mạng.', 'error');
-        }
+        });
     };
 
     window.editTopic = async function (topicId, currentName) {
@@ -289,7 +321,7 @@
         const classroomId = getClassroomId();
 
         if (!name) {
-            alert('Tên lớp học không được để trống.');
+            showToast('Tên lớp học không được để trống.', 'error');
             return;
         }
 
@@ -304,36 +336,36 @@
             });
 
             if (res.ok) {
-                alert('Cập nhật lớp học thành công!');
-                location.reload();
+                showToast('Cập nhật lớp học thành công!', 'ok');
+                setTimeout(() => location.reload(), 1000);
             } else {
-                alert('Đã xảy ra lỗi khi cập nhật thông tin lớp học.');
+                showToast('Đã xảy ra lỗi khi cập nhật thông tin lớp học.', 'error');
             }
         } catch (e) {
-            alert('Lỗi kết nối mạng.');
+            showToast('Lỗi kết nối mạng.', 'error');
         }
     };
 
-    window.deleteClassroom = async function () {
-        if (!confirm('Bạn có chắc chắn muốn xóa lớp học này không? Hành động này không thể hoàn tác.')) return;
+    window.deleteClassroom = function () {
+        showConfirmModal('Xóa lớp học?', 'Bạn có chắc chắn muốn xóa lớp học này không? Hành động này không thể hoàn tác.', async () => {
+            const classroomId = getClassroomId();
 
-        const classroomId = getClassroomId();
+            try {
+                const res = await fetch('/api/teacher/classrooms/' + classroomId, {
+                    method: 'DELETE',
+                    headers: { Authorization: 'Bearer ' + token }
+                });
 
-        try {
-            const res = await fetch('/api/teacher/classrooms/' + classroomId, {
-                method: 'DELETE',
-                headers: { Authorization: 'Bearer ' + token }
-            });
-
-            if (res.ok) {
-                alert('Đã xóa lớp học thành công!');
-                window.location.href = '/teacher/classrooms';
-            } else {
-                alert('Đã xảy ra lỗi khi xóa lớp học.');
+                if (res.ok) {
+                    showToast('Đã xóa lớp học thành công!', 'ok');
+                    setTimeout(() => window.location.href = '/teacher/classrooms', 1000);
+                } else {
+                    showToast('Đã xảy ra lỗi khi xóa lớp học.', 'error');
+                }
+            } catch (e) {
+                showToast('Lỗi kết nối mạng.', 'error');
             }
-        } catch (e) {
-            alert('Lỗi kết nối mạng.');
-        }
+        });
     };
 
     // --- Visual Actions / Modals ---

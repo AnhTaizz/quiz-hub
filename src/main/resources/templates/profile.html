@@ -561,7 +561,14 @@
 
     function fallbackAvatar(name) {
         const el = document.getElementById('avatar-container');
-        const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=random&color=fff`;
+        const role = userRole || (JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || '{}').role);
+        let bgColor = '10b981'; // default student green
+        if (role === 'ADMIN') {
+            bgColor = 'dc3545';
+        } else if (role === 'TEACHER') {
+            bgColor = '28a745';
+        }
+        const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=${bgColor}&color=fff`;
         el.innerHTML = `<img src="${avatarUrl}" alt="Avatar">`;
     }
 

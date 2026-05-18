@@ -15,6 +15,38 @@ const COVERS = [
     '/images/covers/cover3.png'
 ];
 
+function showConfirmModal(title, message, onConfirm) {
+    let modalEl = document.getElementById('customConfirmModal');
+    if (!modalEl) {
+        document.body.insertAdjacentHTML('beforeend', `
+            <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-sm">
+                    <div class="modal-content text-center p-4" style="border-radius:20px; border:none; box-shadow:0 10px 30px rgba(0,0,0,0.1);">
+                        <div style="font-size:2.5rem;margin-bottom:8px;">⚠️</div>
+                        <h6 class="fw-bold mb-1" id="customConfirmTitle" style="font-size:1.1rem; color:#1e293b;"></h6>
+                        <p class="text-muted small mb-3" id="customConfirmMsg"></p>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-light w-50" data-bs-dismiss="modal" style="border-radius:12px;font-weight:600;height:42px;">Hủy</button>
+                            <button class="btn btn-danger w-50 fw-bold" id="customConfirmBtn" style="border-radius:12px;height:42px;">Xác nhận</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `);
+        modalEl = document.getElementById('customConfirmModal');
+    }
+    document.getElementById('customConfirmTitle').textContent = title;
+    document.getElementById('customConfirmMsg').textContent = message;
+    const btn = document.getElementById('customConfirmBtn');
+    btn.onclick = () => {
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+        onConfirm();
+    };
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     await loadData();
     renderSidebarTree();
@@ -513,9 +545,13 @@ window.confirmDelCat = async function() {
             loadFolder(null);
         } else {
             const e = await res.json();
-            alert(e.message || 'Lỗi khi xóa');
+            if (typeof showToast === 'function') showToast(e.message || 'Lỗi khi xóa', 'error');
+            else console.error(e.message || 'Lỗi khi xóa');
         }
-    } catch (e) { alert('Lỗi kết nối'); }
+    } catch (e) {
+        if (typeof showToast === 'function') showToast('Lỗi kết nối', 'error');
+        else console.error('Lỗi kết nối');
+    }
 }
 
 function findCategory(nodes, id) {
@@ -546,12 +582,13 @@ window.startQuiz = function(id) {
         .then(data => window.location.href = `/student/quiz/play?attemptId=${data.attemptId}`);
 }
 
-window.deleteQuiz = async function(id) {
-    if (!confirm('Xác nhận xóa đề thi này khỏi kho?')) return;
-    try {
-        const res = await fetch(`/api/student/quiz/${id}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
-        if (res.ok) { await loadData(); refreshContent(); }
-    } catch (e) { }
+window.deleteQuiz = function(id) {
+    showConfirmModal('Xóa đề thi?', 'Xác nhận xóa đề thi này khỏi kho?', async () => {
+        try {
+            const res = await fetch(`/api/student/quiz/${id}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
+            if (res.ok) { await loadData(); refreshContent(); }
+        } catch (e) { }
+    });
 }
 
 window.editQuestion = async function(id) {
@@ -559,15 +596,19 @@ window.editQuestion = async function(id) {
         const res = await fetch(`/api/student/questions/${id}`, { headers: { Authorization: 'Bearer ' + token } });
         const q = await res.json();
         openQuestionEditor(q);
-    } catch (e) { alert('Lỗi tải câu hỏi'); }
+    } catch (e) {
+        if (typeof showToast === 'function') showToast('Lỗi tải câu hỏi', 'error');
+        else console.error('Lỗi tải câu hỏi');
+    }
 }
 
-window.deleteQuestion = async function(id) {
-    if (!confirm('Xác nhận xóa câu hỏi này?')) return;
-    try {
-        const res = await fetch(`/api/student/questions/${id}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
-        if (res.ok) { await loadData(); refreshContent(); }
-    } catch (e) { }
+window.deleteQuestion = function(id) {
+    showConfirmModal('Xóa câu hỏi?', 'Xác nhận xóa câu hỏi này?', async () => {
+        try {
+            const res = await fetch(`/api/student/questions/${id}`, { method: 'DELETE', headers: { Authorization: 'Bearer ' + token } });
+            if (res.ok) { await loadData(); refreshContent(); }
+        } catch (e) { }
+    });
 }
 
 function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }

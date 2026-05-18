@@ -121,6 +121,39 @@
             const EDITOR_BASE_API = `/api/${EDITOR_USER_TYPE}/questions`;
             /*]]>*/
 
+            function _safeToast(msg, type = 'ok') {
+                if (typeof showToast === 'function') {
+                    showToast(msg, type);
+                } else {
+                    console.error('Toast Error:', msg);
+                    let w = document.getElementById('toastWrap') || document.getElementById('toast-wrap');
+                    if (!w) {
+                        w = document.createElement('div');
+                        w.id = 'toastWrap';
+                        w.className = 'toast-wrap';
+                        w.style.position = 'fixed';
+                        w.style.top = '24px';
+                        w.style.right = '24px';
+                        w.style.zIndex = '99999';
+                        document.body.appendChild(w);
+                    }
+                    const t = document.createElement('div');
+                    t.style.background = '#fff';
+                    t.style.padding = '14px 24px';
+                    t.style.borderRadius = '12px';
+                    t.style.boxShadow = '0 10px 40px rgba(0, 0, 0, 0.12)';
+                    t.style.borderLeft = type === 'ok' ? '4px solid #10b981' : '4px solid #ef4444';
+                    t.style.fontWeight = '600';
+                    t.style.display = 'flex';
+                    t.style.alignItems = 'center';
+                    t.style.gap = '10px';
+                    t.style.marginBottom = '8px';
+                    t.innerHTML = `<i class="bi ${type==='ok'?'bi-check-circle-fill text-success':'bi-exclamation-triangle-fill text-danger'}"></i> ${msg}`;
+                    w.appendChild(t);
+                    setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
+                }
+            }
+
             window.openEditorCategorySelector = function() {
                 if (typeof openCategoryModal === 'function') {
                     openCategoryModal('editor-q-category');
@@ -128,7 +161,7 @@
                     openCategoryExplorer('editor-q-category', 'private');
                 } else {
                     console.error('Category Explorer scripts not found!');
-                    alert('Lỗi: Không tìm thấy trình quản lý danh mục.');
+                    _safeToast('Lỗi: Không tìm thấy trình quản lý danh mục.', 'error');
                 }
             };
 
@@ -205,7 +238,7 @@
                 const catId = document.getElementById('editor-q-category').value;
                 const token = localStorage.getItem('token') || sessionStorage.getItem('token');
 
-                if (!text) { alert('Vui lòng nhập nội dung câu hỏi!'); return; }
+                if (!text) { _safeToast('Vui lòng nhập nội dung câu hỏi!', 'error'); return; }
 
                 const answers = [];
                 document.querySelectorAll('.editor-ans-row').forEach(row => {
@@ -215,8 +248,8 @@
                     if (aText) answers.push({ text: aText, isCorrect });
                 });
 
-                if (answers.length === 0) { alert('Vui lòng thêm ít nhất một đáp án!'); return; }
-                if (type !== 'FILL_IN_BLANK' && !answers.some(a => a.isCorrect)) { alert('Vui lòng chọn ít nhất một đáp án đúng!'); return; }
+                if (answers.length === 0) { _safeToast('Vui lòng thêm ít nhất một đáp án!', 'error'); return; }
+                if (type !== 'FILL_IN_BLANK' && !answers.some(a => a.isCorrect)) { _safeToast('Vui lòng chọn ít nhất một đáp án đúng!', 'error'); return; }
 
                 const payload = { text, type, level, categoryId: (catId && !isNaN(parseInt(catId))) ? parseInt(catId) : null, answers };
                 
@@ -236,15 +269,14 @@
                         // Callback to parent if exists
                         if (typeof fetchQuestions === 'function') fetchQuestions(); // Shared with question-bank-ui
                         if (typeof onQuestionSaved === 'function') onQuestionSaved(saved, !!id);
-                        if (typeof showToast === 'function') showToast(id ? 'Cập nhật thành công!' : 'Đã tạo câu hỏi mới!');
-                        else alert(id ? 'Cập nhật thành công!' : 'Đã tạo câu hỏi mới!');
+                        _safeToast(id ? 'Cập nhật thành công!' : 'Đã tạo câu hỏi mới!', 'ok');
                     } else {
                         const err = await res.json();
-                        alert(err.message || 'Lỗi khi lưu câu hỏi');
+                        _safeToast(err.message || 'Lỗi khi lưu câu hỏi', 'error');
                     }
                 } catch (e) {
                     console.error(e);
-                    alert('Lỗi kết nối máy chủ!');
+                    _safeToast('Lỗi kết nối máy chủ!', 'error');
                 }
             }
 

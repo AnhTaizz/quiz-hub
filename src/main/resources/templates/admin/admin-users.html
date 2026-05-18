@@ -931,7 +931,7 @@
     <main id="main-content">
 
         <div class="page-title-box">
-            <h4>Quản lý Tài khoản 👥</h4>
+            <h4>Quản lý Tài khoản</h4>
             <p>Admin / Danh sách người dùng hệ thống</p>
         </div>
 
@@ -1083,6 +1083,7 @@
                                     placeholder="example@gmail.com" oninput="handleEmailInput()">
                             </div>
                             <div id="email-status" class="email-status"></div>
+                            <div id="err-email" class="invalid-feedback-custom">Email không đúng định dạng</div>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-4">
@@ -1204,7 +1205,13 @@
             const currentUserEmail = currentUser.email;
 
             const rows = users.map(u => {
-                const avatarUrl = u.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.fullName || 'User')}&background=random&color=fff`;
+                let bgColor = '10b981'; // default student green
+                if (u.role === 'ADMIN') {
+                    bgColor = 'dc3545'; // admin red
+                } else if (u.role === 'TEACHER') {
+                    bgColor = '28a745'; // teacher green
+                }
+                const avatarUrl = u.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.fullName || 'User')}&background=${bgColor}&color=fff`;
                 const avatar = `<img src="${avatarUrl}" alt="Avatar">`;
                 const roleCls = { ADMIN: 'role-admin', TEACHER: 'role-teacher', STUDENT: 'role-student' }[u.role];
                 const roleName = { ADMIN: 'Admin', TEACHER: 'Giáo viên', STUDENT: 'Học sinh' }[u.role];
@@ -1376,16 +1383,27 @@
                 const pass = document.getElementById('add-password').value;
                 isValid = val === pass;
                 errId = "err-confirm-password";
+            } else if (id === 'add-email') {
+                errId = "err-email";
+                const errDiv = document.getElementById(errId);
+                if (!val) {
+                    isValid = false;
+                    if (errDiv) errDiv.textContent = 'Email không được để trống';
+                } else {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    isValid = emailRegex.test(val);
+                    if (!isValid && errDiv) errDiv.textContent = 'Email không đúng định dạng';
+                }
             }
 
             if (errId) {
                 const errDiv = document.getElementById(errId);
                 if (isValid) {
                     input.classList.remove('is-invalid-custom');
-                    errDiv.style.display = 'none';
+                    if (errDiv) errDiv.style.display = 'none';
                 } else {
                     input.classList.add('is-invalid-custom');
-                    errDiv.style.display = 'block';
+                    if (errDiv) errDiv.style.display = 'block';
                 }
             }
             return isValid;
@@ -1393,6 +1411,10 @@
 
         // Modified submitAddUser to use internal validation
         async function submitAddUser() {
+            // Reset previous custom invalid classes and error displays
+            document.querySelectorAll('.is-invalid-custom').forEach(el => el.classList.remove('is-invalid-custom'));
+            document.querySelectorAll('.invalid-feedback-custom').forEach(el => el.style.display = 'none');
+
             const fullName = document.getElementById('add-fullName').value;
             const email = document.getElementById('add-email').value;
             const password = document.getElementById('add-password').value;
@@ -1400,20 +1422,16 @@
             const role = document.getElementById('add-role').value;
 
             const v1 = validateField('add-fullName');
-            const v2 = validateField('add-password');
-            const v3 = validateField('add-confirm-password');
+            const v2 = validateField('add-email');
+            const v3 = validateField('add-password');
+            const v4 = validateField('add-confirm-password');
 
-            if (!v1 || !v2 || !v3) {
+            if (!v1 || !v2 || !v3 || !v4) {
                 showToast("Vui lòng kiểm tra lại thông tin nhập liệu!", "error");
                 return;
             }
 
-            if (!email) {
-                showToast("Vui lòng nhập Email!", "error");
-                return;
-            }
-
-            // Check if email is marked as invalid
+            // Check if email is marked as invalid (exists)
             const emailStatus = document.getElementById('email-status');
             if (emailStatus.classList.contains('invalid')) {
                 showToast("Email này đã tồn tại trên hệ thống!", "error");
@@ -1438,13 +1456,64 @@
                     bootstrap.Modal.getInstance(document.getElementById('addUserModal')).hide();
                     document.getElementById('addUserForm').reset();
                     document.getElementById('email-status').className = 'email-status';
+                    document.getElementById('email-status').style.display = 'none';
                     // Reset all validations
                     document.querySelectorAll('.is-invalid-custom').forEach(el => el.classList.remove('is-invalid-custom'));
                     document.querySelectorAll('.invalid-feedback-custom').forEach(el => el.style.display = 'none');
                     loadUsers();
+                    loadChips();
                 } else {
-                    const error = await response.text();
-                    showToast(error || "Có lỗi xảy ra khi tạo tài khoản!", "error");
+                    const errorText = await response.text();
+                    let errMsg = "Có lỗi xảy ra khi tạo tài khoản!";
+                    try {
+                        const errJson = JSON.parse(errorText);
+                        if (errJson.errors && Object.keys(errJson.errors).length > 0) {
+                            errMsg = Object.values(errJson.errors).join(", ");
+                            Object.keys(errJson.errors).forEach(key => {
+                                const fieldId = 'add-' + key;
+                                const input = document.getElementById(fieldId);
+                                const errDiv = document.getElementById('err-' + key);
+                                if (input && errDiv) {
+                                    input.classList.add('is-invalid-custom');
+                                    errDiv.textContent = errJson.errors[key];
+                                    errDiv.style.display = 'block';
+                                }
+                            });
+                        } else if (errJson.message) {
+                            errMsg = errJson.message;
+                            const lowerMsg = errMsg.toLowerCase();
+                            if (errJson.code === 1013 || errJson.code === 1008 || lowerMsg.includes('email') || lowerMsg.includes('tài khoản')) {
+                                const emailInput = document.getElementById('add-email');
+                                const errDiv = document.getElementById('err-email');
+                                if (emailInput && errDiv) {
+                                    emailInput.classList.add('is-invalid-custom');
+                                    errDiv.textContent = errMsg;
+                                    errDiv.style.display = 'block';
+                                }
+                            } else if (errJson.code === 1009 || lowerMsg.includes('mật khẩu') || lowerMsg.includes('password')) {
+                                const passwordInput = document.getElementById('add-password');
+                                const errDiv = document.getElementById('err-password');
+                                if (passwordInput && errDiv) {
+                                    passwordInput.classList.add('is-invalid-custom');
+                                    errDiv.textContent = errMsg;
+                                    errDiv.style.display = 'block';
+                                }
+                            } else if (errJson.code === 1007 || lowerMsg.includes('họ tên') || lowerMsg.includes('blank')) {
+                                const nameInput = document.getElementById('add-fullName');
+                                const errDiv = document.getElementById('err-fullName');
+                                if (nameInput && errDiv) {
+                                    nameInput.classList.add('is-invalid-custom');
+                                    errDiv.textContent = errMsg;
+                                    errDiv.style.display = 'block';
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        if (errorText) {
+                            errMsg = errorText;
+                        }
+                    }
+                    showToast(errMsg, "error");
                 }
             } catch (error) {
                 showToast("Lỗi kết nối server!", "error");
@@ -1457,11 +1526,29 @@
         let emailTimeout = null;
         function handleEmailInput() {
             clearTimeout(emailTimeout);
-            const email = document.getElementById('add-email').value;
+            const emailInput = document.getElementById('add-email');
+            const email = emailInput.value.trim();
             const statusDiv = document.getElementById('email-status');
+            const errDiv = document.getElementById('err-email');
 
-            if (!email || !email.includes('@')) {
-                statusDiv.className = 'email-status';
+            // Hide and clear status first
+            statusDiv.className = 'email-status';
+            statusDiv.style.display = 'none';
+            errDiv.style.display = 'none';
+            emailInput.classList.remove('is-invalid-custom');
+
+            if (!email) {
+                errDiv.textContent = 'Email không được để trống';
+                errDiv.style.display = 'block';
+                emailInput.classList.add('is-invalid-custom');
+                return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                errDiv.textContent = 'Email không đúng định dạng';
+                errDiv.style.display = 'block';
+                emailInput.classList.add('is-invalid-custom');
                 return;
             }
 
@@ -1472,9 +1559,13 @@
                     if (exists) {
                         statusDiv.textContent = '❌ Email này đã được sử dụng';
                         statusDiv.className = 'email-status invalid';
+                        statusDiv.style.display = 'block';
+                        emailInput.classList.add('is-invalid-custom');
                     } else {
                         statusDiv.textContent = '✅ Email hợp lệ và có thể sử dụng';
                         statusDiv.className = 'email-status valid';
+                        statusDiv.style.display = 'block';
+                        emailInput.classList.remove('is-invalid-custom');
                     }
                 } catch (e) { console.error(e); }
             }, 500);

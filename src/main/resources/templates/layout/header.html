@@ -63,12 +63,12 @@
                             class="d-flex align-items-center gap-2 text-decoration-none text-dark user-dropdown-toggle ps-2 ms-1 border-start"
                             data-bs-toggle="dropdown" aria-expanded="false" style="border-color: #e2e8f0 !important;">
                             <div class="text-end d-none d-md-block">
-                                <h6 class="mb-0 fw-bold fs-6"
+                                <h6 class="mb-0 fw-bold fs-6 user-header-name"
                                     th:text="${currentUser != null ? currentUser.fullName : 'Học Sinh'}">Học Sinh</h6>
                                 <small class="text-muted" style="font-size: 12px;">Sinh viên</small>
                             </div>
                             <img th:src="${currentUser != null && currentUser.avatarUrl != null && !currentUser.avatarUrl.isEmpty() ? currentUser.avatarUrl : 'https://ui-avatars.com/api/?name=' + (currentUser != null ? currentUser.fullName : 'Student') + '&background=10b981&color=fff'}"
-                                class="rounded-circle" style="width: 40px; height: 40px; border: 2px solid #e2e8f0;"
+                                class="rounded-circle user-header-avatar student-avatar" style="width: 40px; height: 40px; border: 2px solid #e2e8f0;"
                                 alt="Avatar">
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2 rounded-3">
@@ -107,10 +107,10 @@
             <div class="user-profile dropdown ms-2">
                 <a href="#" class="d-flex align-items-center gap-2 text-decoration-none" data-bs-toggle="dropdown"
                     aria-expanded="false">
-                    <span class="fw-bold d-none d-md-inline"
+                    <span class="fw-bold d-none d-md-inline user-header-name"
                         th:text="${currentUser != null ? currentUser.fullName : 'Giáo Viên'}">Giáo Viên</span>
                     <img th:src="${currentUser != null && currentUser.avatarUrl != null && !currentUser.avatarUrl.isEmpty() ? currentUser.avatarUrl : 'https://ui-avatars.com/api/?name=' + (currentUser != null ? currentUser.fullName : 'Teacher') + '&background=28a745&color=fff'}"
-                        alt="Avatar">
+                        class="user-header-avatar teacher-avatar" alt="Avatar">
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2">
                     <li><a class="dropdown-item py-2" href="/profile"><i class="bi bi-person me-2"></i> Hồ sơ cá
@@ -153,10 +153,10 @@
             <div class="user-profile dropdown ms-2">
                 <a href="#" class="d-flex align-items-center gap-2 text-decoration-none" data-bs-toggle="dropdown"
                     aria-expanded="false">
-                    <span class="fw-bold d-none d-md-inline"
+                    <span class="fw-bold d-none d-md-inline user-header-name"
                         th:text="${currentUser != null ? currentUser.fullName : 'Quản trị viên'}">Quản trị viên</span>
                     <img th:src="${currentUser != null && currentUser.avatarUrl != null && !currentUser.avatarUrl.isEmpty() ? currentUser.avatarUrl : 'https://ui-avatars.com/api/?name=' + (currentUser != null ? currentUser.fullName : 'Admin') + '&background=dc3545&color=fff'}"
-                        alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%;">
+                        class="user-header-avatar admin-avatar" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%;">
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2">
                     <li><a class="dropdown-item py-2" href="/profile"><i class="bi bi-person me-2"></i> Hồ sơ cá
@@ -258,10 +258,10 @@
                 <div class="user-profile dropdown ms-2">
                     <a href="#" class="d-flex align-items-center gap-2 text-decoration-none text-dark"
                         data-bs-toggle="dropdown" aria-expanded="false">
-                        <span class="fw-bold" th:text="${currentUser != null ? currentUser.fullName : 'Học Sinh'}">Học
+                        <span class="fw-bold user-header-name" th:text="${currentUser != null ? currentUser.fullName : 'Học Sinh'}">Học
                             Sinh</span>
                         <img th:src="${currentUser != null && currentUser.avatarUrl != null && !currentUser.avatarUrl.isEmpty() ? currentUser.avatarUrl : 'https://ui-avatars.com/api/?name=' + (currentUser != null ? currentUser.fullName : 'Student') + '&background=10b981&color=fff'}"
-                            alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%;">
+                            class="user-header-avatar student-avatar" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%;">
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 mt-2 rounded-3">
                         <li><a class="dropdown-item py-2" href="/profile"><i class="bi bi-person me-2"></i> Hồ sơ cá

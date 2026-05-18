@@ -173,6 +173,56 @@
             document.getElementById('btnConfirm').classList.add('active');
         }
 
+        function showLocalToast(msg, type = 'error') {
+            let w = document.getElementById('localToastWrap');
+            if (!w) {
+                w = document.createElement('div');
+                w.id = 'localToastWrap';
+                w.style.position = 'fixed';
+                w.style.top = '24px';
+                w.style.right = '24px';
+                w.style.zIndex = '99999';
+                w.style.pointerEvents = 'none';
+                document.body.appendChild(w);
+            }
+            const t = document.createElement('div');
+            t.style.background = '#fff';
+            t.style.color = '#1e293b';
+            t.style.padding = '14px 24px';
+            t.style.borderRadius = '12px';
+            t.style.boxShadow = '0 10px 40px rgba(0, 0, 0, 0.12)';
+            t.style.borderLeft = type === 'success' ? '4px solid #10b981' : '4px solid #ef4444';
+            t.style.fontWeight = '600';
+            t.style.display = 'flex';
+            t.style.alignItems = 'center';
+            t.style.gap = '10px';
+            t.style.marginBottom = '8px';
+            t.style.fontFamily = "'Inter', sans-serif";
+            t.style.fontSize = '0.9rem';
+            t.style.animation = 'slideIn 0.3s ease-out';
+            t.innerHTML = `<i class="bi ${type==='success'?'bi-check-circle-fill text-success':'bi-exclamation-triangle-fill text-danger'}"></i> ${msg}`;
+            w.appendChild(t);
+            
+            if (!document.getElementById('localToastStyle')) {
+                const s = document.createElement('style');
+                s.id = 'localToastStyle';
+                s.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(s);
+            }
+            
+            setTimeout(() => { 
+                t.style.opacity = '0'; 
+                t.style.transform = 'translateX(100%)'; 
+                t.style.transition = 'all 0.3s ease-in';
+                setTimeout(() => t.remove(), 300); 
+            }, 3000);
+        }
+
         async function completeRegistration() {
             if (!selectedRole) return;
 
@@ -207,12 +257,12 @@
                     const redirectUrl = `/oauth2-redirect.html?token=${data.token}&id=${data.id}&email=${encodeURIComponent(data.email)}&fullName=${encodeURIComponent(data.fullName)}&role=${data.role}&avatarUrl=${encodeURIComponent(data.avatarUrl || '')}`;
                     window.location.href = redirectUrl;
                 } else {
-                    alert('Đã có lỗi xảy ra: ' + (data.message || 'Vui lòng thử lại sau.'));
+                    showLocalToast('Đã có lỗi xảy ra: ' + (data.message || 'Vui lòng thử lại sau.'));
                     document.getElementById('loadingOverlay').style.display = 'none';
                 }
             } catch (error) {
                 console.error('Registration error:', error);
-                alert('Không thể kết nối tới máy chủ.');
+                showLocalToast('Không thể kết nối tới máy chủ.');
                 document.getElementById('loadingOverlay').style.display = 'none';
             }
         }

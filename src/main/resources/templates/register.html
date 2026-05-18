@@ -257,7 +257,8 @@
             const fieldWrapper = this.closest('.auth-input-wrapper');
             const errorDiv = document.getElementById('error-email');
 
-            if (!email || !email.includes('@')) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!email || !emailRegex.test(email)) {
                 isEmailTaken = false;
                 lastCheckedEmail = '';
                 return;
@@ -334,10 +335,11 @@
             }
 
             // 2. Kiểm tra định dạng Email
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!email) { 
                 showFieldError('email', 'Vui lòng nhập email.'); 
                 hasError = true; 
-            } else if (!email.includes('@')) {
+            } else if (!emailRegex.test(email)) {
                 showFieldError('email', 'Email không đúng định dạng.');
                 hasError = true;
             } else if (isEmailTaken) {

@@ -159,7 +159,7 @@
 
 
     <script th:inline="javascript">
-        window.reviewPracticeId = [[${reviewPracticeId != null ? reviewPracticeId : null}]];
+        window.reviewPracticeId = /*[[${reviewPracticeId}]]*/ null;
     </script>
     <script th:src="@{/js/student/practice-play.js}"></script>
 </body>

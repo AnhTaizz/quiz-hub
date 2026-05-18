@@ -16,18 +16,18 @@ DELETE FROM _classroom;
 DELETE FROM categories;
 DELETE FROM notifications;
 DELETE FROM _user WHERE id IN (9980, 9981, 9982, 9990, 9991, 9992, 9993, 9997, 9998, 9999);
-INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified) VALUES (9999, 'TEACHER', 'teacher@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Teacher JSON', true, true);
-INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified) VALUES (9998, 'ADMIN', 'admin@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Admin Quản Trị', true, true);
-INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified) VALUES (9997, 'STUDENT', 'student@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Student Học Sinh', true, true);
-INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified) VALUES (9990, 'STUDENT', 'student1@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Nguyễn Văn Một', true, true);
-INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified) VALUES (9991, 'STUDENT', 'student2@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Trần Thị Hai', true, true);
-INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified) VALUES (9992, 'STUDENT', 'student3@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Lê Văn Ba', true, true);
-INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified) VALUES (9993, 'STUDENT', 'student4@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Phạm Thị Bốn', true, true);
+INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified, created_at) VALUES (9999, 'TEACHER', 'teacher@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Nguyễn Minh Đức', true, true, '2024-05-01 08:00:00');
+INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified, created_at) VALUES (9998, 'ADMIN', 'admin@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Trần Quốc Bảo', true, true, '2024-05-01 08:30:00');
+INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified, created_at) VALUES (9997, 'STUDENT', 'student@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Lê Minh Triết', true, true, '2024-05-02 09:00:00');
+INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified, created_at) VALUES (9990, 'STUDENT', 'student1@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Nguyễn Gia Khánh', true, true, '2024-05-02 09:15:00');
+INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified, created_at) VALUES (9991, 'STUDENT', 'student2@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Trần Khánh Quỳnh', true, true, '2024-05-02 09:30:00');
+INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified, created_at) VALUES (9992, 'STUDENT', 'student3@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Lê Hải Đăng', true, true, '2024-05-02 09:45:00');
+INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified, created_at) VALUES (9993, 'STUDENT', 'student4@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Phạm Trúc Anh', true, true, '2024-05-02 10:00:00');
 
 -- Học sinh mới để Test Excel (Không có lớp)
-INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified) VALUES (9980, 'STUDENT', 'test_excel1@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Học sinh Excel 1', true, true);
-INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified) VALUES (9981, 'STUDENT', 'test_excel2@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Học sinh Excel 2', true, true);
-INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified) VALUES (9982, 'STUDENT', 'test_excel3@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Học sinh Excel 3', true, true);
+INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified, created_at) VALUES (9980, 'STUDENT', 'test_excel1@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Đỗ Minh Khang', true, true, '2024-05-03 14:00:00');
+INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified, created_at) VALUES (9981, 'STUDENT', 'test_excel2@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Bùi Thanh Phong', true, true, '2024-05-03 14:15:00');
+INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified, created_at) VALUES (9982, 'STUDENT', 'test_excel3@gmail.com', '$2a$10$mKPA.JpfPPsx8KUxC4LmSuSSmKgAuiTOhadQFo9YIb.0F82ZzbrWq', 'Nguyễn Thảo Nguyên', true, true, '2024-05-03 14:30:00');
 INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90000, 'Môn Tư tưởng Hồ Chí Minh', 9999, false, NULL);
 INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90001, 'Chương 1', 9999, false, 90000);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status, question_level) VALUES (90000, 'Khái niệm “Tư tưởng Hồ Chí Minh” không bao gồm nội dung nào sau', 'SINGLE_CHOICE', 90001, 9999, 'PRIVATE', 'MEDIUM');
@@ -15968,7 +15968,7 @@ INSERT INTO _question_creating (quiz_id, quest_id) VALUES ('00000000-0000-0000-0
 INSERT INTO _question_creating (quiz_id, quest_id) VALUES ('00000000-0000-0000-0000-000000000001', 90289);
 INSERT INTO _question_creating (quiz_id, quest_id) VALUES ('00000000-0000-0000-0000-000000000001', 299004);
 INSERT INTO _question_creating (quiz_id, quest_id) VALUES ('00000000-0000-0000-0000-000000000001', 299005);
-INSERT INTO _quiz_assigning (classroom_id, quiz_id, note, max_attempt, question_shuffled, answer_shuffled, duration_in_mins, start_date, due_date, created_at, topic_id) VALUES (90001, '00000000-0000-0000-0000-000000000001', 'Làm bài trong 60 phút', 3, true, true, 60, '2026-05-01 00:00:00', '2026-05-30 10:30:00', NOW(), 90101);
+INSERT INTO _quiz_assigning (classroom_id, quiz_id, note, max_attempt, question_shuffled, answer_shuffled, duration_in_mins, start_date, due_date, created_at, topic_id) VALUES (90001, '00000000-0000-0000-0000-000000000001', 'Làm bài trong 60 phút', 3, true, true, 60, '2026-05-01 00:00:00', '2026-06-30 10:30:00', NOW(), 90101);
 INSERT INTO _class_joining (class_id, learner_id, status, _displayed_name, joined_at) VALUES (90000, 9997, 'APPROVED', (SELECT full_name FROM _user WHERE id=9997), NOW());
 INSERT INTO _class_joining (class_id, learner_id, status, _displayed_name, joined_at) VALUES (90000, 9990, 'APPROVED', (SELECT full_name FROM _user WHERE id=9990), NOW());
 INSERT INTO _class_joining (class_id, learner_id, status, _displayed_name, joined_at) VALUES (90000, 9991, 'APPROVED', (SELECT full_name FROM _user WHERE id=9991), NOW());

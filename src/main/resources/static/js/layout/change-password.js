@@ -11,12 +11,37 @@ function togglePwdVisibility(inputId, btn) {
 }
 
 function showCpwAlert(msg, isSuccess) {
-    if (isSuccess) {
-        if (window.toast && typeof window.toast.success === 'function') window.toast.success(msg);
-        else alert(msg);
+    if (window.toast && typeof window.toast.success === 'function') {
+        if (isSuccess) window.toast.success(msg);
+        else window.toast.error(msg);
+    } else if (typeof showToast === 'function') {
+        showToast(msg, isSuccess ? 'success' : 'error');
     } else {
-        if (window.toast && typeof window.toast.error === 'function') window.toast.error(msg);
-        else alert(msg);
+        let w = document.getElementById('toastWrap') || document.getElementById('toast-wrap');
+        if (!w) {
+            w = document.createElement('div');
+            w.id = 'toastWrap';
+            w.className = 'toast-wrap';
+            w.style.position = 'fixed';
+            w.style.top = '24px';
+            w.style.right = '24px';
+            w.style.zIndex = '99999';
+            document.body.appendChild(w);
+        }
+        const t = document.createElement('div');
+        t.style.background = '#fff';
+        t.style.padding = '14px 24px';
+        t.style.borderRadius = '12px';
+        t.style.boxShadow = '0 10px 40px rgba(0, 0, 0, 0.12)';
+        t.style.borderLeft = isSuccess ? '4px solid #10b981' : '4px solid #ef4444';
+        t.style.fontWeight = '600';
+        t.style.display = 'flex';
+        t.style.alignItems = 'center';
+        t.style.gap = '10px';
+        t.style.marginBottom = '8px';
+        t.innerHTML = `<i class="bi ${isSuccess?'bi-check-circle-fill text-success':'bi-exclamation-triangle-fill text-danger'}"></i> ${msg}`;
+        w.appendChild(t);
+        setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
     }
 }
 

@@ -2,7 +2,7 @@ DELETE FROM _answer WHERE question_id >= 90000 AND question_id < 100000;
 DELETE FROM _question WHERE created_id = 9999;
 DELETE FROM categories WHERE creator_id = 9999;
 DELETE FROM _user WHERE id = 9999;
-INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified) VALUES (9999, 'TEACHER', 'teacher_json@gmail.com', '$2a$10$7Z20vT71oD41jE4v67.E4.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0', 'Teacher JSON', true, true);
+INSERT INTO _user (id, role, email, password, full_name, is_enable, is_verified, created_at) VALUES (9999, 'TEACHER', 'teacher_json@gmail.com', '$2a$10$7Z20vT71oD41jE4v67.E4.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0', 'Nguyễn Minh Đức', true, true, '2024-05-01 08:00:00');
 INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (89999, 'Môn Tư tưởng Hồ Chí Minh', 9999, false, NULL);
 INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (90001, 'Chương 1', 9999, false, 89999);
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status) VALUES (90000, 'Khái niệm “Tư tưởng Hồ Chí Minh” không bao gồm nội dung nào sau', 'MULTIPLE_CHOICE', 90001, 9999, 'APPROVED');

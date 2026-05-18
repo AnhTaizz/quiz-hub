@@ -4,6 +4,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -64,6 +67,17 @@ public class UserServiceImpl implements UserService {
         user.setPhone(request.getPhone());
         user.setAvatarUrl(request.getAvatarUrl());
         userRepository.save(user);
+
+        // Programmatically refresh Spring Security session principal to keep it in sync
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth != null) {
+            UsernamePasswordAuthenticationToken newAuth = new UsernamePasswordAuthenticationToken(
+                    user,
+                    auth.getCredentials(),
+                    auth.getAuthorities());
+            SecurityContextHolder.getContext().setAuthentication(newAuth);
+        }
+
         return UserProfileResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -131,7 +145,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void createUser(CreateUserRequest request) {
+    public void createUser(CreateUserRequest request, Long creatorId) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new AppException(ErrorCode.USER_EXISTED);
         }
@@ -143,6 +157,7 @@ public class UserServiceImpl implements UserService {
                 .role(request.getRole() != null ? request.getRole() : Role.STUDENT)
                 .isEnable(true)
                 .isVerified(true)
+                .createdId(creatorId)
                 .build();
 
         userRepository.save(user);

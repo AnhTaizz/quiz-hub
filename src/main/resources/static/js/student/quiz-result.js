@@ -19,7 +19,8 @@ async function fetchResult() {
 
     } catch (error) {
         console.error(error);
-        alert("Lỗi khi tải kết quả.");
+        if (typeof showToast === 'function') showToast("Lỗi khi tải kết quả.", 'error');
+        else console.error("Lỗi khi tải kết quả.");
         window.location.href = '/student';
     }
 }

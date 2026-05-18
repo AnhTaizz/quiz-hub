@@ -265,13 +265,13 @@ async function confirmAssign() {
     const duration = parseInt(data.durationInMins);
 
     if (due <= start) {
-        alert('Thời gian kết thúc phải sau thời gian bắt đầu!');
+        showToast('Thời gian kết thúc phải sau thời gian bắt đầu!', 'error');
         return;
     }
 
     const windowMins = (due - start) / (1000 * 60);
     if (duration > windowMins) {
-        alert(`Thời gian làm bài (${duration} phút) không được vượt quá khoảng thời gian mở đề (${Math.floor(windowMins)} phút)!`);
+        showToast(`Thời gian làm bài (${duration} phút) không được vượt quá khoảng thời gian mở đề (${Math.floor(windowMins)} phút)!`, 'error');
         return;
     }
 

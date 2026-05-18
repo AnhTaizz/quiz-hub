@@ -8,6 +8,38 @@ let OWN_MODE = true;     // can edit in mine mode
 let expandedNodes = new Set(); // Lưu trữ ID các thư mục đang được xổ ra
 let searchTerm = '';      // Từ khóa tìm kiếm cây danh mục
 
+function showConfirmModal(title, message, onConfirm) {
+    let modalEl = document.getElementById('customConfirmModal');
+    if (!modalEl) {
+        document.body.insertAdjacentHTML('beforeend', `
+            <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-sm">
+                    <div class="modal-content text-center p-4" style="border-radius:20px; border:none; box-shadow:0 10px 30px rgba(0,0,0,0.1);">
+                        <div style="font-size:2.5rem;margin-bottom:8px;">⚠️</div>
+                        <h6 class="fw-bold mb-1" id="customConfirmTitle" style="font-size:1.1rem; color:#1e293b;"></h6>
+                        <p class="text-muted small mb-3" id="customConfirmMsg"></p>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-light w-50" data-bs-dismiss="modal" style="border-radius:12px;font-weight:600;height:42px;">Hủy</button>
+                            <button class="btn btn-danger w-50 fw-bold" id="customConfirmBtn" style="border-radius:12px;height:42px;">Xác nhận</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `);
+        modalEl = document.getElementById('customConfirmModal');
+    }
+    document.getElementById('customConfirmTitle').textContent = title;
+    document.getElementById('customConfirmMsg').textContent = message;
+    const btn = document.getElementById('customConfirmBtn');
+    btn.onclick = () => {
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+        onConfirm();
+    };
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+}
+
 // Hàm tìm đường dẫn chuẩn từ Gốc -> Thư mục hiện tại (giúp Breadcrumb chuẩn như File Explorer)
 function getPathToNode(nodes, targetId, currentPath = []) {
     for (const n of nodes) {
@@ -617,17 +649,18 @@ function goCreate(mode) {
     }
 }
 
-async function deleteQuiz(id) {
-    if (!confirm('Xóa đề thi này? (Soft delete, không thể khôi phục)')) return;
-    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-    try {
-        const res = await fetch(`/api/teacher/quizzes/${id}`, {
-            method: 'DELETE', headers: { Authorization: 'Bearer ' + token }
-        });
-        if (!res.ok) throw new Error('Lỗi xóa');
-        showToast('Đã xóa đề thi!', 'ok');
-        if (navStack.length > 0) loadFolderContent(navStack[navStack.length - 1].id);
-    } catch (e) { showToast(e.message, 'err'); }
+function deleteQuiz(id) {
+    showConfirmModal('Xóa đề thi?', 'Xóa đề thi này? (Soft delete, không thể khôi phục)', async () => {
+        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+        try {
+            const res = await fetch(`/api/teacher/quizzes/${id}`, {
+                method: 'DELETE', headers: { Authorization: 'Bearer ' + token }
+            });
+            if (!res.ok) throw new Error('Lỗi xóa');
+            showToast('Đã xóa đề thi!', 'ok');
+            if (navStack.length > 0) loadFolderContent(navStack[navStack.length - 1].id);
+        } catch (e) { showToast(e.message, 'err'); }
+    });
 }
 
 /* ══════════════════════════════════════════════

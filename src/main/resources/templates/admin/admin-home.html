@@ -677,7 +677,7 @@
     <main id="main-content">
 
         <div class="page-title-box">
-            <h4>Bảng điều khiển Trung tâm 🛡️</h4>
+            <h4>Bảng điều khiển Trung tâm</h4>
             <p>Tổng quan hoạt động của toàn bộ hệ thống QuizHub.</p>
         </div>
 
@@ -720,7 +720,8 @@
             <div>
                 <div class="dashboard-card">
                     <div class="card-header-row">
-                        <h5><i class="bi bi-clipboard2-check-fill me-2" style="color: var(--blue);"></i>Duyệt Câu hỏi Public</h5>
+                        <h5><i class="bi bi-clipboard2-check-fill me-2" style="color: var(--blue);"></i>Duyệt Câu hỏi
+                            Public</h5>
                         <a href="/admin/moderation">Xem tất cả <i class="bi bi-arrow-right"></i></a>
                     </div>
                     <table>
@@ -914,7 +915,7 @@
                 });
                 if (response.ok) {
                     const data = await response.json();
-                    
+
                     // Render Recent Users
                     const userTbody = document.getElementById('recent-users-tbody');
                     userTbody.innerHTML = data.recentUsers.map(u => `

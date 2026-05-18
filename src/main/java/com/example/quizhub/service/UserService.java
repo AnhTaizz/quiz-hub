@@ -22,9 +22,9 @@ public interface UserService {
 
     void changeUserRole(Long userId, Role role);
 
-    Page<UserProfileResponse> getAllUsers(String key, Role role, int page, int size);
+        Page<UserProfileResponse> getAllUsers(String key, Role role, int page, int size);
 
-    void createUser(CreateUserRequest request);
+    void createUser(CreateUserRequest request, Long creatorId);
 
     boolean existsByEmail(String email);
 }

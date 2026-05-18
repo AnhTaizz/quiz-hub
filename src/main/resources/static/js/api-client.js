@@ -6,10 +6,35 @@ const apiClient = (() => {
     const showGlobalError = (message) => {
         if (window.toast && typeof window.toast.error === 'function') {
             window.toast.error(message);
+        } else if (typeof showToast === 'function') {
+            showToast(message, 'error');
         } else {
             console.error('QuizHub API Error:', message);
-            // alert will fall back to toast if toast.js is loaded
-            alert(message);
+            let w = document.getElementById('toastWrap') || document.getElementById('toast-wrap');
+            if (!w) {
+                w = document.createElement('div');
+                w.id = 'toastWrap';
+                w.className = 'toast-wrap';
+                w.style.position = 'fixed';
+                w.style.top = '24px';
+                w.style.right = '24px';
+                w.style.zIndex = '99999';
+                document.body.appendChild(w);
+            }
+            const t = document.createElement('div');
+            t.style.background = '#fff';
+            t.style.padding = '14px 24px';
+            t.style.borderRadius = '12px';
+            t.style.boxShadow = '0 10px 40px rgba(0, 0, 0, 0.12)';
+            t.style.borderLeft = '4px solid #ef4444';
+            t.style.fontWeight = '600';
+            t.style.display = 'flex';
+            t.style.alignItems = 'center';
+            t.style.gap = '10px';
+            t.style.marginBottom = '8px';
+            t.innerHTML = `<i class="bi bi-exclamation-triangle-fill text-danger"></i> ${message}`;
+            w.appendChild(t);
+            setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 3000);
         }
     };
 

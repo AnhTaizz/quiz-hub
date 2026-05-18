@@ -118,7 +118,11 @@
             }
 
         } catch (error) {
-            alert('Có lỗi xảy ra trong quá trình tải file. Vui lòng kiểm tra lại định dạng file!');
+            if (typeof showToast === 'function') {
+                showToast('Có lỗi xảy ra trong quá trình tải file. Vui lòng kiểm tra lại định dạng file!', 'error');
+            } else {
+                console.error('Có lỗi xảy ra trong quá trình tải file. Vui lòng kiểm tra lại định dạng file!');
+            }
             console.error(error);
         } finally {
             if (btn) {
