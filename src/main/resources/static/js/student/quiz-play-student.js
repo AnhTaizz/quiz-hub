@@ -11,6 +11,10 @@ let endTime = null;
 let viewMode = 'single'; // 'single' or 'full'
 
 async function initQuiz() {
+    const referrer = document.referrer;
+    if (referrer && referrer.includes(window.location.host) && !referrer.includes('/play') && !referrer.includes('/result')) {
+        sessionStorage.setItem('studentReturnUrl', referrer);
+    }
     try {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         
@@ -391,6 +395,11 @@ function confirmExit() {
     new bootstrap.Modal(document.getElementById('exitModal')).show();
 }
 
+function executeExit() {
+    const returnUrl = sessionStorage.getItem('studentReturnUrl') || '/student';
+    window.location.href = returnUrl;
+}
+
 window.setViewMode = setViewMode;
 window.prevQuestion = prevQuestion;
 window.nextQuestion = nextQuestion;
@@ -400,3 +409,4 @@ window.toggleAnswer = toggleAnswer;
 window.submitQuiz = submitQuiz;
 window.executeSubmit = executeSubmit;
 window.confirmExit = confirmExit;
+window.executeExit = executeExit;

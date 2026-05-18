@@ -11,9 +11,19 @@
 
 html {
     zoom: 85% !important;
+    scrollbar-gutter: stable;
 }
 
 body { background: #fff; font-family: 'Inter', sans-serif; overflow: hidden; color: var(--text-main); }
+
+@keyframes pageContentFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.page-fade-in {
+    animation: pageContentFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    will-change: opacity, transform;
+}
 
 .explorer-container { display: flex; height: calc(100vh / 0.85 - 70px); margin-top: 70px; }
 
@@ -60,6 +70,13 @@ body { background: #fff; font-family: 'Inter', sans-serif; overflow: hidden; col
     font-size: 0.75rem; font-weight: 800; color: #64748b; 
     letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px;
     display: flex; align-items: center; gap: 8px;
+}
+.path-breadcrumb span {
+    transition: color 0.2s ease;
+}
+.path-breadcrumb span.bc-link:hover {
+    color: #4f46e5;
+    cursor: pointer;
 }
 .folder-title { 
     font-family: 'Nunito Sans', sans-serif; font-weight: 900; 
@@ -298,3 +315,63 @@ body { background: #fff; font-family: 'Inter', sans-serif; overflow: hidden; col
 .fade-in { animation: fadeIn 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) forwards; }
 
 #contentList { min-height: 400px; transition: opacity 0.2s; }
+
+/* Premium Skeleton Loaders */
+.skeleton {
+    animation: shimmer 1.5s infinite;
+    background: linear-gradient(90deg, #f4f4f4 25%, #eaeaea 50%, #f4f4f4 75%);
+    background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.skeleton-item {
+    background: #fff;
+    border-radius: 24px;
+    border: 1px solid #f1f5f9;
+    padding: 24px;
+    height: 240px;
+    display: flex;
+    flex-direction: column;
+}
+
+.skeleton-banner {
+    height: 100px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+}
+
+.skeleton-title {
+    height: 20px;
+    width: 70%;
+    border-radius: 4px;
+    margin-bottom: 12px;
+}
+
+.skeleton-text {
+    height: 14px;
+    width: 90%;
+    border-radius: 4px;
+}
+
+.skeleton-tree-item {
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.skeleton-tree-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+}
+
+.skeleton-tree-text {
+    height: 14px;
+    width: 50%;
+    border-radius: 4px;
+}

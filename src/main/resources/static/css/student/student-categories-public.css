@@ -3,6 +3,7 @@
 ══════════════════════════════════════════════ */
 html {
     zoom: 85% !important;
+    scrollbar-gutter: stable;
 }
 
 .explore-shell {
@@ -677,3 +678,10 @@ html {
     transform: none;
     cursor: not-allowed;
 }
+
+/* Animations for smoothness */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.4s cubic-bezier(0.165, 0.84, 0.44, 1) forwards; }

@@ -19,7 +19,7 @@
 <body>
     <header th:replace="~{layout/header :: student-header(activePage='myqbank')}"></header>
 
-    <div class="explorer-container">
+    <div class="explorer-container page-fade-in">
         <!-- Sidebar -->
         <aside class="explorer-sidebar">
             <div class="sidebar-header">
@@ -29,7 +29,18 @@
                 </div>
             </div>
             <div class="tree-panel" id="treeRoot">
-                <!-- Tree items will be injected here -->
+                <div class="skeleton-tree-item">
+                    <div class="skeleton skeleton-tree-icon"></div>
+                    <div class="skeleton skeleton-tree-text"></div>
+                </div>
+                <div class="skeleton-tree-item">
+                    <div class="skeleton skeleton-tree-icon"></div>
+                    <div class="skeleton skeleton-tree-text" style="width: 40%;"></div>
+                </div>
+                <div class="skeleton-tree-item">
+                    <div class="skeleton skeleton-tree-icon"></div>
+                    <div class="skeleton skeleton-tree-text" style="width: 60%;"></div>
+                </div>
             </div>
 
             <div class="tree-footer mt-auto p-4 border-top bg-white">
@@ -82,7 +93,28 @@
             </div>
 
             <div id="contentList" class="mt-2">
-                <!-- Content grid or list renders here -->
+                <div class="quiz-grid">
+                    <div class="skeleton-item">
+                        <div class="skeleton skeleton-banner"></div>
+                        <div class="skeleton skeleton-title"></div>
+                        <div class="skeleton skeleton-text"></div>
+                    </div>
+                    <div class="skeleton-item">
+                        <div class="skeleton skeleton-banner"></div>
+                        <div class="skeleton skeleton-title"></div>
+                        <div class="skeleton skeleton-text" style="width: 50%;"></div>
+                    </div>
+                    <div class="skeleton-item">
+                        <div class="skeleton skeleton-banner"></div>
+                        <div class="skeleton skeleton-title"></div>
+                        <div class="skeleton skeleton-text" style="width: 80%;"></div>
+                    </div>
+                    <div class="skeleton-item">
+                        <div class="skeleton skeleton-banner"></div>
+                        <div class="skeleton skeleton-title"></div>
+                        <div class="skeleton skeleton-text" style="width: 60%;"></div>
+                    </div>
+                </div>
             </div>
         </main>
     </div>

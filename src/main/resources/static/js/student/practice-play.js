@@ -17,6 +17,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function initData() {
+    const referrer = document.referrer;
+    if (referrer && referrer.includes(window.location.host) && !referrer.includes('/play') && !referrer.includes('/review/')) {
+        sessionStorage.setItem('studentReturnUrl', referrer);
+    }
     try {
         // If we have a review ID from URL
         const rId = window.reviewPracticeId;
@@ -133,7 +137,7 @@ async function initData() {
         });
 
         if (!rawQ || !categoryId) {
-            window.location.href = '/student/categories';
+            window.location.href = sessionStorage.getItem('studentReturnUrl') || '/student/categories';
             return;
         }
 
@@ -502,22 +506,26 @@ function renderAllQuestions() {
         if (isLocked) {
             const isCorrect = answeredCorrectly[q.id];
             let feedbackText = '';
-            if (isCorrect) feedbackText = '<i class="bi bi-check-circle-fill me-2"></i> <strong>Chính xác!</strong>';
-            else if (isAnswered) {
-                feedbackText = '<i class="bi bi-x-circle-fill me-2"></i> <strong>Chưa đúng!</strong>';
-                if (q.type === 'FILL_IN_BLANK' && practiceResult) {
-                    const detail = practiceResult.details.find(d => d.questionId === q.id);
-                    if (detail && detail.correctTexts) {
-                        feedbackText += `<br><small>Đáp án đúng là: <strong>${detail.correctTexts.join(' hoặc ')}</strong></small>`;
+            
+            // Commented out feedback messages for choice questions as correct/incorrect is already highlighted on answers
+            if (q.type === 'FILL_IN_BLANK') {
+                if (isCorrect) feedbackText = '<i class="bi bi-check-circle-fill me-2"></i> <strong>Chính xác!</strong>';
+                else if (isAnswered) {
+                    feedbackText = '<i class="bi bi-x-circle-fill me-2"></i> <strong>Chưa đúng!</strong>';
+                    if (practiceResult) {
+                        const detail = practiceResult.details.find(d => d.questionId === q.id);
+                        if (detail && detail.correctTexts) {
+                            feedbackText += `<br><small>Đáp án đúng là: <strong>${detail.correctTexts.join(' hoặc ')}</strong></small>`;
+                        }
                     }
-                }
-            } else feedbackText = '<i class="bi bi-exclamation-circle-fill me-2"></i> <strong>Chưa trả lời!</strong>';
+                } else feedbackText = '<i class="bi bi-exclamation-circle-fill me-2"></i> <strong>Chưa trả lời!</strong>';
 
-            feedbackHtml = `
-                <div class="feedback-box ${isCorrect ? 'correct' : 'incorrect'}" style="display:block;">
-                    ${feedbackText}
-                </div>
-            `;
+                feedbackHtml = `
+                    <div class="feedback-box ${isCorrect ? 'correct' : 'incorrect'}" style="display:block;">
+                        ${feedbackText}
+                    </div>
+                `;
+            }
         }
 
         qBlock.innerHTML = `
@@ -700,23 +708,29 @@ function showFeedback(isCorrect, q) {
     const userVal = userAnswers[q.id];
     const isAnswered = q.type === 'FILL_IN_BLANK' ? (userVal && userVal.trim() !== '') : (Array.isArray(userVal) ? userVal.length > 0 : !!userVal);
 
-    if (isCorrect) {
-        box.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i> <strong>Chính xác!</strong> Bạn đã chọn đáp án đúng.';
-    } else if (isAnswered) {
-        box.innerHTML = '<i class="bi bi-x-circle-fill me-2"></i> <strong>Chưa đúng rồi!</strong> Hãy xem lại kiến thức nhé.';
-        if (q.type === 'FILL_IN_BLANK' && !!practiceResult) {
-            const detail = practiceResult.details.find(d => d.questionId === q.id);
-            if (detail && detail.correctTexts) {
-                box.innerHTML += `<br><small>Đáp án đúng là: <strong>${detail.correctTexts.join(' hoặc ')}</strong></small>`;
+    // Commented out feedback messages for choice questions as correct/incorrect is already highlighted on answers
+    if (q.type === 'FILL_IN_BLANK') {
+        if (isCorrect) {
+            box.innerHTML = '<i class="bi bi-check-circle-fill me-2"></i> <strong>Chính xác!</strong> Bạn đã chọn đáp án đúng.';
+        } else if (isAnswered) {
+            box.innerHTML = '<i class="bi bi-x-circle-fill me-2"></i> <strong>Chưa đúng rồi!</strong> Hãy xem lại kiến thức nhé.';
+            if (!!practiceResult) {
+                const detail = practiceResult.details.find(d => d.questionId === q.id);
+                if (detail && detail.correctTexts) {
+                    box.innerHTML += `<br><small>Đáp án đúng là: <strong>${detail.correctTexts.join(' hoặc ')}</strong></small>`;
+                }
             }
+        } else {
+            box.innerHTML = '<i class="bi bi-exclamation-circle-fill me-2"></i> <strong>Chưa trả lời!</strong> Bạn nên chọn một đáp án.';
         }
+        box.style.display = 'block';
     } else {
-        box.innerHTML = '<i class="bi bi-exclamation-circle-fill me-2"></i> <strong>Chưa trả lời!</strong> Bạn nên chọn một đáp án.';
+        // Hide the feedback box for choice questions
+        box.style.display = 'none';
     }
 
     const dot = document.getElementById(`nav-${currentIndex}`);
     if (dot) dot.classList.add(isCorrect ? 'correct' : 'incorrect');
-    box.style.display = 'block';
 }
 
 function nextQuestion() {
@@ -825,6 +839,23 @@ function showResult(data, silent = false) {
     sessionStorage.removeItem('practice_current_index');
     sessionStorage.removeItem('practice_flagged_questions');
 
+    // Update Go Back button label dynamically based on return URL
+    const btnGoBack = document.getElementById('btnGoBack');
+    if (btnGoBack) {
+        const returnUrl = sessionStorage.getItem('studentReturnUrl') || '/student/categories';
+        if (returnUrl.includes('/history')) {
+            btnGoBack.innerHTML = '<i class="bi bi-clock-history me-1"></i> Quay lại Lịch sử';
+        } else if (returnUrl.includes('/categories')) {
+            if (returnUrl.includes('type=mine')) {
+                btnGoBack.innerHTML = '<i class="bi bi-folder-fill me-1"></i> Về thư mục của tôi';
+            } else {
+                btnGoBack.innerHTML = '<i class="bi bi-layers-fill me-1"></i> Về ngân hàng đề';
+            }
+        } else {
+            btnGoBack.innerHTML = '<i class="bi bi-arrow-left me-1"></i> Quay lại trang trước';
+        }
+    }
+
     if (!silent) {
         showToast("Đã hoàn thành luyện tập!", "ok");
     }
@@ -893,15 +924,16 @@ function viewReview() {
 
 // ── Utils ──
 function confirmExit() {
+    const returnUrl = sessionStorage.getItem('studentReturnUrl') || '/student/categories';
     if (practiceResult) {
         // In review mode, just exit without warning
         sessionStorage.removeItem('practice_result_data');
         sessionStorage.removeItem('practice_review_mode');
-        window.location.href = '/student/categories';
+        window.location.href = returnUrl;
         return;
     }
     // User requested to keep progress, so we just exit
-    window.location.href = '/student/categories';
+    window.location.href = returnUrl;
 }
 
 function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }

@@ -2,6 +2,7 @@
 
 html {
     zoom: 85% !important;
+    scrollbar-gutter: stable;
 }
 
 html, body {

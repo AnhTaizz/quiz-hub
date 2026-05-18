@@ -28,7 +28,7 @@
             </div>
             <h2 class="fw-bold mb-4" id="quizTitle">Tên bài thi</h2>
             
-            <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <div class="d-flex gap-3 justify-content-center flex-wrap mb-4">
                 <div class="stat-box">
                     <div class="stat-value text-success" id="correctCount">0</div>
                     <div class="stat-label">Câu đúng</div>
@@ -41,6 +41,13 @@
                     <div class="stat-value" id="timeSpent">0 ph</div>
                     <div class="stat-label">Thời gian làm bài</div>
                 </div>
+            </div>
+
+            <div class="mt-2 pt-3 border-top w-100 d-flex justify-content-center">
+                <button id="btnBackToOrigin" class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-sm d-flex align-items-center gap-2" style="background: linear-gradient(135deg, #4f46e5, #3b82f6); border: none;">
+                    <i id="btnBackIcon" class="bi bi-arrow-left-short fs-4"></i>
+                    <span id="btnBackText">Quay lại</span>
+                </button>
             </div>
         </div>
 

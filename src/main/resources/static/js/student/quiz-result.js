@@ -15,6 +15,34 @@ async function fetchResult() {
         renderSummary(result);
         renderReview(result.questions);
 
+        // Set up dynamic return button
+        const backUrl = sessionStorage.getItem('studentReturnUrl') || '/student';
+        const btnBack = document.getElementById('btnBackToOrigin');
+        if (btnBack) {
+            btnBack.onclick = () => {
+                window.location.href = backUrl;
+            };
+            
+            const btnBackText = document.getElementById('btnBackText');
+            const btnBackIcon = document.getElementById('btnBackIcon');
+            if (backUrl.includes('/classrooms/')) {
+                btnBackText.textContent = 'Quay lại Lớp học';
+                btnBackIcon.className = 'bi bi-door-open-fill fs-5 me-1';
+            } else if (backUrl.includes('/quizzes')) {
+                btnBackText.textContent = 'Quay lại Đề thi';
+                btnBackIcon.className = 'bi bi-journal-text fs-5 me-1';
+            } else if (backUrl.includes('/history')) {
+                btnBackText.textContent = 'Quay lại Lịch sử';
+                btnBackIcon.className = 'bi bi-clock-history fs-5 me-1';
+            } else if (backUrl.includes('/categories')) {
+                btnBackText.textContent = 'Quay lại Thư mục';
+                btnBackIcon.className = 'bi bi-layers-fill fs-5 me-1';
+            } else {
+                btnBackText.textContent = 'Quay lại Trang chủ';
+                btnBackIcon.className = 'bi bi-house-door-fill fs-5 me-1';
+            }
+        }
+
         document.getElementById('resultLoading').style.display = 'none';
 
     } catch (error) {
