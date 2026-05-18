@@ -57,7 +57,7 @@ function renderRoot() {
     }
 
     let html = `<h2 class="section-title"><i class="bi bi-grid-fill text-primary"></i> Chủ Đề Nổi Bật</h2>`;
-    html += `<div class="cat-grid">`;
+    html += `<div class="cat-grid fade-in">`;
     TREE_DATA.forEach((cat, idx) => {
         const color = COLOR_PALETTE[idx % COLOR_PALETTE.length];
         const total = calcTotal(cat);
@@ -186,7 +186,7 @@ async function loadCategory(id) {
 
     if (subCats.length > 0) {
         html += `<h2 class="section-title"><i class="bi bi-folder2-open text-primary"></i> Thư mục con</h2>`;
-        html += `<div class="cat-grid">`;
+        html += `<div class="cat-grid fade-in">`;
         subCats.forEach((cat, idx) => {
             const color = COLOR_PALETTE[idx % COLOR_PALETTE.length];
             const total = calcTotal(cat);

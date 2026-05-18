@@ -1,5 +1,6 @@
 html {
     zoom: 85%;
+    scrollbar-gutter: stable;
 }
 
 :root {

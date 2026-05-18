@@ -39,9 +39,28 @@ function showErrorOverlay(err) {
             msg.innerText = err.message || "Đã có lỗi xảy ra khi tải bài thi. Vui lòng kiểm tra lại kết nối hoặc liên hệ giáo viên.";
             icon.innerText = "⚠️";
     }
+
+    const backBtn = document.querySelector('.btn-back');
+    if (backBtn) {
+        const returnUrl = sessionStorage.getItem('studentReturnUrl') || '/student';
+        backBtn.href = returnUrl;
+        if (returnUrl.includes('/classrooms/')) {
+            backBtn.innerText = "Quay lại Lớp học";
+        } else if (returnUrl.includes('/quizzes')) {
+            backBtn.innerText = "Quay lại Đề thi";
+        } else if (returnUrl.includes('/history')) {
+            backBtn.innerText = "Quay lại Lịch sử";
+        } else {
+            backBtn.innerText = "Quay lại Trang chủ";
+        }
+    }
 }
 
 async function initQuiz() {
+    const referrer = document.referrer;
+    if (referrer && referrer.includes(window.location.host) && !referrer.includes('/play') && !referrer.includes('/result')) {
+        sessionStorage.setItem('studentReturnUrl', referrer);
+    }
     try {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         const response = await fetch(`/api/student/quiz/start?assigningId=${assigningId}`, {
@@ -90,7 +109,7 @@ async function initQuiz() {
     } catch (error) {
         console.error(error);
         alert("Lỗi hệ thống khi tải bài thi.");
-        window.location.href = '/student';
+        window.location.href = sessionStorage.getItem('studentReturnUrl') || '/student';
     }
 }
 
@@ -480,7 +499,8 @@ function executeExit() {
     logViolation('MANUAL_EXIT');
     setTimeout(() => {
         isMonitoring = false;
-        window.location.href = '/student';
+        const returnUrl = sessionStorage.getItem('studentReturnUrl') || '/student';
+        window.location.href = returnUrl;
     }, 500);
 }
 

@@ -61,6 +61,7 @@ html {
   scroll-behavior: smooth;
   font-size: 16px;
   zoom: 85%;
+  scrollbar-gutter: stable;
 }
 
 /* Fix Bootstrap backdrop cutting off at the right/bottom under HTML zoom: 85% */

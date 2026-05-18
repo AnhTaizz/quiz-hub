@@ -22,6 +22,7 @@
 /* --- BASE LAYOUT --- */
 html {
     zoom: 95% !important;
+    scrollbar-gutter: stable;
 }
 
 body {
@@ -31,6 +32,15 @@ body {
     margin: 0;
     padding: 0;
     overflow-x: hidden;
+}
+
+@keyframes pageContentFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.page-fade-in {
+    animation: pageContentFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    will-change: opacity, transform;
 }
 
 h1, h2, h3, h4, h5, h6 {

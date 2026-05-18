@@ -109,9 +109,19 @@ window.loadFolder = function(id) {
     document.getElementById('currentName').textContent = folder ? folder.name : (id === -1 ? 'Chưa phân loại' : 'Thư viện của tôi');
     
     const pathArr = folder ? getCategoryPath(TREE_DATA, id) : [];
-    const pathHtml = ['LIBRARY', ...pathArr.map(p => p.name.toUpperCase())]
-        .map((p, i) => `<span>${p}</span>${i < pathArr.length ? '<i class="bi bi-chevron-right" style="font-size: 0.6rem;"></i>' : ''}`)
-        .join('');
+    const segments = [{ name: 'LIBRARY', id: null }];
+    pathArr.forEach(p => {
+        segments.push({ name: p.name.toUpperCase(), id: p.id });
+    });
+
+    const pathHtml = segments.map((seg, i) => {
+        if (i === segments.length - 1) {
+            return `<span>${esc(seg.name)}</span>`;
+        } else {
+            return `<span class="bc-link" onclick="loadFolder(${seg.id === null ? 'null' : seg.id})">${esc(seg.name)}</span>`;
+        }
+    }).join('<i class="bi bi-chevron-right" style="font-size: 0.6rem;"></i>');
+
     document.getElementById('pathText').innerHTML = pathHtml;
     
     document.getElementById('btnEditCat').style.display = id && id !== -1 ? 'block' : 'none';
@@ -411,7 +421,7 @@ function renderQuizGrid(list) {
         return; 
     }
 
-    container.innerHTML = `<div class="quiz-grid">` + list.map(q => `
+    container.innerHTML = `<div class="quiz-grid fade-in">` + list.map(q => `
         <div class="up-card">
             <div class="up-card-banner">
                 <img src="${q.imageUrl || getQuizCover(q.id)}" 
