@@ -15912,7 +15912,7 @@ INSERT INTO _answer (id, text, is_correct, question_id) VALUES (102673, 'Nhà t�
 INSERT INTO _answer (id, text, is_correct, question_id) VALUES (102674, 'Các bên có liên quan', true, 93174);
 
 -- ========== THÊM DANH MỤC LÀM BÀI LUYỆN TẬP CÔNG KHAI VÀ CÂU HỎI NHIỀU LOẠI ==========
-INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (99000, 'Danh mục Luyện tập Chung (Public)', 9999, true, NULL);
+INSERT INTO categories (id, name, creator_id, is_public, parent_id) VALUES (99000, 'Danh mục Luyện tập Chung (Public)', 9998, true, NULL);
 
 -- Câu hỏi Điền khuyết (FILL_IN_BLANK) - Public
 INSERT INTO _question (id, text, type, category_id, created_id, approval_status, question_level) VALUES (299001, 'Năm Bác Hồ ra đi tìm đường cứu nước là năm nào?', 'FILL_IN_BLANK', 99000, 9998, 'PUBLIC', 'MEDIUM');
