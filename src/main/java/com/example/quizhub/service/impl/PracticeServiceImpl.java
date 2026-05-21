@@ -114,7 +114,7 @@ public class PracticeServiceImpl implements PracticeService {
                         }
                 } else {
                         // 2. Sequential Logic (Range-based)
-                        Pageable pageable = org.springframework.data.domain.PageRequest.of(offset / limit, limit);
+                        Pageable pageable = PageRequest.of(offset / limit, limit);
                         questions = questionRepository.findPublicQuestionsByCategories(categoryIds, pageable);
 
                         if (questions.isEmpty()) {
@@ -138,23 +138,25 @@ public class PracticeServiceImpl implements PracticeService {
                         } else {
                                 if (request.getPracticeId() != null) {
                                         practice = practiceRepository.findById(request.getPracticeId())
-                                                        .orElseThrow(() -> new AppException(ErrorCode.PRACTICE_NOT_FOUND));
+                                                        .orElseThrow(() -> new AppException(
+                                                                        ErrorCode.PRACTICE_NOT_FOUND));
                                 } else {
                                         practice = practiceRepository
                                                         .findFirstByUserIdAndCategoryIdAndPracticeLimitAndPracticeOffsetAndIsRandomAndIsCompletedFalseOrderByCreatedAtDesc(
-                                                                        user.getId(), category.getId(), limit, offset, false)
+                                                                        user.getId(), category.getId(), limit, offset,
+                                                                        false)
                                                         .orElseGet(() -> {
-                                                        Practice newPractice = Practice.builder()
-                                                                        .user(user)
-                                                                        .category(category)
-                                                                        .practiceLimit(limit)
-                                                                        .practiceOffset(offset)
-                                                                        .totalQuestions(actualCount)
-                                                                        .isRandom(false)
-                                                                        .isCompleted(false)
-                                                                        .build();
-                                                        return practiceRepository.save(newPractice);
-                                                });
+                                                                Practice newPractice = Practice.builder()
+                                                                                .user(user)
+                                                                                .category(category)
+                                                                                .practiceLimit(limit)
+                                                                                .practiceOffset(offset)
+                                                                                .totalQuestions(actualCount)
+                                                                                .isRandom(false)
+                                                                                .isCompleted(false)
+                                                                                .build();
+                                                                return practiceRepository.save(newPractice);
+                                                        });
                                 }
                         }
 
@@ -462,7 +464,7 @@ public class PracticeServiceImpl implements PracticeService {
                                 .totalQuestions(totalQuestions)
                                 .correctAnswers(correctCount)
                                 .score(BigDecimal.valueOf((correctCount * 10.0) / totalQuestions)
-                                                .setScale(1, java.math.RoundingMode.HALF_UP))
+                                                .setScale(1, RoundingMode.HALF_UP))
                                 .createdAt(savedPractice.getCreatedAt())
                                 .details(detailResponses)
                                 .build();
@@ -511,18 +513,18 @@ public class PracticeServiceImpl implements PracticeService {
                                 .findByUserIdOrderByCreatedAtDesc(user.getId());
 
                 return practices.stream().map(p -> PracticeHistoryResponseDTO.builder()
-                                        .id(p.getId())
-                                        .categoryId(p.getCategory() != null ? p.getCategory().getId() : null)
-                                        .categoryName(p.getCategory() != null ? p.getCategory().getName() : "Đề thi cá nhân")
-                                        .totalQuestions(p.getTotalQuestions())
-                                        .correctAnswers(p.getCorrectAnswers())
-                                        .answeredQuestions((int) practiceDetailRepository.countAnsweredByPracticeId(p.getId()))
-                                        .createdAt(p.getCreatedAt())
-                                        .isCompleted(p.getIsCompleted())
-                                        .isRandom(p.getIsRandom())
-                                        .practiceLimit(p.getPracticeLimit())
-                                        .practiceOffset(p.getPracticeOffset())
-                                        .build()).collect(Collectors.toList());
+                                .id(p.getId())
+                                .categoryId(p.getCategory() != null ? p.getCategory().getId() : null)
+                                .categoryName(p.getCategory() != null ? p.getCategory().getName() : "Đề thi cá nhân")
+                                .totalQuestions(p.getTotalQuestions())
+                                .correctAnswers(p.getCorrectAnswers())
+                                .answeredQuestions((int) practiceDetailRepository.countAnsweredByPracticeId(p.getId()))
+                                .createdAt(p.getCreatedAt())
+                                .isCompleted(p.getIsCompleted())
+                                .isRandom(p.getIsRandom())
+                                .practiceLimit(p.getPracticeLimit())
+                                .practiceOffset(p.getPracticeOffset())
+                                .build()).collect(Collectors.toList());
         }
 
         @Override
