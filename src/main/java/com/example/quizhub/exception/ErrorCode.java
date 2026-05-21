@@ -50,7 +50,8 @@ public enum ErrorCode {
     EXCEL_IMPORT_ERROR(1034, "Có lỗi xảy ra khi nhập tệp Excel", HttpStatus.BAD_REQUEST),
     INVALID_GENERATION_METHOD(1035, "Phương thức tạo câu hỏi không hợp lệ. Phải là RANDOM hoặc RANGE", HttpStatus.BAD_REQUEST),
     QUESTION_TEXT_EMPTY(1036, "Nội dung câu hỏi không được để trống", HttpStatus.BAD_REQUEST),
-    QUESTION_ANSWERS_EMPTY(1037, "Câu hỏi phải có ít nhất một đáp án lựa chọn", HttpStatus.BAD_REQUEST);
+    QUESTION_ANSWERS_EMPTY(1037, "Câu hỏi phải có ít nhất một đáp án lựa chọn", HttpStatus.BAD_REQUEST),
+    AI_GENERATION_FAILED(1038, "Có lỗi xảy ra khi tạo câu hỏi bằng AI, vui lòng thử lại.", HttpStatus.BAD_REQUEST);
 
     final int code;
     final String message;

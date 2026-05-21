@@ -35,8 +35,129 @@
     <div th:replace="~{fragments/category-explorer-private :: category-create-modal}"></div>
     <div th:replace="~{fragments/category-explorer-private :: category-explorer-private-scripts('teacher')}"></div>
 
+    <!-- =============================================
+         AI GENERATE MODAL
+         Bước 1: Giáo viên nhập văn bản + tuỳ chọn
+         Bước 2: Xem Preview kết quả và chỉnh sửa
+    ============================================= -->
+    <div class="modal fade" id="aiGenerateModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content" style="border-radius: 20px; overflow: hidden; border: none;">
 
+                <!-- Header -->
+                <div class="modal-header border-0"
+                     style="background: linear-gradient(135deg, #7c3aed, #4f46e5); padding: 20px 28px;">
+                    <div class="d-flex align-items-center gap-3">
+                        <span style="font-size: 1.8rem;">🪄</span>
+                        <div>
+                            <h5 class="modal-title fw-bold text-white mb-0">Tạo câu hỏi bằng AI</h5>
+                            <small class="text-white opacity-75">Powered by Google Gemini Flash</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" id="ai-modal-close-btn" onclick="closeAiModal()"></button>
+                </div>
 
+                <!-- Body -->
+                <div class="modal-body p-4" style="background: #f8fafc;">
+
+                    <!-- STEP 1: Input Form -->
+                    <div id="ai-step-input">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold text-secondary small">
+                                    <i class="bi bi-hash me-1"></i>Số câu hỏi
+                                </label>
+                                <input type="number" id="ai-num-questions" class="form-control" value="5" min="1" max="30"
+                                       style="border-radius: 10px;">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold text-secondary small">
+                                    <i class="bi bi-bar-chart-fill me-1"></i>Độ khó
+                                </label>
+                                <select id="ai-level" class="form-select" style="border-radius: 10px;">
+                                    <option value="EASY">🟢 Dễ</option>
+                                    <option value="MEDIUM" selected>🟡 Trung bình</option>
+                                    <option value="HARD">🔴 Khó</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold text-secondary small">
+                                    <i class="bi bi-folder2-open me-1"></i>Lưu vào danh mục
+                                </label>
+                                <select id="ai-category" class="form-select" style="border-radius: 10px;">
+                                    <option value="">-- Không chọn danh mục --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-secondary small">
+                                <i class="bi bi-file-text me-1"></i>Nội dung bài giảng / Chủ đề
+                            </label>
+                            <textarea id="ai-input-text" class="form-control" rows="10"
+                                      placeholder="Dán nội dung bài giảng vào đây, hoặc mô tả chủ đề bạn muốn tạo câu hỏi...
+Ví dụ: 'Tạo câu hỏi về cách mạng tháng 8 năm 1945 tại Việt Nam'"
+                                      style="border-radius: 12px; resize: vertical; font-size: 0.9rem;"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2: Preview Table (hidden by default) -->
+                    <div id="ai-step-preview" style="display: none;">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div>
+                                <h6 class="fw-bold text-dark mb-0">
+                                    <i class="bi bi-check2-circle text-success me-2"></i>
+                                    AI đã tạo <span id="ai-preview-count">0</span> câu hỏi
+                                </h6>
+                                <small class="text-muted">Xem lại và chỉnh sửa trước khi lưu. Click vào text để sửa trực tiếp.</small>
+                            </div>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="backToAiInput()"
+                                    style="border-radius: 10px;">
+                                <i class="bi bi-arrow-left me-1"></i>Tạo lại
+                            </button>
+                        </div>
+                        <div id="ai-preview-container" style="max-height: 55vh; overflow-y: auto;">
+                            <!-- JS sẽ render danh sách câu hỏi vào đây -->
+                        </div>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div id="ai-loading" style="display: none; text-align: center; padding: 60px 20px;">
+                        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+                        <p class="fw-semibold text-secondary">AI đang đọc và phân tích nội dung...<br>
+                            <small class="text-muted">Thường mất 5-15 giây, vui lòng không đóng cửa sổ này.</small>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="modal-footer border-0 px-4 pb-4 pt-0" style="background: #f8fafc;">
+                    <!-- Footer Step 1 -->
+                    <div id="ai-footer-input" class="w-100 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-secondary fw-bold" onclick="closeAiModal()"
+                                style="border-radius: 12px; padding: 10px 24px;">Hủy</button>
+                        <button type="button" class="btn fw-bold text-white" id="btn-ai-generate-submit"
+                                onclick="submitAiGenerate()"
+                                style="border-radius: 12px; padding: 10px 28px;
+                                       background: linear-gradient(135deg, #7c3aed, #4f46e5);
+                                       box-shadow: 0 4px 14px rgba(124,58,237,0.35);">
+                            <i class="bi bi-stars me-2"></i>Tạo câu hỏi
+                        </button>
+                    </div>
+                    <!-- Footer Step 2 -->
+                    <div id="ai-footer-preview" class="w-100 d-flex justify-content-end gap-2" style="display: none !important;">
+                        <button type="button" class="btn btn-secondary fw-bold" onclick="closeAiModal()"
+                                style="border-radius: 12px; padding: 10px 24px;">Hủy & Đóng</button>
+                        <button type="button" class="btn btn-success fw-bold" id="btn-ai-save"
+                                onclick="saveAiQuestions()"
+                                style="border-radius: 12px; padding: 10px 28px;">
+                            <i class="bi bi-cloud-upload-fill me-2"></i>Lưu vào kho
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- END AI GENERATE MODAL -->
 
     <!-- Toast Component -->
     <div id="toast-wrap"></div>
@@ -49,9 +170,10 @@
         window.myCategories = /*[[${myCategories}]]*/ [];
         window.publicCategories = /*[[${publicCategories}]]*/ [];
         /*]]>*/
-
-
     </script>
+
+    <!-- AI Feature JavaScript -->
+    <script th:src="@{/js/teacher/teacher-ai-generate.js}"></script>
 </body>
 
 </html>
