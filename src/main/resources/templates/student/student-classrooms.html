@@ -80,13 +80,18 @@
                 </div>
 
                 <div class="class-footer">
-                    <div class="text-muted small"><i class="bi bi-clock-history me-1"></i> Tham gia: <span
-                            th:text="${#temporals.format(joining.joinedAt, 'dd/MM/yyyy')}">12/04/2026</span></div>
+                    <div class="text-muted small">
+                        <i class="bi bi-clock-history me-1"></i> 
+                        <span th:if="${joining.status.name() == 'APPROVED'}">Tham gia:</span>
+                        <span th:if="${joining.status.name() == 'PENDING'}">Xin vào:</span>
+                        <span th:if="${joining.status.name() == 'REJECTED'}">Từ chối:</span>
+                        <span th:text="${#temporals.format(joining.joinedAt, 'dd/MM/yyyy')}">12/04/2026</span>
+                    </div>
                     <a th:if="${joining.status.name() == 'APPROVED'}"
                         th:href="@{'/student/classrooms/' + ${joining.classroom.id}}"
                         class="btn-enter stretched-link">Vào lớp <i class="bi bi-arrow-right-short"></i></a>
-                    <span th:unless="${joining.status.name() == 'APPROVED'}" class="text-muted small fw-bold">Bị
-                        khóa</span>
+                    <span th:if="${joining.status.name() == 'PENDING'}" class="text-muted small fw-bold text-nowrap">Chờ duyệt</span>
+                    <span th:if="${joining.status.name() == 'REJECTED'}" class="text-danger small fw-bold text-nowrap">Từ chối</span>
                 </div>
             </div>
 
