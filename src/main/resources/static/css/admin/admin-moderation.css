@@ -36,7 +36,7 @@ body.sidebar-collapsed #main-content { margin-left: 75px; }
     font-family: 'Nunito Sans', sans-serif; font-size: 26px; font-weight: 900;
     color: var(--text-dark); border-bottom: 1px solid var(--border); letter-spacing: -0.5px;
 }
-.brand-logo i { font-size: 24px; margin-right: 8px; background: linear-gradient(135deg, #60a5fa, #2563eb); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.brand-logo i { font-size: 24px; margin-right: 8px; background: linear-gradient(135deg, #a855f7, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 .brand-logo span.hub { background: linear-gradient(90deg, #3b82f6, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
 .menu-title { padding: 24px 24px 10px; font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: 700; letter-spacing: 1px; }
@@ -92,8 +92,10 @@ body.sidebar-collapsed #main-content { margin-left: 75px; }
 .btn-act-reject:hover { background: var(--red); color: #fff; border-color: var(--red); }
 
 .btn-reset-filter {
-    height: 46px; width: 46px; display: flex; align-items: center; justify-content: center;
-    border-radius: 12px; border: 1.5px solid var(--border); background: #fff; color: var(--text-muted); transition: 0.2s;
+    height: 46px; display: inline-flex; align-items: center; justify-content: center;
+    padding: 0 18px; gap: 6px; white-space: nowrap;
+    border-radius: 12px; border: 1.5px solid var(--border); background: #fff; color: var(--text-muted);
+    font-size: 0.875rem; font-weight: 600; transition: 0.2s;
 }
 .btn-reset-filter:hover { background: #f1f5f9; color: var(--text-dark); border-color: #cbd5e1; }
 

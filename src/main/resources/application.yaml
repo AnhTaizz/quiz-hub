@@ -46,6 +46,7 @@ spring:
           auth: true
           starttls:
             enable: true
+
   security:
     oauth2:
       client:
@@ -57,7 +58,21 @@ spring:
               - email
               - profile
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 6MB
+
+  web:
+    resources:
+      static-locations:
+        - classpath:/static/
+        - file:./uploads/
+
 app:
   jwt:
     secret: ${JWT_SECRET}
     expiration: 86400000 # 24 hours in milliseconds
+  upload:
+    avatar-dir: ./uploads/avatars/

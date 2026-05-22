@@ -22,6 +22,11 @@ public class CategoryResponseDTO {
     String name;
     String description;
     Long parentId;
+    String parentName;  // Tên danh mục cha (để xây fullPath ở frontend)
+    String fullPath;    // Đường dẫn đầy đủ: "Môn học > Chương 1" (dùng cho filter dropdown)
+    String creatorName; // Tên giáo viên tạo danh mục
+    String creatorRole; // Vai trò của người tạo danh mục
+    int depth;          // Độ sâu trong cây (0 = gốc, 1 = con, 2 = cháu, ...)
     List<CategoryResponseDTO> children;
     Boolean isPublic;
     Boolean isOwner;
@@ -37,5 +42,7 @@ public class CategoryResponseDTO {
         this.isOwner = false; // được set bởi service nếu cần
         this.children = new ArrayList<>();
         this.quizCount = 0;
+        this.creatorName = (category.getCreator() != null) ? category.getCreator().getFullName() : "Hệ thống";
+        this.creatorRole = (category.getCreator() != null && category.getCreator().getRole() != null) ? category.getCreator().getRole().name() : "SYSTEM";
     }
 }

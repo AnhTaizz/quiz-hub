@@ -77,8 +77,19 @@
                             <textarea name="description" class="form-control rounded-3" rows="3"></textarea>
                         </div>
                         <div class="mb-4">
-                            <label class="form-label fw-bold">Link ảnh bìa</label>
-                            <input type="text" name="imageUrl" class="form-control rounded-3" placeholder="https://...">
+                            <label class="form-label fw-bold">Ảnh bìa lớp học</label>
+                            <div class="input-group mb-2">
+                                <label class="btn btn-light border-end-0 mb-0 d-flex align-items-center" for="classroomImageFileInput"
+                                    style="border-radius: 12px 0 0 12px; border-color: #e2e8f0; background: #f8fafc; cursor: pointer;">
+                                    <i class="bi bi-cloud-upload text-primary me-1"></i> Tải ảnh
+                                </label>
+                                <input type="file" id="classroomImageFileInput" accept="image/*" style="display:none" onchange="handleClassroomImageUpload(this)">
+                                
+                                <input type="hidden" id="classroomImageUrl" name="imageUrl">
+                                <input type="text" id="classroomImageDisplay" class="form-control rounded-end-3"
+                                    placeholder="Chưa có ảnh" readonly
+                                    style="background: #fff; cursor: not-allowed;">
+                            </div>
                         </div>
                         <div class="form-check form-switch mb-4">
                             <input class="form-check-input" type="checkbox" id="requireApproval" name="requireApproval" checked>
@@ -95,5 +106,53 @@
 
     <div th:replace="~{layout/header :: changePasswordModal}"></div>
     <script th:replace="~{layout/header :: change-password-script}"></script>
+
+    <script>
+        async function handleClassroomImageUpload(inputEl) {
+            const file = inputEl.files[0];
+            if (!file) return;
+
+            const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                alert("Định dạng ảnh không hợp lệ. Vui lòng chọn JPG, PNG, GIF hoặc WEBP.");
+                return;
+            }
+            if (file.size > 5 * 1024 * 1024) {
+                alert("Dung lượng ảnh vượt quá 5MB.");
+                return;
+            }
+
+            const displayEl = document.getElementById('classroomImageDisplay');
+            const hiddenUrlEl = document.getElementById('classroomImageUrl');
+            
+            displayEl.value = 'Đang tải lên...';
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/users/upload-avatar', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Lỗi từ server');
+                }
+                
+                const data = await response.json();
+                
+                if (data && data.url) {
+                    hiddenUrlEl.value = data.url;
+                    displayEl.value = file.name;
+                } else {
+                    displayEl.value = 'Tải ảnh thất bại';
+                }
+            } catch (error) {
+                console.error(error);
+                displayEl.value = 'Lỗi kết nối';
+            }
+        }
+    </script>
 </body>
 </html>

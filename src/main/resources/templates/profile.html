@@ -73,7 +73,13 @@
             background: linear-gradient(135deg, #60a5fa, #2563eb);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            transition: all 0.3s;
         }
+
+        /* Logo gradient theo role */
+        .brand-icon-admin   { background: linear-gradient(135deg, #a855f7, #7c3aed) !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; }
+        .brand-icon-teacher { background: linear-gradient(135deg, #4ade80, #16a34a) !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; }
+        .brand-icon-student { background: linear-gradient(135deg, #60a5fa, #2563eb) !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; }
 
         .topbar-brand .hub {
             background: linear-gradient(90deg, #3b82f6, #7c3aed);
@@ -298,6 +304,52 @@
             background: #f1f5f9;
         }
 
+        /* ─── AVATAR UPLOAD AREA ─── */
+        .avatar-upload-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .btn-upload-file {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 16px;
+            background: #f1f5f9;
+            border: 1.5px dashed var(--border);
+            border-radius: 10px;
+            color: var(--text-body);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-upload-file:hover {
+            background: #e0f2fe;
+            border-color: var(--blue);
+            color: var(--blue);
+        }
+
+        .upload-hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        #upload-progress {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--blue);
+            font-weight: 600;
+            margin-top: 6px;
+        }
+
         /* ─── SUBMIT BUTTON ─── */
         .btn-submit {
             width: 100%;
@@ -385,9 +437,9 @@
 
 <!-- ─── TOP BAR ─── -->
 <nav class="topbar">
-    <div class="topbar-brand">
-        <i class="bi bi-layers-fill"></i><span>Quiz<span class="hub">Hub</span></span>
-    </div>
+    <a id="topbar-brand-link" href="/" class="topbar-brand" style="text-decoration: none;">
+        <i id="brand-icon" class="bi bi-layers-fill"></i><span>Quiz<span class="hub">Hub</span></span>
+    </a>
     <button class="btn-back" onclick="goBack()">
         <i class="bi bi-arrow-left"></i> Quay lại Dashboard
     </button>
@@ -441,12 +493,22 @@
                 </div>
             </div>
 
-            <!-- Avatar URL -->
+            <!-- Avatar URL + Upload file -->
             <div class="field-group">
-                <label>URL Ảnh đại diện</label>
-                <div class="field-wrap">
-                    <i class="bi bi-image"></i>
-                    <input type="url" id="avatarUrl" placeholder="https://example.com/avatar.jpg" oninput="updateAvatarPreview()">
+                <label>Ảnh đại diện</label>
+                <!-- Hidden URL input to maintain JS logic -->
+                <input type="hidden" id="avatarUrl">
+                <p class="upload-hint" style="margin-top: 0;">Định dạng hỗ trợ: JPEG, PNG, WebP (Tối đa 5MB)</p>
+                <!-- File upload -->
+                <div class="avatar-upload-row">
+                    <label class="btn-upload-file" for="avatarFileInput">
+                        <i class="bi bi-cloud-upload"></i> Tải ảnh từ máy
+                    </label>
+                    <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarFileUpload(this)">
+                    <span id="upload-file-name" style="font-size:13px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:160px;"></span>
+                </div>
+                <div id="upload-progress">
+                    <span class="spinner-border spinner-border-sm"></span> Đang tải lên...
                 </div>
             </div>
 
@@ -493,10 +555,20 @@
 
             userRole = d.role;
             const badge = document.getElementById('role-badge');
-            if (d.role === 'ADMIN')        { badge.textContent = 'Administrator'; badge.className = 'role-badge role-admin'; }
-            else if (d.role === 'TEACHER') { badge.textContent = 'Giáo viên';    badge.className = 'role-badge role-teacher'; }
-            else                           { badge.textContent = 'Học sinh';     badge.className = 'role-badge role-student'; }
+            if (d.role === 'ADMIN') {
+                badge.textContent = 'Administrator';
+                badge.className = 'role-badge role-admin';
+            } else if (d.role === 'TEACHER') {
+                badge.textContent = 'Giáo viên';
+                badge.className = 'role-badge role-teacher';
+            } else {
+                badge.textContent = 'Học sinh';
+                badge.className = 'role-badge role-student';
+            }
             badge.style.visibility = 'visible';
+
+            // Cập nhật logo + link topbar theo role
+            updateBrandForRole(d.role);
 
             renderAvatar(d.avatarUrl, d.fullName);
         } catch (e) {
@@ -511,6 +583,17 @@
         btn.disabled = true;
 
         try {
+            const fullName = document.getElementById('fullName').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const avatarUrl = document.getElementById('avatarUrl').value.trim();
+
+            if (avatarUrl && !avatarUrl.startsWith('/') && !avatarUrl.startsWith('http://') && !avatarUrl.startsWith('https://')) {
+                showToast('Đường dẫn ảnh không hợp lệ! Vui lòng nhập URL hoặc tải ảnh lên.', 'error');
+                btn.innerHTML = '<i class="bi bi-check2-circle"></i> Lưu thay đổi';
+                btn.disabled  = false;
+                return;
+            }
+
             const res = await fetch('/api/users/my-profile', {
                 method: 'PUT',
                 headers: {
@@ -518,9 +601,9 @@
                     Authorization: `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    fullName:  document.getElementById('fullName').value.trim(),
-                    phone:     document.getElementById('phone').value.trim(),
-                    avatarUrl: document.getElementById('avatarUrl').value.trim()
+                    fullName:  fullName,
+                    phone:     phone,
+                    avatarUrl: avatarUrl
                 })
             });
 
@@ -572,6 +655,57 @@
         el.innerHTML = `<img src="${avatarUrl}" alt="Avatar">`;
     }
 
+    async function handleAvatarFileUpload(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        // Client-side validation
+        if (!file.type.startsWith('image/')) {
+            showToast('Chỉ chấp nhận file ảnh (JPEG, PNG, GIF, WebP)!', 'error');
+            input.value = '';
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('File ảnh không được vượt quá 5MB!', 'error');
+            input.value = '';
+            return;
+        }
+
+        // Hiển thị tên file + spinner
+        document.getElementById('upload-file-name').textContent = file.name;
+        const progressEl = document.getElementById('upload-progress');
+        progressEl.style.display = 'flex';
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            const res = await fetch('/api/users/upload-avatar', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                body: formData
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                throw new Error(data.error || 'Tải ảnh thất bại');
+            }
+
+            // Điền URL vào input và cập nhật preview
+            const urlInput = document.getElementById('avatarUrl');
+            urlInput.value = data.url;
+            renderAvatar(data.url, document.getElementById('fullName').value);
+            showToast('Tải ảnh lên thành công!', 'success');
+        } catch (err) {
+            showToast(err.message || 'Có lỗi khi tải ảnh lên', 'error');
+            document.getElementById('upload-file-name').textContent = '';
+            input.value = '';
+        } finally {
+            progressEl.style.display = 'none';
+        }
+    }
+
     function updateAvatarPreview() {
         renderAvatar(
             document.getElementById('avatarUrl').value.trim(),
@@ -579,11 +713,28 @@
         );
     }
 
+    function updateBrandForRole(role) {
+        const icon = document.getElementById('brand-icon');
+        const link = document.getElementById('topbar-brand-link');
+        if (!icon || !link) return;
+
+        if (role === 'ADMIN') {
+            icon.className = 'bi bi-shield-fill-check brand-icon-admin';
+            link.href = '/admin';
+        } else if (role === 'TEACHER') {
+            icon.className = 'bi bi-mortarboard-fill brand-icon-teacher';
+            link.href = '/teacher';
+        } else {
+            icon.className = 'bi bi-layers-fill brand-icon-student';
+            link.href = '/student';
+        }
+    }
+
     function goBack() {
         const role = userRole || (JSON.parse(localStorage.getItem('user') || sessionStorage.getItem('user') || '{}').role);
-        if (role === 'ADMIN')   window.location.href = '/admin';
+        if (role === 'ADMIN')        window.location.href = '/admin';
         else if (role === 'TEACHER') window.location.href = '/teacher';
-        else                    window.location.href = '/student';
+        else                         window.location.href = '/student';
     }
 
     function showToast(msg, type) {

@@ -33,13 +33,14 @@
 
         <!-- Filter Bar -->
         <div class="filter-group">
+            <!-- Hàng 1: Tìm kiếm + Giáo viên + Danh mục -->
             <div class="row g-3 align-items-center">
                 <div class="col-lg-4 col-md-6">
                     <div class="input-group">
                         <span class="input-group-text bg-white border-end-0" style="border-radius: 12px 0 0 12px; border-color: #e2e8f0;">
                             <i class="bi bi-search text-muted"></i>
                         </span>
-                        <input type="text" id="filter-keyword" class="form-control fc-modern border-start-0" 
+                        <input type="text" id="filter-keyword" class="form-control fc-modern border-start-0"
                                placeholder="Tìm kiếm nội dung câu hỏi..." style="border-radius: 0 12px 12px 0;" oninput="debounceFetch()">
                     </div>
                 </div>
@@ -48,11 +49,29 @@
                         <span class="input-group-text bg-white border-end-0" style="border-radius: 12px 0 0 12px; border-color: #e2e8f0;">
                             <i class="bi bi-person text-muted"></i>
                         </span>
-                        <input type="text" id="filter-creator" class="form-control fc-modern border-start-0" 
-                               placeholder="Tìm theo giáo viên..." style="border-radius: 0 12px 12px 0;" oninput="debounceFetch()">
+                        <input type="text" id="filter-creator" class="form-control fc-modern border-start-0"
+                               placeholder="Tìm theo giáo viên..." style="border-radius: 0 12px 12px 0;" oninput="onCreatorFilterChange()">
                     </div>
                 </div>
-                <div class="col-lg-2 col-md-4">
+                <div class="col-lg-5 col-md-12">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0" style="border-radius: 12px 0 0 12px; border-color: #e2e8f0;">
+                            <i class="bi bi-folder2-open text-muted"></i>
+                        </span>
+                        <input type="text" id="filter-category-input" class="form-control fc-modern border-start-0"
+                               placeholder="-- Nhập tên danh mục để tìm --" style="border-radius: 0 12px 12px 0;"
+                               autocomplete="new-password" spellcheck="false" data-lpignore="true"
+                               oninput="filterCustomCategory(this.value)" onclick="filterCustomCategory(this.value)">
+                        <ul class="dropdown-menu shadow-sm" id="custom-category-dropdown" style="max-height: 250px; overflow-y: auto; width: 100%; position: absolute; top: 100%;">
+                            <!-- populated dynamically -->
+                        </ul>
+                        <input type="hidden" id="filter-category">
+                    </div>
+                </div>
+            </div>
+            <!-- Hàng 2: Loại câu hỏi + Mức độ + Nút đặt lại -->
+            <div class="row g-3 align-items-center mt-2">
+                <div class="col-lg-5 col-md-5">
                     <select id="filter-type" class="form-select fc-modern" onchange="fetchPendingQuestions()">
                         <option value="">-- Loại câu hỏi --</option>
                         <option value="SINGLE_CHOICE">Một đáp án</option>
@@ -60,7 +79,7 @@
                         <option value="FILL_IN_BLANK">Điền khuyết</option>
                     </select>
                 </div>
-                <div class="col-lg-2 col-md-4">
+                <div class="col-lg-5 col-md-5">
                     <select id="filter-level" class="form-select fc-modern" onchange="fetchPendingQuestions()">
                         <option value="">-- Mức độ --</option>
                         <option value="EASY">Dễ</option>
@@ -68,9 +87,9 @@
                         <option value="HARD">Khó</option>
                     </select>
                 </div>
-                <div class="col-lg-1 col-md-4 text-end">
-                    <button class="btn btn-reset-filter" onclick="resetFilters()" title="Làm mới">
-                        <i class="bi bi-arrow-clockwise fs-5"></i>
+                <div class="col-lg-2 col-md-2 d-flex justify-content-end">
+                    <button class="btn btn-reset-filter w-100" onclick="resetFilters()" title="Làm mới bộ lọc">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Đặt lại
                     </button>
                 </div>
             </div>

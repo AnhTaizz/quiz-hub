@@ -114,9 +114,11 @@ function renderQuizzes(list) {
             ? `<span class="qbadge qbadge-exam"><i class="bi bi-mortarboard-fill"></i> Kiểm tra</span>`
             : `<span class="qbadge qbadge-quiz"><i class="bi bi-journal-check"></i> Luyện tập</span>`;
 
+        const imgUrl = q.imageUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80';
+
         return `
         <div class="quiz-card">
-            <button class="btn-delete-absolute" onclick="openDeleteModal('${q.id}')" title="Xóa đề thi"><i class="bi bi-trash3"></i></button>
+            <img src="${imgUrl}" alt="Cover" class="quiz-cover-img" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80'">
             <div class="quiz-badge-row">${typeBadge}</div>
             <h3 class="quiz-title">${esc(q.title) || '(Chưa có tiêu đề)'}</h3>
             <p class="quiz-desc">${esc(q.description) || '<span style="color:#cbd5e1; font-style:italic;">Chưa có mô tả.</span>'}</p>
@@ -128,6 +130,7 @@ function renderQuizzes(list) {
                 <a class="qact qact-edit" href="/teacher/quizzes/${q.id}/edit"><i class="bi bi-pencil-square"></i> Sửa</a>
                 <button class="qact qact-view" onclick="openPreviewModal('${q.id}', '${esc(q.title)}')"><i class="bi bi-eye"></i> Xem</button>
                 <button class="qact qact-assign" onclick="openAssignModal('${q.id}', '${esc(q.title)}')"><i class="bi bi-send-fill"></i> Giao bài</button>
+                <button class="qact qact-del" onclick="openDeleteModal('${q.id}')" title="Xóa đề thi"><i class="bi bi-trash3"></i></button>
             </div>
         </div>`;
     }).join('');

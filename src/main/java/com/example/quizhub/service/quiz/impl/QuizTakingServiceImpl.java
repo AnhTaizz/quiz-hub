@@ -41,6 +41,7 @@ import com.example.quizhub.repository.QuizRepository;
 import com.example.quizhub.repository.UserRepository;
 import com.example.quizhub.service.NotificationService;
 import com.example.quizhub.service.quiz.QuizTakingService;
+import com.example.quizhub.entity.enums.JoinStatus;
 import com.example.quizhub.entity.enums.NotificationType;
 import com.example.quizhub.repository.ExamViolationRepository;
 import com.example.quizhub.repository.AttemptViolationRepository;
@@ -81,7 +82,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
 
         // Check if student is in the class
         classJoiningRepository.findByClassroomIdAndLearnerId(quizAssigning.getClassroom().getId(), studentId)
-                .filter(cj -> cj.getStatus() == com.example.quizhub.entity.enums.JoinStatus.APPROVED)
+                .filter(cj -> cj.getStatus() == JoinStatus.APPROVED)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_IN_CLASS));
 
         Quiz quiz = quizAssigning.getQuiz();
@@ -138,7 +139,8 @@ public class QuizTakingServiceImpl implements QuizTakingService {
 
         List<QuestionTakingResponseDTO> questionDTOs = quiz.getQuestions().stream()
                 .map(question -> {
-                    List<Answer> questionAnswers = answersByQuestionId.getOrDefault(question.getId(), Collections.emptyList());
+                    List<Answer> questionAnswers = answersByQuestionId.getOrDefault(question.getId(),
+                            Collections.emptyList());
                     List<AnswerTakingResponseDTO> answerDTOs = questionAnswers.stream()
                             .map(ans -> new AnswerTakingResponseDTO(
                                     ans.getId(),
@@ -259,7 +261,8 @@ public class QuizTakingServiceImpl implements QuizTakingService {
             // 2. Kiểm tra thời lượng làm bài (Duration)
             if (!expired && assigning.getDurationInMins() != null) {
                 // Thêm 1 phút bù trừ độ trễ mạng/hệ thống
-                LocalDateTime limitTime = attempt.getStartedAt().plusMinutes(assigning.getDurationInMins()).plusMinutes(1);
+                LocalDateTime limitTime = attempt.getStartedAt().plusMinutes(assigning.getDurationInMins())
+                        .plusMinutes(1);
                 if (now.isAfter(limitTime)) {
                     expired = true;
                 }
@@ -330,13 +333,13 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         // Notify student of result
         try {
             notificationService.createNotification(
-                attempt.getQuizTaking().getLearner().getId(),
-                "Kết quả bài thi: " + quiz.getTitle(),
-                "Bạn đã hoàn thành bài thi với số điểm: " + finalScore + "/10",
-                NotificationType.QUIZ_SUBMITTED,
-                "/student/history"
-            );
-        } catch (Exception e) {}
+                    attempt.getQuizTaking().getLearner().getId(),
+                    "Kết quả bài thi: " + quiz.getTitle(),
+                    "Bạn đã hoàn thành bài thi với số điểm: " + finalScore + "/10",
+                    NotificationType.QUIZ_SUBMITTED,
+                    "/student/history");
+        } catch (Exception e) {
+        }
     }
 
     @Override
@@ -449,13 +452,13 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         // Notify student of result
         try {
             notificationService.createNotification(
-                studentId,
-                "Kết quả bài thi: " + quiz.getTitle(),
-                "Bạn đã hoàn thành bài thi với số điểm: " + finalScore + "/10",
-                NotificationType.QUIZ_SUBMITTED,
-                "/student/history"
-            );
-        } catch (Exception e) {}
+                    studentId,
+                    "Kết quả bài thi: " + quiz.getTitle(),
+                    "Bạn đã hoàn thành bài thi với số điểm: " + finalScore + "/10",
+                    NotificationType.QUIZ_SUBMITTED,
+                    "/student/history");
+        } catch (Exception e) {
+        }
 
         return attempt;
     }
@@ -470,7 +473,8 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         // Show answers if:
         // 1. It's a personal quiz (no assigning)
         // 2. OR the teacher explicitly allowed it (showAnswer is true)
-        // 3. OR the deadline has passed (safety fallback, though usually showAnswer is the master switch)
+        // 3. OR the deadline has passed (safety fallback, though usually showAnswer is
+        // the master switch)
         boolean deadlinePassed = quizAssigning == null || quizAssigning.getDueDate() == null
                 || quizAssigning.getDueDate().isBefore(LocalDateTime.now());
 
@@ -503,7 +507,8 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                         String trimmedStudent = (selectedText != null ? selectedText : "").trim();
                         isCorrect = q.getAnswers().stream()
                                 .filter(Answer::getIsCorrect)
-                                .anyMatch(a -> a.getText() != null && a.getText().trim().equalsIgnoreCase(trimmedStudent));
+                                .anyMatch(a -> a.getText() != null
+                                        && a.getText().trim().equalsIgnoreCase(trimmedStudent));
                     } else {
                         List<Long> correctIds = q.getAnswers().stream()
                                 .filter(Answer::getIsCorrect)
@@ -559,7 +564,8 @@ public class QuizTakingServiceImpl implements QuizTakingService {
     @Override
     @Transactional
     public Attempt recordViolation(ViolationRequestDTO request) {
-        Attempt attempt = getValidAttempt(request.getAttemptId(), null); // Simplified for now as student context isn't passed here
+        Attempt attempt = getValidAttempt(request.getAttemptId(), null); // Simplified for now as student context isn't
+                                                                         // passed here
 
         if (attempt.getEndedAt() != null) {
             return attempt;
@@ -570,13 +576,15 @@ public class QuizTakingServiceImpl implements QuizTakingService {
 
         // Cập nhật hoặc thiết lập mức độ và mô tả đúng chuẩn
         int severity = 1;
-        String desc = violationType.getDescription() != null ? violationType.getDescription() : "Vi phạm: " + request.getViolationCode();
+        String desc = violationType.getDescription() != null ? violationType.getDescription()
+                : "Vi phạm: " + request.getViolationCode();
 
         switch (request.getViolationCode()) {
             case "FULLSCREEN_EXIT":
             case "TAB_CLOSE":
                 severity = 3; // Nghiêm trọng
-                desc = (request.getViolationCode().equals("FULLSCREEN_EXIT")) ? "Thoát Toàn màn hình" : "Đóng trình duyệt";
+                desc = (request.getViolationCode().equals("FULLSCREEN_EXIT")) ? "Thoát Toàn màn hình"
+                        : "Đóng trình duyệt";
                 break;
             case "TAB_SWITCH":
                 severity = 2; // Cảnh cáo

@@ -62,6 +62,17 @@ public class PracticeServiceImpl implements PracticeService {
                                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         }
 
+        private String getCategoryFullPath(Category category) {
+                if (category == null) return "Đề thi cá nhân";
+                List<String> names = new ArrayList<>();
+                Category current = category;
+                while (current != null) {
+                        names.add(0, current.getName());
+                        current = current.getParent();
+                }
+                return String.join(" > ", names);
+        }
+
         private void collectCategoryIds(Category category, List<Long> ids) {
                 ids.add(category.getId());
                 if (category.getChildren() != null) {
@@ -199,7 +210,7 @@ public class PracticeServiceImpl implements PracticeService {
                                 .questions(questionDTOs)
                                 .practiceId(practice.getId())
                                 .categoryId(category.getId())
-                                .categoryName(category.getName())
+                                .categoryName(getCategoryFullPath(category))
                                 .build();
         }
 
@@ -460,7 +471,7 @@ public class PracticeServiceImpl implements PracticeService {
 
                 return PracticeResultResponseDTO.builder()
                                 .practiceId(savedPractice.getId())
-                                .categoryName(category.getName())
+                                .categoryName(getCategoryFullPath(category))
                                 .totalQuestions(totalQuestions)
                                 .correctAnswers(correctCount)
                                 .score(BigDecimal.valueOf((correctCount * 10.0) / totalQuestions)
@@ -493,7 +504,7 @@ public class PracticeServiceImpl implements PracticeService {
                 return practices.stream().map(p -> PracticeHistoryResponseDTO.builder()
                                 .id(p.getId())
                                 .categoryId(p.getCategory().getId())
-                                .categoryName(p.getCategory().getName())
+                                .categoryName(getCategoryFullPath(p.getCategory()))
                                 .totalQuestions(p.getTotalQuestions())
                                 .correctAnswers(p.getCorrectAnswers())
                                 .answeredQuestions((int) practiceDetailRepository.countAnsweredByPracticeId(p.getId()))
@@ -515,7 +526,7 @@ public class PracticeServiceImpl implements PracticeService {
                 return practices.stream().map(p -> PracticeHistoryResponseDTO.builder()
                                 .id(p.getId())
                                 .categoryId(p.getCategory() != null ? p.getCategory().getId() : null)
-                                .categoryName(p.getCategory() != null ? p.getCategory().getName() : "Đề thi cá nhân")
+                                .categoryName(getCategoryFullPath(p.getCategory()))
                                 .totalQuestions(p.getTotalQuestions())
                                 .correctAnswers(p.getCorrectAnswers())
                                 .answeredQuestions((int) practiceDetailRepository.countAnsweredByPracticeId(p.getId()))
@@ -569,7 +580,7 @@ public class PracticeServiceImpl implements PracticeService {
 
                 return PracticeResultResponseDTO.builder()
                                 .practiceId(practice.getId())
-                                .categoryName(practice.getCategory().getName())
+                                .categoryName(getCategoryFullPath(practice.getCategory()))
                                 .totalQuestions(practice.getTotalQuestions())
                                 .correctAnswers(practice.getCorrectAnswers())
                                 .score(BigDecimal
@@ -611,8 +622,7 @@ public class PracticeServiceImpl implements PracticeService {
                 return PracticeStartResponseDTO.builder()
                                 .questions(questionDTOs)
                                 .categoryId(quiz.getCategory() != null ? quiz.getCategory().getId() : null)
-                                .categoryName(quiz.getCategory() != null ? quiz.getCategory().getName()
-                                                : "Đề thi cá nhân")
+                                .categoryName(getCategoryFullPath(quiz.getCategory()))
                                 .quizTitle(quiz.getTitle())
                                 .build();
         }
