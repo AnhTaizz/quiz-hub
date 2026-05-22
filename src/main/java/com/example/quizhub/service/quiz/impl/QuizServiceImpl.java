@@ -201,7 +201,7 @@ public class QuizServiceImpl implements QuizService {
         User user = getCurrentUser();
         List<Long> allIds = categoryService.getAllDescendantIds(categoryId);
         return quizRepository
-                .findByCategoryIdInAndCreatorId(allIds, user.getId())
+                .findByCategoryIdInAndCreatorIdAndIsEnableTrue(allIds, user.getId())
                 .stream()
                 .map(q -> mapToSummaryDTO(q, user))
                 .collect(Collectors.toList());

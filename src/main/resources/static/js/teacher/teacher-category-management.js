@@ -79,6 +79,49 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', () => {
         document.querySelectorAll('.bc-dropdown').forEach(d => d.classList.remove('show'));
     });
+
+    // Flatpickr initialization
+    if (typeof flatpickr !== 'undefined') {
+        flatpickr('.flatpickr-datetime', {
+            enableTime: true,
+            altInput: true,
+            altFormat: "d/m/Y H:i",
+            dateFormat: "Y-m-dTH:i",
+            time_24hr: true,
+            locale: "vn",
+            allowInput: true,
+            minDate: "today"
+        });
+    }
+
+    const classroomSelect = document.getElementById('classroomIdSelect');
+    if (classroomSelect) {
+        classroomSelect.addEventListener('change', async function () {
+            const classId = this.value;
+            const topicContainer = document.getElementById('topicDropdownContainer');
+            const topicSelect = document.getElementById('assignTopicId');
+
+            topicSelect.innerHTML = '<option value="" selected>-- Không chọn chủ đề --</option>';
+            topicContainer.style.display = 'none';
+
+            if (!classId) return;
+
+            try {
+                const topics = await apiClient.get('/api/teacher/class-topics/classroom/' + classId);
+                if (topics && topics.length > 0) {
+                    topics.forEach(t => {
+                        const opt = document.createElement('option');
+                        opt.value = t.id;
+                        opt.textContent = t.name;
+                        topicSelect.appendChild(opt);
+                    });
+                    topicContainer.style.display = 'block';
+                }
+            } catch (e) {
+                console.error('Lỗi khi tải danh sách chủ đề:', e);
+            }
+        });
+    }
 });
 
 /* ══════════════════════════════════════════════
@@ -434,19 +477,20 @@ function quizCardHtml(q) {
 
     const actions = OWN_MODE
         ? `<div class="quiz-actions">
-     <a class="qact qact-edit" href="/teacher/quizzes/${q.id}/edit"><i class="bi bi-pencil-square"></i> Sửa</a>
-     <a class="qact qact-view" href="javascript:void(0)" onclick="openQuizPreviewModal('${q.id}', event)"><i class="bi bi-eye"></i> Xem</a>
-   </div>`
+              <a class="qact qact-edit" href="/teacher/quizzes/${q.id}/edit"><i class="bi bi-pencil-square"></i> Sửa</a>
+              <button class="qact qact-view" onclick="openQuizPreviewModal('${q.id}', event)"><i class="bi bi-eye"></i> Xem</button>
+              <button class="qact qact-assign" onclick="openAssignModal('${q.id}', '${escJs(q.title)}', event)"><i class="bi bi-send-fill"></i> Giao bài</button>
+              <button class="qact qact-del" onclick="deleteQuiz('${q.id}', event)" title="Xóa đề thi"><i class="bi bi-trash3"></i></button>
+           </div>`
         : `<div class="quiz-actions">
-     <a class="qact qact-view" style="flex:1;" href="javascript:void(0)" onclick="openQuizPreviewModal('${q.id}', event)"><i class="bi bi-eye"></i> Xem thử</a>
-   </div>`;
+              <button class="qact qact-view" style="flex:1;" onclick="openQuizPreviewModal('${q.id}', event)"><i class="bi bi-eye"></i> Xem thử</button>
+              <button class="qact qact-assign" onclick="openAssignModal('${q.id}', '${escJs(q.title)}', event)"><i class="bi bi-send-fill"></i> Giao bài</button>
+           </div>`;
 
-    const deleteBtn = OWN_MODE
-        ? `<button class="btn-delete-absolute" onclick="deleteQuiz('${q.id}', event)" title="Xóa đề thi"><i class="bi bi-trash3"></i></button>`
-        : '';
+    const imgUrl = q.imageUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80';
 
     return `<div class="quiz-card">
-${deleteBtn}
+<img src="${imgUrl}" alt="Cover" class="quiz-cover-img" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80'">
 <div class="quiz-badge-row">${typeBadge}</div>
 <h3 class="quiz-title">${esc(q.title) || '(Chưa có tiêu đề)'}</h3>
 <p class="quiz-desc">${esc(q.description) || '<span style="color:#cbd5e1;font-style:italic;">Chưa có mô tả.</span>'}</p>
@@ -649,7 +693,8 @@ function goCreate(mode) {
     }
 }
 
-function deleteQuiz(id) {
+function deleteQuiz(id, e) {
+    if (e) e.stopPropagation();
     showConfirmModal('Xóa đề thi?', 'Xóa đề thi này? (Soft delete, không thể khôi phục)', async () => {
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         try {
@@ -749,15 +794,7 @@ async function openQuizPreviewModal(id, event) {
     }
 }
 
-function showToast(msg, type = 'ok') {
-    const w = document.getElementById('toastWrap');
-    const t = document.createElement('div');
-    t.className = `toast-msg ${type}`;
-    t.innerHTML = `<i class="bi ${type === 'ok' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${msg}`;
-    w.appendChild(t);
-    setTimeout(() => t.classList.add('show'), 10);
-    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3500);
-}
+
 function initResize() {
     const handle = document.getElementById('resizeHandle');
     const panel = document.getElementById('treePanel');
@@ -774,4 +811,96 @@ function initResize() {
     document.addEventListener('mouseup', () => {
         dragging = false; document.body.style.cursor = ''; document.body.style.userSelect = '';
     });
+}
+
+function showToast(msg, type = 'ok') {
+    if (type === 'err' || type === 'error') toast.error(msg);
+    else if (type === 'warn' || type === 'warning') toast.warning(msg);
+    else toast.success(msg);
+}
+
+async function openAssignModal(id, title, event) {
+    if (event) event.preventDefault();
+    document.getElementById('assignForm').reset();
+    document.getElementById('assignQuizId').value = id;
+    document.getElementById('assignQuizTitle').value = title;
+
+    document.getElementById('assignTopicId').innerHTML = '<option value="" selected>-- Không chọn chủ đề --</option>';
+    document.getElementById('topicDropdownContainer').style.display = 'none';
+
+    // Set default dates
+    const now = new Date();
+    const due = new Date();
+    due.setDate(now.getDate() + 7);
+    due.setHours(23, 59, 0, 0);
+
+    // Update Flatpickr values
+    const startPicker = document.querySelector("#assignStartDate")._flatpickr;
+    const duePicker = document.querySelector("#assignDueDate")._flatpickr;
+    if (startPicker) startPicker.setDate(now);
+    if (duePicker) duePicker.setDate(due);
+
+    // Fetch classrooms
+    const select = document.getElementById('classroomIdSelect');
+    select.innerHTML = '<option value="" disabled selected>-- Chọn lớp học --</option>';
+
+    try {
+        const classrooms = await apiClient.get('/api/teacher/classrooms');
+        classrooms.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.id;
+            opt.textContent = `${c.name} (${c.code})`;
+            select.appendChild(opt);
+        });
+    } catch (err) {
+        console.error(err);
+    }
+
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('assignModal')).show();
+}
+
+async function confirmAssign() {
+    const form = document.getElementById('assignForm');
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+
+    const formData = new FormData(form);
+    const data = {};
+    formData.forEach((value, key) => {
+        if (key === 'questionShuffled' || key === 'answerShuffled' || key === 'showAnswer') {
+            data[key] = true;
+        } else {
+            data[key] = value;
+        }
+    });
+
+    // Validation
+    const start = new Date(data.startDate);
+    const due = new Date(data.dueDate);
+    const duration = parseInt(data.durationInMins);
+
+    if (due <= start) {
+        showToast('Thời gian kết thúc phải sau thời gian bắt đầu!', 'error');
+        return;
+    }
+
+    const windowMins = (due - start) / (1000 * 60);
+    if (duration > windowMins) {
+        showToast(`Thời gian làm bài (${duration} phút) không được vượt quá khoảng thời gian mở đề (${Math.floor(windowMins)} phút)!`, 'error');
+        return;
+    }
+
+    if (!data.questionShuffled) data.questionShuffled = false;
+    if (!data.answerShuffled) data.answerShuffled = false;
+    if (!data.showAnswer) data.showAnswer = false;
+
+    try {
+        await apiClient.post('/api/teacher/quiz-assigning', data);
+        bootstrap.Modal.getInstance(document.getElementById('assignModal')).hide();
+        showToast('Giao đề thi thành công!', 'ok');
+    } catch (err) {
+        showToast(err.message || 'Lỗi khi giao đề thi. Hãy thử lại!', 'err');
+    }
 }

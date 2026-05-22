@@ -1,4 +1,4 @@
-const CAT_API = '/api/student/categories/public';
+﻿const CAT_API = '/api/student/categories/public';
 const QUIZ_API = '/api/student/categories/{id}/quizzes/public';
 
 let TREE_DATA = [];
@@ -907,12 +907,10 @@ window.startAttempt = async function(quizId, title, btn) {
 function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 function escJs(s) { return s ? s.replace(/'/g, "\\'").replace(/"/g, '\\"') : ''; }
 
+
+
 function showToast(msg, type = 'ok') {
-    const w = document.getElementById('toastWrap');
-    const t = document.createElement('div');
-    t.className = `toast-msg ${type}`;
-    t.innerHTML = `<i class="bi ${type === 'ok' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> ${msg}`;
-    w.appendChild(t);
-    setTimeout(() => t.classList.add('show'), 10);
-    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3500);
+    if (type === 'err' || type === 'error') toast.error(msg);
+    else if (type === 'warn' || type === 'warning') toast.warning(msg);
+    else toast.success(msg);
 }

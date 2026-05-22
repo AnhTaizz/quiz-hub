@@ -53,7 +53,7 @@
             <!-- Joined Classes -->
             <div class="class-card" style="position: relative;" th:each="joining : ${joinedClasses}">
                 <div class="class-banner">
-                    <img th:if="${joining.classroom.imageUrl}" th:src="${joining.classroom.imageUrl}" alt="Banner">
+                    <img th:if="${joining.classroom.imageUrl}" th:src="${joining.classroom.imageUrl}" alt="Banner" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1510070112810-d4e9a46d9e91?auto=format&fit=crop&w=400&q=80'">
                     <img th:unless="${joining.classroom.imageUrl}"
                         src="https://images.unsplash.com/photo-1510070112810-d4e9a46d9e91?auto=format&fit=crop&w=400&q=80"
                         alt="Default Banner">

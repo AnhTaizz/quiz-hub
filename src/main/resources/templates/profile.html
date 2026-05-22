@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Nunito+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/toast.css}">
 
     <style>
         :root {
@@ -397,40 +398,7 @@
             background: var(--border);
         }
 
-        /* ─── TOAST ─── */
-        #toast-wrap {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
 
-        .toast-msg {
-            background: #fff;
-            padding: 14px 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.12);
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 600;
-            font-size: 14px;
-            animation: toastIn 0.3s ease;
-            min-width: 260px;
-        }
-
-        .toast-msg.success { border-left: 4px solid var(--green); }
-        .toast-msg.error   { border-left: 4px solid var(--red); }
-        .toast-msg.success i { color: var(--green); font-size: 18px; }
-        .toast-msg.error   i { color: var(--red); font-size: 18px; }
-
-        @keyframes toastIn {
-            from { transform: translateX(30px); opacity: 0; }
-            to   { transform: translateX(0); opacity: 1; }
-        }
     </style>
 </head>
 <body>
@@ -496,19 +464,38 @@
             <!-- Avatar URL + Upload file -->
             <div class="field-group">
                 <label>Ảnh đại diện</label>
-                <!-- Hidden URL input to maintain JS logic -->
-                <input type="hidden" id="avatarUrl">
-                <p class="upload-hint" style="margin-top: 0;">Định dạng hỗ trợ: JPEG, PNG, WebP (Tối đa 5MB)</p>
-                <!-- File upload -->
-                <div class="avatar-upload-row">
-                    <label class="btn-upload-file" for="avatarFileInput">
-                        <i class="bi bi-cloud-upload"></i> Tải ảnh từ máy
-                    </label>
-                    <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarFileUpload(this)">
-                    <span id="upload-file-name" style="font-size:13px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:160px;"></span>
+                <div class="d-flex gap-2 mb-2">
+                    <button type="button" id="avatarTabUpload" onclick="switchAvatarTab('upload')" class="btn btn-sm btn-primary" style="border-radius:8px; font-size:12px;">
+                        <i class="bi bi-cloud-upload me-1"></i>Tải ảnh lên
+                    </button>
+                    <button type="button" id="avatarTabUrl" onclick="switchAvatarTab('url')" class="btn btn-sm btn-outline-secondary" style="border-radius:8px; font-size:12px;">
+                        <i class="bi bi-link-45deg me-1"></i>Nhập URL
+                    </button>
                 </div>
-                <div id="upload-progress">
-                    <span class="spinner-border spinner-border-sm"></span> Đang tải lên...
+                <input type="hidden" id="avatarUrl">
+                
+                <div id="avatarPanelUpload">
+                    <p class="upload-hint" style="margin-top: 0;">Định dạng hỗ trợ: JPEG, PNG, WebP (Tối đa 5MB)</p>
+                    <div class="avatar-upload-row">
+                        <label class="btn-upload-file" for="avatarFileInput">
+                            <i class="bi bi-cloud-upload"></i> Tải ảnh từ máy
+                        </label>
+                        <input type="file" id="avatarFileInput" accept="image/*" style="display:none" onchange="handleAvatarFileUpload(this)">
+                        <span id="upload-file-name" style="font-size:13px; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:160px;"></span>
+                    </div>
+                    <div id="upload-progress">
+                        <span class="spinner-border spinner-border-sm"></span> Đang tải lên...
+                    </div>
+                </div>
+
+                <div id="avatarPanelUrl" style="display:none;">
+                    <div class="field-wrap">
+                        <i class="bi bi-link-45deg"></i>
+                        <input type="text" id="avatarUrlInput" placeholder="https://example.com/avatar.jpg" oninput="syncAvatarUrl(this.value)">
+                    </div>
+                    <div id="avatarUrlPreviewBox" class="mt-2" style="display:none;">
+                        <img id="avatarUrlPreview" src="" alt="Preview" style="max-height:80px; border-radius:8px; object-fit:cover; border:1px solid #e2e8f0;">
+                    </div>
                 </div>
             </div>
 
@@ -519,9 +506,10 @@
     </div>
 </div>
 
-<div id="toast-wrap"></div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/toast.js}"></script>
 <script>
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (!token) window.location.replace('/login');
@@ -587,8 +575,10 @@
             const phone = document.getElementById('phone').value.trim();
             const avatarUrl = document.getElementById('avatarUrl').value.trim();
 
-            if (avatarUrl && !avatarUrl.startsWith('/') && !avatarUrl.startsWith('http://') && !avatarUrl.startsWith('https://')) {
-                showToast('Đường dẫn ảnh không hợp lệ! Vui lòng nhập URL hoặc tải ảnh lên.', 'error');
+            const urlTabActive = document.getElementById('avatarPanelUrl').style.display !== 'none';
+            const urlInputValue = document.getElementById('avatarUrlInput').value.trim();
+            if (urlTabActive && urlInputValue && !avatarUrl) {
+                showToast('URL ảnh không hợp lệ hoặc chưa tải xong!', 'error');
                 btn.innerHTML = '<i class="bi bi-check2-circle"></i> Lưu thay đổi';
                 btn.disabled  = false;
                 return;
@@ -737,18 +727,49 @@
         else                         window.location.href = '/student';
     }
 
-    function showToast(msg, type) {
-        const icon = type === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill';
-        const el = document.createElement('div');
-        el.className = `toast-msg ${type}`;
-        el.innerHTML = `<i class="bi ${icon}"></i><span>${msg}</span>`;
-        document.getElementById('toast-wrap').appendChild(el);
-        setTimeout(() => {
-            el.style.transition = 'all .4s';
-            el.style.opacity = '0';
-            el.style.transform = 'translateX(30px)';
-            setTimeout(() => el.remove(), 400);
-        }, 3000);
+    function switchAvatarTab(tab) {
+        const isUpload = tab === 'upload';
+        document.getElementById('avatarPanelUpload').style.display = isUpload ? '' : 'none';
+        document.getElementById('avatarPanelUrl').style.display = isUpload ? 'none' : '';
+        document.getElementById('avatarTabUpload').className = 'btn btn-sm ' + (isUpload ? 'btn-primary' : 'btn-outline-secondary');
+        document.getElementById('avatarTabUrl').className = 'btn btn-sm ' + (!isUpload ? 'btn-primary' : 'btn-outline-secondary');
+        
+        document.getElementById('avatarUrl').value = '';
+        if (isUpload) {
+            document.getElementById('upload-file-name').textContent = '';
+        } else {
+            document.getElementById('avatarUrlInput').value = '';
+            document.getElementById('avatarUrlPreviewBox').style.display = 'none';
+        }
+    }
+
+    function syncAvatarUrl(val) {
+        document.getElementById('avatarUrl').value = '';
+        const box = document.getElementById('avatarUrlPreviewBox');
+        const img = document.getElementById('avatarUrlPreview');
+        const urlInput = document.getElementById('avatarUrlInput');
+        urlInput.classList.remove('is-valid', 'is-invalid');
+        if (val.trim()) {
+            box.style.display = '';
+            img.onload = () => {
+                document.getElementById('avatarUrl').value = val.trim();
+                urlInput.classList.remove('is-invalid');
+                urlInput.classList.add('is-valid');
+                renderAvatar(val.trim(), document.getElementById('fullName').value);
+            };
+            img.onerror = () => {
+                box.style.display = 'none';
+                urlInput.classList.remove('is-valid');
+                urlInput.classList.add('is-invalid');
+            };
+            img.src = val.trim();
+        } else { box.style.display = 'none'; }
+    }
+
+    function showToast(msg, type = "success") {
+        if (type === "error" || type === "err") toast.error(msg);
+        else if (type === "warning" || type === "warn") toast.warning(msg);
+        else toast.success(msg);
     }
 
     loadProfile();

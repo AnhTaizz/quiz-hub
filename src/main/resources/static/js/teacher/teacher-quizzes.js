@@ -161,19 +161,9 @@ function esc(s) {
 }
 
 function showToast(msg, type = 'ok') {
-    const wrap = document.getElementById('toastWrap');
-    if (!wrap) return;
-
-    const el = document.createElement('div');
-    el.className = `toast-msg ${type}`;
-    el.innerHTML = `<i class="bi ${type === 'ok' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'}"></i> <span>${msg}</span>`;
-
-    wrap.appendChild(el);
-    setTimeout(() => el.classList.add('show'), 10);
-    setTimeout(() => {
-        el.classList.remove('show');
-        setTimeout(() => el.remove(), 300);
-    }, 3000);
+    if (type === 'err' || type === 'error') toast.error(msg);
+    else if (type === 'warn' || type === 'warning') toast.warning(msg);
+    else toast.success(msg);
 }
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -650,7 +650,10 @@ function quizCardHtml(q) {
              <a class="qact qact-view" style="flex:1;" href="/teacher/quizzes/${q.id}/preview"><i class="bi bi-eye"></i> Xem thử</a>
            </div>`;
 
+    const imgUrl = q.imageUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80';
+
     return `<div class="quiz-card">
+        <img src="${imgUrl}" alt="Cover" class="quiz-cover-img" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80'">
         <div class="quiz-badge-row">${typeBadge}</div>
         <h3 class="quiz-title">${esc(q.title) || '(Chưa có tiêu đề)'}</h3>
         <p class="quiz-desc">${esc(q.description) || '<span style="color:#cbd5e1;font-style:italic;">Chưa có mô tả.</span>'}</p>
@@ -882,15 +885,7 @@ function findNode(nodes, id) {
 }
 function esc(s) { const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
 function escJs(s) { return s ? s.replace(/'/g, "\\'").replace(/"/g, '\\"') : ''; }
-function showToast(msg, type='ok') {
-    const w = document.getElementById('toastWrap');
-    const t = document.createElement('div');
-    t.className = `toast-msg ${type}`;
-    t.innerHTML = `<i class="bi ${type==='ok'?'bi-check-circle-fill':'bi-exclamation-circle-fill'}"></i> ${msg}`;
-    w.appendChild(t);
-    setTimeout(() => t.classList.add('show'), 10);
-    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 3500);
-}
+
 function initResize() {
     const handle = document.getElementById('resizeHandle');
     const panel  = document.getElementById('treePanel');
@@ -906,4 +901,10 @@ function initResize() {
     document.addEventListener('mouseup', () => {
         dragging=false; document.body.style.cursor=''; document.body.style.userSelect='';
     });
+}
+
+function showToast(msg, type = 'ok') {
+    if (type === 'err' || type === 'error') toast.error(msg);
+    else if (type === 'warn' || type === 'warning') toast.warning(msg);
+    else toast.success(msg);
 }

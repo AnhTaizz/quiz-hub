@@ -28,6 +28,7 @@ public interface AttemptRepository extends JpaRepository<Attempt, Long> {
     List<Attempt> findByQuizTakingLearnerId(Long learnerId);
     List<Attempt> findByQuizTakingLearnerIdAndEndedAtIsNotNull(Long learnerId);
     List<Attempt> findByQuizTakingLearnerIdAndEndedAtIsNotNullOrderByStartedAtDesc(Long learnerId);
+    List<Attempt> findByQuizTakingLearnerIdOrderByStartedAtDesc(Long learnerId);
 
     @Query("SELECT a FROM Attempt a WHERE a.endedAt IS NULL AND a.quizTaking.quizAssigning.dueDate < :now")
     List<Attempt> findExpiredAttemptsByDueDate(@Param("now") LocalDateTime now);

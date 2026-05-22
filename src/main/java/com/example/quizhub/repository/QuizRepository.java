@@ -31,17 +31,17 @@ public interface QuizRepository extends JpaRepository<Quiz, UUID> {
 
     /** Quiz của một người dùng cụ thể theo danh mục (bao gồm cả draft) */
     @EntityGraph(attributePaths = {"category", "creator"})
-    List<Quiz> findByCategoryIdAndCreatorId(Long categoryId, Long creatorId);
+    List<Quiz> findByCategoryIdAndCreatorIdAndIsEnableTrue(Long categoryId, Long creatorId);
     @EntityGraph(attributePaths = {"category", "creator"})
-    List<Quiz> findByCategoryIdInAndCreatorId(List<Long> categoryIds, Long creatorId);
+    List<Quiz> findByCategoryIdInAndCreatorIdAndIsEnableTrue(List<Long> categoryIds, Long creatorId);
 
     /** Đếm quiz công khai theo danh mục (để hiển thị badge count) */
     long countByCategoryIdAndIsDraftFalseAndIsEnableTrue(Long categoryId);
     long countByCategoryIdInAndIsDraftFalseAndIsEnableTrue(List<Long> categoryIds);
 
     /** Đếm quiz cá nhân theo danh mục */
-    long countByCategoryIdAndCreatorId(Long categoryId, Long creatorId);
-    long countByCategoryIdInAndCreatorId(List<Long> categoryIds, Long creatorId);
+    long countByCategoryIdAndCreatorIdAndIsEnableTrue(Long categoryId, Long creatorId);
+    long countByCategoryIdInAndCreatorIdAndIsEnableTrue(List<Long> categoryIds, Long creatorId);
 
     List<Quiz> findByCategoryId(Long categoryId);
 

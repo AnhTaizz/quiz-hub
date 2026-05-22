@@ -96,6 +96,7 @@
         <style th:replace="~{layout/header :: notification-styles}"></style>
         <script th:replace="~{layout/header :: change-password-script}"></script>
         <script th:replace="~{layout/header :: notification-scripts}"></script>
+        <th:block th:replace="~{layout/header :: toast-dependencies}"></th:block>
     </th:block>
 
     <header th:fragment="teacher-header" id="header-nav">
@@ -132,6 +133,7 @@
         <style th:replace="~{layout/header :: notification-styles}"></style>
 
         <script th:replace="~{layout/header :: logout-script}"></script>
+        <th:block th:replace="~{layout/header :: toast-dependencies}"></th:block>
     </header>
 
     <!-- Notification Styles (Dùng chung cho tất cả header) -->
@@ -139,10 +141,7 @@
         <link rel="stylesheet" th:href="@{/css/layout/notifications.css}">
     </th:block>
 
-    <!-- Toast Notification Dependencies -->
-    <link rel="stylesheet" th:href="@{/css/toast.css}">
-    <script th:src="@{/js/toast.js}"></script>
-    </header>
+
 
     <header th:fragment="admin-header" id="header-nav">
         <div class="header-left">
@@ -177,6 +176,7 @@
         <style th:replace="~{layout/header :: notification-styles}"></style>
         <script th:replace="~{layout/header :: notification-scripts}"></script>
         <script th:replace="~{layout/header :: logout-script}"></script>
+        <th:block th:replace="~{layout/header :: toast-dependencies}"></th:block>
     </header>
 
     <!-- Change Password Modal (dùng chung cho teacher) -->
@@ -286,6 +286,7 @@
         <style th:replace="~{layout/header :: notification-styles}"></style>
         <script th:replace="~{layout/header :: change-password-script}"></script>
         <script th:replace="~{layout/header :: notification-scripts}"></script>
+        <th:block th:replace="~{layout/header :: toast-dependencies}"></th:block>
     </th:block>
 
     <th:block th:fragment="logout-script">
@@ -348,6 +349,13 @@
     </th:block>
     <div id="toast-container"></div>
 
+
+
+    <!-- Toast Notification Dependencies -->
+    <th:block th:fragment="toast-dependencies">
+        <link rel="stylesheet" th:href="@{/css/toast.css}">
+        <script th:src="@{/js/toast.js}"></script>
+    </th:block>
 </body>
 
 </html>

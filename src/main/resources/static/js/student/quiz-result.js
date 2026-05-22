@@ -1,4 +1,4 @@
-const attemptId = document.body.dataset.attemptId;
+﻿const attemptId = document.body.dataset.attemptId;
 
 document.addEventListener('DOMContentLoaded', fetchResult);
 
@@ -56,6 +56,11 @@ async function fetchResult() {
 function renderSummary(data) {
     document.getElementById('scoreValue').textContent = data.score.toFixed(1);
     document.getElementById('quizTitle').textContent = data.quizTitle;
+    
+    const headerTitle = document.getElementById('headerQuizTitle');
+    if (headerTitle) {
+        headerTitle.textContent = data.quizTitle;
+    }
     
     if (data.correctNum !== null) {
         document.getElementById('correctCount').textContent = data.correctNum;

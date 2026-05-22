@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     if (!token) { window.location.replace('/login'); return; }
 
@@ -188,14 +188,7 @@ async function confirmChangeStatus() {
     } catch (err) { showToast('Lỗi kết nối.', 'error'); }
 }
 
-function showToast(msg, type) {
-    const wrap = document.getElementById('toast-wrap');
-    const el = document.createElement('div');
-    el.className = `toast-msg ${type}`;
-    el.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> <span>${msg}</span>`;
-    wrap.appendChild(el);
-    setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(20px)'; setTimeout(() => el.remove(), 400); }, 3000);
-}
+
 
 async function loadChips() {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -430,4 +423,10 @@ function togglePass(id, btn) {
         input.type = 'password';
         icon.className = 'bi bi-eye';
     }
+}
+
+function showToast(msg, type = 'ok') {
+    if (type === 'err' || type === 'error') toast.error(msg);
+    else if (type === 'warn' || type === 'warning') toast.warning(msg);
+    else toast.success(msg);
 }

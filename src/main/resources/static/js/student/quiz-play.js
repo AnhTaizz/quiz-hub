@@ -1,4 +1,4 @@
-const assigningId = document.body.dataset.assigningId;
+﻿const assigningId = document.body.dataset.assigningId;
 let quizData = null;
 let currentIndex = 0;
 let userAnswers = {}; // questionId -> [answerIds] or string
@@ -587,15 +587,8 @@ async function logViolation(code, isBeacon = false) {
     }
 }
 
-function showToast(msg, type = 'ok') {
-    const wrap = document.getElementById('toastWrap');
-    if (!wrap) return;
-    const t = document.createElement('div');
-    t.className = `toast-msg show ${type}`;
-    t.innerHTML = `<i class="bi ${type === 'ok' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}"></i> <span>${msg}</span>`;
-    wrap.appendChild(t);
-    setTimeout(() => {
-        t.classList.remove('show');
-        setTimeout(() => t.remove(), 300);
-    }, 3000);
-}
+    function showToast(msg, type = 'ok') {
+        if (type === 'err' || type === 'error') toast.error(msg);
+        else if (type === 'warn' || type === 'warning') toast.warning(msg);
+        else toast.success(msg);
+    }

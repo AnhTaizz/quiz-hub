@@ -64,7 +64,7 @@ public class User implements UserDetails {
     @Column(length = 15)
     String phone;
 
-    @Column(name = "avatar_url", length = 500)
+    @Column(name = "avatar_url", columnDefinition = "TEXT")
     String avatarUrl;
 
     @Column(length = 255)

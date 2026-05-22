@@ -254,13 +254,9 @@
         }
 
         function showToast(msg, type = 'ok') {
-            const container = document.getElementById('toastWrap');
-            if (!container) return;
-            const t = document.createElement('div');
-            t.className = `alert alert-${type === 'ok' ? 'success' : 'danger'} shadow border-0 py-2 px-3 rounded-3 fw-bold small mb-2`;
-            t.innerHTML = `<i class="bi bi-${type === 'ok' ? 'check-circle' : 'exclamation-circle'} me-2"></i>${msg}`;
-            container.appendChild(t);
-            setTimeout(() => t.remove(), 3000);
+            if (type === 'err') toast.error(msg);
+            else if (type === 'warn') toast.warning(msg);
+            else toast.success(msg);
         }
 
         // --- 2. Excel Flow ---

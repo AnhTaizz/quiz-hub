@@ -16,6 +16,7 @@ import com.example.quizhub.security.JwtAuthenticationFilter;
 import com.example.quizhub.security.CustomAccessDeniedHandler;
 import com.example.quizhub.security.OAuth2AuthenticationSuccessHandler;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 
 import lombok.RequiredArgsConstructor;
 
@@ -46,10 +47,13 @@ public class SecurityConfig {
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 http
                                 // Kích hoạt CSRF nhưng bỏ qua các REST API (Stateless)
-                                .csrf(csrf -> csrf
-                                                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                                                .ignoringRequestMatchers("/api/**")
-                                )
+                                .csrf(csrf -> {
+                                        CsrfTokenRequestAttributeHandler requestHandler = new CsrfTokenRequestAttributeHandler();
+                                        requestHandler.setCsrfRequestAttributeName("_csrf");
+                                        csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                                                        .csrfTokenRequestHandler(requestHandler)
+                                                        .ignoringRequestMatchers("/api/**");
+                                })
 
                                 // Phân quyền theo HTTP path
                                 .authorizeHttpRequests(auth -> auth
@@ -65,8 +69,10 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/teacher/**").hasAnyRole("ADMIN", "TEACHER")
 
                                                 // ADMIN, TEACHER hoặc STUDENT
-                                                .requestMatchers("/student/**").hasAnyRole("ADMIN", "TEACHER", "STUDENT")
-                                                .requestMatchers("/api/student/**").hasAnyRole("ADMIN", "TEACHER", "STUDENT")
+                                                .requestMatchers("/student/**")
+                                                .hasAnyRole("ADMIN", "TEACHER", "STUDENT")
+                                                .requestMatchers("/api/student/**")
+                                                .hasAnyRole("ADMIN", "TEACHER", "STUDENT")
 
                                                 // Tất cả request còn lại phải authenticated
                                                 .anyRequest().authenticated())
@@ -74,8 +80,7 @@ public class SecurityConfig {
                                 // Google OAuth2
                                 .oauth2Login(oauth2 -> oauth2
                                                 .loginPage("/login")
-                                                .successHandler(oAuth2AuthenticationSuccessHandler)
-                                )
+                                                .successHandler(oAuth2AuthenticationSuccessHandler))
 
                                 // Cho phép tạo session khi cần thiết (đặc biệt cho luồng OAuth2)
                                 .sessionManagement(session -> session

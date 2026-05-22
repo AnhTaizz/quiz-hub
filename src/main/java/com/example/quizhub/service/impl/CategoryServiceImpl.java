@@ -105,7 +105,7 @@ public class CategoryServiceImpl implements CategoryService {
     private void attachMyQuizCount(List<CategoryResponseDTO> dtos, Long creatorId, List<Category> allCategories) {
         for (CategoryResponseDTO dto : dtos) {
             List<Long> allIds = getAllDescendantIds(dto.getId(), allCategories);
-            long count = quizRepository.countByCategoryIdInAndCreatorId(allIds, creatorId);
+            long count = quizRepository.countByCategoryIdInAndCreatorIdAndIsEnableTrue(allIds, creatorId);
             dto.setQuizCount(count);
             if (dto.getChildren() != null) attachMyQuizCount(dto.getChildren(), creatorId, allCategories);
         }

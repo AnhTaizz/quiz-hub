@@ -1,4 +1,4 @@
-let page = 0;
+﻿let page = 0;
 let size = 10;
 let lastTotalElements = 0;
 let selectedQuestionId = null;
@@ -541,15 +541,7 @@ function rejectQuestion(questionId) {
 }
 
 
-function showToast(msg, type) {
-    const toastWrap = document.getElementById('toast-wrap');
-    const toast = document.createElement('div');
-    toast.className = `toast-msg mb-2`;
-    toast.style.borderLeftColor = type === 'success' ? 'var(--green)' : 'var(--red)';
-    toast.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle-fill text-success' : 'exclamation-circle-fill text-danger'}"></i><span>${msg}</span>`;
-    toastWrap.appendChild(toast);
-    setTimeout(() => toast.remove(), 4000);
-}
+
 
 function escapeHTML(str) {
     if (!str) return '';
@@ -561,4 +553,10 @@ function escapeHTML(str) {
 function escapeJS(str) {
     if (!str) return '';
     return str.replace(/'/g, "\\'");
+}
+
+function showToast(msg, type = 'ok') {
+    if (type === 'err' || type === 'error') toast.error(msg);
+    else if (type === 'warn' || type === 'warning') toast.warning(msg);
+    else toast.success(msg);
 }

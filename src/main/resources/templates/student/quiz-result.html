@@ -17,7 +17,23 @@
         <p class="fw-bold text-muted">Đang tải kết quả bài thi...</p>
     </div>
 
-    <header th:replace="~{layout/header :: student-header(activePage='history')}"></header>
+    <nav class="practice-nav">
+        <h1 class="logo mb-0">
+            <a href="/student">
+                <i class="bi bi-layers-fill logo-icon"></i>
+                Quiz<span class="hub">Hub</span>
+            </a>
+        </h1>
+        <div class="practice-title-wrap">
+            <p class="practice-category" id="topCategoryName">Kết quả bài thi</p>
+            <h1 class="practice-session-title" id="headerQuizTitle">Đang tải...</h1>
+        </div>
+        <div class="practice-actions d-flex gap-2">
+            <a href="/student" class="btn-exit" style="text-decoration: none;">
+                <i class="bi bi-box-arrow-left"></i> <span>Về trang chủ</span>
+            </a>
+        </div>
+    </nav>
 
     <div class="container" style="margin-top: 110px; margin-bottom: 50px;">
         <!-- Summary Section -->
@@ -43,12 +59,6 @@
                 </div>
             </div>
 
-            <div class="mt-2 pt-3 border-top w-100 d-flex justify-content-center">
-                <button id="btnBackToOrigin" class="btn btn-primary btn-lg rounded-pill px-5 fw-bold shadow-sm d-flex align-items-center gap-2" style="background: linear-gradient(135deg, #4f46e5, #3b82f6); border: none;">
-                    <i id="btnBackIcon" class="bi bi-arrow-left-short fs-4"></i>
-                    <span id="btnBackText">Quay lại</span>
-                </button>
-            </div>
         </div>
 
         <!-- Review Section -->

@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
     // --- Configurations ---
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     const getClassroomId = () => window.CLASSROOM_ID || 0;
@@ -18,18 +18,9 @@
     const esc = escapeHTML;
 
     function showToast(msg, type = 'ok') {
-        const w = document.getElementById('toastWrap') || document.body;
-        const t = document.createElement('div');
-        t.className = `toast-msg ${type}`;
-        t.style = `position:fixed; top:20px; right:20px; z-index:9999; padding:12px 24px; border-radius:12px; background:#10b981; color:#fff; font-weight:700; opacity:0; transition:all 0.3s ease; box-shadow:0 10px 25px rgba(0,0,0,0.15);`;
-        if (type === 'error') t.style.background = '#ef4444';
-        t.innerHTML = `<i class="bi ${type === 'ok' ? 'bi-check-circle-fill' : 'bi-exclamation-circle-fill'} me-2"></i> ${msg}`;
-        w.appendChild(t);
-        setTimeout(() => t.style.opacity = '1', 10);
-        setTimeout(() => {
-            t.style.opacity = '0';
-            setTimeout(() => t.remove(), 300);
-        }, 2500);
+        if (type === 'err' || type === 'error') toast.error(msg);
+        else if (type === 'warn' || type === 'warning') toast.warning(msg);
+        else toast.success(msg);
     }
 
     function showConfirmModal(title, message, onConfirm) {

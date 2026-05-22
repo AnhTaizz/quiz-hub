@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -29,6 +30,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain)
             throws ServletException, IOException {
+
+        // Force CSRF token to be generated and cookie to be written on first request
+        CsrfToken csrfToken = (CsrfToken) request.getAttribute(CsrfToken.class.getName());
+        if (csrfToken != null) {
+            csrfToken.getToken();
+        }
 
         if (request.getRequestURI().startsWith("/login/oauth2/")) {
             filterChain.doFilter(request, response);
@@ -70,14 +77,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (!userDetails.isEnabled()) {
                     // Tài khoản bị khoá -> Xóa phiên làm việc
                     SecurityContextHolder.clearContext();
-                    
+
                     if (request.getRequestURI().startsWith("/api/")) {
                         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                         response.setContentType("application/json; charset=UTF-8");
                         response.getWriter().write("{\"message\":\"Tài khoản của bạn đã bị khóa.\"}");
                     } else {
                         response.setContentType("text/html; charset=UTF-8");
-                        response.getWriter().write("<script>localStorage.clear(); sessionStorage.clear(); document.cookie = 'jwt=; path=/; max-age=0;'; window.location.href='/login?error=locked';</script>");
+                        response.getWriter().write(
+                                "<script>localStorage.clear(); sessionStorage.clear(); document.cookie = 'jwt=; path=/; max-age=0;'; window.location.href='/login?error=locked';</script>");
                     }
                     return; // Chặn yêu cầu đi tiếp
                 } else {

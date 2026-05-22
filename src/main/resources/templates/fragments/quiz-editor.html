@@ -47,19 +47,43 @@
                 </div>
 
                 <div class="mb-0">
-                    <label class="form-label small fw-bold text-secondary mb-1">Ảnh minh họa (Tải lên)</label>
-                    <div class="input-group mb-2">
-                        <label class="btn btn-light border-end-0 mb-0 d-flex align-items-center" for="quizImageFileInput"
-                            style="border-radius: 12px 0 0 12px; border-color: #e2e8f0; background: #f8fafc; cursor: pointer;">
-                            <i class="bi bi-cloud-upload text-indigo me-1"></i> Tải ảnh
-                        </label>
-                        <input type="file" id="quizImageFileInput" accept="image/*" style="display:none" onchange="handleQuizImageUpload(this)">
-                        
-                        <input type="hidden" id="quiz-image">
-                        <input type="text" id="quiz-image-display" class="form-control fc bg-white"
-                            placeholder="Chưa có ảnh" readonly
-                            style="border-radius:0 12px 12px 0; width: auto; flex: 1; border-color: #e2e8f0;">
+                    <label class="form-label small fw-bold text-secondary mb-1">Ảnh minh họa</label>
+                    <!-- Tab chọn hình thức nhập ảnh -->
+                    <div class="d-flex gap-2 mb-2">
+                        <button type="button" id="quizTabUpload" onclick="switchQuizImageTab('upload')"
+                            class="btn btn-sm btn-primary" style="border-radius:8px; font-size:12px;">
+                            <i class="bi bi-cloud-upload me-1"></i>Tải ảnh lên
+                        </button>
+                        <button type="button" id="quizTabUrl" onclick="switchQuizImageTab('url')"
+                            class="btn btn-sm btn-outline-secondary" style="border-radius:8px; font-size:12px;">
+                            <i class="bi bi-link-45deg me-1"></i>Nhập URL
+                        </button>
                     </div>
+                    <!-- Panel upload file -->
+                    <div id="quizPanelUpload">
+                        <div class="input-group mb-2">
+                            <label class="btn btn-light border-end-0 mb-0 d-flex align-items-center" for="quizImageFileInput"
+                                style="border-radius:12px 0 0 12px; border-color:#e2e8f0; background:#f8fafc; cursor:pointer;">
+                                <i class="bi bi-cloud-upload text-indigo me-1"></i>Chọn file
+                            </label>
+                            <input type="file" id="quizImageFileInput" accept="image/*" style="display:none" onchange="handleQuizImageUpload(this)">
+                            <input type="text" id="quiz-image-display" class="form-control fc bg-white"
+                                placeholder="Chưa chọn file..." readonly
+                                style="border-radius:0 12px 12px 0; width:auto; flex:1; border-color:#e2e8f0;">
+                        </div>
+                    </div>
+                    <!-- Panel nhập URL -->
+                    <div id="quizPanelUrl" style="display:none;">
+                        <input type="text" id="quizImageUrlInput" class="form-control fc mb-1"
+                            placeholder="https://example.com/image.jpg"
+                            oninput="syncQuizImageUrl(this.value)"
+                            style="border-radius:12px; border-color:#e2e8f0;">
+                        <div id="quizUrlPreviewBox" class="mt-1" style="display:none;">
+                            <img id="quizUrlPreview" src="" alt="Preview"
+                                style="max-height:70px; border-radius:8px; object-fit:cover; border:1px solid #e2e8f0;">
+                        </div>
+                    </div>
+                    <input type="hidden" id="quiz-image">
                     <input type="hidden" id="quiz-isExam" value="false">
                     <input type="hidden" id="quiz-isDraft" value="false">
                 </div>
@@ -242,16 +266,9 @@
             }
 
             function showToast(msg, type = 'ok') {
-                const wrap = document.getElementById('toastWrap');
-                if (!wrap) { console.log('Toast:', msg); return; }
-                const el = document.createElement('div');
-                el.className = `toast-msg show ${type}`;
-                el.innerHTML = `<i class="bi ${type === 'ok' ? 'bi-check-circle-fill' : 'bi-exclamation-triangle-fill'}"></i> ${msg}`;
-                wrap.appendChild(el);
-                setTimeout(() => {
-                    el.classList.remove('show');
-                    setTimeout(() => el.remove(), 400);
-                }, 3000);
+                if (type === 'err' || type === 'error') toast.error(msg);
+                else if (type === 'warn' || type === 'warning') toast.warning(msg);
+                else toast.success(msg);
             }
 
             window.handleQuizImageUpload = async function(input) {
@@ -290,6 +307,43 @@
                     showToast(err.message, 'err');
                     document.getElementById('quiz-image-display').value = 'Lỗi tải ảnh';
                 }
+            };
+
+            window.switchQuizImageTab = function(tab) {
+                const isUpload = tab === 'upload';
+                document.getElementById('quizPanelUpload').style.display = isUpload ? '' : 'none';
+                document.getElementById('quizPanelUrl').style.display   = isUpload ? 'none' : '';
+                document.getElementById('quizTabUpload').className = 'btn btn-sm ' + (isUpload ? 'btn-primary' : 'btn-outline-secondary');
+                document.getElementById('quizTabUrl').className    = 'btn btn-sm ' + (!isUpload ? 'btn-primary' : 'btn-outline-secondary');
+                document.getElementById('quiz-image').value = '';
+                if (isUpload) { document.getElementById('quiz-image-display').value = ''; }
+                else {
+                    document.getElementById('quizImageUrlInput').value = '';
+                    document.getElementById('quizUrlPreviewBox').style.display = 'none';
+                }
+            };
+
+            window.syncQuizImageUrl = function(val) {
+                document.getElementById('quiz-image').value = '';
+                const box = document.getElementById('quizUrlPreviewBox');
+                const img = document.getElementById('quizUrlPreview');
+                const urlInput = document.getElementById('quizImageUrlInput');
+                urlInput.classList.remove('is-valid', 'is-invalid');
+                if (val.trim()) {
+                    box.style.display = '';
+                    img.onload = () => {
+                        document.getElementById('quiz-image').value = val.trim();
+                        urlInput.classList.remove('is-invalid');
+                        urlInput.classList.add('is-valid');
+                        box.style.display = '';
+                    };
+                    img.onerror = () => {
+                        box.style.display = 'none';
+                        urlInput.classList.remove('is-valid');
+                        urlInput.classList.add('is-invalid');
+                    };
+                    img.src = val.trim();
+                } else { box.style.display = 'none'; }
             };
 
             document.addEventListener('DOMContentLoaded', async () => {
@@ -518,6 +572,12 @@
             }
 
             window.saveQuiz = async function () {
+                const urlTabActive = document.getElementById('quizPanelUrl').style.display !== 'none';
+                const urlInputValue = document.getElementById('quizImageUrlInput').value.trim();
+                if (urlTabActive && urlInputValue && !document.getElementById('quiz-image').value.trim()) {
+                    showToast('URL \u1ea3nh kh\u00f4ng h\u1ee3p l\u1ec7 ho\u1eb7c ch\u01b0a t\u1ea3i xong!', 'err');
+                    return;
+                }
                 const title = document.getElementById('quiz-title').value.trim();
                 const categoryId = document.getElementById('quiz-category').value;
                 if (!title || !categoryId) { showToast('Nhập tiêu đề và chọn danh mục!', 'err'); return; }

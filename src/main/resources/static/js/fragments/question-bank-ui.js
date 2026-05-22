@@ -1,4 +1,4 @@
-(function() {
+﻿(function() {
     // Configuration Binding via Global Config
     const USER_TYPE = (window.QUESTION_BANK_CONFIG && window.QUESTION_BANK_CONFIG.userType) 
         ? window.QUESTION_BANK_CONFIG.userType 
@@ -28,13 +28,7 @@
         if (!str) return "";
         return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
     }
-    function showToast(msg, type = 'success') {
-        var wrap = document.getElementById('toast-wrap');
-        if (!wrap) return;
-        var id = 't-' + Date.now();
-        wrap.insertAdjacentHTML('beforeend', '<div id="' + id + '" class="toast-card ' + type + '"><i class="bi bi-' + (type === 'success' ? 'check-circle' : 'exclamation-triangle') + '-fill"></i><span>' + msg + '</span></div>');
-        setTimeout(function() { var el = document.getElementById(id); if(el) el.remove(); }, 3500);
-    }
+
 
     // --- Expose functions to global window context for direct HTML event bindings ---
     
@@ -545,3 +539,9 @@
         }
     });
 })();
+
+function showToast(msg, type = 'ok') {
+    if (type === 'err' || type === 'error') toast.error(msg);
+    else if (type === 'warn' || type === 'warning') toast.warning(msg);
+    else toast.success(msg);
+}

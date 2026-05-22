@@ -303,9 +303,9 @@ public class StudentHomeController {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User student = userRepository.findByEmail(email).orElseThrow();
 
-        // Get all finished quiz attempts
+        // Get all quiz attempts (including unfinished)
         List<Attempt> quizAttempts = attemptRepository
-                .findByQuizTakingLearnerIdAndEndedAtIsNotNullOrderByStartedAtDesc(student.getId());
+                .findByQuizTakingLearnerIdOrderByStartedAtDesc(student.getId());
 
         // Get all practice sessions (DTOs with answered count)
         List<com.example.quizhub.dto.practice.PracticeHistoryResponseDTO> practiceHistory = practiceService.getMyPracticeHistory();

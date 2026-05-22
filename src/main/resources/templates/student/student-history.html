@@ -60,9 +60,12 @@
                                 <div
                                     class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
                                     <div class="d-flex align-items-center gap-4">
-                                        <div th:class="'score-badge ' + (${attempt.result >= 8} ? 'score-high' : (${attempt.result >= 5} ? 'score-mid' : 'score-low'))"
+                                        <div th:if="${attempt.endedAt != null}" th:class="'score-badge ' + (${attempt.result >= 8} ? 'score-high' : (${attempt.result >= 5} ? 'score-mid' : 'score-low'))"
                                             th:text="${attempt.result}">
                                             0.0
+                                        </div>
+                                        <div th:if="${attempt.endedAt == null}" class="icon-box bg-warning bg-opacity-10 text-warning d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; border-radius: 12px; font-size: 1.5rem; flex-shrink: 0;">
+                                            <i class="bi bi-hourglass-split"></i>
                                         </div>
                                         <div>
                                             <h5 class="fw-bold mb-1" th:text="${attempt.quizTaking.quiz.title}">Tên đề
@@ -84,16 +87,30 @@
                                                 th:text="${attempt.endedAt != null ? (T(java.time.Duration).between(attempt.startedAt, attempt.endedAt).toMinutes()) + ' phút' : '--'}">
                                                 --</div>
                                         </div>
-                                        <a th:if="${attempt.quizTaking.quizAssigning != null}"
-                                            th:href="@{'/student/quiz/result/' + ${attempt.id}}"
-                                            class="btn-view text-decoration-none">
-                                            Xem chi tiết <i class="bi bi-chevron-right ms-1"></i>
-                                        </a>
-                                        <a th:if="${attempt.quizTaking.quizAssigning == null}"
-                                            th:href="@{'/student/quiz/result?attemptId=' + ${attempt.id}}"
-                                            class="btn-view text-decoration-none">
-                                            Xem chi tiết <i class="bi bi-chevron-right ms-1"></i>
-                                        </a>
+                                        <th:block th:if="${attempt.endedAt != null}">
+                                            <a th:if="${attempt.quizTaking.quizAssigning != null}"
+                                                th:href="@{'/student/quiz/result/' + ${attempt.id}}"
+                                                class="btn-view text-decoration-none">
+                                                Xem chi tiết <i class="bi bi-chevron-right ms-1"></i>
+                                            </a>
+                                            <a th:if="${attempt.quizTaking.quizAssigning == null}"
+                                                th:href="@{'/student/quiz/result?attemptId=' + ${attempt.id}}"
+                                                class="btn-view text-decoration-none">
+                                                Xem chi tiết <i class="bi bi-chevron-right ms-1"></i>
+                                            </a>
+                                        </th:block>
+                                        <th:block th:if="${attempt.endedAt == null}">
+                                            <a th:if="${attempt.quizTaking.quizAssigning != null}"
+                                                th:href="@{'/student/quiz/play/' + ${attempt.quizTaking.quizAssigning.id}}"
+                                                class="btn btn-warning fw-bold shadow-sm" style="border-radius: 12px; padding: 10px 20px;">
+                                                <i class="bi bi-play-fill me-1"></i> Làm tiếp
+                                            </a>
+                                            <a th:if="${attempt.quizTaking.quizAssigning == null}"
+                                                th:href="@{'/student/quiz/play?attemptId=' + ${attempt.id}}"
+                                                class="btn btn-warning fw-bold shadow-sm" style="border-radius: 12px; padding: 10px 20px;">
+                                                <i class="bi bi-play-fill me-1"></i> Làm tiếp
+                                            </a>
+                                        </th:block>
                                     </div>
                                 </div>
                             </div>

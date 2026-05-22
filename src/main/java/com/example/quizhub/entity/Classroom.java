@@ -51,7 +51,7 @@ public class Classroom {
     @Column(length = 128)
     String description;
 
-    @Column(name = "imageurl", length = 255)
+    @Column(name = "imageurl", columnDefinition = "TEXT")
     String imageUrl;
 
     @Column(name = "is_draft")
