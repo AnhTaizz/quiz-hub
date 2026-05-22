@@ -222,7 +222,7 @@ async function loadCategory(id) {
             <div class="p-4 bg-white rounded-4 border shadow-sm d-flex flex-column" style="border-color:#e2e8f0 !important;">
                 <div class="mb-3 d-flex align-items-center justify-content-between">
                     <div>
-                        <h4 class="fw-bold mb-1" style="color:#1e1b4b;"><i class="bi bi-joystick text-primary me-2"></i>Chế độ Tự Luyện: <span id="practiceCatName">${esc(node.name)}</span></h4>
+                        <h4 class="fw-bold mb-1" style="color:#1e1b4b;"><i class="bi bi-joystick text-primary me-2"></i>Chế độ Tự Luyện: <span id="practiceCatName">${esc(navStack.map(i => i.name).join(' > '))}</span></h4>
                         <p class="text-muted mb-0" style="font-size:0.85rem;">Hệ thống sẽ bốc ngẫu nhiên câu hỏi trong danh mục này để bạn luyện tập.</p>
                     </div>
                     <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold" style="font-size: 0.85rem;">

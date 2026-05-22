@@ -24,4 +24,11 @@ public interface CategoryService {
     void deleteCategory(Long id);
 
     List<Long> getAllDescendantIds(Long categoryId);
+
+    /**
+     * Trả về danh sách flat tất cả danh mục (kể cả private/teacher) với fullPath
+     * để hiển thị trong dropdown filter. Dùng ID làm key, tránh nhầm lẫn trùng tên.
+     */
+    List<CategoryResponseDTO> getAllCategoriesFlat();
 }
+

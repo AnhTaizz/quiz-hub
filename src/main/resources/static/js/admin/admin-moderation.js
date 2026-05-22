@@ -6,9 +6,11 @@ let publicCategories = [];
 let selectedIds = [];
 let isSelectAllResults = false;
 let isBulkMode = false;
+let allPrivateCategories = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     fetchCategories();
+    fetchCategoriesForFilter();
     fetchPendingQuestions();
 });
 
@@ -23,6 +25,98 @@ async function fetchCategories() {
     }
 }
 
+/**
+ * Load danh mục giáo viên (private) vào dropdown filter.
+ * Câu hỏi chờ duyệt chỉ đến từ danh mục của giáo viên nên
+ * không cần hiển thị danh mục hệ thống (public).
+ * Hiển thị fullPath (ví dụ: "Mạng Máy Tính > Chương 1") để phân biệt
+ * các danh mục trùng tên ở các môn khác nhau.
+ */
+async function fetchCategoriesForFilter() {
+    try {
+        const res = await fetch('/api/admin/categories/all-flat');
+        if (!res.ok) return;
+        const categories = await res.json();
+        allPrivateCategories = categories.filter(c => !c.isPublic && c.creatorRole === 'TEACHER');
+    } catch (err) {
+        console.error('Không thể tải danh sách danh mục:', err);
+    }
+}
+
+window.filterCustomCategory = function(keyword) {
+    const dropdown = document.getElementById('custom-category-dropdown');
+    if (!dropdown) return;
+    
+    dropdown.innerHTML = '';
+    const kw = keyword.toLowerCase().trim();
+    
+    const creatorFilter = document.getElementById('filter-creator').value.toLowerCase().trim();
+    
+    // Always add "Tất cả"
+    const allOpt = document.createElement('li');
+    allOpt.innerHTML = `<a class="dropdown-item fw-bold text-primary" href="javascript:void(0)" onclick="selectCustomCategory('', 'Tất cả danh mục')"><i class="bi bi-globe-americas me-2"></i>Tất cả danh mục</a>`;
+    dropdown.appendChild(allOpt);
+    
+    let filtered = allPrivateCategories;
+    
+    // Lọc theo Tên Giáo Viên nếu admin có nhập
+    if (creatorFilter) {
+        filtered = filtered.filter(c => c.creatorName && c.creatorName.toLowerCase().includes(creatorFilter));
+    }
+    
+    // Lọc theo Từ khóa danh mục
+    if (kw) {
+        filtered = filtered.filter(c => c.name.toLowerCase().includes(kw) || (c.fullPath && c.fullPath.toLowerCase().includes(kw)));
+    }
+    
+    // Only show top 30 to keep it manageable and fast
+    const top30 = filtered.slice(0, 30);
+    
+    if (top30.length === 0) {
+        const li = document.createElement('li');
+        li.innerHTML = `<span class="dropdown-item text-muted disabled">Không tìm thấy kết quả</span>`;
+        dropdown.appendChild(li);
+    } else {
+        top30.forEach(c => {
+            const li = document.createElement('li');
+            const pathDisplay = c.fullPath && c.fullPath !== c.name ? c.fullPath : c.name;
+            const creatorDisplay = c.creatorName ? ` <small class="text-muted ms-1">(${c.creatorName})</small>` : '';
+            const titleDisplay = `${pathDisplay} ${c.creatorName ? '(' + c.creatorName + ')' : ''}`;
+            
+            li.innerHTML = `<a class="dropdown-item text-truncate" title="${escapeHTML(titleDisplay)}" href="javascript:void(0)" onclick="selectCustomCategory(${c.id}, '${escapeJS(pathDisplay)}')">
+                <i class="bi bi-folder2 me-2 text-warning"></i>${escapeHTML(pathDisplay)}${creatorDisplay}
+            </a>`;
+            dropdown.appendChild(li);
+        });
+    }
+    
+    dropdown.classList.add('show');
+};
+
+window.selectCustomCategory = function(id, name) {
+    document.getElementById('filter-category').value = id;
+    const input = document.getElementById('filter-category-input');
+    input.value = id ? name : '';
+    
+    // Hide the dropdown
+    const dropdown = document.getElementById('custom-category-dropdown');
+    if (dropdown) dropdown.classList.remove('show');
+    
+    page = 0;
+    fetchPendingQuestions();
+};
+
+document.addEventListener('click', function(e) {
+    const input = document.getElementById('filter-category-input');
+    const dropdown = document.getElementById('custom-category-dropdown');
+    if (input && dropdown) {
+        if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.classList.remove('show');
+        }
+    }
+});
+
+
 async function fetchPendingQuestions() {
     const container = document.getElementById('questions-container');
     container.innerHTML = `
@@ -35,12 +129,14 @@ async function fetchPendingQuestions() {
     const creator = document.getElementById('filter-creator').value;
     const type = document.getElementById('filter-type').value;
     const level = document.getElementById('filter-level').value;
+    const categoryId = document.getElementById('filter-category').value;
 
     let url = `/api/admin/questions/pending?page=${page}&size=${size}`;
     if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
     if (creator) url += `&creatorName=${encodeURIComponent(creator)}`;
     if (type) url += `&type=${type}`;
     if (level) url += `&level=${level}`;
+    if (categoryId) url += `&categoryId=${categoryId}`;
 
     try {
         const res = await fetch(url);
@@ -62,6 +158,7 @@ async function fetchPendingQuestions() {
             </div>`;
     }
 }
+
 
 function renderQuestions(items) {
     const container = document.getElementById('questions-container');
@@ -175,11 +272,25 @@ function debounceFetch() {
     }, 500);
 }
 
+window.onCreatorFilterChange = function() {
+    // Xóa danh mục đang chọn vì danh mục đó có thể không phải của giáo viên mới tìm
+    document.getElementById('filter-category').value = '';
+    const catInput = document.getElementById('filter-category-input');
+    if (catInput) catInput.value = '';
+    
+    debounceFetch();
+};
+
 function resetFilters() {
     document.getElementById('filter-keyword').value = '';
     document.getElementById('filter-creator').value = '';
     document.getElementById('filter-type').value = '';
     document.getElementById('filter-level').value = '';
+    document.getElementById('filter-category').value = '';
+    
+    const catInput = document.getElementById('filter-category-input');
+    if (catInput) catInput.value = '';
+    
     page = 0;
     fetchPendingQuestions();
 }
@@ -300,11 +411,13 @@ function confirmBulkReject() {
                 const creator = document.getElementById('filter-creator').value;
                 const type = document.getElementById('filter-type').value;
                 const level = document.getElementById('filter-level').value;
+                const filterCategoryId = document.getElementById('filter-category').value;
                 url = `/api/admin/questions/bulk-reject-all?`;
                 if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
                 if (creator) url += `&creatorName=${encodeURIComponent(creator)}`;
                 if (type) url += `&type=${type}`;
                 if (level) url += `&level=${level}`;
+                if (filterCategoryId) url += `&filterCategoryId=${filterCategoryId}`;
                 options = { method: 'PUT' };
             } else {
                 url = '/api/admin/questions/bulk-reject';
@@ -362,11 +475,13 @@ window.handleCategorySelection = async function(categoryId, categoryName, target
             const creator = document.getElementById('filter-creator').value;
             const type = document.getElementById('filter-type').value;
             const level = document.getElementById('filter-level').value;
+            const filterCategoryId = document.getElementById('filter-category').value;
             url = `/api/admin/questions/bulk-approve-all?categoryId=${categoryId}`;
             if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
             if (creator) url += `&creatorName=${encodeURIComponent(creator)}`;
             if (type) url += `&type=${type}`;
             if (level) url += `&level=${level}`;
+            if (filterCategoryId) url += `&filterCategoryId=${filterCategoryId}`;
             options = { method: 'PUT' };
         } else if (isBulkMode) {
             url = `/api/admin/questions/bulk-approve?categoryId=${categoryId}`;
@@ -441,4 +556,9 @@ function escapeHTML(str) {
     return str.replace(/[&<>'"]/g, 
         tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
     );
+}
+
+function escapeJS(str) {
+    if (!str) return '';
+    return str.replace(/'/g, "\\'");
 }

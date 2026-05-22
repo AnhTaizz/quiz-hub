@@ -46,6 +46,7 @@ spring:
           auth: true
           starttls:
             enable: true
+
   security:
     oauth2:
       client:
@@ -57,6 +58,18 @@ spring:
               - email
               - profile
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 6MB
+
+  web:
+    resources:
+      static-locations:
+        - classpath:/static/
+        - file:./uploads/
+
 app:
   jwt:
     secret: ${JWT_SECRET}
@@ -65,3 +78,5 @@ app:
     gemini:
       api-key: ${GEMINI_API_KEY}
       url: https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent
+  upload:
+    avatar-dir: ./uploads/avatars/

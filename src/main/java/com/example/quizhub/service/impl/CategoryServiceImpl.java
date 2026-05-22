@@ -256,4 +256,52 @@ public class CategoryServiceImpl implements CategoryService {
             }
         }
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CategoryResponseDTO> getAllCategoriesFlat() {
+        List<Category> all = categoryRepository.findAll();
+
+        // Xây map id -> category để tra cứu nhanh
+        Map<Long, Category> idMap = all.stream()
+                .collect(Collectors.toMap(Category::getId, c -> c));
+
+        // Hàm đệ quy xây fullPath
+        // Trả về đường dẫn từ gốc đến category (ví dụ: "Mạng Máy Tính > Chương 1")
+        return all.stream()
+                .map(c -> {
+                    CategoryResponseDTO dto = new CategoryResponseDTO(c);
+
+                    // Xây fullPath và tính depth
+                    StringBuilder pathBuilder = new StringBuilder(c.getName());
+                    Category current = c;
+                    int depth = 0;
+                    while (current.getParent() != null) {
+                        Category parent = idMap.get(current.getParent().getId());
+                        if (parent == null) break;
+                        pathBuilder.insert(0, parent.getName() + " > ");
+                        current = parent;
+                        depth++;
+                    }
+                    dto.setFullPath(pathBuilder.toString());
+                    dto.setDepth(depth);
+
+                    // Set parentName nếu có
+                    if (c.getParent() != null) {
+                        Category parent = idMap.get(c.getParent().getId());
+                        if (parent != null) dto.setParentName(parent.getName());
+                    }
+
+                    return dto;
+                })
+                .sorted((a, b) -> {
+                    // Sắp xếp: public trước, sau đó theo fullPath
+                    boolean aPublic = Boolean.TRUE.equals(a.getIsPublic());
+                    boolean bPublic = Boolean.TRUE.equals(b.getIsPublic());
+                    if (aPublic != bPublic) return aPublic ? -1 : 1;
+                    return a.getFullPath().compareToIgnoreCase(b.getFullPath());
+                })
+                .collect(Collectors.toList());
+    }
 }
+

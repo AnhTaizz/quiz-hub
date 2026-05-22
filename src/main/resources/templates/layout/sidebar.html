@@ -4,7 +4,7 @@
 <body>
     <aside th:fragment="teacher-sidebar(activeItem)" id="sidebar">
         <a th:href="@{/teacher}" class="brand-logo" style="text-decoration: none;">
-            <i class="bi bi-layers-fill"></i> <span>Quiz<span class="hub">Hub</span></span>
+            <i class="bi bi-mortarboard-fill"></i> <span>Quiz<span class="hub">Hub</span></span>
         </a>
 
         <div class="menu-title">Bảng điều khiển</div>
@@ -20,6 +20,13 @@
                     data-title="Đề thi">
                     <i class="bi bi-file-earmark-text-fill"></i> <span>Đề thi</span>
                 </a></li>
+        </ul>
+
+        <div class="menu-title">Giám sát & Đánh giá</div>
+        <ul class="nav-menu">
+            <li><a href="/teacher/monitoring" th:classappend="${activeItem == 'monitoring' ? 'active' : ''}" data-title="Giám sát phòng thi">
+                <i class="bi bi-display"></i> <span>Giám sát phòng thi</span>
+            </a></li>
         </ul>
 
         <div class="menu-title">Thư viện dữ liệu</div>
@@ -64,7 +71,7 @@
 
     <aside th:fragment="admin-sidebar(activeItem)" id="sidebar">
         <a th:href="@{/admin}" class="brand-logo" style="text-decoration: none;">
-            <i class="bi bi-layers-fill"></i> <span>Quiz<span class="hub">Hub</span></span>
+            <i class="bi bi-shield-fill-check"></i> <span>Quiz<span class="hub">Hub</span></span>
         </a>
 
         <div class="menu-title">Quản trị Hệ thống</div>

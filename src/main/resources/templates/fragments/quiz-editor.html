@@ -47,19 +47,18 @@
                 </div>
 
                 <div class="mb-0">
-                    <label class="form-label small fw-bold text-secondary mb-1">Ảnh minh họa (URL)</label>
+                    <label class="form-label small fw-bold text-secondary mb-1">Ảnh minh họa (Tải lên)</label>
                     <div class="input-group mb-2">
-                        <span class="input-group-text bg-light border-end-0"
-                            style="border-radius: 12px 0 0 12px; border-color: #e2e8f0;">
-                            <i class="bi bi-image text-indigo"></i>
-                        </span>
-                        <input type="text" id="quiz-image" class="form-control fc border-start-0"
-                            placeholder="https://example.com/cover.jpg"
-                            oninput="updateQuizImagePreview(this.value)"
-                            style="border-radius:0 12px 12px 0; width: auto; flex: 1;">
-                    </div>
-                    <div id="quiz-image-preview-container" class="rounded-4 overflow-hidden border" style="height: 100px; background: #f1f5f9; display: none;">
-                        <img id="quiz-image-preview" src="" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
+                        <label class="btn btn-light border-end-0 mb-0 d-flex align-items-center" for="quizImageFileInput"
+                            style="border-radius: 12px 0 0 12px; border-color: #e2e8f0; background: #f8fafc; cursor: pointer;">
+                            <i class="bi bi-cloud-upload text-indigo me-1"></i> Tải ảnh
+                        </label>
+                        <input type="file" id="quizImageFileInput" accept="image/*" style="display:none" onchange="handleQuizImageUpload(this)">
+                        
+                        <input type="hidden" id="quiz-image">
+                        <input type="text" id="quiz-image-display" class="form-control fc bg-white"
+                            placeholder="Chưa có ảnh" readonly
+                            style="border-radius:0 12px 12px 0; width: auto; flex: 1; border-color: #e2e8f0;">
                     </div>
                     <input type="hidden" id="quiz-isExam" value="false">
                     <input type="hidden" id="quiz-isDraft" value="false">
@@ -242,19 +241,6 @@
                 return d.innerHTML;
             }
 
-            function updateQuizImagePreview(url) {
-                const preview = document.getElementById('quiz-image-preview');
-                const container = document.getElementById('quiz-image-preview-container');
-                if (preview && container) {
-                    if (url && (url.startsWith('http') || url.startsWith('/'))) {
-                        preview.src = url;
-                        container.style.display = 'block';
-                    } else {
-                        container.style.display = 'none';
-                    }
-                }
-            }
-
             function showToast(msg, type = 'ok') {
                 const wrap = document.getElementById('toastWrap');
                 if (!wrap) { console.log('Toast:', msg); return; }
@@ -267,6 +253,44 @@
                     setTimeout(() => el.remove(), 400);
                 }, 3000);
             }
+
+            window.handleQuizImageUpload = async function(input) {
+                const file = input.files[0];
+                if (!file) return;
+
+                if (!file.type.startsWith('image/')) {
+                    showToast('Chỉ chấp nhận file ảnh!', 'err');
+                    input.value = '';
+                    return;
+                }
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast('File ảnh không được vượt quá 5MB!', 'err');
+                    input.value = '';
+                    return;
+                }
+
+                document.getElementById('quiz-image-display').value = 'Đang tải lên...';
+
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    const res = await fetch('/api/users/upload-avatar', {
+                        method: 'POST',
+                        headers: { Authorization: `Bearer ${token}` },
+                        body: formData
+                    });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Tải ảnh thất bại');
+
+                    document.getElementById('quiz-image').value = data.url;
+                    document.getElementById('quiz-image-display').value = file.name;
+                    showToast('Tải ảnh lên thành công!', 'ok');
+                } catch (err) {
+                    showToast(err.message, 'err');
+                    document.getElementById('quiz-image-display').value = 'Lỗi tải ảnh';
+                }
+            };
 
             document.addEventListener('DOMContentLoaded', async () => {
                 try {
@@ -334,7 +358,6 @@
                         if (descEl) descEl.value = q.description || '';
                         if (imgEl) {
                             imgEl.value = q.imageUrl || '';
-                            updateQuizImagePreview(q.imageUrl);
                         }
                         if (isExamEl) isExamEl.value = String(q.isExam || false);
                         if (isDraftEl) isDraftEl.value = String(q.isDraft || false);
@@ -342,6 +365,11 @@
                         if (q.categoryId) {
                             if (catIdEl) catIdEl.value = q.categoryId;
                             if (catDispEl) catDispEl.value = q.categoryName || 'Mặc định';
+                        }
+                        
+                        const imgDispEl = document.getElementById('quiz-image-display');
+                        if (imgDispEl && q.imageUrl) {
+                            imgDispEl.value = 'Đã tải ảnh lên';
                         }
                         
                         selectedQuestionIds.clear();

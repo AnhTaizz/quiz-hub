@@ -46,6 +46,11 @@ public class AdminCategoryRestController {
         return ResponseEntity.ok(categoryService.getPublicCategories());
     }
 
+    @GetMapping("/all-flat")
+    public ResponseEntity<List<CategoryResponseDTO>> getAllCategoriesFlat() {
+        return ResponseEntity.ok(categoryService.getAllCategoriesFlat());
+    }
+
     @PostMapping
     public ResponseEntity<CategoryResponseDTO> createCategory(@RequestBody @Valid CategoryRequestDTO request) {
         request.setIsPublic(true); // Ép kiểu luôn tạo danh mục công khai

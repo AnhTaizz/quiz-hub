@@ -166,18 +166,18 @@
                 <div class="border-top pt-3 d-flex flex-wrap justify-content-between align-items-center mt-auto gap-2">
                     <span class="text-muted small"><i class="bi bi-calendar-check me-1"></i> Giao ngày: <span
                             th:text="${assigning.createdAt != null ? #temporals.format(assigning.createdAt, 'dd/MM/yyyy') : '--/--/----'}">--</span></span>
-                    <div class="d-flex gap-2">
+                    <div class="d-flex gap-2 flex-wrap mt-2 w-100">
                         <button th:if="${assigning.quiz != null}" th:data-id="${assigning.quiz.id}"
                             onclick="openQuizPreviewModal(this.getAttribute('data-id'), event)"
-                            class="btn btn-sm btn-outline-primary rounded-pill px-3">Xem đề <i
+                            class="btn btn-sm btn-outline-primary rounded-pill px-3 text-nowrap flex-grow-1">Xem đề <i
                                 class="bi bi-chevron-right ms-1"></i></button>
-                        <button class="btn btn-sm btn-outline-success rounded-pill px-3" th:data-id="${assigning.id}"
+                        <button class="btn btn-sm btn-outline-success rounded-pill px-3 text-nowrap flex-grow-1" th:data-id="${assigning.id}"
                             th:data-title="${assigning.quiz != null ? assigning.quiz.title : 'Đề thi'}"
                             onclick="openGradesModal(this.getAttribute('data-id'), this.getAttribute('data-title'))">
                             Bảng điểm <i class="bi bi-award ms-1"></i>
                         </button>
                         <a th:href="@{'/teacher/monitoring/log/' + ${assigning.id}}"
-                            class="btn btn-sm btn-outline-danger rounded-pill px-3">
+                            class="btn btn-sm btn-outline-danger rounded-pill px-3 text-nowrap flex-grow-1 text-center">
                             Giám sát <i class="bi bi-eye ms-1"></i>
                         </a>
                     </div>
