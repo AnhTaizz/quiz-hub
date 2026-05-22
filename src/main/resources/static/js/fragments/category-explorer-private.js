@@ -166,7 +166,7 @@
             pvtBtnWrap.style.display = showPvt ? 'block' : 'none';
         }
         if (pubBtnWrap) {
-            const showPub = source === 'public' && !isFilterMode && (USER_TYPE === 'admin' || USER_TYPE === 'public');
+            const showPub = source === 'public' && (!isFilterMode || target === 'moderation') && (USER_TYPE === 'admin' || USER_TYPE === 'public');
             pubBtnWrap.style.display = showPub ? 'block' : 'none';
         }
 
@@ -224,7 +224,8 @@
 
     window.openParentCategoryPicker = function() { 
         if (typeof TREE_DATA !== 'undefined') window.myCategories = TREE_DATA;
-        openCategoryExplorer('categoryCreateParent', 'private'); 
+        const source = window.categoryCreateSource || 'private';
+        openCategoryExplorer('categoryCreateParent', source); 
     };
     
     window.openCategoryTreePicker = function(target) {
@@ -242,6 +243,9 @@
     window.openCreateCategoryModal = function(pId, pName, event) {
         if (event) event.stopPropagation();
         
+        window.categoryCreateSource = window.categorySelectSource;
+        window.categoryCreateTarget = window.categorySelectTarget;
+
         ['categoryCreateId', 'categoryCreateParentId', 'categoryCreateParentName', 'categoryCreateName', 'categoryCreateDesc'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.value = '';
@@ -294,11 +298,12 @@
             return;
         }
         
+        const isPublicCat = (window.categoryCreateSource === 'public' || USER_TYPE === 'public' || USER_TYPE === 'admin');
         const payload = { 
             name, 
             description, 
             parentId: (parentId && parentId !== '-1') ? parseInt(parentId) : null,
-            isPublic: (window.categorySelectSource === 'public' || USER_TYPE === 'public' || USER_TYPE === 'admin')
+            isPublic: isPublicCat
         };
         
         const method = id ? 'PUT' : 'POST';
@@ -317,9 +322,9 @@
                     const inst = bootstrap.Modal.getInstance(modalEl);
                     if (inst) inst.hide();
                 }
-                if (window.categorySelectSource === 'public') {
+                if (window.categoryCreateSource === 'public') {
                     window.publicCategories = null; // Clear cache
-                    if (typeof openCategoryExplorer === 'function') openCategoryExplorer('moderation', 'public');
+                    if (typeof openCategoryExplorer === 'function') openCategoryExplorer(window.categoryCreateTarget, 'public');
                 } else if (typeof fetchCategories === 'function') {
                     await fetchCategories();
                     if (typeof renderTree === 'function') {
