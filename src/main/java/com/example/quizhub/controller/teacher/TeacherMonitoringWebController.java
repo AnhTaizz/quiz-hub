@@ -28,6 +28,17 @@ public class TeacherMonitoringWebController {
     private final AttemptViolationRepository attemptViolationRepository;
     private final UserRepository userRepository;
 
+    @GetMapping
+    public String viewMonitoringOverview(Principal principal, Model model) {
+        User teacher = userRepository.findByEmail(principal.getName()).orElseThrow();
+        model.addAttribute("currentUser", teacher);
+
+        List<QuizAssigning> assignments = quizAssigningRepository.findByClassroomCreatorId(teacher.getId());
+        model.addAttribute("assignments", assignments);
+
+        return "teacher/monitoring-overview";
+    }
+
     @GetMapping("/log/{assigningId}")
     public String viewViolationLog(@PathVariable Long assigningId, Principal principal, Model model) {
         QuizAssigning assignment = quizAssigningRepository.findById(assigningId).orElseThrow();
