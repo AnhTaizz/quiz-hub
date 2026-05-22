@@ -175,9 +175,15 @@ window.loadFolder = function(id) {
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item p-2 rounded-3 d-flex align-items-center gap-2" href="/student/quiz/quick-create">
+                        <a class="dropdown-item p-2 rounded-3 d-flex align-items-center gap-2 mb-1" href="/student/quiz/quick-create">
                             <i class="bi bi-magic text-success" style="font-size: 1.1rem;"></i>
                             <span class="fw-bold text-dark small">Tạo nhanh (Excel/JSON)</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item p-2 rounded-3 d-flex align-items-center gap-2" href="/student/quiz/ai-create${id && id !== -1 ? '?categoryId=' + id : ''}">
+                            <i class="bi bi-robot text-purple" style="font-size: 1.1rem; color: #7c3aed;"></i>
+                            <span class="fw-bold text-dark small">Tạo bằng AI (Gemini)</span>
                         </a>
                     </li>
                 </ul>
@@ -216,9 +222,15 @@ window.switchContext = function(ctx) {
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item p-2 rounded-3 d-flex align-items-center gap-2" href="/student/quiz/quick-create">
+                        <a class="dropdown-item p-2 rounded-3 d-flex align-items-center gap-2 mb-1" href="/student/quiz/quick-create">
                             <i class="bi bi-magic text-success" style="font-size: 1.1rem;"></i>
                             <span class="fw-bold text-dark small">Tạo nhanh (Excel/JSON)</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item p-2 rounded-3 d-flex align-items-center gap-2" href="/student/quiz/ai-create${currentFolderId && currentFolderId !== -1 ? '?categoryId=' + currentFolderId : ''}">
+                            <i class="bi bi-robot text-purple" style="font-size: 1.1rem; color: #7c3aed;"></i>
+                            <span class="fw-bold text-dark small">Tạo bằng AI (Gemini)</span>
                         </a>
                     </li>
                 </ul>

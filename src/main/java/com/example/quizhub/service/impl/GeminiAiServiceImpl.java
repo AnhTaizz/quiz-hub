@@ -18,6 +18,7 @@ import com.example.quizhub.exception.AppException;
 import com.example.quizhub.exception.ErrorCode;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.quizhub.service.AiService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class GeminiAiServiceImpl implements com.example.quizhub.service.AiService {
+public class GeminiAiServiceImpl implements AiService {
 
     @Value("${app.ai.gemini.api-key}")
     private String apiKey;
@@ -108,6 +109,7 @@ public class GeminiAiServiceImpl implements com.example.quizhub.service.AiServic
                 YÊU CẦU BẮT BUỘC:
                 - Mỗi câu hỏi có CHÍNH XÁC 4 đáp án (A, B, C, D).
                 - Trong 4 đáp án đó, có ĐÚNG 1 đáp án "isCorrect": true và 3 đáp án còn lại "isCorrect": false.
+                - Vị trí của đáp án đúng ("isCorrect": true) trong mảng "answers" phải được xáo trộn ngẫu nhiên cho từng câu hỏi, KHÔNG ĐƯỢC luôn luôn để ở vị trí đầu tiên (A).
                 - Câu hỏi phải bám sát nội dung bài, không bịa đặt thông tin ngoài văn bản.
                 - Đáp án sai phải có tính gây nhầm lẫn cao, không quá rõ ràng.
 
@@ -118,8 +120,8 @@ public class GeminiAiServiceImpl implements com.example.quizhub.service.AiServic
                     "type": "SINGLE_CHOICE",
                     "level": "%s",
                     "answers": [
-                      { "text": "Đáp án đúng", "isCorrect": true },
                       { "text": "Đáp án sai 1", "isCorrect": false },
+                      { "text": "Đáp án đúng (ngẫu nhiên ở vị trí khác nhau cho từng câu)", "isCorrect": true },
                       { "text": "Đáp án sai 2", "isCorrect": false },
                       { "text": "Đáp án sai 3", "isCorrect": false }
                     ]

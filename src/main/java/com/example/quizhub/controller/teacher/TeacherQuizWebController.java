@@ -32,6 +32,12 @@ public class TeacherQuizWebController {
         return "teacher/teacher-quiz-quick-create";
     }
 
+    @GetMapping("/ai-create")
+    public String getAiCreateQuizPage(@RequestParam(required = false) Long categoryId, Model model) {
+        model.addAttribute("categoryId", categoryId);
+        return "teacher/teacher-quiz-ai-create";
+    }
+
     @GetMapping("/{id}/edit")
     public String getEditQuizPage(@PathVariable String id, Model model) {
         model.addAttribute("quizId", id);

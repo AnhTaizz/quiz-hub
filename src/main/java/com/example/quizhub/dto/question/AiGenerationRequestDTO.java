@@ -26,7 +26,7 @@ public class AiGenerationRequestDTO {
 
     @NotNull(message = "Số lượng câu hỏi không được để trống")
     @Min(value = 1, message = "Phải tạo ít nhất 1 câu hỏi")
-    @Max(value = 30, message = "Tối đa 30 câu hỏi mỗi lần")
+    @Max(value = 50, message = "Tối đa 50 câu hỏi mỗi lần")
     Integer numberOfQuestions;
 
     @NotNull(message = "Độ khó không được để trống")

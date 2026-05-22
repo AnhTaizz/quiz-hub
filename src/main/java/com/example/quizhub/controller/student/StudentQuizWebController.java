@@ -27,6 +27,12 @@ public class StudentQuizWebController {
         return "student/student-quiz-quick-create";
     }
 
+    @GetMapping("/ai-create")
+    public String getAiCreateQuizPage(@RequestParam(required = false) Long categoryId, Model model) {
+        model.addAttribute("categoryId", categoryId);
+        return "student/student-quiz-ai-create";
+    }
+
     @GetMapping("/{id}/edit")
     public String getEditQuizPage(@PathVariable String id, Model model) {
         model.addAttribute("quizId", id);
