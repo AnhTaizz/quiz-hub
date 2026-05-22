@@ -14,7 +14,13 @@ html {
     scrollbar-gutter: stable;
 }
 
-body { background: #fff; font-family: 'Inter', sans-serif; overflow: hidden; color: var(--text-main); }
+body {
+    background: #fff;
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+    color: var(--text-main);
+    height: calc(100vh / 0.85) !important;
+}
 
 @keyframes pageContentFadeIn {
     from { opacity: 0; transform: translateY(6px); }

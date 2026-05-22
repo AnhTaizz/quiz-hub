@@ -410,11 +410,20 @@ function renderFolderContent(container, subs, quizzes, parentId) {
                     </a>
                 </li>
                 <li>
-                    <a class="dropdown-item p-3 rounded-3 d-flex align-items-center gap-3" href="javascript:void(0)" onclick="goCreate('quick')">
+                    <a class="dropdown-item p-3 rounded-3 d-flex align-items-center gap-3 mb-1" href="javascript:void(0)" onclick="goCreate('quick')">
                         <div style="background:#f0fdf4; color:#16a34a; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1rem;"><i class="bi bi-magic"></i></div>
                         <div>
                             <div class="fw-bold text-dark" style="font-size:0.8rem;">Tạo nhanh (Magic)</div>
                             <div class="text-muted" style="font-size:0.65rem;">Visual Designer: Excel/JSON</div>
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item p-3 rounded-3 d-flex align-items-center gap-3" href="javascript:void(0)" onclick="goCreate('ai')">
+                        <div style="background:#faf5ff; color:#7c3aed; width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1rem;"><i class="bi bi-robot"></i></div>
+                        <div>
+                            <div class="fw-bold text-dark" style="font-size:0.8rem;">Tạo bằng AI (Gemini)</div>
+                            <div class="text-muted" style="font-size:0.65rem;">Soạn đề tự động từ tài liệu</div>
                         </div>
                     </a>
                 </li>
@@ -644,8 +653,10 @@ function goCreate(mode) {
     const suffix = catId ? `?categoryId=${catId}` : '';
     if (mode === 'manual') {
         window.location.href = `/teacher/quizzes/create${suffix}`;
-    } else {
+    } else if (mode === 'quick') {
         window.location.href = `/teacher/quizzes/quick-create${suffix}`;
+    } else if (mode === 'ai') {
+        window.location.href = `/teacher/quizzes/ai-create${suffix}`;
     }
 }
 

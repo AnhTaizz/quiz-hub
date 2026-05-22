@@ -78,13 +78,16 @@
         // Ẩn/Hiện động các nút hành động Thêm mới/Nhập Excel dựa trên tab hoạt động
         const excelGroup = document.getElementById('excel-import-container');
         const createBtn = document.getElementById('btn-create-question');
+        const aiGenerateContainer = document.getElementById('ai-generate-container');
         
         if (tab === 'public') {
             if (excelGroup) excelGroup.style.setProperty('display', 'none', 'important');
             if (createBtn) createBtn.style.setProperty('display', 'none', 'important');
+            if (aiGenerateContainer) aiGenerateContainer.style.setProperty('display', 'none', 'important');
         } else {
             if (excelGroup) excelGroup.style.setProperty('display', 'flex', 'important');
             if (createBtn) createBtn.style.setProperty('display', 'inline-flex', 'important');
+            if (aiGenerateContainer) aiGenerateContainer.style.setProperty('display', 'block', 'important');
         }
 
         // Reset category filter when switching tabs to avoid ID mismatch
