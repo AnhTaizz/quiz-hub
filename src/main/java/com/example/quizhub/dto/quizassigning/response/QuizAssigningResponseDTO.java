@@ -20,6 +20,7 @@ public class QuizAssigningResponseDTO {
     LocalDateTime startDate;
     LocalDateTime dueDate;
     LocalDateTime createdAt;
+    Boolean isHidden;
 
     Long classroomId;
     String classroomName;

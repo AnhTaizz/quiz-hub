@@ -276,7 +276,7 @@ async function saveToServer(qId, answerIds) {
                 'Authorization': 'Bearer ' + token,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(answerIds)
+            body: JSON.stringify({ answerIds: answerIds })
         });
     } catch (e) {
         console.error("Lỗi khi lưu đáp án lên server:", e);
@@ -376,7 +376,7 @@ async function executeSubmit() {
             const result = await response.json();
             localStorage.removeItem(`quiz_answers_${quizData.attemptId}`);
             localStorage.removeItem(`quiz_flags_${quizData.attemptId}`);
-            window.location.href = `/student/quiz/result/${result.id}`;
+            window.location.replace(`/student/quiz/result/${result.id}`);
         } else {
             throw new Error("Lỗi khi nộp bài");
         }

@@ -41,10 +41,20 @@
                 <a href="/teacher/classrooms"
                     class="text-decoration-none fw-bold small text-primary mb-2 d-inline-block"><i
                         class="bi bi-arrow-left"></i> Trở về kho lớp học</a>
-                <h1 th:text="${classroom.name}">Tên Lớp Học</h1>
-                <p class="text-muted"><i class="bi bi-code-square me-1"></i> Mã Code: <strong
-                        th:text="${classroom.code}">CODE</strong> | Mô tả: <span th:text="${classroom.description}">Mô
-                        tả lớp học</span></p>
+                <h1 class="fw-bold text-dark mb-3" th:text="${classroom.name}" style="font-size: 1.8rem; letter-spacing: -0.5px;">Tên Lớp Học</h1>
+                <div class="d-flex flex-wrap align-items-center gap-3 text-muted">
+                    <div class="d-flex align-items-center gap-2 bg-light px-3 py-1 rounded-3 border" style="font-size: 0.95rem;">
+                        <i class="bi bi-upc-scan text-primary"></i>
+                        <span class="fw-semibold">Mã Code:</span>
+                        <strong class="text-primary font-monospace" th:text="${classroom.code}">CODE</strong>
+                    </div>
+                    <div class="vr d-none d-sm-block" style="opacity: 0.15; height: 24px;"></div>
+                    <div class="d-flex align-items-center gap-2" style="font-size: 0.95rem;">
+                        <i class="bi bi-info-circle text-secondary"></i>
+                        <span th:if="${classroom.description != null and classroom.description != ''}" th:text="${classroom.description}">Mô tả</span>
+                        <span th:unless="${classroom.description != null and classroom.description != ''}" class="fst-italic opacity-75">Chưa có mô tả</span>
+                    </div>
+                </div>
             </div>
             <div class="d-flex gap-2">
                 <button class="btn btn-outline-secondary fw-bold" style="border-radius: 14px; padding: 12px 24px;"
@@ -138,8 +148,10 @@
                     <span th:if="${assigning.topic != null}" class="badge bg-light text-dark border px-2 py-1 rounded"
                         style="font-size: 11px; font-weight: 700;" th:text="${assigning.topic.name}">Tên chủ đề</span>
                 </div>
-                <h4 class="assigned-title" th:text="${assigning.quiz != null ? assigning.quiz.title : 'Tên đề thi'}">Đề
-                    thi số 1</h4>
+                <h4 class="assigned-title">
+                    <span th:text="${assigning.quiz != null ? assigning.quiz.title : 'Tên đề thi'}">Đề thi số 1</span>
+                    <span th:if="${assigning.isHidden}" class="badge bg-secondary ms-2" style="font-size: 11px;">Đã ẩn</span>
+                </h4>
 
                 <div class="assigned-meta">
                     <div><i class="bi bi-clock me-1"></i> Thời gian: <strong
@@ -180,6 +192,42 @@
                             class="btn btn-sm btn-outline-danger rounded-pill px-3 text-nowrap flex-grow-1 text-center">
                             Giám sát <i class="bi bi-eye ms-1"></i>
                         </a>
+                        <div class="dropdown">
+                            <button class="btn btn-sm btn-secondary rounded-pill px-3 text-nowrap" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-three-dots"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="border-radius: 12px;">
+                                <li>
+                                    <button class="dropdown-item" th:data-id="${assigning.id}" th:data-due="${assigning.dueDate != null ? assigning.dueDate : ''}"
+                                        onclick="openEditDeadlineModal(this.getAttribute('data-id'), this.getAttribute('data-due'))">
+                                        <i class="bi bi-calendar2-plus me-2 text-primary"></i> Sửa hạn chót
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item" th:data-id="${assigning.id}" th:data-title="${assigning.quiz != null ? assigning.quiz.title : 'Đề thi'}"
+                                        onclick="closeAssignment(this.getAttribute('data-id'), this.getAttribute('data-title'))">
+                                        <i class="bi bi-stop-circle me-2 text-warning"></i> Đóng bài ngay
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item" th:data-id="${assigning.id}"
+                                        onclick="toggleHidden(this.getAttribute('data-id'))">
+                                        <i class="bi bi-eye-slash me-2 text-secondary" th:if="${!assigning.isHidden}"></i>
+                                        <i class="bi bi-eye me-2 text-secondary" th:if="${assigning.isHidden}"></i>
+                                        <span th:text="${assigning.isHidden ? 'Hiện bài' : 'Ẩn bài'}">Ẩn bài</span>
+                                    </button>
+                                </li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <button class="dropdown-item text-danger"
+                                        th:data-id="${assigning.id}"
+                                        th:data-title="${assigning.quiz != null ? assigning.quiz.title : 'Đề thi'}"
+                                        onclick="deleteAssignment(this.getAttribute('data-id'), this.getAttribute('data-title'))">
+                                        <i class="bi bi-trash3 me-2"></i> Xóa
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -187,7 +235,7 @@
     </main>
 
     <!-- Assign Quiz Modal -->
-    <div class="modal fade" id="assignQuizModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="assignQuizModal" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content" style="border-radius: 20px;">
                 <div class="modal-header border-0 pb-0 pt-4 px-4">
@@ -420,6 +468,39 @@
                 <div class="modal-footer border-0 px-4 pb-4">
                     <button type="button" class="btn btn-light fw-bold" data-bs-dismiss="modal"
                         style="border-radius:12px; padding:10px 24px;">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Deadline Modal -->
+    <div class="modal fade" id="editDeadlineModal" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow" style="border-radius: 20px;">
+                <div class="modal-header border-0 pb-0 pt-4 px-4">
+                    <h5 class="modal-title fw-bold text-primary">
+                        <i class="bi bi-calendar-event me-2"></i>Sửa hạn chót
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="editDeadlineForm">
+                        <input type="hidden" id="editDeadlineAssigningId">
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-muted small text-uppercase">Thời gian hết hạn mới</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 rounded-start-3">
+                                    <i class="bi bi-clock text-muted"></i>
+                                </span>
+                                <input type="text" id="newDueDate" class="form-control bg-light border-start-0 rounded-end-3 flatpickr-datetime" placeholder="Chọn ngày và giờ..." required>
+                            </div>
+                            <small class="text-muted mt-2 d-block"><i class="bi bi-info-circle me-1"></i>Học sinh không thể làm bài sau thời điểm này.</small>
+                        </div>
+                        <button type="button" onclick="submitEditDeadline()" class="btn btn-primary w-100 py-2 fw-bold"
+                            style="border-radius: 12px; box-shadow: 0 4px 12px rgba(13,110,253,0.2);">
+                            <i class="bi bi-check2-circle me-1"></i> Lưu thay đổi
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

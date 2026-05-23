@@ -82,4 +82,8 @@ public class QuizAssigning {
     @Column(name = "is_deleted", nullable = false, columnDefinition = "boolean default false")
     @Builder.Default
     Boolean isDeleted = false;
+
+    @Column(name = "is_hidden", nullable = false, columnDefinition = "boolean default false")
+    @Builder.Default
+    Boolean isHidden = false;
 }

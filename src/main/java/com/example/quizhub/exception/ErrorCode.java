@@ -51,7 +51,11 @@ public enum ErrorCode {
     INVALID_GENERATION_METHOD(1035, "Phương thức tạo câu hỏi không hợp lệ. Phải là RANDOM hoặc RANGE", HttpStatus.BAD_REQUEST),
     QUESTION_TEXT_EMPTY(1036, "Nội dung câu hỏi không được để trống", HttpStatus.BAD_REQUEST),
     QUESTION_ANSWERS_EMPTY(1037, "Câu hỏi phải có ít nhất một đáp án lựa chọn", HttpStatus.BAD_REQUEST),
-    AI_GENERATION_FAILED(1038, "Có lỗi xảy ra khi tạo câu hỏi bằng AI, vui lòng thử lại.", HttpStatus.BAD_REQUEST);
+    AI_GENERATION_FAILED(1038, "Có lỗi xảy ra khi tạo câu hỏi bằng AI, vui lòng thử lại.", HttpStatus.BAD_REQUEST),
+    QUIZ_STRUCTURE_LOCKED(1039, "Đề thi đã được giao cho lớp, không thể thêm/xóa/thay đổi danh sách câu hỏi. Hãy tạo bản sao để chỉnh sửa.", HttpStatus.BAD_REQUEST),
+    QUIZ_DISABLED(1040, "Đề thi đã bị xóa hoặc đã bị ẩn, không thể giao mới.", HttpStatus.BAD_REQUEST),
+    QUIZ_ASSIGNING_HAS_SUBMISSIONS(1041, "Không thể xóa bài thi đã có học sinh làm bài", HttpStatus.BAD_REQUEST),
+    DEADLINE_IN_PAST(1042, "Hạn chót không được nằm trong quá khứ", HttpStatus.BAD_REQUEST);
 
     final int code;
     final String message;

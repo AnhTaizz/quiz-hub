@@ -1,7 +1,9 @@
 package com.example.quizhub.service.quiz.impl;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -45,6 +47,7 @@ public class QuizServiceImpl implements QuizService {
     private final QuestionRepository questionRepository;
     private final com.example.quizhub.repository.QuizTakingRepository quizTakingRepository;
     private final com.example.quizhub.repository.AttemptRepository attemptRepository;
+    private final com.example.quizhub.repository.QuizAssigningRepository quizAssigningRepository;
     private final com.example.quizhub.service.CategoryService categoryService;
     private final QuestionService questionService;
 
@@ -78,6 +81,25 @@ public class QuizServiceImpl implements QuizService {
     private Quiz findQuiz(String id) {
         return quizRepository.findById(UUID.fromString(id))
                 .orElseThrow(() -> new AppException(ErrorCode.QUIZ_NOT_FOUND));
+    }
+
+    private boolean hasEverBeenAssigned(Quiz quiz) {
+        return quizAssigningRepository.countAnyByQuizIdIncludingDeleted(quiz.getId()) > 0;
+    }
+
+    private boolean hasSameQuestionMembership(Quiz quiz, List<Long> requestedQuestionIds) {
+        if (quiz.getQuestions() == null || requestedQuestionIds == null) {
+            return quiz.getQuestions() == null && requestedQuestionIds == null;
+        }
+
+        Set<Long> currentQuestionIds = quiz.getQuestions().stream()
+                .map(Question::getId)
+                .collect(Collectors.toCollection(HashSet::new));
+        Set<Long> requestedIds = new HashSet<>(requestedQuestionIds);
+
+        return currentQuestionIds.size() == requestedQuestionIds.size()
+                && requestedIds.size() == requestedQuestionIds.size()
+                && currentQuestionIds.equals(requestedIds);
     }
 
     // API
@@ -153,6 +175,11 @@ public class QuizServiceImpl implements QuizService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
+        boolean assignedBefore = hasEverBeenAssigned(quiz);
+        if (assignedBefore && !hasSameQuestionMembership(quiz, request.getQuestionIds())) {
+            throw new AppException(ErrorCode.QUIZ_STRUCTURE_LOCKED);
+        }
+
         quiz.setTitle(request.getTitle());
         quiz.setDescription(request.getDescription());
         quiz.setImageUrl(request.getImageUrl());
@@ -165,9 +192,41 @@ public class QuizServiceImpl implements QuizService {
             throw new AppException(ErrorCode.QUESTION_NOT_FOUND);
         }
 
-        quiz.getQuestions().clear();
-        quiz.getQuestions().addAll(questions);
+        if (!assignedBefore) {
+            quiz.getQuestions().clear();
+            quiz.getQuestions().addAll(questions);
+        }
         return quizMapper.toResponseDTO(quizRepository.save(quiz));
+    }
+
+    @Override
+    @Transactional
+    public QuizResponseDTO cloneQuiz(String id) {
+        Quiz original = findQuiz(id);
+        User currentUser = getCurrentUser();
+        boolean isAdmin = currentUser.getRole().name().equalsIgnoreCase("ADMIN");
+
+        if (!Boolean.TRUE.equals(original.getIsEnable())) {
+            throw new AppException(ErrorCode.QUIZ_DISABLED);
+        }
+
+        if (!isAdmin && !original.getCreator().getId().equals(currentUser.getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        Quiz clone = Quiz.builder()
+                .title((original.getTitle() != null ? original.getTitle() : "Chưa có tiêu đề") + " (bản sao)")
+                .description(original.getDescription())
+                .imageUrl(original.getImageUrl())
+                .isDraft(true)
+                .isEnable(true)
+                .isExam(original.getIsExam())
+                .creator(currentUser)
+                .category(original.getCategory())
+                .questions(original.getQuestions() != null ? new ArrayList<>(original.getQuestions()) : new ArrayList<>())
+                .build();
+
+        return quizMapper.toResponseDTO(quizRepository.save(clone));
     }
 
     @Override

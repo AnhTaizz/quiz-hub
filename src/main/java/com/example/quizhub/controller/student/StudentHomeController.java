@@ -104,6 +104,10 @@ public class StudentHomeController {
             LocalDateTime nextWeek = now.plusDays(7);
 
             for (QuizAssigning assigning : rawAssignedQuizzes) {
+                if (Boolean.TRUE.equals(assigning.getIsHidden())) {
+                    continue;
+                }
+                
                 QuizTaking taking = quizTakingRepository
                         .findByLearnerIdAndQuizAssigningId(student.getId(), assigning.getId())
                         .orElse(null);
@@ -173,7 +177,7 @@ public class StudentHomeController {
 
                     if (classroomQuizzes != null) {
                         for (QuizAssigning assigning : classroomQuizzes) {
-                            if (assigning == null || assigning.getQuiz() == null)
+                            if (assigning == null || assigning.getQuiz() == null || Boolean.TRUE.equals(assigning.getIsHidden()))
                                 continue;
 
                             if (quizMap.containsKey(assigning.getId()))
@@ -284,7 +288,7 @@ public class StudentHomeController {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User student = userRepository.findByEmail(email).orElseThrow();
 
-        QuizAssigning assigning = quizAssigningRepository.findById(assigningId).orElseThrow();
+        QuizAssigning assigning = quizAssigningRepository.findByIdIncludingDeleted(assigningId).orElseThrow();
         QuizTaking taking = quizTakingRepository.findByLearnerIdAndQuizAssigningId(student.getId(), assigningId)
                 .orElse(null);
 

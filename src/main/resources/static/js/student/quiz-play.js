@@ -1,4 +1,4 @@
-﻿const assigningId = document.body.dataset.assigningId;
+const assigningId = document.body.dataset.assigningId;
 let quizData = null;
 let currentIndex = 0;
 let userAnswers = {}; // questionId -> [answerIds] or string
@@ -352,7 +352,7 @@ async function saveToServer(qId, val) {
     }
 
     try {
-        await fetch(`/api/student/quiz/save-answer?attemptId=${quizData.attemptId}&questionId=${qId}`, {
+        const response = await fetch(`/api/student/quiz/save-answer?attemptId=${quizData.attemptId}&questionId=${qId}`, {
             method: 'POST',
             headers: {
                 'Authorization': 'Bearer ' + token,
@@ -360,6 +360,15 @@ async function saveToServer(qId, val) {
             },
             body: JSON.stringify(payload)
         });
+
+        if (!response.ok) {
+            const errData = await response.json();
+            if (errData.code === 1029 || errData.code === 1027 || errData.code === 1022) {
+                // QUIZ_EXPIRED or QUIZ_ASSIGNING_NOT_FOUND (hidden)
+                showToast("Bài thi đã kết thúc. Bạn không thể thay đổi đáp án. Đang tự động nộp bài...", "err");
+                setTimeout(() => executeSubmit(), 2000);
+            }
+        }
     } catch (e) {
         console.error("Lỗi khi lưu đáp án lên server:", e);
     }
@@ -456,7 +465,7 @@ async function executeSubmit() {
             const result = await response.json();
             localStorage.removeItem(`quiz_answers_${quizData.attemptId}`);
             localStorage.removeItem(`quiz_flags_${quizData.attemptId}`);
-            window.location.href = `/student/quiz/result/${result.id}`;
+            window.location.replace(`/student/quiz/result/${result.id}`);
         } else {
             throw new Error("Lỗi khi nộp bài");
         }

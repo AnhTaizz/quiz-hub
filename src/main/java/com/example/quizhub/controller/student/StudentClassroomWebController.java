@@ -82,7 +82,9 @@ public class StudentClassroomWebController {
             com.example.quizhub.entity.Classroom classroom = classroomRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Classroom not found"));
 
-            List<QuizAssigning> assignedQuizzes = quizAssigningRepository.findByClassroomId(id);
+            List<QuizAssigning> assignedQuizzes = quizAssigningRepository.findByClassroomId(id).stream()
+                    .filter(a -> !Boolean.TRUE.equals(a.getIsHidden()))
+                    .collect(java.util.stream.Collectors.toList());
             List<ClassTopic> topics = classTopicRepository.findByClassroomId(id);
 
             model.addAttribute("classroom", classroom);

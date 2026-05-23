@@ -417,7 +417,7 @@ public class ClassroomServiceImpl implements ClassroomService {
 
     @Override
     public AssignmentStatisticsDTO getAssignmentStatistics(Long assigningId, String teacherEmail) {
-        com.example.quizhub.entity.QuizAssigning assigning = quizAssigningRepository.findById(assigningId)
+        com.example.quizhub.entity.QuizAssigning assigning = quizAssigningRepository.findByIdIncludingDeleted(assigningId)
                 .orElseThrow(() -> new AppException(ErrorCode.QUIZ_ASSIGNING_NOT_FOUND));
 
         if (!assigning.getClassroom().getCreator().getEmail().equals(teacherEmail)) {

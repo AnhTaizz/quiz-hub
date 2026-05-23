@@ -87,7 +87,7 @@ public class TeacherClassroomController {
             Principal principal,
             @PathVariable Long assigningId) {
 
-        com.example.quizhub.entity.QuizAssigning assigning = quizAssigningRepository.findById(assigningId)
+        com.example.quizhub.entity.QuizAssigning assigning = quizAssigningRepository.findByIdIncludingDeleted(assigningId)
                 .orElseThrow(() -> new RuntimeException("Assignment not found"));
 
         List<com.example.quizhub.entity.ClassJoining> members = classJoiningRepository.findByClassroomIdAndStatus(

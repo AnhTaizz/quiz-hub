@@ -36,6 +36,7 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
     private final ClassJoiningRepository classJoiningRepository;
     private final NotificationService notificationService;
     private final UserRepository userRepository;
+    private final com.example.quizhub.repository.AttemptRepository attemptRepository;
 
     private com.example.quizhub.entity.User getCurrentUser() {
         String email = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication().getName();
@@ -57,6 +58,10 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
         Quiz quiz = quizRepository.findById(request.getQuizId())
                 .orElseThrow(() -> new AppException(ErrorCode.QUIZ_NOT_FOUND));
 
+        if (!Boolean.TRUE.equals(quiz.getIsEnable())) {
+            throw new AppException(ErrorCode.QUIZ_DISABLED);
+        }
+
         if (!quiz.getCreator().getId().equals(currentUser.getId()) && Boolean.TRUE.equals(quiz.getIsDraft())) {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
@@ -71,8 +76,9 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
         }
 
         // Validation logic
-        if (quizAssigning.getDueDate().isBefore(java.time.LocalDateTime.now())) {
-            throw new AppException(ErrorCode.INVALID_DATE_RANGE);
+        // Allow a 1-minute buffer for "now" to account for execution delay
+        if (quizAssigning.getDueDate().isBefore(java.time.LocalDateTime.now().minusMinutes(1))) {
+            throw new AppException(ErrorCode.DEADLINE_IN_PAST);
         }
 
         if (quizAssigning.getDueDate().isBefore(quizAssigning.getStartDate()) ||
@@ -143,5 +149,85 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
         }
 
         return quizAssigningMapper.toResponseDTO(savedQuizAssigning);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void delete(Long id) {
+        com.example.quizhub.entity.User currentUser = getCurrentUser();
+        QuizAssigning assigning = quizAssigningRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.QUIZ_ASSIGNING_NOT_FOUND));
+
+        if (!assigning.getClassroom().getCreator().getId().equals(currentUser.getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        if (attemptRepository.countByQuizAssigningId(id) > 0) {
+            throw new AppException(ErrorCode.QUIZ_ASSIGNING_HAS_SUBMISSIONS);
+        }
+
+        quizAssigningRepository.delete(assigning);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void closeAssignment(Long id) {
+        com.example.quizhub.entity.User currentUser = getCurrentUser();
+        QuizAssigning assigning = quizAssigningRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.QUIZ_ASSIGNING_NOT_FOUND));
+
+        if (!assigning.getClassroom().getCreator().getId().equals(currentUser.getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        assigning.setDueDate(java.time.LocalDateTime.now());
+        quizAssigningRepository.save(assigning);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void toggleHidden(Long id) {
+        com.example.quizhub.entity.User currentUser = getCurrentUser();
+        QuizAssigning assigning = quizAssigningRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.QUIZ_ASSIGNING_NOT_FOUND));
+
+        if (!assigning.getClassroom().getCreator().getId().equals(currentUser.getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        assigning.setIsHidden(assigning.getIsHidden() == null ? true : !assigning.getIsHidden());
+        quizAssigningRepository.save(assigning);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void updateDeadline(Long id, java.time.LocalDateTime newDeadline) {
+        com.example.quizhub.entity.User currentUser = getCurrentUser();
+        QuizAssigning assigning = quizAssigningRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.QUIZ_ASSIGNING_NOT_FOUND));
+
+        if (!assigning.getClassroom().getCreator().getId().equals(currentUser.getId())) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        if (newDeadline == null) {
+            throw new AppException(ErrorCode.BLANK_FIELD);
+        }
+
+        if (newDeadline.equals(assigning.getDueDate())) {
+            return;
+        }
+
+        // Allow a 1-minute buffer for "now" to account for execution delay
+        if (newDeadline.isBefore(java.time.LocalDateTime.now().minusMinutes(1))) {
+            throw new AppException(ErrorCode.DEADLINE_IN_PAST);
+        }
+
+        if (newDeadline.isBefore(assigning.getStartDate())) {
+            throw new AppException(ErrorCode.INVALID_DATE_RANGE);
+        }
+
+        assigning.setDueDate(newDeadline);
+        quizAssigningRepository.save(assigning);
     }
 }

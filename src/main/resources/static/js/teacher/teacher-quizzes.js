@@ -4,15 +4,18 @@ document.addEventListener('DOMContentLoaded', () => {
     loadQuizzes();
     fetchCategories();
 
-    flatpickr('.flatpickr-datetime', {
-        enableTime: true,
-        altInput: true,
-        altFormat: "d/m/Y H:i",
-        dateFormat: "Y-m-dTH:i",
-        time_24hr: true,
-        locale: "vn",
-        allowInput: true,
-        minDate: "today"
+    document.querySelectorAll('.flatpickr-datetime').forEach(el => {
+        flatpickr(el, {
+            enableTime: true,
+            altInput: true,
+            altFormat: "d/m/Y H:i",
+            dateFormat: "Y-m-dTH:i",
+            time_24hr: true,
+            locale: "vn",
+            allowInput: true,
+            minDate: "today",
+            static: true
+        });
     });
 });
 
@@ -119,6 +122,7 @@ function renderQuizzes(list) {
         return `
         <div class="quiz-card">
             <img src="${imgUrl}" alt="Cover" class="quiz-cover-img" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80'">
+            <button class="qact qact-del" onclick="openDeleteModal('${q.id}')" title="Xóa đề thi" aria-label="Xóa đề thi"><i class="bi bi-trash3"></i></button>
             <div class="quiz-badge-row">${typeBadge}</div>
             <h3 class="quiz-title">${esc(q.title) || '(Chưa có tiêu đề)'}</h3>
             <p class="quiz-desc">${esc(q.description) || '<span style="color:#cbd5e1; font-style:italic;">Chưa có mô tả.</span>'}</p>
@@ -129,11 +133,29 @@ function renderQuizzes(list) {
             <div class="quiz-actions">
                 <a class="qact qact-edit" href="/teacher/quizzes/${q.id}/edit"><i class="bi bi-pencil-square"></i> Sửa</a>
                 <button class="qact qact-view" onclick="openPreviewModal('${q.id}', '${esc(q.title)}')"><i class="bi bi-eye"></i> Xem</button>
+                <button class="qact qact-copy" onclick="cloneQuiz('${q.id}')"><i class="bi bi-copy"></i> Sao chép</button>
                 <button class="qact qact-assign" onclick="openAssignModal('${q.id}', '${esc(q.title)}')"><i class="bi bi-send-fill"></i> Giao bài</button>
-                <button class="qact qact-del" onclick="openDeleteModal('${q.id}')" title="Xóa đề thi"><i class="bi bi-trash3"></i></button>
             </div>
         </div>`;
     }).join('');
+}
+
+function normalizeQuizTitle(title) {
+    return title ? title.replace(/\(ban sao\)/gi, '(bản sao)') : title;
+}
+
+async function cloneQuiz(id) {
+    try {
+        const cloned = await apiClient.post(`/api/teacher/quizzes/${id}/clone`, {});
+        showToast('Đã tạo bản sao đề thi!', 'ok');
+        if (cloned && cloned.id) {
+            window.location.href = `/teacher/quizzes/${cloned.id}/edit`;
+        } else {
+            loadQuizzes();
+        }
+    } catch (e) {
+        showToast(e.message || 'Lỗi khi tạo bản sao đề thi', 'err');
+    }
 }
 
 function openDeleteModal(id) {
@@ -236,26 +258,43 @@ async function openAssignModal(id, title) {
 }
 
 async function confirmAssign() {
-    const form = document.getElementById('assignForm');
-    if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-    }
+    try {
+        const form = document.getElementById('assignForm');
+        const formData = new FormData(form);
+        const data = {};
+        formData.forEach((value, key) => {
+            if (key === 'questionShuffled' || key === 'answerShuffled' || key === 'showAnswer') {
+                data[key] = true;
+            } else {
+                data[key] = value;
+            }
+        });
 
-    const formData = new FormData(form);
-    const data = {};
-    formData.forEach((value, key) => {
-        if (key === 'questionShuffled' || key === 'answerShuffled' || key === 'showAnswer') {
-            data[key] = true;
-        } else {
-            data[key] = value;
+        if (!data.questionShuffled) data.questionShuffled = false;
+        if (!data.answerShuffled) data.answerShuffled = false;
+        if (!data.showAnswer) data.showAnswer = false;
+
+        // Validation
+        if (!data.classroomId) {
+            showToast('Vui lòng chọn lớp học!', 'warning');
+            return;
         }
-    });
+        if (!data.durationInMins || parseInt(data.durationInMins) < 1) {
+            showToast('Thời gian làm bài không hợp lệ!', 'warning');
+            return;
+        }
+        if (!data.maxAttempt || parseInt(data.maxAttempt) < 1) {
+            showToast('Số lần làm tối đa không hợp lệ!', 'warning');
+            return;
+        }
+        if (!data.startDate || !data.dueDate) {
+            showToast('Vui lòng chọn đầy đủ ngày mở đề và hạn chót!', 'warning');
+            return;
+        }
 
-    // Validation
-    const start = new Date(data.startDate);
-    const due = new Date(data.dueDate);
-    const duration = parseInt(data.durationInMins);
+        const start = new Date(data.startDate);
+        const due = new Date(data.dueDate);
+        const duration = parseInt(data.durationInMins);
 
     if (due <= start) {
         showToast('Thời gian kết thúc phải sau thời gian bắt đầu!', 'error');
@@ -268,16 +307,18 @@ async function confirmAssign() {
         return;
     }
 
-    if (!data.questionShuffled) data.questionShuffled = false;
-    if (!data.answerShuffled) data.answerShuffled = false;
-    if (!data.showAnswer) data.showAnswer = false;
-
     try {
         await apiClient.post('/api/teacher/quiz-assigning', data);
         bootstrap.Modal.getInstance(document.getElementById('assignModal')).hide();
         showToast('Giao đề thi thành công!', 'ok');
     } catch (err) {
-        showToast(err.message || 'Lỗi khi giao đề thi. Hãy thử lại!', 'err');
+        if (!err.__handled) {
+            showToast(err.message || 'Lỗi khi giao đề thi. Hãy thử lại!', 'error');
+        }
+    }
+    } catch (unexpectedErr) {
+        console.error("Unexpected error in confirmAssign:", unexpectedErr);
+        showToast("Đã xảy ra lỗi không xác định trên trình duyệt.", "error");
     }
 }
 

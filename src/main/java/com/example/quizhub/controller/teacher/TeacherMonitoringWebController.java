@@ -41,7 +41,8 @@ public class TeacherMonitoringWebController {
 
     @GetMapping("/log/{assigningId}")
     public String viewViolationLog(@PathVariable Long assigningId, Principal principal, Model model) {
-        QuizAssigning assignment = quizAssigningRepository.findById(assigningId).orElseThrow();
+        QuizAssigning assignment = quizAssigningRepository.findByIdIncludingDeleted(assigningId)
+                .orElseThrow(() -> new RuntimeException("Assignment not found"));
         List<AttemptViolation> violations = attemptViolationRepository.findAllByAssigningId(assigningId);
 
         model.addAttribute("assignment", assignment);

@@ -135,7 +135,7 @@
                 style="border-radius:20px; border:none; box-shadow:0 15px 40px rgba(0,0,0,0.15);">
                 <div style="font-size:2.5rem; margin-bottom:10px;">🗑️</div>
                 <h6 class="fw-bold mb-1">Xóa đề thi?</h6>
-                <p class="text-muted small mb-3">Thao tác này không thể hoàn tác. Bạn có chắc chắn muốn xóa?</p>
+                <p class="text-muted small mb-3">Đề thi sẽ bị ẩn khỏi danh sách. Các lớp đã được giao bài vẫn có thể tiếp tục làm bình thường. Bạn có chắc chắn muốn xóa?</p>
                 <input type="hidden" id="delQuizId">
                 <div class="d-flex gap-2">
                     <button class="btn btn-light w-50 fw-bold" data-bs-dismiss="modal"
@@ -148,7 +148,7 @@
     </div>
 
     <!-- Assign Quiz Modal -->
-    <div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
+    <div class="modal fade" id="assignModal" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content"
                 style="border-radius:20px; border:none; box-shadow:0 15px 40px rgba(0,0,0,0.15);">
@@ -184,12 +184,12 @@
                             <div class="col-6">
                                 <label class="form-label fw-bold">Ngày mở đề</label>
                                 <input type="text" id="assignStartDate" name="startDate"
-                                    class="form-control rounded-3 flatpickr-datetime" required>
+                                    class="form-control rounded-3 flatpickr-datetime">
                             </div>
                             <div class="col-6">
                                 <label class="form-label fw-bold">Hạn chót</label>
                                 <input type="text" id="assignDueDate" name="dueDate"
-                                    class="form-control rounded-3 flatpickr-datetime" required>
+                                    class="form-control rounded-3 flatpickr-datetime">
                             </div>
                         </div>
                         <div class="mb-3">

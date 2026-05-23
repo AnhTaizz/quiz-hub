@@ -352,7 +352,17 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         }
 
         // Check schedule if assigned
-        validateQuizSchedule(attempt.getQuizTaking().getQuizAssigning());
+        try {
+            validateQuizSchedule(attempt.getQuizTaking().getQuizAssigning());
+        } catch (AppException e) {
+            if (e.getErrorCode() == ErrorCode.QUIZ_EXPIRED || e.getErrorCode() == ErrorCode.QUIZ_ASSIGNING_NOT_FOUND) {
+                // If the teacher closed the quiz or hid it, auto-submit whatever is in the DB
+                finalizeAttempt(attempt);
+                return attempt;
+            } else {
+                throw e;
+            }
+        }
 
         Quiz quiz = attempt.getQuizTaking().getQuiz();
         int totalQuestion = attempt.getTotalQuestNum();
@@ -479,8 +489,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                 || quizAssigning.getDueDate().isBefore(LocalDateTime.now());
 
         boolean shouldShowAnswer = quizAssigning == null
-                || Boolean.TRUE.equals(quizAssigning.getShowAnswer())
-                || deadlinePassed;
+                || Boolean.TRUE.equals(quizAssigning.getShowAnswer());
 
         List<UserAttemptAnswer> userAnswers = userAttemptAnswerRepository.findByAttemptId(attemptId);
 
@@ -738,6 +747,9 @@ public class QuizTakingServiceImpl implements QuizTakingService {
 
     private void validateQuizSchedule(QuizAssigning quizAssigning) {
         if (quizAssigning != null) {
+            if (Boolean.TRUE.equals(quizAssigning.getIsHidden())) {
+                throw new AppException(ErrorCode.QUIZ_ASSIGNING_NOT_FOUND);
+            }
             LocalDateTime now = LocalDateTime.now();
             if (quizAssigning.getStartDate() != null && now.isBefore(quizAssigning.getStartDate())) {
                 throw new AppException(ErrorCode.QUIZ_NOT_STARTED);

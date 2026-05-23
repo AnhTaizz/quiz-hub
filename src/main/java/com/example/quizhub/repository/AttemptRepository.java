@@ -37,4 +37,7 @@ public interface AttemptRepository extends JpaRepository<Attempt, Long> {
     List<Attempt> findActiveAttemptsWithAssigning();
 
     long countByQuizTakingIdAndEndedAtIsNotNull(Long quizTakingId);
+
+    @Query("SELECT COUNT(a) FROM Attempt a WHERE a.quizTaking.quizAssigning.id = :assigningId")
+    long countByQuizAssigningId(@Param("assigningId") Long assigningId);
 }

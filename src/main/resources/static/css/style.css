@@ -2459,3 +2459,16 @@ img {
 }
 
 /* Removed legacy zoom: 85% overrides to support native 100% zoom rendering. */
+
+/* Fix flatpickr inside input-group when static: true */
+.input-group .flatpickr-wrapper {
+   flex: 1 1 auto;
+   display: flex;
+   width: 1%;
+}
+
+.input-group .flatpickr-wrapper .form-control {
+   width: 100%;
+   border-top-left-radius: 0;
+   border-bottom-left-radius: 0;
+}

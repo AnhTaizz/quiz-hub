@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
     // --- Configurations ---
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     const getClassroomId = () => window.CLASSROOM_ID || 0;
@@ -359,6 +359,124 @@
         });
     };
 
+    window.deleteAssignment = function (assigningId, quizTitle) {
+        showConfirmModal(
+            'Xóa bài thi đã giao?',
+            `Bạn có chắc chắn muốn xóa bài thi "${quizTitle}" khỏi lớp này không?`,
+            async () => {
+                try {
+                    const res = await fetch('/api/teacher/quiz-assigning/' + assigningId, {
+                        method: 'DELETE',
+                        headers: { Authorization: 'Bearer ' + token }
+                    });
+
+                    if (res.ok) {
+                        showToast('Đã xóa bài thi thành công!', 'ok');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        const errData = await res.json().catch(() => ({}));
+                        if (errData && errData.message) {
+                            showToast(errData.message, 'error');
+                        } else {
+                            showToast('Đã xảy ra lỗi khi xóa bài thi.', 'error');
+                        }
+                    }
+                } catch (e) {
+                    showToast('Lỗi kết nối mạng.', 'error');
+                }
+            }
+        );
+    };
+
+    window.closeAssignment = function (assigningId, quizTitle) {
+        showConfirmModal(
+            'Đóng bài thi ngay?',
+            `Bạn có chắc chắn muốn kết thúc bài thi "${quizTitle}" ngay bây giờ không? Học sinh sẽ không thể tiếp tục làm bài.`,
+            async () => {
+                try {
+                    const res = await fetch('/api/teacher/quiz-assigning/' + assigningId + '/close', {
+                        method: 'PATCH',
+                        headers: { Authorization: 'Bearer ' + token }
+                    });
+
+                    if (res.ok) {
+                        showToast('Đã đóng bài thi thành công!', 'ok');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        const errData = await res.json().catch(() => ({}));
+                        showToast(errData.message || 'Đã xảy ra lỗi khi đóng bài thi.', 'error');
+                    }
+                } catch (e) {
+                    showToast('Lỗi kết nối mạng.', 'error');
+                }
+            }
+        );
+    };
+
+    window.toggleHidden = async function (assigningId) {
+        try {
+            const res = await fetch('/api/teacher/quiz-assigning/' + assigningId + '/toggle-hidden', {
+                method: 'PATCH',
+                headers: { Authorization: 'Bearer ' + token }
+            });
+
+            if (res.ok) {
+                showToast('Đã thay đổi trạng thái ẩn/hiện thành công!', 'ok');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                const errData = await res.json().catch(() => ({}));
+                showToast(errData.message || 'Đã xảy ra lỗi.', 'error');
+            }
+        } catch (e) {
+            showToast('Lỗi kết nối mạng.', 'error');
+        }
+    };
+
+    window.openEditDeadlineModal = function (assigningId, currentDue) {
+        document.getElementById('editDeadlineAssigningId').value = assigningId;
+        const input = document.getElementById('newDueDate');
+        if (input._flatpickr) {
+            if (currentDue && currentDue.trim() !== '') {
+                input._flatpickr.setDate(new Date(currentDue));
+            } else {
+                input._flatpickr.clear();
+            }
+        }
+        const modal = new bootstrap.Modal(document.getElementById('editDeadlineModal'));
+        modal.show();
+    };
+
+    window.submitEditDeadline = async function () {
+        const assigningId = document.getElementById('editDeadlineAssigningId').value;
+        const newDueDate = document.getElementById('newDueDate').value;
+
+        if (!newDueDate) {
+            showToast('Vui lòng chọn hạn chót mới.', 'warning');
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/teacher/quiz-assigning/' + assigningId + '/deadline', {
+                method: 'PUT',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    Authorization: 'Bearer ' + token 
+                },
+                body: JSON.stringify({ newDueDate: newDueDate + ":00" })
+            });
+
+            if (res.ok) {
+                showToast('Đã cập nhật hạn chót thành công!', 'ok');
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                const errData = await res.json().catch(() => ({}));
+                showToast(errData.message || 'Đã xảy ra lỗi khi cập nhật hạn chót.', 'error');
+            }
+        } catch (e) {
+            showToast('Lỗi kết nối mạng.', 'error');
+        }
+    };
+
     // --- Visual Actions / Modals ---
     window.openQuizPreviewModal = async function (id, event) {
         if (event) event.preventDefault();
@@ -513,15 +631,19 @@
 
     // --- Initialization ---
     document.addEventListener('DOMContentLoaded', () => {
-        flatpickr('.flatpickr-datetime', {
-            enableTime: true,
-            altInput: true,
-            altFormat: "d/m/Y H:i",
-            dateFormat: "Y-m-dTH:i",
-            time_24hr: true,
-            locale: "vn",
-            allowInput: true,
-            minDate: "today"
+        document.querySelectorAll('.flatpickr-datetime').forEach(el => {
+            const modal = el.closest('.modal');
+            flatpickr(el, {
+                enableTime: true,
+                altInput: true,
+                altFormat: "d/m/Y H:i",
+                dateFormat: "Y-m-dTH:i",
+                time_24hr: true,
+                locale: "vn",
+                allowInput: true,
+                minDate: "today",
+                static: true
+            });
         });
     });
 })();

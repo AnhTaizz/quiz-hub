@@ -83,11 +83,16 @@ const apiClient = (() => {
                 // If it's a backend ErrorResponse with a message
                 const errMsg = (data && data.message) || `Đã xảy ra lỗi hệ thống (Mã lỗi: ${response.status})`;
                 showGlobalError(errMsg);
-                return Promise.reject(data || new Error(errMsg));
+                const error = data && typeof data === 'object' ? data : new Error(errMsg);
+                error.__handled = true;
+                return Promise.reject(error);
             }
 
             return data;
         } catch (error) {
+            if (error && error.__handled) {
+                throw error;
+            }
             console.error('Fetch error:', error);
             showGlobalError('Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại đường truyền mạng.');
             throw error;
