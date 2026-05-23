@@ -493,21 +493,17 @@ function quizCardHtml(q) {
         ? `<div class="quiz-actions">
               <a class="qact qact-edit" href="/teacher/quizzes/${q.id}/edit"><i class="bi bi-pencil-square"></i> Sửa</a>
               <button class="qact qact-view" onclick="openQuizPreviewModal('${q.id}', event)"><i class="bi bi-eye"></i> Xem</button>
-              <button class="qact qact-copy" onclick="cloneQuiz('${q.id}', event)"><i class="bi bi-copy"></i> Sao chép</button>
+              <button class="qact qact-del" onclick="deleteQuiz('${q.id}', event)"><i class="bi bi-trash3"></i> Xóa</button>
               <button class="qact qact-assign" onclick="openAssignModal('${q.id}', '${escJs(q.title)}', event)"><i class="bi bi-send-fill"></i> Giao bài</button>
            </div>`
         : `<div class="quiz-actions">
               <button class="qact qact-view" style="flex:1;" onclick="openQuizPreviewModal('${q.id}', event)"><i class="bi bi-eye"></i> Xem thử</button>
-              <button class="qact qact-copy" onclick="cloneQuiz('${q.id}', event)"><i class="bi bi-copy"></i> Sao chép</button>
               <button class="qact qact-assign" onclick="openAssignModal('${q.id}', '${escJs(q.title)}', event)"><i class="bi bi-send-fill"></i> Giao bài</button>
            </div>`;
 
     const imgUrl = q.imageUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80';
-    const deleteBtn = OWN_MODE ? `<button class="qact qact-del" onclick="deleteQuiz('${q.id}', event)" title="Xóa đề thi"><i class="bi bi-trash3"></i></button>` : '';
-
     return `<div class="quiz-card">
 <img src="${imgUrl}" alt="Cover" class="quiz-cover-img" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80'">
-${deleteBtn}
 <div class="quiz-badge-row">${typeBadge}</div>
 <h3 class="quiz-title">${esc(q.title) || '(Chưa có tiêu đề)'}</h3>
 <p class="quiz-desc">${esc(q.description) || '<span style="color:#cbd5e1;font-style:italic;">Chưa có mô tả.</span>'}</p>
@@ -727,26 +723,7 @@ function deleteQuiz(id, e) {
     });
 }
 
-async function cloneQuiz(id, event) {
-    if (event) event.stopPropagation();
-    try {
-        const token = localStorage.getItem('token') || sessionStorage.getItem('token');
-        const res = await fetch(`/api/teacher/quizzes/${id}/clone`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        if (!res.ok) throw new Error('Lỗi sao chép đề thi');
-        const cloned = await res.json();
-        showToast('Đã tạo bản sao đề thi!', 'ok');
-        if (cloned && cloned.id) {
-            window.location.href = `/teacher/quizzes/${cloned.id}/edit`;
-        } else {
-            if (navStack.length > 0) loadFolderContent(navStack[navStack.length - 1].id);
-        }
-    } catch (e) {
-        showToast(e.message || 'Lỗi khi tạo bản sao đề thi', 'err');
-    }
-}
+
 
 /* ══════════════════════════════════════════════
    UTILS

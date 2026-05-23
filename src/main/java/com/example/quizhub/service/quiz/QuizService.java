@@ -18,7 +18,6 @@ public interface QuizService {
 
     QuizResponseDTO updateQuiz(String id, QuizRequestDTO request);
 
-    QuizResponseDTO cloneQuiz(String id);
 
     void deleteQuiz(String id);
 

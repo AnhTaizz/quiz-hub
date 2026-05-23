@@ -58,10 +58,7 @@ public class TeacherQuizController {
         return ResponseEntity.ok(quizService.updateQuiz(id, request));
     }
 
-    @PostMapping("/{id}/clone")
-    public ResponseEntity<QuizResponseDTO> cloneQuiz(@PathVariable String id){
-        return ResponseEntity.status(HttpStatus.CREATED).body(quizService.cloneQuiz(id));
-    }
+
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteQuiz(@PathVariable String id){

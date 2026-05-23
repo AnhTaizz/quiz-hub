@@ -175,59 +175,45 @@ public class QuizServiceImpl implements QuizService {
             throw new AppException(ErrorCode.UNAUTHORIZED);
         }
 
-        boolean assignedBefore = hasEverBeenAssigned(quiz);
-        if (assignedBefore && !hasSameQuestionMembership(quiz, request.getQuestionIds())) {
-            throw new AppException(ErrorCode.QUIZ_STRUCTURE_LOCKED);
-        }
-
-        quiz.setTitle(request.getTitle());
-        quiz.setDescription(request.getDescription());
-        quiz.setImageUrl(request.getImageUrl());
-        quiz.setIsDraft(request.getIsDraft());
-        quiz.setIsExam(request.getIsExam());
-        quiz.setCategory(resolveAndValidateCategory(request.getCategoryId(), currentUser));
-
         List<Question> questions = questionRepository.findAllById(request.getQuestionIds());
         if (questions.size() != request.getQuestionIds().size()) {
             throw new AppException(ErrorCode.QUESTION_NOT_FOUND);
         }
 
-        if (!assignedBefore) {
+        boolean assignedBefore = hasEverBeenAssigned(quiz);
+        
+        if (assignedBefore) {
+            // Soft delete old quiz
+            quiz.setIsEnable(false);
+            quizRepository.save(quiz);
+
+            // Create new clone quiz with updated data
+            Quiz clone = Quiz.builder()
+                .title(request.getTitle())
+                .description(request.getDescription())
+                .imageUrl(request.getImageUrl())
+                .isDraft(request.getIsDraft())
+                .isExam(request.getIsExam())
+                .category(resolveAndValidateCategory(request.getCategoryId(), currentUser))
+                .creator(quiz.getCreator())
+                .isEnable(true)
+                .questions(questions)
+                .build();
+            return quizMapper.toResponseDTO(quizRepository.save(clone));
+        } else {
+            // Update in-place if not assigned
+            quiz.setTitle(request.getTitle());
+            quiz.setDescription(request.getDescription());
+            quiz.setImageUrl(request.getImageUrl());
+            quiz.setIsDraft(request.getIsDraft());
+            quiz.setIsExam(request.getIsExam());
+            quiz.setCategory(resolveAndValidateCategory(request.getCategoryId(), currentUser));
             quiz.getQuestions().clear();
             quiz.getQuestions().addAll(questions);
+            return quizMapper.toResponseDTO(quizRepository.save(quiz));
         }
-        return quizMapper.toResponseDTO(quizRepository.save(quiz));
     }
 
-    @Override
-    @Transactional
-    public QuizResponseDTO cloneQuiz(String id) {
-        Quiz original = findQuiz(id);
-        User currentUser = getCurrentUser();
-        boolean isAdmin = currentUser.getRole().name().equalsIgnoreCase("ADMIN");
-
-        if (!Boolean.TRUE.equals(original.getIsEnable())) {
-            throw new AppException(ErrorCode.QUIZ_DISABLED);
-        }
-
-        if (!isAdmin && !original.getCreator().getId().equals(currentUser.getId())) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
-
-        Quiz clone = Quiz.builder()
-                .title((original.getTitle() != null ? original.getTitle() : "Chưa có tiêu đề") + " (bản sao)")
-                .description(original.getDescription())
-                .imageUrl(original.getImageUrl())
-                .isDraft(true)
-                .isEnable(true)
-                .isExam(original.getIsExam())
-                .creator(currentUser)
-                .category(original.getCategory())
-                .questions(original.getQuestions() != null ? new ArrayList<>(original.getQuestions()) : new ArrayList<>())
-                .build();
-
-        return quizMapper.toResponseDTO(quizRepository.save(clone));
-    }
 
     @Override
     @Transactional

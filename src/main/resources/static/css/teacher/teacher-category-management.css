@@ -649,19 +649,8 @@
 }
 
 .qact-del {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-    z-index: 2;
-    width: 40px;
-    height: 40px;
-    min-height: 40px;
-    padding: 0;
-    border-radius: 12px;
-    background: rgba(254, 242, 242, .94);
+    background: #fef2f2;
     color: #dc2626;
-    box-shadow: 0 8px 20px rgba(15, 23, 42, .12);
-    backdrop-filter: blur(6px);
 }
 
 .qact-del:hover {
