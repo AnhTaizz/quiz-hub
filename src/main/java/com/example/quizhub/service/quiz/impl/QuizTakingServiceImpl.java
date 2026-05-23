@@ -489,7 +489,8 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                 || quizAssigning.getDueDate().isBefore(LocalDateTime.now());
 
         boolean shouldShowAnswer = quizAssigning == null
-                || Boolean.TRUE.equals(quizAssigning.getShowAnswer());
+                || Boolean.TRUE.equals(quizAssigning.getShowAnswer())
+                || deadlinePassed;
 
         List<UserAttemptAnswer> userAnswers = userAttemptAnswerRepository.findByAttemptId(attemptId);
 
