@@ -73,7 +73,7 @@
                                                 thi</h5>
                                             <div class="text-muted small">
                                                 <span class="badge bg-light text-dark me-2"
-                                                    th:text="${attempt.quizTaking.quizAssigning != null ? attempt.quizTaking.quizAssigning.classroom.name : 'Đề thi cá nhân'}">Tên
+                                                    th:text="${attempt.quizTaking.quizAssigning != null ? (attempt.quizTaking.quizAssigning.classroom != null ? attempt.quizTaking.quizAssigning.classroom.name : 'Lớp đã xóa') : 'Đề thi cá nhân'}">Tên
                                                     lớp</span>
                                                 <i class="bi bi-calendar3 me-1"></i> <span
                                                     th:text="${#temporals.format(attempt.startedAt, 'HH:mm dd/MM/yyyy')}">Thời

@@ -88,10 +88,10 @@ public class StudentHomeController {
             // Get all assigned quizzes from joined classrooms
             List<ClassJoining> joinedClasses = classJoiningRepository.findByLearnerIdAndStatusIn(
                     student.getId(),
-                    List.of(JoinStatus.APPROVED, JoinStatus.PENDING));
+                    List.of(JoinStatus.APPROVED, JoinStatus.PENDING)).stream().filter(j -> j.getClassroom() != null).collect(Collectors.toList());
             List<QuizAssigning> rawAssignedQuizzes = new ArrayList<>();
             for (ClassJoining joining : joinedClasses) {
-                if (joining.getStatus() == JoinStatus.APPROVED) {
+                if (joining.getStatus() == JoinStatus.APPROVED && joining.getClassroom() != null) {
                     rawAssignedQuizzes
                             .addAll(quizAssigningRepository.findByClassroomId(joining.getClassroom().getId()));
                 }
@@ -165,7 +165,7 @@ public class StudentHomeController {
             // Get all classrooms to match home() logic
             List<ClassJoining> joinedClasses = classJoiningRepository.findByLearnerIdAndStatusIn(
                     student.getId(),
-                    List.of(JoinStatus.APPROVED, JoinStatus.PENDING));
+                    List.of(JoinStatus.APPROVED, JoinStatus.PENDING)).stream().filter(j -> j.getClassroom() != null).collect(Collectors.toList());
 
             Map<Long, QuizDashboardInfo> quizMap = new LinkedHashMap<>();
             LocalDateTime now = LocalDateTime.now();

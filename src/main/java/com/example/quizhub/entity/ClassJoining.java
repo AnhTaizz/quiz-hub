@@ -30,6 +30,7 @@ public class ClassJoining {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "class_id")
+    @org.hibernate.annotations.NotFound(action = org.hibernate.annotations.NotFoundAction.IGNORE)
     Classroom classroom;
 
     @ManyToOne(fetch = FetchType.LAZY)

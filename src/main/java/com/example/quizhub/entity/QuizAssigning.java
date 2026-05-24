@@ -3,6 +3,8 @@ package com.example.quizhub.entity;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
@@ -65,6 +67,7 @@ public class QuizAssigning {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "classroom_id")
+    @NotFound(action = NotFoundAction.IGNORE)
     Classroom classroom;
 
     @ManyToOne(fetch = FetchType.LAZY)
