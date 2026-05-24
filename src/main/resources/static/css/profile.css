@@ -67,13 +67,17 @@ a { text-decoration: none; }
 /* Logo gradient theo role */
 .brand-icon-admin   { background: linear-gradient(135deg, #a855f7, #7c3aed) !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; }
 .brand-icon-teacher { background: linear-gradient(135deg, #4ade80, #16a34a) !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; }
-.brand-icon-student { background: linear-gradient(135deg, #60a5fa, #2563eb) !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; }
+.brand-icon-student { background: linear-gradient(135deg, #4ade80, #16a34a) !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; }
 
 .topbar-brand .hub {
     background: linear-gradient(90deg, #3b82f6, #7c3aed);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
+
+.hub-admin   { background: linear-gradient(90deg, #3b82f6, #7c3aed) !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; }
+.hub-teacher { background: linear-gradient(90deg, #10b981, #2563eb) !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; }
+.hub-student { background: linear-gradient(90deg, #10b981, #2563eb) !important; -webkit-background-clip: text !important; -webkit-text-fill-color: transparent !important; }
 
 .btn-back {
     display: flex;

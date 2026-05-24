@@ -195,15 +195,20 @@ function updateBrandForRole(role) {
     const link = document.getElementById('topbar-brand-link');
     if (!icon || !link) return;
 
+    const hubSpan = link.querySelector('.hub');
+
     if (role === 'ADMIN') {
         icon.className = 'bi bi-shield-fill-check brand-icon-admin';
         link.href = '/admin';
+        if (hubSpan) hubSpan.className = 'hub hub-admin';
     } else if (role === 'TEACHER') {
         icon.className = 'bi bi-mortarboard-fill brand-icon-teacher';
         link.href = '/teacher';
+        if (hubSpan) hubSpan.className = 'hub hub-teacher';
     } else {
         icon.className = 'bi bi-layers-fill brand-icon-student';
         link.href = '/student';
+        if (hubSpan) hubSpan.className = 'hub hub-student';
     }
 }
 
