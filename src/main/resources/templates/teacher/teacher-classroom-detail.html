@@ -62,7 +62,7 @@
                     <i class="bi bi-pencil-square me-1"></i> Sửa lớp
                 </button>
                 <button class="btn btn-outline-danger fw-bold" style="border-radius: 14px; padding: 12px 24px;"
-                    data-bs-toggle="modal" data-bs-target="#deleteClassroomModal">
+                    onclick="deleteClassroom()">
                     <i class="bi bi-trash me-1"></i> Xóa lớp
                 </button>
                 <button class="btn-create" data-bs-toggle="modal" data-bs-target="#assignQuizModal">
@@ -291,12 +291,12 @@
                             <div class="col-6">
                                 <label class="form-label fw-bold">Ngày mở đề</label>
                                 <input type="text" name="startDate" class="form-control rounded-3 flatpickr-datetime"
-                                    th:value="${#temporals.format(today, 'yyyy-MM-dd HH:mm')}" required>
+                                    th:value="${#temporals.format(today, 'yyyy-MM-dd') + 'T' + #temporals.format(today, 'HH:mm')}" required>
                             </div>
                             <div class="col-6">
                                 <label class="form-label fw-bold">Ngày hết hạn</label>
                                 <input type="text" name="dueDate" class="form-control rounded-3 flatpickr-datetime"
-                                    th:value="${#temporals.format(nextWeek, 'yyyy-MM-dd HH:mm')}" required>
+                                    th:value="${#temporals.format(nextWeek, 'yyyy-MM-dd') + 'T' + #temporals.format(nextWeek, 'HH:mm')}" required>
                             </div>
                         </div>
 
@@ -428,26 +428,7 @@
             </div>
         </div>
     </div>
-    <!-- Delete Classroom Modal -->
-    <div class="modal fade" id="deleteClassroomModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content" style="border-radius: 20px;">
-                <div class="modal-header border-0 pb-0 pt-4 px-4">
-                    <h5 class="modal-title fw-bold text-danger">Xóa lớp học</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <p class="mb-4">Bạn có chắc chắn muốn xóa lớp học này không? Hành động này không thể hoàn tác.</p>
-                    <div class="d-flex gap-3">
-                        <button type="button" class="btn btn-secondary w-100 py-2 fw-bold" data-bs-dismiss="modal"
-                            style="border-radius: 10px;">Hủy</button>
-                        <button type="button" onclick="deleteClassroom()" class="btn btn-danger w-100 py-2 fw-bold"
-                            style="border-radius: 10px;">Xác nhận Xóa</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Modal: Xem chi tiết các Đề thi trong Topic -->
     <div class="modal fade" id="viewTopicQuizzesModal" tabindex="-1" aria-hidden="true">

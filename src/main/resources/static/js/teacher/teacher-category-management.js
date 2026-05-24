@@ -15,7 +15,7 @@ function showConfirmModal(title, message, onConfirm) {
             <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-sm">
                     <div class="modal-content text-center p-4" style="border-radius:20px; border:none; box-shadow:0 10px 30px rgba(0,0,0,0.1);">
-                        <div style="font-size:2.5rem;margin-bottom:8px;">⚠️</div>
+                        <div class="text-warning mb-2" style="font-size: 2.5rem;"><i class="bi bi-exclamation-triangle-fill"></i></div>
                         <h6 class="fw-bold mb-1" id="customConfirmTitle" style="font-size:1.1rem; color:#1e293b;"></h6>
                         <p class="text-muted small mb-3" id="customConfirmMsg"></p>
                         <div class="d-flex gap-2">

@@ -52,8 +52,9 @@
                             <i class="bi bi-journal-x text-muted mb-3" style="font-size: 4rem;"></i>
                             <h5 class="fw-bold">Chưa có dữ liệu</h5>
                             <p class="text-muted">Bạn chưa hoàn thành bất kỳ bài thi nào.</p>
-                            <a href="/student" class="btn btn-primary rounded-pill px-4 fw-bold mt-2">Đến Bảng điều
-                                khiển</a>
+                            <div>
+                                <a href="/student/quizzes" class="btn btn-primary rounded-pill px-4 fw-bold mt-2">Đến bài thi của tôi</a>
+                            </div>
                         </div>
                         <div th:unless="${#lists.isEmpty(quizAttempts)}">
                             <div th:each="attempt : ${quizAttempts}" class="item-card p-4">
@@ -123,8 +124,10 @@
                             <i class="bi bi-pencil-square text-muted mb-3" style="font-size: 4rem;"></i>
                             <h5 class="fw-bold">Chưa có dữ liệu luyện tập</h5>
                             <p class="text-muted">Hãy bắt đầu luyện tập để cải thiện kỹ năng của bạn.</p>
-                            <a href="/student/categories?type=public"
-                                class="btn btn-primary rounded-pill px-4 fw-bold mt-2">Đến Ngân hàng đề</a>
+                            <div>
+                                <a href="/student/categories?type=public"
+                                    class="btn btn-primary rounded-pill px-4 fw-bold mt-2">Đến Luyện tập</a>
+                            </div>
                         </div>
                         <div th:unless="${#lists.isEmpty(practiceHistory)}">
                             <div th:each="practice : ${practiceHistory}" class="item-card p-4">

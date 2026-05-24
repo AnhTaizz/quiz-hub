@@ -1,8 +1,12 @@
 let allQuizzes = [];
+let currentViewMode = localStorage.getItem('quizViewMode') || 'grid';
 
 document.addEventListener('DOMContentLoaded', () => {
     loadQuizzes();
     fetchCategories();
+    
+    // Initialize view mode UI state
+    setViewMode(currentViewMode, false);
 
     document.querySelectorAll('.flatpickr-datetime').forEach(el => {
         flatpickr(el, {
@@ -18,6 +22,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
+function setViewMode(mode, shouldRender = true) {
+    currentViewMode = mode;
+    localStorage.setItem('quizViewMode', mode);
+
+    const btnGrid = document.getElementById('btn-grid-view');
+    const btnList = document.getElementById('btn-list-view');
+    const wrapper = document.getElementById('quizzesWrapper');
+
+    if (btnGrid && btnList) {
+        if (mode === 'grid') {
+            btnGrid.classList.add('active-toggle');
+            btnGrid.classList.remove('text-muted');
+            btnList.classList.remove('active-toggle');
+            btnList.classList.add('text-muted');
+            if (wrapper) wrapper.classList.remove('list-view-mode');
+        } else {
+            btnList.classList.add('active-toggle');
+            btnList.classList.remove('text-muted');
+            btnGrid.classList.remove('active-toggle');
+            btnGrid.classList.add('text-muted');
+            if (wrapper) wrapper.classList.add('list-view-mode');
+        }
+    }
+
+    if (shouldRender) {
+        filterQuizzes();
+    }
+}
 
 async function fetchCategories() {
     try {
@@ -58,6 +91,33 @@ function filterQuizzes() {
         const matchSearch = !search || (q.title && q.title.toLowerCase().includes(search));
         const matchCategory = !categoryId || targetCategoryIds.includes(q.categoryId);
         return matchSearch && matchCategory;
+    });
+
+    // Sorting logic
+    const sortVal = document.getElementById('sortSelect') ? document.getElementById('sortSelect').value : 'newest';
+    filtered.sort((a, b) => {
+        if (sortVal === 'newest') {
+            const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return timeB - timeA;
+        } else if (sortVal === 'oldest') {
+            const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return timeA - timeB;
+        } else if (sortVal === 'name-asc') {
+            const titleA = a.title ? a.title.toLowerCase() : '';
+            const titleB = b.title ? b.title.toLowerCase() : '';
+            return titleA.localeCompare(titleB, 'vi');
+        } else if (sortVal === 'name-desc') {
+            const titleA = a.title ? a.title.toLowerCase() : '';
+            const titleB = b.title ? b.title.toLowerCase() : '';
+            return titleB.localeCompare(titleA, 'vi');
+        } else if (sortVal === 'questions-desc') {
+            return (b.questionCount || 0) - (a.questionCount || 0);
+        } else if (sortVal === 'questions-asc') {
+            return (a.questionCount || 0) - (b.questionCount || 0);
+        }
+        return 0;
     });
 
     renderQuizzes(filtered);
@@ -112,31 +172,99 @@ function renderQuizzes(list) {
         return;
     }
 
-    wrapper.innerHTML = list.map(q => {
-        const typeBadge = q.isExam
-            ? `<span class="qbadge qbadge-exam"><i class="bi bi-mortarboard-fill"></i> Kiểm tra</span>`
-            : `<span class="qbadge qbadge-quiz"><i class="bi bi-journal-check"></i> Luyện tập</span>`;
+    if (currentViewMode === 'grid') {
+        wrapper.innerHTML = list.map(q => {
+            const typeBadge = q.isExam
+                ? `<span class="qbadge qbadge-exam"><i class="bi bi-mortarboard-fill"></i> Kiểm tra</span>`
+                : `<span class="qbadge qbadge-quiz"><i class="bi bi-journal-check"></i> Luyện tập</span>`;
 
-        const imgUrl = q.imageUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80';
+            const imgUrl = q.imageUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80';
 
-        return `
-        <div class="quiz-card">
-            <img src="${imgUrl}" alt="Cover" class="quiz-cover-img" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80'">
-            <div class="quiz-badge-row">${typeBadge}</div>
-            <h3 class="quiz-title">${esc(q.title) || '(Chưa có tiêu đề)'}</h3>
-            <p class="quiz-desc">${esc(q.description) || '<span style="color:#cbd5e1; font-style:italic;">Chưa có mô tả.</span>'}</p>
-            <div class="quiz-chips">
-                <span class="chip"><i class="bi bi-list-check text-success"></i> ${q.questionCount} câu</span>
-                <span class="chip"><i class="bi bi-folder text-primary"></i> ${esc(q.categoryName) || 'Kho chung'}</span>
+            return `
+            <div class="quiz-card">
+                <img src="${imgUrl}" alt="Cover" class="quiz-cover-img" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80'">
+                <div class="quiz-badge-row">${typeBadge}</div>
+                <h3 class="quiz-title" title="${esc(q.title)}">${esc(q.title) || '(Chưa có tiêu đề)'}</h3>
+                <p class="quiz-desc" title="${esc(q.description)}">${esc(q.description) || '<span style="color:#cbd5e1; font-style:italic;">Chưa có mô tả.</span>'}</p>
+                <div class="quiz-chips">
+                    <span class="chip"><i class="bi bi-list-check text-success"></i> ${q.questionCount} câu</span>
+                    <span class="chip"><i class="bi bi-folder text-primary"></i> ${esc(q.categoryName) || 'Kho chung'}</span>
+                </div>
+                <div class="quiz-actions">
+                    <a class="qact qact-edit" href="/teacher/quizzes/${q.id}/edit" title="Sửa đề thi"><i class="bi bi-pencil-square"></i> Sửa</a>
+                    <button class="qact qact-view" onclick="openPreviewModal('${q.id}', '${esc(q.title)}')" title="Xem chi tiết"><i class="bi bi-eye"></i> Xem</button>
+                    <button class="qact qact-del" onclick="openDeleteModal('${q.id}')" title="Xóa đề thi"><i class="bi bi-trash3"></i> Xóa</button>
+                    <button class="qact qact-assign" onclick="openAssignModal('${q.id}', '${esc(q.title)}')" title="Giao bài"><i class="bi bi-send-fill"></i> Giao</button>
+                </div>
+            </div>`;
+        }).join('');
+    } else {
+        // Table layout for List View
+        const tableHeader = `
+            <div class="quiz-list-header d-none d-md-flex">
+                <div class="col-title">Đề thi</div>
+                <div class="col-type">Phân loại</div>
+                <div class="col-questions">Số câu</div>
+                <div class="col-category">Danh mục</div>
+                <div class="col-date">Ngày tạo</div>
+                <div class="col-actions">Thao tác</div>
             </div>
-            <div class="quiz-actions">
-                <a class="qact qact-edit" href="/teacher/quizzes/${q.id}/edit"><i class="bi bi-pencil-square"></i> Sửa</a>
-                <button class="qact qact-view" onclick="openPreviewModal('${q.id}', '${esc(q.title)}')"><i class="bi bi-eye"></i> Xem</button>
-                <button class="qact qact-del" onclick="openDeleteModal('${q.id}')"><i class="bi bi-trash3"></i> Xóa</button>
-                <button class="qact qact-assign" onclick="openAssignModal('${q.id}', '${esc(q.title)}')"><i class="bi bi-send-fill"></i> Giao bài</button>
+        `;
+
+        const rows = list.map(q => {
+            const typeBadge = q.isExam
+                ? `<span class="qbadge qbadge-exam"><i class="bi bi-mortarboard-fill"></i> Kiểm tra</span>`
+                : `<span class="qbadge qbadge-quiz"><i class="bi bi-journal-check"></i> Luyện tập</span>`;
+
+            const imgUrl = q.imageUrl || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80';
+            
+            let formattedDate = '---';
+            if (q.createdAt) {
+                try {
+                    const date = new Date(q.createdAt);
+                    formattedDate = date.toLocaleDateString('vi-VN', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                    });
+                } catch (err) {}
+            }
+
+            return `
+            <div class="quiz-list-row">
+                <div class="col-title">
+                    <img src="${imgUrl}" alt="Cover" class="quiz-row-img" onerror="this.src='https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=400&q=80'">
+                    <div class="quiz-row-info">
+                        <div class="quiz-row-title" title="${esc(q.title)}">${esc(q.title) || '(Chưa có tiêu đề)'}</div>
+                        <div class="quiz-row-desc text-muted" title="${esc(q.description)}">${esc(q.description) || 'Chưa có mô tả.'}</div>
+                    </div>
+                </div>
+                <div class="col-type">
+                    ${typeBadge}
+                </div>
+                <div class="col-questions">
+                    <span class="quiz-row-text"><i class="bi bi-list-check text-success"></i> ${q.questionCount} câu</span>
+                </div>
+                <div class="col-category">
+                    <span class="quiz-row-text"><i class="bi bi-folder text-primary"></i> ${esc(q.categoryName) || 'Kho chung'}</span>
+                </div>
+                <div class="col-date">
+                    <span class="quiz-row-text text-muted">${formattedDate}</span>
+                </div>
+                <div class="col-actions">
+                    <div class="quiz-row-actions">
+                        <a class="qact-btn qact-btn-edit" href="/teacher/quizzes/${q.id}/edit" title="Sửa đề thi"><i class="bi bi-pencil-square"></i> Sửa</a>
+                        <button class="qact-btn qact-btn-view" onclick="openPreviewModal('${q.id}', '${esc(q.title)}')" title="Xem chi tiết"><i class="bi bi-eye"></i> Xem</button>
+                        <button class="qact-btn qact-btn-del" onclick="openDeleteModal('${q.id}')" title="Xóa đề thi"><i class="bi bi-trash3"></i> Xóa</button>
+                        <button class="qact-btn qact-btn-assign" onclick="openAssignModal('${q.id}', '${esc(q.title)}')" title="Giao bài"><i class="bi bi-send-fill"></i> Giao bài</button>
+                    </div>
+                </div>
             </div>
-        </div>`;
-    }).join('');
+            `;
+        }).join('');
+
+        wrapper.innerHTML = `<div class="quiz-list-table">${tableHeader}${rows}</div>`;
+    }
 }
 
 function normalizeQuizTitle(title) {

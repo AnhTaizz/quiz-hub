@@ -30,7 +30,7 @@
                 <div class="modal fade" id="customConfirmModal" tabindex="-1" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-sm">
                         <div class="modal-content text-center p-4" style="border-radius:20px; border:none; box-shadow:0 10px 30px rgba(0,0,0,0.1);">
-                            <div style="font-size:2.5rem;margin-bottom:8px;">⚠️</div>
+                            <div class="text-warning mb-2" style="font-size: 2.5rem;"><i class="bi bi-exclamation-triangle-fill"></i></div>
                             <h6 class="fw-bold mb-1" id="customConfirmTitle" style="font-size:1.1rem; color:#1e293b;"></h6>
                             <p class="text-muted small mb-3" id="customConfirmMsg"></p>
                             <div class="d-flex gap-2">
@@ -169,10 +169,6 @@
     window.submitAssignment = function () {
         const form = document.getElementById('assignQuizForm');
         if (!form) return;
-        if (!form.checkValidity()) {
-            form.reportValidity();
-            return;
-        }
 
         const formData = new FormData(form);
         const data = {};
@@ -184,10 +180,44 @@
             }
         });
 
-        // Validation
+        // Explicit validation checks to avoid silent HTML5 form validation blocking on hidden elements
+        if (!data.classroomId) {
+            showToast('Lỗi: Không tìm thấy thông tin lớp học!', 'error');
+            return;
+        }
+        if (!data.quizId) {
+            showToast('Vui lòng chọn đề thi trong kho!', 'warning');
+            return;
+        }
+        if (!data.durationInMins || parseInt(data.durationInMins) < 1) {
+            showToast('Số phút làm bài không hợp lệ (tối thiểu là 1)!', 'warning');
+            return;
+        }
+        if (!data.startDate) {
+            showToast('Vui lòng chọn ngày mở đề!', 'warning');
+            return;
+        }
+        if (!data.dueDate) {
+            showToast('Vui lòng chọn ngày hết hạn!', 'warning');
+            return;
+        }
+        if (!data.maxAttempt || parseInt(data.maxAttempt) < 1) {
+            showToast('Số lần nộp bài tối đa không hợp lệ (tối thiểu là 1)!', 'warning');
+            return;
+        }
+
         const start = new Date(data.startDate);
         const due = new Date(data.dueDate);
         const duration = parseInt(data.durationInMins);
+
+        if (isNaN(start.getTime())) {
+            showToast('Ngày mở đề không đúng định dạng!', 'error');
+            return;
+        }
+        if (isNaN(due.getTime())) {
+            showToast('Ngày hết hạn không đúng định dạng!', 'error');
+            return;
+        }
 
         if (due <= start) {
             showToast('Thời gian kết thúc phải sau thời gian bắt đầu!', 'error');

@@ -37,8 +37,11 @@
             <div
                 class="hero-content d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-4">
                 <div>
-                    <h1 class="hero-title"><span th:text="${greeting}" style="color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;">Chào buổi sáng</span>, <span
-                            style="background: linear-gradient(90deg, #a78bfa, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;" th:text="${currentUser != null ? currentUser.fullName : 'Học sinh'}">Học sinh</span>
+                    <h1 class="hero-title"><span th:text="${greeting}"
+                            style="color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;">Chào buổi
+                            sáng</span>, <span
+                            style="background: linear-gradient(90deg, #a78bfa, #38bdf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"
+                            th:text="${currentUser != null ? currentUser.fullName : 'Học sinh'}">Học sinh</span>
                         👋
                     </h1>
                     <p class="hero-subtitle">Mọi thứ đang đi đúng hướng! Bạn có <strong
@@ -149,19 +152,10 @@
                 <div class="dash-card mb-5">
                     <div class="quick-actions">
                         <a th:href="@{/student/categories(type='public')}" class="btn-quick">
-                            <i class="bi bi-globe2 text-info"></i> Ngân hàng đề thi
+                            <i class="bi bi-globe2 text-info"></i> Luyện tập nhanh
                         </a>
                         <a th:href="@{/student/categories(type='mine')}" class="btn-quick">
                             <i class="bi bi-journals text-warning"></i> Đề thi của tôi
-                        </a>
-                        <a th:href="@{/student/questions}" class="btn-quick">
-                            <i class="bi bi-patch-question-fill text-success"></i> Ngân hàng câu hỏi
-                        </a>
-                        <a th:href="@{/student/quiz/create}" class="btn-quick">
-                            <i class="bi bi-file-earmark-plus text-primary"></i> Lắp ráp Đề thi
-                        </a>
-                        <a th:href="@{/student/quiz/quick-create}" class="btn-quick">
-                            <i class="bi bi-magic text-indigo"></i> Tạo nhanh (Excel/JSON)
                         </a>
                         <a th:href="@{/student/quiz/ai-create}" class="btn-quick">
                             <i class="bi bi-robot text-purple" style="color: #7c3aed !important;"></i> Tạo đề thi bằng AI

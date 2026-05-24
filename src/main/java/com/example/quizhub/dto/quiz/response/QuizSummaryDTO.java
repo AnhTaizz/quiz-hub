@@ -1,5 +1,6 @@
 package com.example.quizhub.dto.quiz.response;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.example.quizhub.entity.Quiz;
@@ -31,6 +32,7 @@ public class QuizSummaryDTO {
     Long categoryId;
     String takingStatus; // NOT_STARTED, IN_PROGRESS, COMPLETED
     String attemptInfo;  // e.g. "Lần làm: 2"
+    LocalDateTime createdAt;
 
     public QuizSummaryDTO(Quiz quiz) {
         this.id = quiz.getId();
@@ -43,5 +45,6 @@ public class QuizSummaryDTO {
         this.creatorName = (quiz.getCreator() != null) ? quiz.getCreator().getFullName() : "";
         this.categoryName = (quiz.getCategory() != null) ? quiz.getCategory().getName() : "";
         this.categoryId = (quiz.getCategory() != null) ? quiz.getCategory().getId() : null;
+        this.createdAt = quiz.getCreatedAt();
     }
 }

@@ -31,7 +31,7 @@
         <!-- Header Section -->
         <div class="d-flex align-items-center justify-content-between mb-4 gap-3 flex-wrap">
             <div>
-                <h1 class="page-title">📝 Quản Lý Đề Thi</h1>
+                <h1 class="page-title">Quản Lý Đề Thi</h1>
                 <p class="page-sub">Xem, tìm kiếm và quản lý toàn bộ đề thi của bạn.</p>
             </div>
             <div class="dropdown">
@@ -60,7 +60,7 @@
                                 style="background:#f0fdf4; color:#16a34a; width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.2rem;">
                                 <i class="bi bi-magic"></i></div>
                             <div>
-                                <div class="fw-bold text-dark small">Tạo nhanh (Magic)</div>
+                                <div class="fw-bold text-dark small">Tạo nhanh Excel/JSON</div>
                                 <div class="text-muted" style="font-size:0.7rem;">Visual Designer: Excel/JSON</div>
                             </div>
                         </a>
@@ -83,9 +83,11 @@
 
         <!-- Filter bar -->
         <div class="search-and-filter">
-            <div class="row g-3">
-                <div class="col-lg-5 col-md-4">
-                    <div class="input-group">
+            <div class="d-flex flex-wrap gap-3 align-items-center justify-content-between">
+                <!-- Search & Category -->
+                <div class="d-flex flex-wrap gap-2 flex-grow-1" style="min-width: 280px;">
+                    <!-- Search -->
+                    <div class="input-group" style="width: 250px; flex-grow: 1;">
                         <span class="input-group-text bg-white border-end-0"
                             style="border-radius:12px 0 0 12px; border-color:#e2e8f0;">
                             <i class="bi bi-search text-muted"></i>
@@ -94,27 +96,47 @@
                             placeholder="Tìm kiếm đề thi..." style="border-radius:0 12px 12px 0;"
                             onkeyup="filterQuizzes()">
                     </div>
-                </div>
-                <div class="col-lg-7 col-md-8">
-                    <div class="row g-3">
-                        <div class="col-sm-12">
-                            <div class="d-flex gap-2 align-items-center">
-                                <div class="position-relative flex-grow-1">
-                                    <i
-                                        class="bi bi-folder2-open position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
-                                    <input type="text" id="filter-category-display"
-                                        class="form-control fc-custom ps-5 cursor-pointer bg-white"
-                                        placeholder="Tất cả danh mục" readonly
-                                        onclick="openCategoryExplorer('filter', 'private')" style="cursor: pointer;">
-                                    <input type="hidden" id="filter-category" value="">
-                                </div>
-                                <button type="button" class="btn btn-outline-danger p-2" id="clear-cat-btn"
-                                    style="display: none; border-radius: 12px; height: 42px; width: 42px;"
-                                    onclick="clearCategoryFilter()">
-                                    <i class="bi bi-x-lg"></i>
-                                </button>
-                            </div>
+                    <!-- Category -->
+                    <div class="d-flex gap-2 align-items-center" style="width: 250px; flex-grow: 1;">
+                        <div class="position-relative w-100">
+                            <i class="bi bi-folder2-open position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                            <input type="text" id="filter-category-display"
+                                class="form-control fc-custom ps-5 cursor-pointer bg-white"
+                                placeholder="Tất cả danh mục" readonly
+                                onclick="openCategoryExplorer('filter', 'private')" style="cursor: pointer;">
+                            <input type="hidden" id="filter-category" value="">
                         </div>
+                        <button type="button" class="btn btn-outline-danger p-2" id="clear-cat-btn"
+                            style="display: none; border-radius: 12px; height: 42px; width: 42px;"
+                            onclick="clearCategoryFilter()">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Sort & View Mode -->
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <!-- Sort Selection -->
+                    <div class="position-relative" style="width: 200px;">
+                        <i class="bi bi-sort-down position-absolute top-50 translate-middle-y ms-3 text-muted" style="z-index: 5;"></i>
+                        <select id="sortSelect" class="form-select fc-custom ps-5 cursor-pointer" onchange="filterQuizzes()" style="border-radius:12px; height: 42px;">
+                            <option value="newest">Mới nhất</option>
+                            <option value="oldest">Cũ nhất</option>
+                            <option value="name-asc">Tên (A-Z)</option>
+                            <option value="name-desc">Tên (Z-A)</option>
+                            <option value="questions-desc">Số câu (Nhiều nhất)</option>
+                            <option value="questions-asc">Số câu (Ít nhất)</option>
+                        </select>
+                    </div>
+
+                    <!-- View Toggle buttons -->
+                    <div class="btn-group border rounded-3 p-1 bg-light" role="group" style="height: 42px; display: flex; align-items: center;">
+                        <button type="button" class="btn btn-sm btn-view-toggle active-toggle" id="btn-grid-view" onclick="setViewMode('grid')" title="Dạng lưới" style="border-radius:8px; border:none; height: 32px; width: 36px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-grid-fill"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-view-toggle text-muted" id="btn-list-view" onclick="setViewMode('list')" title="Dạng danh sách" style="border-radius:8px; border:none; height: 32px; width: 36px; display: flex; align-items: center; justify-content: center;">
+                            <i class="bi bi-list-ul"></i>
+                        </button>
                     </div>
                 </div>
             </div>
