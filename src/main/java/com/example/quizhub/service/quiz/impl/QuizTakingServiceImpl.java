@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.Random;
+import com.example.quizhub.entity.enums.Role;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -761,13 +762,22 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         }
     }
 
-    private Attempt getValidAttempt(Long attemptId, Long studentId) {
+    private Attempt getValidAttempt(Long attemptId, Long userId) {
         Attempt attempt = attemptRepository.findById(attemptId)
                 .orElseThrow(() -> new AppException(ErrorCode.ATTEMPT_NOT_FOUND));
 
-        if (studentId != null && !attempt.getQuizTaking().getLearner().getId().equals(studentId)) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
+        if (userId != null) {
+            User user = userRepository.findById(userId).orElse(null);
+            if (user != null) {
+                if (user.getRole() == Role.STUDENT) {
+                    if (!attempt.getQuizTaking().getLearner().getId().equals(userId)) {
+                        throw new AppException(ErrorCode.UNAUTHORIZED);
+                    }
+                    // TEACHER or ADMIN are allowed to view the attempt details
+                }
+            }
         }
         return attempt;
     }
 }
+    
