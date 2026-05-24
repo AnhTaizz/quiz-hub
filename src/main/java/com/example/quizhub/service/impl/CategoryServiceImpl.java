@@ -1,10 +1,13 @@
 package com.example.quizhub.service.impl;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import java.text.Collator;
+import java.util.Locale;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -89,6 +92,24 @@ public class CategoryServiceImpl implements CategoryService {
                 else roots.add(dto); // parent không trong list → treat as root
             }
         }
+
+        Collator collator = Collator.getInstance(new Locale("vi", "VN"));
+        Comparator<CategoryResponseDTO> comparator = (a, b) -> {
+            String nameA = a.getName() != null ? a.getName() : "";
+            String nameB = b.getName() != null ? b.getName() : "";
+            return collator.compare(nameA, nameB);
+        };
+
+        // Sắp xếp các danh mục con cho từng phần tử
+        for (CategoryResponseDTO dto : dtoMap.values()) {
+            if (dto.getChildren() != null && !dto.getChildren().isEmpty()) {
+                dto.getChildren().sort(comparator);
+            }
+        }
+
+        // Sắp xếp các danh mục gốc
+        roots.sort(comparator);
+
         return roots;
     }
 
@@ -242,7 +263,7 @@ public class CategoryServiceImpl implements CategoryService {
     private List<Long> getAllDescendantIds(Long categoryId, List<Category> allCategories) {
         List<Long> descendantIds = new ArrayList<>();
         if (categoryId == null) return descendantIds;
-        
+
         descendantIds.add(categoryId);
         collectDescendantIdsRecursive(categoryId, allCategories, descendantIds);
         return descendantIds;
@@ -299,7 +320,10 @@ public class CategoryServiceImpl implements CategoryService {
                     boolean aPublic = Boolean.TRUE.equals(a.getIsPublic());
                     boolean bPublic = Boolean.TRUE.equals(b.getIsPublic());
                     if (aPublic != bPublic) return aPublic ? -1 : 1;
-                    return a.getFullPath().compareToIgnoreCase(b.getFullPath());
+                    Collator collator = Collator.getInstance(new Locale("vi", "VN"));
+                    String pathA = a.getFullPath() != null ? a.getFullPath() : "";
+                    String pathB = b.getFullPath() != null ? b.getFullPath() : "";
+                    return collator.compare(pathA, pathB);
                 })
                 .collect(Collectors.toList());
     }
