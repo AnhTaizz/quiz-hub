@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/student/classrooms")
@@ -45,7 +46,7 @@ public class StudentClassroomWebController {
                     JoinStatus.PENDING,
                     JoinStatus.APPROVED);
             List<ClassJoining> joinedClasses = classJoiningRepository.findByLearnerIdAndStatusIn(user.getId(),
-                    allowedStatuses).stream().filter(j -> j.getClassroom() != null).collect(java.util.stream.Collectors.toList());
+                    allowedStatuses).stream().filter(j -> j.getClassroom() != null).collect(Collectors.toList());
             model.addAttribute("joinedClasses", joinedClasses);
             model.addAttribute("currentUser", user);
         }

@@ -6,6 +6,9 @@ import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+
 import com.example.quizhub.entity.enums.JoinStatus;
 
 @Getter
@@ -30,7 +33,7 @@ public class ClassJoining {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "class_id")
-    @org.hibernate.annotations.NotFound(action = org.hibernate.annotations.NotFoundAction.IGNORE)
+    @NotFound(action = NotFoundAction.IGNORE)
     Classroom classroom;
 
     @ManyToOne(fetch = FetchType.LAZY)
