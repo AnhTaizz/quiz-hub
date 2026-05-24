@@ -36,6 +36,8 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       # Biến Gemini API Key
       GEMINI_API_KEY: ${GEMINI_API_KEY}
+      # Khởi tạo SQL (always cho lần đầu, never cho các lần sau)
+      SQL_INIT_MODE: ${SQL_INIT_MODE:never}
     restart: unless-stopped
 
 volumes:
