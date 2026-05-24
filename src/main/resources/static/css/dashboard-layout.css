@@ -95,7 +95,7 @@ body.sidebar-collapsed #sidebar .brand-logo span { display: none; }
 }
 
 .brand-logo span.hub {
-    background: linear-gradient(90deg, #10b981, #3b82f6);
+    background: linear-gradient(90deg, #10b981, #2563eb);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
