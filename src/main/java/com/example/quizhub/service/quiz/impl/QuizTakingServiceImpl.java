@@ -481,15 +481,25 @@ public class QuizTakingServiceImpl implements QuizTakingService {
         Quiz quiz = attempt.getQuizTaking().getQuiz();
         QuizAssigning quizAssigning = attempt.getQuizTaking().getQuizAssigning();
 
+        boolean isTeacherOrAdmin = false;
+        if (studentId != null) {
+            User user = userRepository.findById(studentId).orElse(null);
+            if (user != null && (user.getRole() == Role.TEACHER || user.getRole() == Role.ADMIN)) {
+                isTeacherOrAdmin = true;
+            }
+        }
+
         // Show answers if:
-        // 1. It's a personal quiz (no assigning)
-        // 2. OR the teacher explicitly allowed it (showAnswer is true)
-        // 3. OR the deadline has passed (safety fallback, though usually showAnswer is
+        // 1. Requester is a teacher or admin
+        // 2. OR It's a personal quiz (no assigning)
+        // 3. OR the teacher explicitly allowed it (showAnswer is true)
+        // 4. OR the deadline has passed (safety fallback, though usually showAnswer is
         // the master switch)
         boolean deadlinePassed = quizAssigning == null || quizAssigning.getDueDate() == null
                 || quizAssigning.getDueDate().isBefore(LocalDateTime.now());
 
-        boolean shouldShowAnswer = quizAssigning == null
+        boolean shouldShowAnswer = isTeacherOrAdmin
+                || quizAssigning == null
                 || Boolean.TRUE.equals(quizAssigning.getShowAnswer())
                 || deadlinePassed;
 
