@@ -566,6 +566,8 @@ function requestFullScreen() {
     }
 }
 
+const MAX_VIOLATIONS = 3;
+
 async function logViolation(code, isBeacon = false) {
     if (!quizData || !quizData.attemptId) return;
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
@@ -575,6 +577,7 @@ async function logViolation(code, isBeacon = false) {
         violationCode: code
     });
 
+    // Dùng sendBeacon khi đóng tab (không đọc được response)
     if (isBeacon && navigator.sendBeacon) {
         const blob = new Blob([data], { type: 'application/json' });
         navigator.sendBeacon(url, blob);
@@ -582,7 +585,7 @@ async function logViolation(code, isBeacon = false) {
     }
 
     try {
-        await fetch(url, {
+        const res = await fetch(url, {
             method: 'POST',
             headers: {
                 'Authorization': 'Bearer ' + token,
@@ -590,7 +593,26 @@ async function logViolation(code, isBeacon = false) {
             },
             body: data
         });
-        showToast("Phát hiện hành động bất thường! Hệ thống đã ghi nhận.", "err");
+
+        if (!res.ok) return;
+
+        const result = await res.json();
+        const count = result.violationCount || 0;
+        const remaining = MAX_VIOLATIONS - count;
+
+        if (result.autoSubmitted) {
+            // Backend đã auto-submit → dừng monitoring, thông báo, redirect
+            isMonitoring = false;
+            clearInterval(timerInterval);
+            showToast(`Bài thi đã bị nộp tự động do vi phạm ${count} lần!`, "err");
+            localStorage.removeItem(`quiz_answers_${quizData.attemptId}`);
+            localStorage.removeItem(`quiz_flags_${quizData.attemptId}`);
+            setTimeout(() => {
+                window.location.replace(`/student/quiz/result/${result.attemptId}`);
+            }, 2000);
+        } else {
+            showToast(`⚠️ Cảnh báo vi phạm lần ${count}/${MAX_VIOLATIONS}! Còn ${remaining} lần trước khi bị nộp tự động.`, "err");
+        }
     } catch (e) {
         console.error("Lỗi khi ghi nhận vi phạm:", e);
     }
