@@ -8,15 +8,8 @@ import com.example.quizhub.entity.Classroom;
 import com.example.quizhub.entity.Quiz;
 import com.example.quizhub.entity.QuizAssigning;
 import com.example.quizhub.entity.User;
-import com.example.quizhub.entity.enums.JoinStatus;
-import com.example.quizhub.repository.CategoryRepository;
-import com.example.quizhub.repository.ClassJoiningRepository;
-import com.example.quizhub.repository.ClassTopicRepository;
-import com.example.quizhub.repository.ClassroomRepository;
-import com.example.quizhub.repository.QuizAssigningRepository;
-import com.example.quizhub.repository.QuizRepository;
-import com.example.quizhub.repository.UserRepository;
 import com.example.quizhub.service.classroom.ClassroomService;
+import com.example.quizhub.service.teacher.TeacherClassroomWebService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,6 +17,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -32,29 +26,18 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TeacherClassroomWebController {
 
-    private final ClassroomRepository classroomRepository;
-    private final UserRepository userRepository;
     private final ClassroomService classroomService;
-    private final ClassJoiningRepository classJoiningRepository;
-    private final QuizAssigningRepository quizAssigningRepository;
-    private final QuizRepository quizRepository;
-    private final ClassTopicRepository classTopicRepository;
-    private final CategoryRepository categoryRepository;
+    private final TeacherClassroomWebService teacherClassroomWebService;
     private final com.example.quizhub.service.CategoryService categoryService;
 
     @GetMapping
     public String classroomPage(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof User user) {
-            List<Classroom> classrooms = classroomRepository.findByCreatorId(user.getId());
+            List<Classroom> classrooms = teacherClassroomWebService.getTeacherClassrooms(user.getId());
             model.addAttribute("classrooms", classrooms);
             
-            // Calculate active member counts map
-            java.util.Map<Long, Long> memberCounts = classrooms.stream()
-                .collect(java.util.stream.Collectors.toMap(
-                    Classroom::getId,
-                    c -> classJoiningRepository.countByClassroomIdAndStatus(c.getId(), JoinStatus.APPROVED)
-                ));
+            java.util.Map<Long, Long> memberCounts = teacherClassroomWebService.getActiveMemberCounts(classrooms);
             model.addAttribute("memberCounts", memberCounts);
             
             model.addAttribute("currentUser", user);
@@ -80,18 +63,14 @@ public class TeacherClassroomWebController {
     public String memberManagementPage(@PathVariable Long id, Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof User user) {
-            Classroom classroom = classroomRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Classroom not found"));
+            Classroom classroom = teacherClassroomWebService.getClassroomByIdAndTeacher(id, user.getId());
 
-            // Security check
-            if (!classroom.getCreator().getId().equals(user.getId())) {
+            if (classroom == null) {
                 return "redirect:/teacher/classrooms";
             }
 
-            List<ClassJoining> activeMembers = classJoiningRepository.findByClassroomIdAndStatus(id,
-                    JoinStatus.APPROVED);
-            List<ClassJoining> pendingRequests = classJoiningRepository.findByClassroomIdAndStatus(id,
-                    JoinStatus.PENDING);
+            List<ClassJoining> activeMembers = teacherClassroomWebService.getActiveMembers(id);
+            List<ClassJoining> pendingRequests = teacherClassroomWebService.getPendingMembers(id);
 
             model.addAttribute("classroom", classroom);
             model.addAttribute("activeMembers", activeMembers);
@@ -151,20 +130,16 @@ public class TeacherClassroomWebController {
     public String classroomDetailPage(@PathVariable Long id, Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof User user) {
-            Classroom classroom = classroomRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Classroom not found"));
+            Classroom classroom = teacherClassroomWebService.getClassroomByIdAndTeacher(id, user.getId());
 
-            // Check if user is the creator of the classroom
-            if (!classroom.getCreator().getId().equals(user.getId())) {
+            if (classroom == null) {
                 return "redirect:/teacher/classrooms";
             }
 
-            List<QuizAssigning> assignedQuizzes = quizAssigningRepository
-                    .findByClassroomId(id);
-            List<Quiz> quizzes = quizRepository.findByCreatorIdAndIsEnableTrue(user.getId());
-            List<ClassTopic> topics = classTopicRepository.findByClassroomId(id);
-            List<Category> categories = categoryRepository
-                    .findAllByCreatorIdWithParent(user.getId());
+            List<QuizAssigning> assignedQuizzes = teacherClassroomWebService.getAssignedQuizzes(id);
+            List<Quiz> quizzes = teacherClassroomWebService.getTeacherQuizzes(user.getId());
+            List<ClassTopic> topics = teacherClassroomWebService.getClassTopics(id);
+            List<Category> categories = teacherClassroomWebService.getTeacherCategories(user.getId());
 
             model.addAttribute("classroom", classroom);
             model.addAttribute("assignedQuizzes", assignedQuizzes);

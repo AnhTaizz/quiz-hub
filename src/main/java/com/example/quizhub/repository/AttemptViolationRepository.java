@@ -13,6 +13,8 @@ public interface AttemptViolationRepository extends JpaRepository<AttemptViolati
 
     List<AttemptViolation> findByAttemptId(Long attemptId);
 
+    long countByAttemptId(Long attemptId);
+
     @Query("SELECT COUNT(v) FROM AttemptViolation v WHERE v.attempt.quizTaking.quizAssigning.id = :assigningId")
     long countByAssigningId(Long assigningId);
 

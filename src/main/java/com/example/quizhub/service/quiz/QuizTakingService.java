@@ -6,6 +6,7 @@ import com.example.quizhub.dto.quiztaking.request.ViolationRequestDTO;
 import com.example.quizhub.dto.quiztaking.response.QuizAttemptSummaryDTO;
 import com.example.quizhub.dto.quiztaking.response.QuizResultResponseDTO;
 import com.example.quizhub.dto.quiztaking.response.QuizTakingResponseDTO;
+import com.example.quizhub.dto.quiztaking.response.ViolationResponseDTO;
 import com.example.quizhub.entity.Attempt;
 import java.util.List;
 
@@ -21,7 +22,7 @@ public interface QuizTakingService {
 
         QuizResultResponseDTO getQuizResult(Long studentId, Long attemptId);
 
-        Attempt recordViolation(ViolationRequestDTO request);
+        ViolationResponseDTO recordViolation(ViolationRequestDTO request);
 
         void autoSubmitExpiredAttempts();
 

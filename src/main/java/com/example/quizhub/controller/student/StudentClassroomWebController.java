@@ -5,10 +5,7 @@ import com.example.quizhub.entity.ClassTopic;
 import com.example.quizhub.entity.QuizAssigning;
 import com.example.quizhub.entity.User;
 import com.example.quizhub.entity.enums.JoinStatus;
-import com.example.quizhub.repository.ClassJoiningRepository;
-import com.example.quizhub.repository.ClassTopicRepository;
-import com.example.quizhub.repository.ClassroomRepository;
-import com.example.quizhub.repository.QuizAssigningRepository;
+import com.example.quizhub.service.student.StudentClassroomService;
 import com.example.quizhub.service.classroom.ClassroomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -32,21 +29,14 @@ import java.util.stream.Collectors;
 @PreAuthorize("hasRole('STUDENT')")
 public class StudentClassroomWebController {
 
-    private final ClassJoiningRepository classJoiningRepository;
     private final ClassroomService classroomService;
-    private final ClassroomRepository classroomRepository;
-    private final QuizAssigningRepository quizAssigningRepository;
-    private final ClassTopicRepository classTopicRepository;
+    private final StudentClassroomService studentClassroomService;
 
     @GetMapping
     public String listClassrooms(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof User user) {
-            List<JoinStatus> allowedStatuses = List.of(
-                    JoinStatus.PENDING,
-                    JoinStatus.APPROVED);
-            List<ClassJoining> joinedClasses = classJoiningRepository.findByLearnerIdAndStatusIn(user.getId(),
-                    allowedStatuses).stream().filter(j -> j.getClassroom() != null).collect(Collectors.toList());
+            List<ClassJoining> joinedClasses = studentClassroomService.getJoinedClassrooms(user.getId());
             model.addAttribute("joinedClasses", joinedClasses);
             model.addAttribute("currentUser", user);
         }
@@ -73,20 +63,16 @@ public class StudentClassroomWebController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof User user) {
             // Check if the student is approved to join the class
-            ClassJoining joining = classJoiningRepository.findByClassroomIdAndLearnerId(id, user.getId())
-                    .orElse(null);
+            ClassJoining joining = studentClassroomService.getJoiningStatus(id, user.getId());
 
             if (joining == null || joining.getStatus() != JoinStatus.APPROVED) {
                 return "redirect:/student/classrooms";
             }
 
-            com.example.quizhub.entity.Classroom classroom = classroomRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Classroom not found"));
+            com.example.quizhub.entity.Classroom classroom = studentClassroomService.getClassroomById(id);
 
-            List<QuizAssigning> assignedQuizzes = quizAssigningRepository.findByClassroomId(id).stream()
-                    .filter(a -> !Boolean.TRUE.equals(a.getIsHidden()))
-                    .collect(java.util.stream.Collectors.toList());
-            List<ClassTopic> topics = classTopicRepository.findByClassroomId(id);
+            List<QuizAssigning> assignedQuizzes = studentClassroomService.getAssignedQuizzesForClassroom(id);
+            List<ClassTopic> topics = studentClassroomService.getClassTopics(id);
 
             model.addAttribute("classroom", classroom);
             model.addAttribute("assignedQuizzes", assignedQuizzes);

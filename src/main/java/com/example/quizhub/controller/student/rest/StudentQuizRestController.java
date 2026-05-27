@@ -24,6 +24,7 @@ import com.example.quizhub.dto.quiztaking.request.ViolationRequestDTO;
 import com.example.quizhub.dto.quiztaking.response.QuizTakingResponseDTO;
 import com.example.quizhub.dto.quiztaking.response.QuizResultResponseDTO;
 import com.example.quizhub.dto.quiztaking.response.QuizAttemptSummaryDTO;
+import com.example.quizhub.dto.quiztaking.response.ViolationResponseDTO;
 import com.example.quizhub.dto.quiz.response.QuizResponseDTO;
 import com.example.quizhub.dto.quiz.response.QuizSummaryDTO;
 import com.example.quizhub.dto.quiz.request.QuizRequestDTO;
@@ -115,9 +116,9 @@ public class StudentQuizRestController {
     }
 
     @PostMapping("/log-violation")
-    public ResponseEntity<Void> logViolation(@RequestBody ViolationRequestDTO request) {
-        quizTakingService.recordViolation(request);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ViolationResponseDTO> logViolation(@RequestBody ViolationRequestDTO request) {
+        ViolationResponseDTO result = quizTakingService.recordViolation(request);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/start-personal")
