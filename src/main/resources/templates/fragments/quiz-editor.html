@@ -886,21 +886,17 @@
                 }
 
                 try {
-                    // Dùng endpoint mới: bao gồm cả câu hỏi PUBLIC và câu hỏi riêng của teacher
-                    const forGenRes = await fetch(`${BASE_API}/questions/for-generation?categoryId=${catId}`, {
+                    // Gọi API mới: truyền luôn `amount` để Backend tự shuffle và bốc đúng số lượng
+                    const forGenRes = await fetch(`${BASE_API}/questions/for-generation?categoryId=${catId}&amount=${amount}`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     if (!forGenRes.ok) throw new Error('API error');
-                    const questions = await forGenRes.json();
+                    const chosen = await forGenRes.json();
 
-                    if (questions.length === 0) {
+                    if (chosen.length === 0) {
                         showToast('Danh mục này không có câu hỏi hợp lệ nào!', 'error');
                         return;
                     }
-
-                    // Shuffle và chọn N câu
-                    const shuffled = [...questions].sort(() => 0.5 - Math.random());
-                    const chosen = shuffled.slice(0, amount);
 
                     const clearPrevious = document.getElementById('clearPreviousQuestions').checked;
                     if (clearPrevious) {
@@ -921,7 +917,7 @@
                     const modalEl = document.getElementById('randomGenerateModal');
                     const modalInstance = bootstrap.Modal.getInstance(modalEl);
                     if (modalInstance) modalInstance.hide();
-                    showToast(`Đã chọn ngẫu nhiên ${chosen.length}/${questions.length} câu hỏi thành công!`, 'success');
+                    showToast(`Đã bốc ngẫu nhiên ${chosen.length} câu hỏi thành công!`, 'success');
                 } catch (e) {
                     showToast('Lỗi kết nối: ' + e.message, 'error');
                 }

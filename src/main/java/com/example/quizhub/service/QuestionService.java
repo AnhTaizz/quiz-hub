@@ -17,6 +17,8 @@ public interface QuestionService {
 
     QuestionResponseDTO getQuestionById(Long id);
 
+    List<QuestionResponseDTO> getQuestionsByIds(List<Long> ids);
+
     void deleteQuestion(Long userId, Long id);
 
     Page<QuestionResponseDTO> searchMyQuestion(Long userId, Long categoryId,

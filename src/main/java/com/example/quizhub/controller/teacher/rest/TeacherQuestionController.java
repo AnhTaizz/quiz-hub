@@ -21,7 +21,11 @@ import com.example.quizhub.service.QuestionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/teacher/questions")
@@ -45,7 +49,8 @@ public class TeacherQuestionController {
     public ResponseEntity<Map<String, Object>> importQuestions(
             @RequestParam("file") MultipartFile file,
             @RequestParam(required = false) Long categoryId) {
-        Map<String, Object> result = questionImportService.importQuestionsFromExcel(file, categoryId, getCurrentUserId());
+        Map<String, Object> result = questionImportService.importQuestionsFromExcel(file, categoryId,
+                getCurrentUserId());
         return ResponseEntity.ok(result);
     }
 
@@ -78,10 +83,12 @@ public class TeacherQuestionController {
 
         if (isPublicTab) {
             // Lấy kho hệ thống
-            response = questionService.searchPublicQuestion(categoryId, type, level, keyword, page, size, sortBy, sortDir);
+            response = questionService.searchPublicQuestion(categoryId, type, level, keyword, page, size, sortBy,
+                    sortDir);
         } else {
             // Lấy kho cá nhân
-            response = questionService.searchMyQuestion(getCurrentUserId(), categoryId, type, level, keyword, page, size, sortBy, sortDir);
+            response = questionService.searchMyQuestion(getCurrentUserId(), categoryId, type, level, keyword, page,
+                    size, sortBy, sortDir);
         }
 
         return ResponseEntity.ok(response);
@@ -140,21 +147,26 @@ public class TeacherQuestionController {
      */
     @GetMapping("/for-generation")
     public ResponseEntity<java.util.List<QuestionResponseDTO>> getQuestionsForGeneration(
-            @RequestParam Long categoryId) {
+            @RequestParam Long categoryId,
+            @RequestParam(required = false, defaultValue = "10") int amount) {
         Long userId = getCurrentUserId();
-        java.util.List<Long> categoryIds = categoryService.getAllDescendantIds(categoryId);
+        List<Long> categoryIds = categoryService.getAllDescendantIds(categoryId);
         if (categoryId != null && categoryId == -1L) {
             categoryIds.add(-1L);
         }
-        java.util.List<Long> ids = questionService.getValidQuestionIdsForGeneration(
+        List<Long> ids = questionService.getValidQuestionIdsForGeneration(
                 categoryIds, userId);
-        java.util.List<QuestionResponseDTO> result = ids.stream()
-                .map(id -> {
-                    try { return questionService.getQuestionById(id); }
-                    catch (Exception e) { return null; }
-                })
-                .filter(java.util.Objects::nonNull)
-                .collect(java.util.stream.Collectors.toList());
+
+        if (ids == null || ids.isEmpty()) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+
+        Collections.shuffle(ids);
+        List<Long> selectedIds = ids.stream()
+                .limit(amount)
+                .collect(Collectors.toList());
+
+        List<QuestionResponseDTO> result = questionService.getQuestionsByIds(selectedIds);
         return ResponseEntity.ok(result);
     }
 

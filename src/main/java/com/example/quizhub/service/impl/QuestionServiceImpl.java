@@ -334,6 +334,17 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<QuestionResponseDTO> getQuestionsByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return questionRepository.findAllById(ids).stream()
+                .map(questionMapper::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public void deleteQuestion(Long userId, Long id) {
         Question question = questionRepository.findById(id)
