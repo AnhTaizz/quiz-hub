@@ -14,7 +14,7 @@ public interface StudentClassroomService {
     
     Classroom getClassroomById(Long classroomId);
     
-    List<QuizAssigning> getAssignedQuizzesForClassroom(Long classroomId);
+    List<QuizAssigning> getAssignedQuizzesForClassroom(Long classroomId, Long studentId);
     
     List<ClassTopic> getClassTopics(Long classroomId);
 }

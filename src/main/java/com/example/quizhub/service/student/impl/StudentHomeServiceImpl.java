@@ -26,6 +26,13 @@ public class StudentHomeServiceImpl implements StudentHomeService {
     private final ClassJoiningRepository classJoiningRepository;
     private final QuizAssigningRepository quizAssigningRepository;
 
+    private boolean isStudentAllowed(QuizAssigning a, Long studentId) {
+        String ids = a.getAssignedStudentIds();
+        if (ids == null || ids.isBlank())
+            return true;
+        return Arrays.asList(ids.split(",")).contains(String.valueOf(studentId));
+    }
+
     @Override
     public User getStudentByEmail(String email) {
         return userRepository.findByEmail(email).orElse(null);
@@ -75,7 +82,8 @@ public class StudentHomeServiceImpl implements StudentHomeService {
 
         List<ClassJoining> joinedClasses = classJoiningRepository.findByLearnerIdAndStatusIn(
                 student.getId(),
-                List.of(JoinStatus.APPROVED, JoinStatus.PENDING)).stream().filter(j -> j.getClassroom() != null).collect(Collectors.toList());
+                List.of(JoinStatus.APPROVED, JoinStatus.PENDING)).stream().filter(j -> j.getClassroom() != null)
+                .collect(Collectors.toList());
         List<QuizAssigning> rawAssignedQuizzes = new ArrayList<>();
         for (ClassJoining joining : joinedClasses) {
             if (joining.getStatus() == JoinStatus.APPROVED && joining.getClassroom() != null) {
@@ -90,7 +98,7 @@ public class StudentHomeServiceImpl implements StudentHomeService {
         LocalDateTime nextWeek = now.plusDays(7);
 
         for (QuizAssigning assigning : rawAssignedQuizzes) {
-            if (Boolean.TRUE.equals(assigning.getIsHidden())) {
+            if (Boolean.TRUE.equals(assigning.getIsHidden()) || !isStudentAllowed(assigning, student.getId())) {
                 continue;
             }
 
@@ -148,7 +156,8 @@ public class StudentHomeServiceImpl implements StudentHomeService {
 
         List<ClassJoining> joinedClasses = classJoiningRepository.findByLearnerIdAndStatusIn(
                 student.getId(),
-                List.of(JoinStatus.APPROVED, JoinStatus.PENDING)).stream().filter(j -> j.getClassroom() != null).collect(Collectors.toList());
+                List.of(JoinStatus.APPROVED, JoinStatus.PENDING)).stream().filter(j -> j.getClassroom() != null)
+                .collect(Collectors.toList());
 
         Map<Long, QuizDashboardInfoDTO> quizMap = new LinkedHashMap<>();
 
@@ -159,7 +168,9 @@ public class StudentHomeServiceImpl implements StudentHomeService {
 
                 if (classroomQuizzes != null) {
                     for (QuizAssigning assigning : classroomQuizzes) {
-                        if (assigning == null || assigning.getQuiz() == null || Boolean.TRUE.equals(assigning.getIsHidden()))
+                        if (assigning == null || assigning.getQuiz() == null
+                                || Boolean.TRUE.equals(assigning.getIsHidden())
+                                || !isStudentAllowed(assigning, student.getId()))
                             continue;
 
                         if (quizMap.containsKey(assigning.getId()))

@@ -71,7 +71,7 @@ public class StudentClassroomWebController {
 
             com.example.quizhub.entity.Classroom classroom = studentClassroomService.getClassroomById(id);
 
-            List<QuizAssigning> assignedQuizzes = studentClassroomService.getAssignedQuizzesForClassroom(id);
+            List<QuizAssigning> assignedQuizzes = studentClassroomService.getAssignedQuizzesForClassroom(id, user.getId());
             List<ClassTopic> topics = studentClassroomService.getClassTopics(id);
 
             model.addAttribute("classroom", classroom);

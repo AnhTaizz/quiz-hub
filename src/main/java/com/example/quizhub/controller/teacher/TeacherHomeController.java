@@ -16,7 +16,6 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/teacher")
 @RequiredArgsConstructor
 public class TeacherHomeController {
-
     private final TeacherHomeService teacherHomeService;
 
     @GetMapping
@@ -29,7 +28,7 @@ public class TeacherHomeController {
         model.addAttribute("assignments", dashboardData.getAssignments());
         model.addAttribute("liveQuizCount", dashboardData.getLiveQuizCount());
         model.addAttribute("currentUser", dashboardData.getCurrentUser());
-        
+
         return "teacher/teacher-home";
     }
 }

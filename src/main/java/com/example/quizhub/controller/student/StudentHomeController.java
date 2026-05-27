@@ -2,9 +2,7 @@ package com.example.quizhub.controller.student;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import com.example.quizhub.entity.User;
@@ -37,7 +35,7 @@ public class StudentHomeController {
 
         if (student != null) {
             StudentHomeDashboardDTO dashboardData = studentHomeService.getDashboardData(email);
-            
+
             if (dashboardData != null) {
                 model.addAttribute("totalCompleted", dashboardData.getTotalCompleted());
                 model.addAttribute("quizAvg", dashboardData.getQuizAvg());
@@ -48,7 +46,6 @@ public class StudentHomeController {
             }
             model.addAttribute("greeting", getGreeting());
         }
-
         return "student/student-home";
     }
 
@@ -66,16 +63,19 @@ public class StudentHomeController {
             model.addAttribute("currentUser", student);
             model.addAttribute("joinedClasses", approvedClasses);
         }
-
         return "student/student-quizzes";
     }
 
     private String getGreeting() {
         int hour = LocalDateTime.now().getHour();
-        if (hour >= 5 && hour < 11) return "Chào buổi sáng";
-        if (hour >= 11 && hour < 13) return "Chào buổi trưa";
-        if (hour >= 13 && hour < 18) return "Chào buổi chiều";
-        if (hour >= 18 && hour < 24) return "Chào buổi tối";
+        if (hour >= 5 && hour < 11)
+            return "Chào buổi sáng";
+        if (hour >= 11 && hour < 13)
+            return "Chào buổi trưa";
+        if (hour >= 13 && hour < 18)
+            return "Chào buổi chiều";
+        if (hour >= 18 && hour < 24)
+            return "Chào buổi tối";
         return "Chào buổi đêm";
     }
 
@@ -99,7 +99,7 @@ public class StudentHomeController {
     @GetMapping("/quiz/history/{assigningId}")
     public String quizHistory(@PathVariable Long assigningId, Model model) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        
+
         QuizAssigning assigning = studentHomeService.getQuizAssigningById(assigningId);
         List<Attempt> attempts = studentHomeService.getQuizHistory(assigningId, email);
 
@@ -111,10 +111,9 @@ public class StudentHomeController {
     @GetMapping("/history")
     public String getHistory(Model model) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-
         List<Attempt> quizAttempts = studentHomeService.getAllQuizAttempts(email);
-        List<com.example.quizhub.dto.practice.PracticeHistoryResponseDTO> practiceHistory = practiceService.getMyPracticeHistory();
-
+        List<com.example.quizhub.dto.practice.PracticeHistoryResponseDTO> practiceHistory = practiceService
+                .getMyPracticeHistory();
         model.addAttribute("quizAttempts", quizAttempts);
         model.addAttribute("practiceHistory", practiceHistory);
         return "student/student-history";

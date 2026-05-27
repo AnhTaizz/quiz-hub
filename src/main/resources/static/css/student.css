@@ -1,4 +1,7 @@
 /* ── Student Dashboard Combined Styles ─────────────────── */
+html {
+    zoom: 85%;
+}
 
 body {
     background-color: var(--bg-section, #f4f7fa);

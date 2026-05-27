@@ -13,6 +13,7 @@ import com.example.quizhub.service.student.StudentClassroomService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,10 +47,16 @@ public class StudentClassroomServiceImpl implements StudentClassroomService {
     }
 
     @Override
-    public List<QuizAssigning> getAssignedQuizzesForClassroom(Long classroomId) {
+    public List<QuizAssigning> getAssignedQuizzesForClassroom(Long classroomId, Long studentId) {
         return quizAssigningRepository.findByClassroomId(classroomId)
                 .stream()
                 .filter(a -> !Boolean.TRUE.equals(a.getIsHidden()))
+                .filter(a -> {
+                    String ids = a.getAssignedStudentIds();
+                    if (ids == null || ids.isBlank())
+                        return true;
+                    return Arrays.asList(ids.split(",")).contains(String.valueOf(studentId));
+                })
                 .collect(Collectors.toList());
     }
 
