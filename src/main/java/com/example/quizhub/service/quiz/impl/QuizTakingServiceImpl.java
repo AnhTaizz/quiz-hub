@@ -48,8 +48,9 @@ import com.example.quizhub.repository.AttemptViolationRepository;
 import com.example.quizhub.entity.AttemptViolation;
 import com.example.quizhub.entity.ExamViolation;
 import com.example.quizhub.dto.quiztaking.request.ViolationRequestDTO;
-import com.example.quizhub.dto.quiztaking.response.QuizAttemptSummaryDTO;
 import com.example.quizhub.dto.quiztaking.request.SaveAnswerRequestDTO;
+import com.example.quizhub.dto.quiztaking.response.QuizAttemptSummaryDTO;
+import com.example.quizhub.dto.quiztaking.response.ViolationResponseDTO;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -573,12 +574,17 @@ public class QuizTakingServiceImpl implements QuizTakingService {
 
     @Override
     @Transactional
-    public Attempt recordViolation(ViolationRequestDTO request) {
-        Attempt attempt = getValidAttempt(request.getAttemptId(), null); // Simplified for now as student context isn't
-                                                                         // passed here
+    public ViolationResponseDTO recordViolation(ViolationRequestDTO request) {
+        Attempt attempt = getValidAttempt(request.getAttemptId(), null);
 
+        // Nếu bài đã nộp rồi thì bỏ qua, trả về state hiện tại
         if (attempt.getEndedAt() != null) {
-            return attempt;
+            long count = attemptViolationRepository.countByAttemptId(attempt.getId());
+            return ViolationResponseDTO.builder()
+                    .violationCount(count)
+                    .autoSubmitted(false)
+                    .attemptId(attempt.getId())
+                    .build();
         }
 
         ExamViolation violationType = examViolationRepository.findByViolationCode(request.getViolationCode())
@@ -620,7 +626,38 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                 .build();
 
         attemptViolationRepository.save(violation);
-        return attempt;
+
+        // Đếm tổng vi phạm sau khi vừa ghi nhận
+        long totalViolations = attemptViolationRepository.countByAttemptId(attempt.getId());
+
+        // Nếu >= 3 vi phạm thì auto-submit bài thi
+        if (totalViolations >= 3) {
+            log.warn("Auto-submitting attempt ID={} do vượt ngưỡng vi phạm ({} lần)", attempt.getId(), totalViolations);
+            finalizeAttempt(attempt);
+            // Gửi thêm thông báo cảnh báo vi phạm
+            try {
+                notificationService.createNotification(
+                        attempt.getQuizTaking().getLearner().getId(),
+                        "Bài thi bị nộp tự động",
+                        "Bài thi \"" + attempt.getQuizTaking().getQuiz().getTitle()
+                                + "\" đã bị nộp tự động vì bạn vi phạm " + totalViolations + " lần.",
+                        NotificationType.SYSTEM_ALERT,
+                        "/student/history");
+            } catch (Exception e) {
+                log.error("Gửi thông báo auto-submit thất bại", e);
+            }
+            return ViolationResponseDTO.builder()
+                    .violationCount(totalViolations)
+                    .autoSubmitted(true)
+                    .attemptId(attempt.getId())
+                    .build();
+        }
+
+        return ViolationResponseDTO.builder()
+                .violationCount(totalViolations)
+                .autoSubmitted(false)
+                .attemptId(attempt.getId())
+                .build();
     }
 
     @Override
