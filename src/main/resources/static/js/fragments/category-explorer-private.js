@@ -65,15 +65,22 @@
             window.handleCategorySelection(id, name, currentTarget);
         } else {
             // Support all common IDs in the system
-            const ids = ['quiz-category', 'q-category', 'editor-q-category', 'filter-category', 'q-category-filter', 'folder-category'];
-            const dispIds = ['quiz-category-display', 'q-category-display', 'editor-q-category-display', 'filter-category-display', 'q-category-filter-display', 'folder-category-display'];
+            const ids = ['quiz-category', 'q-category', 'editor-q-category', 'filter-category', 'q-category-filter', 'folder-category', 'randomGenCategoryId'];
+            const dispIds = ['quiz-category-display', 'q-category-display', 'editor-q-category-display', 'filter-category-display', 'q-category-filter-display', 'folder-category-display', 'randomGenCategoryDisplay'];
             
             let targetIdEl = null;
             let targetDispEl = null;
             
-            // 1. Try finding by currentTarget name
-            targetIdEl = document.getElementById(currentTarget + '-category') || document.getElementById('category-' + currentTarget);
-            targetDispEl = document.getElementById(currentTarget + '-category-display') || document.getElementById('category-' + currentTarget + '-display');
+            // 1. Try finding by currentTarget name (hyphenated and camelCase forms)
+            targetIdEl = document.getElementById(currentTarget + '-category') || 
+                         document.getElementById('category-' + currentTarget) ||
+                         document.getElementById(currentTarget + 'CategoryId') ||
+                         document.getElementById(currentTarget + 'Id');
+                         
+            targetDispEl = document.getElementById(currentTarget + '-category-display') || 
+                           document.getElementById('category-' + currentTarget + '-display') ||
+                           document.getElementById(currentTarget + 'CategoryDisplay') ||
+                           document.getElementById(currentTarget + 'Display');
             
             // 2. Fallback to common IDs if not found
             if (!targetIdEl) {
@@ -122,6 +129,10 @@
     window.showModalStacked = function(targetModalId) {
         const targetEl = document.getElementById(targetModalId);
         if (!targetEl || targetEl.classList.contains('show')) return;
+
+        if (targetEl.parentElement !== document.body) {
+            document.body.appendChild(targetEl);
+        }
 
         const currentOpenModal = document.querySelector('.modal.show');
         if (currentOpenModal && currentOpenModal.id !== targetModalId) {

@@ -93,6 +93,14 @@ public class TeacherClassroomController {
         List<com.example.quizhub.entity.ClassJoining> members = classJoiningRepository.findByClassroomIdAndStatus(
                 assigning.getClassroom().getId(), com.example.quizhub.entity.enums.JoinStatus.APPROVED);
 
+        String assignedIdsStr = assigning.getAssignedStudentIds();
+        if (assignedIdsStr != null && !assignedIdsStr.trim().isEmpty()) {
+            java.util.List<String> assignedIdsList = java.util.Arrays.asList(assignedIdsStr.split(","));
+            members = members.stream()
+                    .filter(cj -> assignedIdsList.contains(String.valueOf(cj.getLearner().getId())))
+                    .collect(java.util.stream.Collectors.toList());
+        }
+
         List<com.example.quizhub.dto.classroom.response.GradeResponseDTO> list = members.stream().map(cj -> {
             com.example.quizhub.entity.User student = cj.getLearner();
             java.util.Optional<com.example.quizhub.entity.QuizTaking> takingOpt = quizTakingRepository

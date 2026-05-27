@@ -89,4 +89,7 @@ public class QuizAssigning {
     @Column(name = "is_hidden", nullable = false, columnDefinition = "boolean default false")
     @Builder.Default
     Boolean isHidden = false;
+
+    @Column(name = "assigned_student_ids", columnDefinition = "TEXT")
+    String assignedStudentIds;
 }

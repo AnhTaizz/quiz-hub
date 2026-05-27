@@ -30,4 +30,6 @@ public class QuizAssigningResponseDTO {
 
     Long topicId;
     String topicName;
+
+    String assignedStudentIds;
 }

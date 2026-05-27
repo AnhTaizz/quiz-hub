@@ -166,6 +166,216 @@
         });
     };
 
+    window.selectAllStudents = function(checked) {
+        const checkboxes = document.querySelectorAll('#studentCheckboxesList .student-assign-cb');
+        checkboxes.forEach(cb => {
+            // Chỉ chọn những checkbox đang hiển thị (không bị filter ẩn đi)
+            if (cb.closest('.form-check').style.display !== 'none') {
+                cb.checked = checked;
+            }
+        });
+    };
+
+    window.filterStudentList = function() {
+        const input = document.getElementById('studentSearchInput');
+        if (!input) return;
+        const filter = input.value.toLowerCase();
+        const items = document.querySelectorAll('#studentCheckboxesList .form-check');
+        
+        items.forEach(item => {
+            const label = item.querySelector('label');
+            if (label && label.textContent.toLowerCase().includes(filter)) {
+                item.style.display = '';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+    };
+
+    window.promptExcelColumn = function(colDataSamples, callback) {
+        let existing = document.getElementById('excelColSelectModal');
+        if (existing) existing.remove();
+
+        let optionsHtml = colDataSamples.map(c => {
+            let label = `Cột ${c.letter}`;
+            if (c.sample) {
+                let shortSample = c.sample.toString().substring(0, 30);
+                label += ` (VD: ${esc(shortSample)})`;
+            }
+            return `<option value="${c.index}">${label}</option>`;
+        }).join('');
+        
+        let modalHtml = `
+        <div class="modal fade" id="excelColSelectModal" tabindex="-1" style="z-index: 1060;">
+          <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content" style="border-radius:16px;">
+              <div class="modal-header border-0 pb-0 pt-3 px-3">
+                <h6 class="modal-title fw-bold text-primary">Chọn cột Email</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+              </div>
+              <div class="modal-body px-3 py-3">
+                <p class="small text-muted mb-2">Chọn cột (A, B, C...) chứa Email học sinh trong file Excel:</p>
+                <select id="excelColSelect" class="form-select form-select-sm rounded-3">
+                    ${optionsHtml}
+                </select>
+              </div>
+              <div class="modal-footer border-0 pt-0 px-3 pb-3">
+                <button type="button" class="btn btn-light btn-sm rounded-3 fw-bold" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-primary btn-sm rounded-3 fw-bold px-3" id="btnConfirmExcelCol">Xác nhận</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        let modalEl = document.getElementById('excelColSelectModal');
+        let modal = new bootstrap.Modal(modalEl);
+        
+        document.getElementById('btnConfirmExcelCol').onclick = function() {
+            let colIdx = parseInt(document.getElementById('excelColSelect').value);
+            modal.hide();
+            callback(colIdx);
+        };
+        
+        modal.show();
+    };
+
+    window.importStudentsFromExcel = function(input) {
+        if (!input.files || input.files.length === 0) return;
+        const file = input.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet, {header: 1, defval: ""});
+                
+                if (json.length === 0) {
+                    showToast("File Excel rỗng!", "warning");
+                    return;
+                }
+                
+                let maxCols = 0;
+                json.forEach(row => { if(row.length > maxCols) maxCols = row.length; });
+                
+                if (maxCols === 0) {
+                    showToast("File Excel không có dữ liệu!", "warning");
+                    return;
+                }
+
+                const getColLetter = (colIndex) => {
+                    let letter = "";
+                    let temp = colIndex;
+                    while (temp >= 0) {
+                        letter = String.fromCharCode((temp % 26) + 65) + letter;
+                        temp = Math.floor(temp / 26) - 1;
+                    }
+                    return letter;
+                };
+
+                let colDataSamples = [];
+                for(let c = 0; c < maxCols; c++) {
+                    let sample = "";
+                    for(let r = 0; r < Math.min(json.length, 10); r++) {
+                        if (json[r] && json[r][c] && json[r][c].toString().trim() !== "") {
+                            sample = json[r][c];
+                            break;
+                        }
+                    }
+                    colDataSamples.push({
+                        index: c,
+                        letter: getColLetter(c),
+                        sample: sample
+                    });
+                }
+
+                promptExcelColumn(colDataSamples, function(colIdx) {
+                    let emails = [];
+                    for (let i = 0; i < json.length; i++) {
+                        let val = json[i][colIdx];
+                        if (val && typeof val === 'string' && val.includes('@')) {
+                            emails.push(val.trim().toLowerCase());
+                        }
+                    }
+
+                    if (emails.length === 0) {
+                        showToast("Không tìm thấy email hợp lệ nào ở cột đã chọn!", "warning");
+                        return;
+                    }
+
+                    let matchCount = 0;
+                    const checkboxes = document.querySelectorAll('#studentCheckboxesList .form-check');
+                    checkboxes.forEach(item => {
+                        const label = item.querySelector('label');
+                        const cb = item.querySelector('input[type="checkbox"]');
+                        if (label && cb) {
+                            const text = label.textContent.toLowerCase();
+                            const matched = emails.some(email => text.includes(`(${email})`));
+                            if (matched) {
+                                cb.checked = true;
+                                matchCount++;
+                            }
+                        }
+                    });
+
+                    if (matchCount > 0) {
+                        showToast(`Đã chọn ${matchCount} học sinh từ file Excel!`, "ok");
+                    } else {
+                        showToast(`Đã tải ${emails.length} email, nhưng không có học sinh nào khớp trong lớp!`, "warning");
+                    }
+                });
+                
+            } catch (err) {
+                console.error(err);
+                showToast("Lỗi khi đọc file Excel!", "error");
+            } finally {
+                input.value = '';
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    };
+
+    window.toggleStudentSelection = async function (show) {
+        const container = document.getElementById('studentSelectionContainer');
+        if (!container) return;
+        
+        if (show) {
+            container.style.display = 'flex';
+            const listEl = document.getElementById('studentCheckboxesList');
+            if (listEl && listEl.children.length === 0) {
+                listEl.innerHTML = '<div class="text-center py-2 text-muted small"><span class="spinner-border spinner-border-sm me-2"></span> Đang tải danh sách học sinh...</div>';
+                try {
+                    const classroomId = getClassroomId();
+                    const res = await fetch(`/api/teacher/classrooms/${classroomId}/students`, {
+                        headers: { Authorization: 'Bearer ' + token }
+                    });
+                    if (res.ok) {
+                        const students = await res.json();
+                        if (!students || students.length === 0) {
+                            listEl.innerHTML = '<div class="text-center py-2 text-muted small text-danger"><i class="bi bi-exclamation-triangle me-1"></i> Lớp học chưa có học sinh nào!</div>';
+                            return;
+                        }
+                        listEl.innerHTML = students.map(s => `
+                            <div class="form-check mb-1">
+                                <input class="form-check-input student-assign-cb" type="checkbox" value="${s.studentId}" id="cb_student_${s.studentId}">
+                                <label class="form-check-label small fw-semibold text-dark cursor-pointer" for="cb_student_${s.studentId}">
+                                    ${esc(s.fullName)} (${esc(s.email)})
+                                </label>
+                            </div>
+                        `).join('');
+                    } else {
+                        listEl.innerHTML = '<div class="text-center py-2 text-muted small text-danger">Không thể tải học sinh.</div>';
+                    }
+                } catch (e) {
+                    listEl.innerHTML = '<div class="text-center py-2 text-muted small text-danger">Lỗi kết nối.</div>';
+                }
+            }
+        } else {
+            container.style.display = 'none';
+        }
+    };
+
     window.submitAssignment = function () {
         const form = document.getElementById('assignQuizForm');
         if (!form) return;
@@ -179,6 +389,18 @@
                 data[key] = value;
             }
         });
+
+        const assignTarget = form.querySelector('input[name="assignTarget"]:checked')?.value || 'ALL';
+        if (assignTarget === 'CUSTOM') {
+            const checkedBoxes = form.querySelectorAll('#studentCheckboxesList input[type="checkbox"]:checked');
+            if (checkedBoxes.length === 0) {
+                showToast('Vui lòng chọn ít nhất 1 học sinh để giao đề!', 'warning');
+                return;
+            }
+            data.assignedStudentIds = Array.from(checkedBoxes).map(cb => cb.value).join(',');
+        } else {
+            data.assignedStudentIds = '';
+        }
 
         // Explicit validation checks to avoid silent HTML5 form validation blocking on hidden elements
         if (!data.classroomId) {

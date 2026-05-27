@@ -73,4 +73,7 @@ public interface QuestionService {
     void deleteQuestionByAdmin(Long questionId);
 
     void moveQuestionByAdmin(Long questionId, Long categoryId);
+
+    /** Lấy danh sách ID câu hỏi hợp lệ theo danh mục để sinh đề ngẫu nhiên */
+    List<Long> getValidQuestionIdsForGeneration(List<Long> categoryIds, Long userId);
 }

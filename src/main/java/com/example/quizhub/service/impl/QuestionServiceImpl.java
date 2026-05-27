@@ -716,4 +716,10 @@ public class QuestionServiceImpl implements QuestionService {
         question.setCategory(category);
         questionRepository.save(question);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Long> getValidQuestionIdsForGeneration(List<Long> categoryIds, Long userId) {
+        return questionRepository.findValidQuestionIdsForGeneration(categoryIds, userId);
+    }
 }
