@@ -166,6 +166,46 @@
         });
     };
 
+    window.toggleStudentSelection = async function (show) {
+        const container = document.getElementById('studentSelectionContainer');
+        if (!container) return;
+        
+        if (show) {
+            container.style.display = 'block';
+            const listEl = document.getElementById('studentCheckboxesList');
+            if (listEl && listEl.children.length === 0) {
+                listEl.innerHTML = '<div class="text-center py-2 text-muted small"><span class="spinner-border spinner-border-sm me-2"></span> Đang tải danh sách học sinh...</div>';
+                try {
+                    const classroomId = getClassroomId();
+                    const res = await fetch(`/api/teacher/classrooms/${classroomId}/students`, {
+                        headers: { Authorization: 'Bearer ' + token }
+                    });
+                    if (res.ok) {
+                        const students = await res.json();
+                        if (!students || students.length === 0) {
+                            listEl.innerHTML = '<div class="text-center py-2 text-muted small text-danger"><i class="bi bi-exclamation-triangle me-1"></i> Lớp học chưa có học sinh nào!</div>';
+                            return;
+                        }
+                        listEl.innerHTML = students.map(s => `
+                            <div class="form-check mb-1">
+                                <input class="form-check-input student-assign-cb" type="checkbox" value="${s.studentId}" id="cb_student_${s.studentId}">
+                                <label class="form-check-label small fw-semibold text-dark cursor-pointer" for="cb_student_${s.studentId}">
+                                    ${esc(s.fullName)} (${esc(s.email)})
+                                </label>
+                            </div>
+                        `).join('');
+                    } else {
+                        listEl.innerHTML = '<div class="text-center py-2 text-muted small text-danger">Không thể tải học sinh.</div>';
+                    }
+                } catch (e) {
+                    listEl.innerHTML = '<div class="text-center py-2 text-muted small text-danger">Lỗi kết nối.</div>';
+                }
+            }
+        } else {
+            container.style.display = 'none';
+        }
+    };
+
     window.submitAssignment = function () {
         const form = document.getElementById('assignQuizForm');
         if (!form) return;
@@ -179,6 +219,18 @@
                 data[key] = value;
             }
         });
+
+        const assignTarget = form.querySelector('input[name="assignTarget"]:checked')?.value || 'ALL';
+        if (assignTarget === 'CUSTOM') {
+            const checkedBoxes = form.querySelectorAll('#studentCheckboxesList input[type="checkbox"]:checked');
+            if (checkedBoxes.length === 0) {
+                showToast('Vui lòng chọn ít nhất 1 học sinh để giao đề!', 'warning');
+                return;
+            }
+            data.assignedStudentIds = Array.from(checkedBoxes).map(cb => cb.value).join(',');
+        } else {
+            data.assignedStudentIds = '';
+        }
 
         // Explicit validation checks to avoid silent HTML5 form validation blocking on hidden elements
         if (!data.classroomId) {

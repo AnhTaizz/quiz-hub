@@ -137,12 +137,17 @@ public class QuizAssigningServiceImpl implements QuizAssigningService {
         try {
             classJoiningRepository.findByClassroomIdAndStatus(classroom.getId(), JoinStatus.APPROVED)
                     .forEach(joining -> {
-                        notificationService.createNotification(
-                                joining.getLearner().getId(),
-                                "Bài kiểm tra mới: " + quiz.getTitle(),
-                                "Bạn có bài kiểm tra mới trong lớp " + classroom.getName(),
-                                NotificationType.QUIZ_ASSIGNED,
-                                "/student/classrooms/" + classroom.getId());
+                        Long studentId = joining.getLearner().getId();
+                        if (savedQuizAssigning.getAssignedStudentIds() == null || 
+                            savedQuizAssigning.getAssignedStudentIds().isBlank() ||
+                            java.util.Arrays.asList(savedQuizAssigning.getAssignedStudentIds().split(",")).contains(String.valueOf(studentId))) {
+                            notificationService.createNotification(
+                                    joining.getLearner().getId(),
+                                    "Bài kiểm tra mới: " + quiz.getTitle(),
+                                    "Bạn có bài kiểm tra mới trong lớp " + classroom.getName(),
+                                    NotificationType.QUIZ_ASSIGNED,
+                                    "/student/classrooms/" + classroom.getId());
+                        }
                     });
         } catch (Exception e) {
             log.error("Gửi thông báo bài kiểm tra mới cho học sinh trong lớp thất bại: classroomId={}, quizId={}", classroom.getId(), quiz.getId(), e);

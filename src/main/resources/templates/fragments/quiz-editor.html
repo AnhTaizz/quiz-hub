@@ -107,6 +107,11 @@
             </div>
             <div class="d-flex flex-column gap-1 align-items-end">
                 <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-success fw-bold px-3 py-2"
+                        onclick="openRandomGenerateModal()"
+                        style="border-radius:12px; border-color:#ecfdf5 !important; color:#059669 !important; background: #ecfdf5;">
+                        <i class="bi bi-shuffle me-1"></i>Sinh ngẫu nhiên
+                    </button>
                     <button type="button" class="btn btn-sm btn-outline-primary fw-bold px-3 py-2"
                         onclick="openQuestionEditor()"
                         style="border-radius:12px; border-color:#e0e7ff !important; color:#4f46e5 !important; background: #f5f7ff;">
@@ -234,6 +239,41 @@
         </div>
     </div>
     <div th:replace="~{fragments/category-explorer-private :: category-create-modal}"></div>
+
+    <!-- Random Generate Modal in Quiz Editor -->
+    <div class="modal fade" id="randomGenerateModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow" style="border-radius: 20px;">
+                <div class="modal-header border-0 pb-0 pt-4 px-4">
+                    <h5 class="modal-title fw-bold text-success">
+                        <i class="bi bi-shuffle me-2"></i>Sinh ngẫu nhiên
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-muted small text-uppercase">Danh mục câu hỏi</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 rounded-start-3" style="border-radius: 12px 0 0 12px; border-color: #cbd5e1;">
+                                <i class="bi bi-folder2 text-muted"></i>
+                            </span>
+                            <input type="text" id="randomGenCategoryDisplay" class="form-control bg-light border-start-0 rounded-end-3 cursor-pointer" placeholder="Chọn danh mục..." readonly onclick="openCategoryTreePicker('randomGen')" required style="border-radius: 0 12px 12px 0; border-color: #cbd5e1;">
+                        </div>
+                        <input type="hidden" id="randomGenCategoryId">
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-muted small text-uppercase">Số lượng câu hỏi</label>
+                        <input type="number" id="randomGenAmount" class="form-control rounded-3" value="10" min="1" max="100" required style="border-radius: 12px; border-color: #cbd5e1;">
+                        <small class="text-muted mt-2 d-block"><i class="bi bi-info-circle me-1"></i>Hệ thống sẽ bốc ngẫu nhiên số lượng câu hỏi trong danh mục đã chọn.</small>
+                    </div>
+                    <button type="button" onclick="confirmRandomGenerate()" class="btn btn-success w-100 py-2 fw-bold text-white"
+                        style="border-radius: 12px; box-shadow: 0 4px 12px rgba(16,185,129,0.2); background: #10b981; border: none;">
+                        <i class="bi bi-check2-circle me-1"></i> Xác nhận sinh đề
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Fragment: Quiz Editor Logic Scripts -->
@@ -614,7 +654,16 @@
                         showToast(msg, 'err');
                     }
                 } catch (e) { showToast('Lỗi kết nối!', 'err'); }
-            }
+            };
+
+            window.removeQuestionFromPreview = function (id) {
+                const numId = Number(id);
+                selectedQuestionIds.delete(numId);
+                fullSelectedQuestionsMap.delete(numId);
+                updateSelectedCount();
+                renderQuestions(questionsList);
+                previewQuiz(); // Re-render preview modal immediately
+            };
 
             window.previewQuiz = function () {
                 const title = document.getElementById('quiz-title').value || 'Chưa đặt tiêu đề';
@@ -637,26 +686,34 @@
                     listWrap.innerHTML = '<div class="text-center py-4 text-muted">Chưa có câu hỏi nào được chọn hoặc đang tải...</div>';
                 } else {
                     listWrap.innerHTML = selected.map((q, idx) => `
-                        <div class="pb-4 mb-4 border-bottom">
-                            <div class="fw-bold mb-3 fs-6 d-flex align-items-start gap-2">
-                                <span class="badge bg-indigo text-white rounded-pill px-2 py-1" style="font-size: 0.75rem; flex-shrink: 0; background: #6366f1;">Câu ${idx + 1}</span>
-                                <span style="word-break: break-word; line-height: 1.5;">${esc(q.text)}</span>
-                            </div>
-                            <div class="d-flex flex-column gap-2 ps-2">
-                                ${q.answers ? q.answers.map((a, i) => `
-                                    <div class="preview-ans-item ${a.isCorrect ? 'correct' : ''}" style="padding: 10px 14px; border-radius: 12px; margin-bottom: 0;">
-                                        <span class="preview-ans-letter" style="width: 22px; height: 22px; font-size: 0.85rem; margin-right: 8px;">${String.fromCharCode(65 + i)}</span>
-                                        <span class="preview-ans-text" style="font-size: 0.9rem;">${esc(a.text)}</span>
-                                        ${a.isCorrect ? '<i class="bi bi-check-circle-fill ms-auto text-success"></i>' : ''}
-                                    </div>
-                                `).join('') : ''}
-                            </div>
-                        </div>
-                    `).join('');
+                         <div class="pb-4 mb-4 border-bottom">
+                             <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                                 <div class="fw-bold fs-6 d-flex align-items-start gap-2" style="min-width: 0; flex: 1;">
+                                     <span class="badge bg-indigo text-white rounded-pill px-2 py-1" style="font-size: 0.75rem; flex-shrink: 0; background: #6366f1;">Câu ${idx + 1}</span>
+                                     <span style="word-break: break-word; line-height: 1.5;">${esc(q.text)}</span>
+                                 </div>
+                                 <button type="button" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1 px-2.5 py-1.5" 
+                                     onclick="removeQuestionFromPreview(${q.id})" 
+                                     style="border-radius: 8px; font-size: 0.75rem; flex-shrink: 0; font-weight: 600;">
+                                     <i class="bi bi-trash3-fill"></i> Bỏ chọn
+                                 </button>
+                             </div>
+                             <div class="d-flex flex-column gap-2 ps-2">
+                                 ${q.answers ? q.answers.map((a, i) => `
+                                     <div class="preview-ans-item ${a.isCorrect ? 'correct' : ''}" style="padding: 10px 14px; border-radius: 12px; margin-bottom: 0;">
+                                         <span class="preview-ans-letter" style="width: 22px; height: 22px; font-size: 0.85rem; margin-right: 8px;">${String.fromCharCode(65 + i)}</span>
+                                         <span class="preview-ans-text" style="font-size: 0.9rem;">${esc(a.text)}</span>
+                                         ${a.isCorrect ? '<i class="bi bi-check-circle-fill ms-auto text-success"></i>' : ''}
+                                     </div>
+                                 `).join('') : ''}
+                             </div>
+                         </div>
+                     `).join('');
                 }
 
                 bootstrap.Modal.getOrCreateInstance(document.getElementById('previewQuizModal')).show();
-            }
+            };
+
 
             // Category Tree Picker Logic
 
@@ -678,6 +735,11 @@
                         dispEl.style.color = id ? '#4338ca' : '#6c757d'; // Add visual cue if active
                     }
                     loadQuestions(); // Trigger auto-reload
+                } else if (currentTarget === 'randomGen') {
+                    const idEl = document.getElementById('randomGenCategoryId');
+                    const dispEl = document.getElementById('randomGenCategoryDisplay');
+                    if (idEl) idEl.value = (id === -1 || id === null) ? '' : id;
+                    if (dispEl) dispEl.value = name || 'Chọn danh mục...';
                 }
             };
 
@@ -793,6 +855,67 @@
                     badge.innerHTML = expectedHTML;
                 }
             }, 600);
+
+            window.openRandomGenerateModal = function() {
+                const modalEl = document.getElementById('randomGenerateModal');
+                if (modalEl && modalEl.parentElement !== document.body) {
+                    document.body.appendChild(modalEl);
+                }
+
+                const randomGenCatId = document.getElementById('randomGenCategoryId');
+                const randomGenCatDisp = document.getElementById('randomGenCategoryDisplay');
+                if (randomGenCatId) randomGenCatId.value = '';
+                if (randomGenCatDisp) randomGenCatDisp.value = '';
+                document.getElementById('randomGenAmount').value = '10';
+
+                bootstrap.Modal.getOrCreateInstance(modalEl).show();
+            };
+
+            window.confirmRandomGenerate = async function() {
+                const catId = document.getElementById('randomGenCategoryId').value;
+                const amount = parseInt(document.getElementById('randomGenAmount').value) || 10;
+                if (!catId) {
+                    showToast('Vui lòng chọn danh mục câu hỏi!', 'warning');
+                    return;
+                }
+
+                try {
+                    const res = await fetch(`${BASE_API}/questions?categoryId=${catId}&isPublicTab=false&size=500`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        const questions = data.content || [];
+                        if (questions.length === 0) {
+                            showToast('Danh mục này không có câu hỏi nào!', 'error');
+                            return;
+                        }
+
+                        // Shuffle and take N
+                        const shuffled = [...questions].sort(() => 0.5 - Math.random());
+                        const chosen = shuffled.slice(0, amount);
+
+                        // Add to editor selection!
+                        chosen.forEach(q => {
+                            const numId = Number(q.id);
+                            selectedQuestionIds.add(numId);
+                            fullSelectedQuestionsMap.set(numId, q);
+                        });
+
+                        updateSelectedCount();
+                        loadQuestions(); // Reload list to show selected status
+
+                        const modalEl = document.getElementById('randomGenerateModal');
+                        const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                        if (modalInstance) modalInstance.hide();
+                        showToast(`Đã chọn ngẫu nhiên ${chosen.length} câu hỏi thành công!`, 'success');
+                    } else {
+                        showToast('Không thể lấy danh sách câu hỏi.', 'error');
+                    }
+                } catch (e) {
+                    showToast('Lỗi kết nối.', 'error');
+                }
+            };
 
         })();
     </script>

@@ -29,4 +29,6 @@ public class QuizAssigningRequestDTO {
     LocalDateTime dueDate;
 
     Long topicId;
+
+    String assignedStudentIds;
 }

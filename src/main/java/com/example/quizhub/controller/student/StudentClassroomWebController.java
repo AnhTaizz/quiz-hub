@@ -85,6 +85,13 @@ public class StudentClassroomWebController {
 
             List<QuizAssigning> assignedQuizzes = quizAssigningRepository.findByClassroomId(id).stream()
                     .filter(a -> !Boolean.TRUE.equals(a.getIsHidden()))
+                    .filter(a -> {
+                        if (a.getAssignedStudentIds() == null || a.getAssignedStudentIds().isBlank()) {
+                            return true;
+                        }
+                        List<String> allowedIds = java.util.Arrays.asList(a.getAssignedStudentIds().split(","));
+                        return allowedIds.contains(String.valueOf(user.getId()));
+                    })
                     .collect(java.util.stream.Collectors.toList());
             List<ClassTopic> topics = classTopicRepository.findByClassroomId(id);
 

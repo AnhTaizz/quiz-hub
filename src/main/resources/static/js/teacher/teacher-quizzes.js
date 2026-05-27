@@ -515,3 +515,18 @@ async function openPreviewModal(id, title) {
             </div>`;
     }
 }
+
+// Global Category Selection Callback
+window.handleCategorySelection = function(id, name, currentTarget) {
+    if (currentTarget === 'filter') {
+        const idInput = document.getElementById('filter-category');
+        const nameInput = document.getElementById('filter-category-display');
+        if (idInput) idInput.value = (id === null || id === -1) ? '' : id;
+        if (nameInput) {
+            nameInput.value = (id === null || id === -1) ? 'Tất cả danh mục' : name;
+        }
+        const clearBtn = document.getElementById('clear-cat-btn');
+        if (clearBtn) clearBtn.style.display = (id === -1 || id === null || !id) ? 'none' : 'inline-block';
+        filterQuizzes();
+    }
+};

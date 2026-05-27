@@ -282,7 +282,8 @@ public class QuizServiceImpl implements QuizService {
         Category category = resolveCategory(request.getCategoryId());
         List<Long> allIds = categoryService.getAllDescendantIds(request.getCategoryId());
 
-        List<Long> questionIds = questionRepository.findQuestionIdsByCategoryInAndStatus(allIds, QuestionStatus.PUBLIC);
+        Long currentUserId = getCurrentUser().getId();
+        List<Long> questionIds = questionRepository.findValidQuestionIdsForGeneration(allIds, currentUserId);
         if (questionIds.isEmpty()) {
             throw new AppException(ErrorCode.QUESTION_NOT_FOUND); // No questions available
         }

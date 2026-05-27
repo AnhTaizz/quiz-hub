@@ -21,6 +21,11 @@
     box-sizing: border-box;
 }
 
+html {
+    background-color: #eef2f7;
+    zoom: 90%;
+}
+
 body {
     background-color: var(--bg-body);
     font-family: 'Inter', sans-serif;
@@ -44,7 +49,7 @@ a {
     position: fixed;
     top: 0;
     left: 0;
-    height: 100vh;
+    height: 111.12vh;
     border-right: 1px solid var(--border);
     z-index: 100;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -210,7 +215,7 @@ body.sidebar-collapsed #sidebar .nav-menu a:hover::after {
     position: fixed;
     top: 0;
     left: var(--sidebar-width);
-    right: 0;
+    right: -11.12vw;
     height: var(--header-height);
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
@@ -369,3 +374,6 @@ td {
 }
 .type-quiz { background: rgba(124, 58, 237, 0.1); color: #7c3aed; border: 1px solid rgba(124, 58, 237, 0.2); }
 .type-practice { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.2); }
+
+/* Zoom-90% compensation */
+.modal-backdrop { width: 111.12vw !important; height: 111.12vh !important; }

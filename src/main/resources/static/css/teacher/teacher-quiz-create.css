@@ -9,7 +9,6 @@ body {
     color: #334155;
     min-height: 100vh;
     overflow-x: hidden;
-    zoom: 85% !important;
 }
 
 /* Abstract Depth Mesh blobs */

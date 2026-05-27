@@ -107,6 +107,12 @@ public class StudentHomeController {
                 if (Boolean.TRUE.equals(assigning.getIsHidden())) {
                     continue;
                 }
+                if (assigning.getAssignedStudentIds() != null && !assigning.getAssignedStudentIds().isBlank()) {
+                    List<String> allowedIds = java.util.Arrays.asList(assigning.getAssignedStudentIds().split(","));
+                    if (!allowedIds.contains(String.valueOf(student.getId()))) {
+                        continue;
+                    }
+                }
                 
                 QuizTaking taking = quizTakingRepository
                         .findByLearnerIdAndQuizAssigningId(student.getId(), assigning.getId())
@@ -179,6 +185,13 @@ public class StudentHomeController {
                         for (QuizAssigning assigning : classroomQuizzes) {
                             if (assigning == null || assigning.getQuiz() == null || Boolean.TRUE.equals(assigning.getIsHidden()))
                                 continue;
+
+                            if (assigning.getAssignedStudentIds() != null && !assigning.getAssignedStudentIds().isBlank()) {
+                                List<String> allowedIds = java.util.Arrays.asList(assigning.getAssignedStudentIds().split(","));
+                                if (!allowedIds.contains(String.valueOf(student.getId()))) {
+                                    continue;
+                                }
+                            }
 
                             if (quizMap.containsKey(assigning.getId()))
                                 continue;

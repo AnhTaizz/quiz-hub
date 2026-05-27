@@ -323,10 +323,35 @@
                             <label class="form-check-label fw-bold" for="answerShuffled">Xáo trộn đáp án</label>
                         </div>
 
-                        <div class="form-check form-switch mb-4">
+                        <div class="form-check form-switch mb-3">
                             <input class="form-check-input" type="checkbox" id="showAnswer" name="showAnswer" checked>
                             <label class="form-check-label fw-bold" for="showAnswer">Cho phép học sinh xem đáp án chi
                                 tiết</label>
+                        </div>
+
+                        <div class="mb-4 border-top pt-3">
+                            <label class="form-label fw-bold">Đối tượng giao đề</label>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="assignTarget" id="assignTargetAll" value="ALL" checked onclick="toggleStudentSelection(false)">
+                                <label class="form-check-label fw-semibold text-dark" for="assignTargetAll">
+                                    Toàn bộ lớp học
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="assignTarget" id="assignTargetCustom" value="CUSTOM" onclick="toggleStudentSelection(true)">
+                                <label class="form-check-label fw-semibold text-dark" for="assignTargetCustom">
+                                    Chỉ định học sinh cụ thể
+                                </label>
+                            </div>
+                            
+                            <!-- Student selection container -->
+                            <div id="studentSelectionContainer" class="border rounded-3 p-3 bg-white mt-2" style="display: none; max-height: 180px; overflow-y: auto; border-color: #cbd5e1 !important;">
+                                <div class="text-muted small mb-2"><i class="bi bi-info-circle me-1"></i>Chọn các học sinh sẽ nhận đề thi này:</div>
+                                <div id="studentCheckboxesList">
+                                    <!-- Populated via JS -->
+                                </div>
+                            </div>
+                            <input type="hidden" name="assignedStudentIds" id="assignedStudentIdsInput" value="">
                         </div>
 
                         <button type="button" onclick="submitAssignment()" class="btn btn-primary w-100 py-2 fw-bold"
