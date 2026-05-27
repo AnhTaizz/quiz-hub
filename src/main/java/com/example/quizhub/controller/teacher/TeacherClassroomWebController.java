@@ -1,22 +1,10 @@
 package com.example.quizhub.controller.teacher;
 
 import com.example.quizhub.dto.classroom.request.ClassroomRequestDTO;
-import com.example.quizhub.entity.Category;
-import com.example.quizhub.entity.ClassJoining;
-import com.example.quizhub.entity.ClassTopic;
-import com.example.quizhub.entity.Classroom;
-import com.example.quizhub.entity.Quiz;
-import com.example.quizhub.entity.QuizAssigning;
-import com.example.quizhub.entity.User;
-import com.example.quizhub.entity.enums.JoinStatus;
-import com.example.quizhub.repository.CategoryRepository;
-import com.example.quizhub.repository.ClassJoiningRepository;
-import com.example.quizhub.repository.ClassTopicRepository;
-import com.example.quizhub.repository.ClassroomRepository;
-import com.example.quizhub.repository.QuizAssigningRepository;
-import com.example.quizhub.repository.QuizRepository;
-import com.example.quizhub.repository.UserRepository;
+import com.example.quizhub.entity.*;
+import com.example.quizhub.service.CategoryService;
 import com.example.quizhub.service.classroom.ClassroomService;
+import com.example.quizhub.service.teacher.TeacherClassroomWebService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,52 +14,35 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/teacher/classrooms")
 @RequiredArgsConstructor
 public class TeacherClassroomWebController {
-
-    private final ClassroomRepository classroomRepository;
-    private final UserRepository userRepository;
     private final ClassroomService classroomService;
-    private final ClassJoiningRepository classJoiningRepository;
-    private final QuizAssigningRepository quizAssigningRepository;
-    private final QuizRepository quizRepository;
-    private final ClassTopicRepository classTopicRepository;
-    private final CategoryRepository categoryRepository;
-    private final com.example.quizhub.service.CategoryService categoryService;
+    private final TeacherClassroomWebService teacherClassroomWebService;
+    private final CategoryService categoryService;
 
     @GetMapping
     public String classroomPage(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof User user) {
-            List<Classroom> classrooms = classroomRepository.findByCreatorId(user.getId());
+            List<Classroom> classrooms = teacherClassroomWebService.getTeacherClassrooms(user.getId());
+            Map<Long, Long> memberCounts = teacherClassroomWebService.getActiveMemberCounts(classrooms);
             model.addAttribute("classrooms", classrooms);
-            
-            // Calculate active member counts map
-            java.util.Map<Long, Long> memberCounts = classrooms.stream()
-                .collect(java.util.stream.Collectors.toMap(
-                    Classroom::getId,
-                    c -> classJoiningRepository.countByClassroomIdAndStatus(c.getId(), JoinStatus.APPROVED)
-                ));
             model.addAttribute("memberCounts", memberCounts);
-            
             model.addAttribute("currentUser", user);
         }
         return "teacher/teacher-classrooms";
     }
 
     @PostMapping
-    public String createClassroom(@ModelAttribute ClassroomRequestDTO request, RedirectAttributes redirectAttributes) {
+    public String createClassroom(@ModelAttribute ClassroomRequestDTO request, RedirectAttributes ra) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof User user) {
-            try {
-                classroomService.createClassroom(user.getEmail(), request);
-                redirectAttributes.addFlashAttribute("successMessage", "Tạo lớp học thành công!");
-            } catch (Exception e) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
-            }
+            try { classroomService.createClassroom(user.getEmail(), request); ra.addFlashAttribute("successMessage", "Tao lop hoc thanh cong!"); }
+            catch (Exception e) { ra.addFlashAttribute("errorMessage", "Loi: " + e.getMessage()); }
         }
         return "redirect:/teacher/classrooms";
     }
@@ -80,68 +51,42 @@ public class TeacherClassroomWebController {
     public String memberManagementPage(@PathVariable Long id, Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof User user) {
-            Classroom classroom = classroomRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Classroom not found"));
-
-            // Security check
-            if (!classroom.getCreator().getId().equals(user.getId())) {
-                return "redirect:/teacher/classrooms";
-            }
-
-            List<ClassJoining> activeMembers = classJoiningRepository.findByClassroomIdAndStatus(id,
-                    JoinStatus.APPROVED);
-            List<ClassJoining> pendingRequests = classJoiningRepository.findByClassroomIdAndStatus(id,
-                    JoinStatus.PENDING);
-
+            Classroom classroom = teacherClassroomWebService.getClassroomByIdAndTeacher(id, user.getId());
+            if (classroom == null) return "redirect:/teacher/classrooms";
             model.addAttribute("classroom", classroom);
-            model.addAttribute("activeMembers", activeMembers);
-            model.addAttribute("pendingRequests", pendingRequests);
+            model.addAttribute("activeMembers", teacherClassroomWebService.getActiveMembers(id));
+            model.addAttribute("pendingRequests", teacherClassroomWebService.getPendingMembers(id));
             model.addAttribute("currentUser", user);
         }
         return "teacher/teacher-classroom-members";
     }
 
     @PostMapping("/{id}/approve/{joiningId}")
-    public String approveMember(@PathVariable Long id, @PathVariable Long joiningId,
-            RedirectAttributes redirectAttributes) {
+    public String approveMember(@PathVariable Long id, @PathVariable Long joiningId, RedirectAttributes ra) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof User user) {
-            try {
-                classroomService.approveJoinRequest(joiningId, user.getEmail());
-                redirectAttributes.addFlashAttribute("successMessage", "Đã phê duyệt thành viên!");
-            } catch (Exception e) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
-            }
+            try { classroomService.approveJoinRequest(joiningId, user.getEmail()); ra.addFlashAttribute("successMessage", "Da phe duyet thanh vien!"); }
+            catch (Exception e) { ra.addFlashAttribute("errorMessage", "Loi: " + e.getMessage()); }
         }
         return "redirect:/teacher/classrooms/" + id + "/members";
     }
 
     @PostMapping("/{id}/reject/{joiningId}")
-    public String rejectMember(@PathVariable Long id, @PathVariable Long joiningId,
-            RedirectAttributes redirectAttributes) {
+    public String rejectMember(@PathVariable Long id, @PathVariable Long joiningId, RedirectAttributes ra) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof User user) {
-            try {
-                classroomService.rejectJoinRequest(joiningId, user.getEmail());
-                redirectAttributes.addFlashAttribute("successMessage", "Đã từ chối yêu cầu tham gia!");
-            } catch (Exception e) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
-            }
+            try { classroomService.rejectJoinRequest(joiningId, user.getEmail()); ra.addFlashAttribute("successMessage", "Da tu choi yeu cau!"); }
+            catch (Exception e) { ra.addFlashAttribute("errorMessage", "Loi: " + e.getMessage()); }
         }
         return "redirect:/teacher/classrooms/" + id + "/members";
     }
 
     @PostMapping("/{id}/remove/{studentId}")
-    public String removeStudent(@PathVariable Long id, @PathVariable Long studentId,
-            RedirectAttributes redirectAttributes) {
+    public String removeStudent(@PathVariable Long id, @PathVariable Long studentId, RedirectAttributes ra) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof User user) {
-            try {
-                classroomService.removeStudentFromClass(id, studentId, user.getEmail());
-                redirectAttributes.addFlashAttribute("successMessage", "Đã xóa sinh viên khỏi lớp!");
-            } catch (Exception e) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Lỗi: " + e.getMessage());
-            }
+            try { classroomService.removeStudentFromClass(id, studentId, user.getEmail()); ra.addFlashAttribute("successMessage", "Da xoa sinh vien!"); }
+            catch (Exception e) { ra.addFlashAttribute("errorMessage", "Loi: " + e.getMessage()); }
         }
         return "redirect:/teacher/classrooms/" + id + "/members";
     }
@@ -151,31 +96,17 @@ public class TeacherClassroomWebController {
     public String classroomDetailPage(@PathVariable Long id, Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.getPrincipal() instanceof User user) {
-            Classroom classroom = classroomRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Classroom not found"));
-
-            // Check if user is the creator of the classroom
-            if (!classroom.getCreator().getId().equals(user.getId())) {
-                return "redirect:/teacher/classrooms";
-            }
-
-            List<QuizAssigning> assignedQuizzes = quizAssigningRepository
-                    .findByClassroomId(id);
-            List<Quiz> quizzes = quizRepository.findByCreatorIdAndIsEnableTrue(user.getId());
-            List<ClassTopic> topics = classTopicRepository.findByClassroomId(id);
-            List<Category> categories = categoryRepository
-                    .findAllByCreatorIdWithParent(user.getId());
-
+            Classroom classroom = teacherClassroomWebService.getClassroomByIdAndTeacher(id, user.getId());
+            if (classroom == null) return "redirect:/teacher/classrooms";
             model.addAttribute("classroom", classroom);
-            model.addAttribute("assignedQuizzes", assignedQuizzes);
-            model.addAttribute("quizzes", quizzes);
-            model.addAttribute("topics", topics);
-            model.addAttribute("categories", categories);
+            model.addAttribute("assignedQuizzes", teacherClassroomWebService.getAssignedQuizzes(id));
+            model.addAttribute("quizzes", teacherClassroomWebService.getTeacherQuizzes(user.getId()));
+            model.addAttribute("topics", teacherClassroomWebService.getClassTopics(id));
+            model.addAttribute("categories", teacherClassroomWebService.getTeacherCategories(user.getId()));
             model.addAttribute("myCategories", categoryService.getMyCategories());
             model.addAttribute("publicCategories", categoryService.getPublicCategories());
             model.addAttribute("today", LocalDateTime.now().withSecond(0).withNano(0));
-            model.addAttribute("nextWeek",
-                    LocalDateTime.now().plusDays(7).withHour(23).withMinute(59).withSecond(0).withNano(0));
+            model.addAttribute("nextWeek", LocalDateTime.now().plusDays(7).withHour(23).withMinute(59).withSecond(0).withNano(0));
             model.addAttribute("currentUser", user);
         }
         return "teacher/teacher-classroom-detail";

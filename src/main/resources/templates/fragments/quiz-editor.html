@@ -266,6 +266,12 @@
                         <input type="number" id="randomGenAmount" class="form-control rounded-3" value="10" min="1" max="100" required style="border-radius: 12px; border-color: #cbd5e1;">
                         <small class="text-muted mt-2 d-block"><i class="bi bi-info-circle me-1"></i>Hệ thống sẽ bốc ngẫu nhiên số lượng câu hỏi trong danh mục đã chọn.</small>
                     </div>
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="clearPreviousQuestions" checked style="cursor: pointer;">
+                        <label class="form-check-label text-muted" for="clearPreviousQuestions" style="cursor: pointer; user-select: none;">
+                            Xóa các câu hỏi đã chọn trước đó
+                        </label>
+                    </div>
                     <button type="button" onclick="confirmRandomGenerate()" class="btn btn-success w-100 py-2 fw-bold text-white"
                         style="border-radius: 12px; box-shadow: 0 4px 12px rgba(16,185,129,0.2); background: #10b981; border: none;">
                         <i class="bi bi-check2-circle me-1"></i> Xác nhận sinh đề
@@ -880,40 +886,44 @@
                 }
 
                 try {
-                    const res = await fetch(`${BASE_API}/questions?categoryId=${catId}&isPublicTab=false&size=500`, {
+                    // Dùng endpoint mới: bao gồm cả câu hỏi PUBLIC và câu hỏi riêng của teacher
+                    const forGenRes = await fetch(`${BASE_API}/questions/for-generation?categoryId=${catId}`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
-                    if (res.ok) {
-                        const data = await res.json();
-                        const questions = data.content || [];
-                        if (questions.length === 0) {
-                            showToast('Danh mục này không có câu hỏi nào!', 'error');
-                            return;
-                        }
+                    if (!forGenRes.ok) throw new Error('API error');
+                    const questions = await forGenRes.json();
 
-                        // Shuffle and take N
-                        const shuffled = [...questions].sort(() => 0.5 - Math.random());
-                        const chosen = shuffled.slice(0, amount);
-
-                        // Add to editor selection!
-                        chosen.forEach(q => {
-                            const numId = Number(q.id);
-                            selectedQuestionIds.add(numId);
-                            fullSelectedQuestionsMap.set(numId, q);
-                        });
-
-                        updateSelectedCount();
-                        loadQuestions(); // Reload list to show selected status
-
-                        const modalEl = document.getElementById('randomGenerateModal');
-                        const modalInstance = bootstrap.Modal.getInstance(modalEl);
-                        if (modalInstance) modalInstance.hide();
-                        showToast(`Đã chọn ngẫu nhiên ${chosen.length} câu hỏi thành công!`, 'success');
-                    } else {
-                        showToast('Không thể lấy danh sách câu hỏi.', 'error');
+                    if (questions.length === 0) {
+                        showToast('Danh mục này không có câu hỏi hợp lệ nào!', 'error');
+                        return;
                     }
+
+                    // Shuffle và chọn N câu
+                    const shuffled = [...questions].sort(() => 0.5 - Math.random());
+                    const chosen = shuffled.slice(0, amount);
+
+                    const clearPrevious = document.getElementById('clearPreviousQuestions').checked;
+                    if (clearPrevious) {
+                        selectedQuestionIds.clear();
+                        fullSelectedQuestionsMap.clear();
+                    }
+
+                    // Thêm vào selection của editor
+                    chosen.forEach(q => {
+                        const numId = Number(q.id);
+                        selectedQuestionIds.add(numId);
+                        fullSelectedQuestionsMap.set(numId, q);
+                    });
+
+                    updateSelectedCount();
+                    loadQuestions();
+
+                    const modalEl = document.getElementById('randomGenerateModal');
+                    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                    if (modalInstance) modalInstance.hide();
+                    showToast(`Đã chọn ngẫu nhiên ${chosen.length}/${questions.length} câu hỏi thành công!`, 'success');
                 } catch (e) {
-                    showToast('Lỗi kết nối.', 'error');
+                    showToast('Lỗi kết nối: ' + e.message, 'error');
                 }
             };
 

@@ -427,6 +427,14 @@ public class ClassroomServiceImpl implements ClassroomService {
         List<ClassJoining> members = classJoiningRepository.findByClassroomIdAndStatus(
                 assigning.getClassroom().getId(), JoinStatus.APPROVED);
 
+        String assignedIdsStr = assigning.getAssignedStudentIds();
+        if (assignedIdsStr != null && !assignedIdsStr.trim().isEmpty()) {
+            java.util.List<String> assignedIdsList = java.util.Arrays.asList(assignedIdsStr.split(","));
+            members = members.stream()
+                    .filter(cj -> assignedIdsList.contains(String.valueOf(cj.getLearner().getId())))
+                    .collect(java.util.stream.Collectors.toList());
+        }
+
         int totalStudents = members.size();
         int completedCount = 0;
         int inProgressCount = 0;

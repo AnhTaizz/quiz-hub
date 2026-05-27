@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.example.quizhub.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 
 @Controller
@@ -15,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
 public class TeacherQuizWebController {
+
+    private final CategoryService categoryService;
 
     @GetMapping
     public String getQuizzesPage() {
@@ -24,6 +27,7 @@ public class TeacherQuizWebController {
     @GetMapping("/create")
     public String getCreateQuizPage(@RequestParam(required = false) Long categoryId, Model model) {
         model.addAttribute("categoryId", categoryId);
+        model.addAttribute("myCategories", categoryService.getMyCategories());
         return "teacher/teacher-quiz-create";
     }
 
@@ -41,6 +45,7 @@ public class TeacherQuizWebController {
     @GetMapping("/{id}/edit")
     public String getEditQuizPage(@PathVariable String id, Model model) {
         model.addAttribute("quizId", id);
+        model.addAttribute("myCategories", categoryService.getMyCategories());
         return "teacher/teacher-quiz-create";
     }
 

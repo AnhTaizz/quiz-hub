@@ -32,6 +32,7 @@ public class TeacherQuestionController {
     private final QuestionService questionService;
     private final UserRepository userRepository;
     private final QuestionImportService questionImportService;
+    private final com.example.quizhub.service.CategoryService categoryService;
 
     private Long getCurrentUserId() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -131,6 +132,30 @@ public class TeacherQuestionController {
     public ResponseEntity<String> bulkDeleteQuestions(@RequestBody java.util.List<Long> ids) {
         questionService.bulkDeleteQuestions(ids, getCurrentUserId());
         return ResponseEntity.ok("Questions have been successfully deleted");
+    }
+
+    /**
+     * Lấy danh sách câu hỏi hợp lệ theo danh mục để sinh đề ngẫu nhiên.
+     * Trả về cả câu hỏi PUBLIC và câu hỏi của chính teacher (không bị DELETED).
+     */
+    @GetMapping("/for-generation")
+    public ResponseEntity<java.util.List<QuestionResponseDTO>> getQuestionsForGeneration(
+            @RequestParam Long categoryId) {
+        Long userId = getCurrentUserId();
+        java.util.List<Long> categoryIds = categoryService.getAllDescendantIds(categoryId);
+        if (categoryId != null && categoryId == -1L) {
+            categoryIds.add(-1L);
+        }
+        java.util.List<Long> ids = questionService.getValidQuestionIdsForGeneration(
+                categoryIds, userId);
+        java.util.List<QuestionResponseDTO> result = ids.stream()
+                .map(id -> {
+                    try { return questionService.getQuestionById(id); }
+                    catch (Exception e) { return null; }
+                })
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/bulk-delete-all")

@@ -129,14 +129,14 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
        List<Long> findQuestionIdsByCategoryAndStatus(@Param("categoryId") Long categoryId,
                      @Param("status") QuestionStatus status);
 
-       @Query("SELECT q.id FROM Question q WHERE q.category.id IN :categoryIds AND q.questionStatus = :status ORDER BY q.id ASC")
+       @Query("SELECT q.id FROM Question q WHERE ((-1 IN :categoryIds AND q.category IS NULL) OR q.category.id IN :categoryIds) AND q.questionStatus = :status ORDER BY q.id ASC")
        List<Long> findQuestionIdsByCategoryInAndStatus(@Param("categoryIds") List<Long> categoryIds,
                      @Param("status") QuestionStatus status);
 
        @Query("SELECT q.id FROM Question q " +
-              "WHERE q.category.id IN :categoryIds " +
+              "WHERE ((-1 IN :categoryIds AND q.category IS NULL) OR q.category.id IN :categoryIds) " +
               "AND q.questionStatus != com.example.quizhub.entity.enums.QuestionStatus.DELETED " +
-              "AND (q.questionStatus = com.example.quizhub.entity.enums.QuestionStatus.PUBLIC OR q.creator.id = :userId) " +
+              "AND q.creator.id = :userId " +
               "ORDER BY q.id ASC")
        List<Long> findValidQuestionIdsForGeneration(@Param("categoryIds") List<Long> categoryIds,
                      @Param("userId") Long userId);
