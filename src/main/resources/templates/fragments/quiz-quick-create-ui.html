@@ -98,6 +98,12 @@
                             <li>Dòng đầu tiên là tiêu đề cột và sẽ tự động được hệ thống bỏ qua.</li>
                         </ul>
                     </div>
+                    
+                    <div id="excel-errors-container" class="d-none mt-3 p-3 bg-danger-subtle rounded border border-danger-subtle">
+                        <h6 class="small fw-bold text-danger mb-2"><i class="bi bi-exclamation-triangle-fill me-2"></i>Chi tiết lỗi (Bỏ qua các dòng sau):</h6>
+                        <div id="excel-errors-list" class="small text-danger" style="max-height: 150px; overflow-y: auto; line-height: 1.5; font-family: monospace;">
+                        </div>
+                    </div>
                     <div id="parse-loader" class="text-center d-none mt-4">
                         <div class="spinner-border text-indigo" role="status"></div>
                         <div class="small fw-bold mt-2 text-indigo">Đang phân tích dữ liệu...</div>
@@ -279,11 +285,28 @@
                 });
                 if (!res.ok) throw new Error("Lỗi phân tích file");
                 const data = await res.json();
+                
+                // Handle the new response structure
+                const responseData = data.data || [];
+                const errorCount = data.errorCount || 0;
+                const errors = data.errors || [];
+                const successCount = data.successCount || responseData.length;
 
-                currentQuestions = data;
+                currentQuestions = responseData;
+
+                // Handle Error UI
+                const errorContainer = document.getElementById('excel-errors-container');
+                const errorList = document.getElementById('excel-errors-list');
+                if (errorCount > 0) {
+                    errorContainer.classList.remove('d-none');
+                    errorList.innerHTML = errors.map(err => `<div>${err}</div>`).join('');
+                } else {
+                    errorContainer.classList.add('d-none');
+                    errorList.innerHTML = '';
+                }
 
                 // SMART DUMP
-                const cleanViewData = data.map(q => {
+                const cleanViewData = responseData.map(q => {
                     const correctLetters = [];
                     if (q.answers) {
                         q.answers.forEach((a, aIdx) => {
@@ -313,7 +336,11 @@
                 document.getElementById('json-editor').value = JSON.stringify(cleanViewData, null, 2);
 
                 renderVisualPreview();
-                showToast(`Đã nạp ${data.length} câu từ Excel`);
+                if (errorCount > 0) {
+                    showToast(`Đã nạp ${successCount} câu. Bỏ qua ${errorCount} dòng lỗi.`, 'warn');
+                } else {
+                    showToast(`Đã nạp thành công ${successCount} câu từ Excel`);
+                }
             } catch (e) {
                 showToast("Thất bại: " + e.message, 'err');
             } finally {

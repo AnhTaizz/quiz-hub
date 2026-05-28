@@ -55,7 +55,7 @@ public class TeacherQuestionController {
     }
 
     @PostMapping("/parse-only")
-    public ResponseEntity<java.util.List<QuestionRequestDTO>> parseQuestionsOnly(
+    public ResponseEntity<Map<String, Object>> parseQuestionsOnly(
             @RequestParam("file") MultipartFile file) {
         return ResponseEntity.ok(questionImportService.parseExcelOnly(file));
     }

@@ -1,9 +1,9 @@
 package com.example.quizhub.service;
 
+import java.util.List;
+
 import com.example.quizhub.dto.question.AiGenerationRequestDTO;
 import com.example.quizhub.dto.question.QuestionRequestDTO;
-
-import java.util.List;
 
 public interface AiService {
 

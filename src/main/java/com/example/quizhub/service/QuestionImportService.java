@@ -10,5 +10,5 @@ import com.example.quizhub.dto.question.QuestionRequestDTO;
 public interface QuestionImportService {
     Map<String, Object> importQuestionsFromExcel(MultipartFile file, Long categoryId, Long teacherId);
 
-    List<QuestionRequestDTO> parseExcelOnly(MultipartFile file);
+    Map<String, Object> parseExcelOnly(MultipartFile file);
 }

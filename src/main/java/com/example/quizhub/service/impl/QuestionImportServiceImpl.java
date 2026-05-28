@@ -1,25 +1,36 @@
 package com.example.quizhub.service.impl;
 
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.example.quizhub.dto.question.AnswerCreationRequestDTO;
 import com.example.quizhub.dto.question.QuestionRequestDTO;
+import com.example.quizhub.dto.question.QuestionResponseDTO;
 import com.example.quizhub.entity.enums.QuestionLevel;
 import com.example.quizhub.entity.enums.QuestionType;
 import com.example.quizhub.exception.AppException;
 import com.example.quizhub.exception.ErrorCode;
 import com.example.quizhub.service.QuestionImportService;
 import com.example.quizhub.service.QuestionService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.InputStream;
-import java.util.*;
-
-import com.example.quizhub.dto.question.QuestionResponseDTO;
 
 @Service
 @RequiredArgsConstructor
@@ -29,10 +40,14 @@ public class QuestionImportServiceImpl implements QuestionImportService {
     private final QuestionService questionService;
 
     @Override
-    public List<QuestionRequestDTO> parseExcelOnly(MultipartFile file) {
+    public Map<String, Object> parseExcelOnly(MultipartFile file) {
         List<QuestionRequestDTO> list = new ArrayList<>();
+        int successCount = 0;
+        int errorCount = 0;
+        List<String> errors = new ArrayList<>();
+
         try (InputStream is = file.getInputStream();
-             Workbook workbook = new XSSFWorkbook(is)) {
+            Workbook workbook = new XSSFWorkbook(is)) {
             Sheet sheet = workbook.getSheetAt(0);
             DataFormatter formatter = new DataFormatter();
             for (int i = 1; i <= sheet.getLastRowNum(); i++) {
@@ -41,21 +56,31 @@ public class QuestionImportServiceImpl implements QuestionImportService {
                 try {
                     QuestionRequestDTO dto = mapRowToDTO(row, formatter);
                     list.add(dto);
+                    successCount++;
                 } catch (Exception e) {
+                    errorCount++;
                     log.warn("Bỏ qua dòng {} trong file review do lỗi: {}", i + 1, e.getMessage());
+                    errors.add("Dòng " + (i + 1) + ": " + e.getMessage());
                 }
             }
         } catch (Exception e) {
             throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
         }
-        return list;
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("successCount", successCount);
+        response.put("errorCount", errorCount);
+        response.put("errors", errors);
+        response.put("data", list);
+
+        return response;
     }
 
     private QuestionRequestDTO mapRowToDTO(Row row, DataFormatter formatter) {
         // Column 0: Nội dung câu hỏi
         String text = getCellValue(row, 0, formatter).trim();
         if (text.isEmpty()) {
-            throw new AppException(ErrorCode.QUESTION_TEXT_EMPTY);
+            throw new RuntimeException("Nội dung câu hỏi không được để trống (Cột A)");
         }
 
         // Column 1: Loại câu hỏi
@@ -68,15 +93,25 @@ public class QuestionImportServiceImpl implements QuestionImportService {
 
         // Columns 3 -> 10: Đáp án A -> H
         List<String> rawAnswers = new ArrayList<>();
+        boolean foundEmpty = false;
         for (int col = 3; col <= 10; col++) {
             String val = getCellValue(row, col, formatter).trim();
             if (!val.isEmpty()) {
+                if (foundEmpty) {
+                    throw new RuntimeException("Các phương án đáp án (Từ cột D đến K) phải được điền liên tục, không để khoảng trống ở giữa.");
+                }
                 rawAnswers.add(val);
+            } else {
+                foundEmpty = true;
             }
         }
 
         if (rawAnswers.isEmpty()) {
-            throw new AppException(ErrorCode.QUESTION_ANSWERS_EMPTY);
+            throw new RuntimeException("Phải có ít nhất 1 phương án đáp án (Từ cột D đến K)");
+        }
+
+        if (type != QuestionType.FILL_IN_BLANK && rawAnswers.size() < 2) {
+            throw new RuntimeException("Câu hỏi trắc nghiệm phải có ít nhất 2 phương án đáp án.");
         }
 
         // Column 11: Đáp án đúng
@@ -85,12 +120,21 @@ public class QuestionImportServiceImpl implements QuestionImportService {
 
         // Build AnswerDTOs
         List<AnswerCreationRequestDTO> answerDTOs = new ArrayList<>();
+        int correctCount = 0;
         for (int j = 0; j < rawAnswers.size(); j++) {
             boolean isCorrect = (type == QuestionType.FILL_IN_BLANK) || correctIndices.contains(j);
+            if (isCorrect) correctCount++;
             answerDTOs.add(AnswerCreationRequestDTO.builder()
                     .text(rawAnswers.get(j))
                     .correct(isCorrect)
                     .build());
+        }
+
+        if (type == QuestionType.SINGLE_CHOICE && correctCount != 1) {
+            throw new RuntimeException("Câu trắc nghiệm 1 đáp án phải khai báo chính xác 1 đáp án đúng (Cột L)");
+        }
+        if (type == QuestionType.MULTIPLE_CHOICE && correctCount == 0) {
+            throw new RuntimeException("Câu chọn nhiều đáp án phải có ít nhất 1 đáp án đúng (Cột L)");
         }
 
         // Return DTO shell
@@ -122,9 +166,8 @@ public class QuestionImportServiceImpl implements QuestionImportService {
 
                 try {
                     QuestionRequestDTO dto = mapRowToDTO(row, formatter);
-                    dto.setCategoryId(categoryId); // Override with supplied destination folder
+                    dto.setCategoryId(categoryId);
 
-                    // Persist via existing QuestionService
                     QuestionResponseDTO saved = questionService.createNewQuestion(teacherId, dto);
                     successCount++;
                     importedList.add(saved);
@@ -178,7 +221,11 @@ public class QuestionImportServiceImpl implements QuestionImportService {
         Set<Integer> result = new HashSet<>();
         if (type == QuestionType.FILL_IN_BLANK) return result; // Xử lý riêng sau
 
-        String clean = raw.replaceAll("[^A-H,;]", ""); // Lọc các ký tự A-H và dấu phẩy
+        String clean = raw.replaceAll("[^A-Ha-h,;]", "").toUpperCase(); // Lọc các ký tự A-H, a-h và dấu phẩy
+        if (clean.isEmpty() && !raw.trim().isEmpty()) {
+            throw new RuntimeException("Đáp án đúng (Cột L) chứa ký tự không hợp lệ. Chỉ chấp nhận các chữ cái từ A đến H.");
+        }
+
         String[] tokens = clean.split("[,;]");
 
         for (String t : tokens) {
@@ -186,9 +233,10 @@ public class QuestionImportServiceImpl implements QuestionImportService {
             if (t.isEmpty()) continue;
             char c = t.charAt(0);
             int index = c - 'A';
-            if (index >= 0 && index < answerCount) {
-                result.add(index);
+            if (index < 0 || index >= answerCount) {
+                throw new RuntimeException("Đáp án đúng '" + c + "' trỏ đến phương án không tồn tại (Bạn chỉ nhập " + answerCount + " phương án).");
             }
+            result.add(index);
         }
         return result;
     }
