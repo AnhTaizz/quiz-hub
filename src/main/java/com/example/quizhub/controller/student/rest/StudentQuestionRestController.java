@@ -22,6 +22,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import java.util.Map;
 import java.util.List;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/student/questions")
@@ -32,6 +34,7 @@ public class StudentQuestionRestController {
     private final QuestionService questionService;
     private final UserRepository userRepository;
     private final QuestionImportService questionImportService;
+    private final com.example.quizhub.service.CategoryService categoryService;
 
     private Long getCurrentUserId() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -114,5 +117,34 @@ public class StudentQuestionRestController {
             @RequestParam(required = false) String keyword) {
         questionService.bulkDeleteAllQuestions(getCurrentUserId(), categoryId, type, keyword);
         return ResponseEntity.ok("All matching questions have been successfully deleted");
+    }
+
+    /**
+     * Lấy danh sách câu hỏi hợp lệ theo danh mục để sinh đề ngẫu nhiên.
+     * Trả về cả câu hỏi PUBLIC và câu hỏi của chính student (không bị DELETED).
+     */
+    @GetMapping("/for-generation")
+    public ResponseEntity<List<QuestionResponseDTO>> getQuestionsForGeneration(
+            @RequestParam Long categoryId,
+            @RequestParam(required = false, defaultValue = "10") int amount) {
+        Long userId = getCurrentUserId();
+        List<Long> categoryIds = categoryService.getAllDescendantIds(categoryId);
+        if (categoryId != null && categoryId == -1L) {
+            categoryIds.add(-1L);
+        }
+        List<Long> ids = questionService.getValidQuestionIdsForGeneration(
+                categoryIds, userId);
+
+        if (ids == null || ids.isEmpty()) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+
+        Collections.shuffle(ids);
+        List<Long> selectedIds = ids.stream()
+                .limit(amount)
+                .collect(Collectors.toList());
+
+        List<QuestionResponseDTO> result = questionService.getQuestionsByIds(selectedIds);
+        return ResponseEntity.ok(result);
     }
 }
