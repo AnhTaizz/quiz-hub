@@ -83,11 +83,7 @@ async function initQuiz() {
         const saved = localStorage.getItem(`quiz_answers_${quizData.attemptId}`);
         if (saved) {
             const localData = JSON.parse(saved);
-            // Only restore from local if the local data is fresher than the server's start time
-            const serverStart = quizData.startedAtMillis;
-            if (localData.timestamp && localData.timestamp > serverStart) {
-                Object.assign(userAnswers, localData.answers);
-            }
+            Object.assign(userAnswers, localData.answers || localData);
         }
 
         const savedFlags = localStorage.getItem(`quiz_flags_${quizData.attemptId}`);
@@ -326,10 +322,14 @@ function isQuestionAnswered(qId) {
     return (Array.isArray(ans) && ans.length > 0) || (typeof ans === 'string' && ans.trim() !== '');
 }
 
+let fillDebounceTimer = null;
 function handleFillInput(qId, val, isFullMode = false) {
     userAnswers[qId] = val;
     saveToLocal();
-    saveToServer(qId, val);
+    clearTimeout(fillDebounceTimer);
+    fillDebounceTimer = setTimeout(() => {
+        saveToServer(qId, val);
+    }, 500);
     renderGrid();
 }
 
