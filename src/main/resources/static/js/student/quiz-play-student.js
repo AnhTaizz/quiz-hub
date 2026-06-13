@@ -47,6 +47,10 @@ async function initQuiz() {
 
         // Initialize answers and flags from server first, then local as backup
         userAnswers = quizData.selectedAnswers || {};
+        if (quizData.selectedTexts) {
+            Object.assign(userAnswers, quizData.selectedTexts);
+        }
+
         const savedAnswers = localStorage.getItem(`quiz_answers_${quizData.attemptId}`);
         if (savedAnswers) {
             const localData = JSON.parse(savedAnswers);
@@ -131,7 +135,7 @@ function renderView() {
 function renderSingleQuestion() {
     const q = quizData.questions[currentIndex];
     document.getElementById('qNumber').textContent = `Câu ${currentIndex + 1}`;
-    document.getElementById('qType').textContent = q.type === 'SINGLE_CHOICE' ? 'CHỌN MỘT ĐÁP ÁN' : 'CHỌN NHIỀU ĐÁP ÁN';
+    document.getElementById('qType').textContent = q.type === 'SINGLE_CHOICE' ? 'CHỌN MỘT ĐÁP ÁN' : (q.type === 'FILL_IN_BLANK' ? 'ĐIỀN KHUYẾT' : 'CHỌN NHIỀU ĐÁP ÁN');
     document.getElementById('qText').textContent = q.text;
 
     // Update Flag Button
@@ -144,19 +148,38 @@ function renderSingleQuestion() {
         btnFlag.innerHTML = '<i class="bi bi-flag"></i> <span>Đặt cờ</span>';
     }
 
+    const meta = document.querySelector('.q-meta');
+    const existingLevel = meta.querySelector('.q-level-badge');
+    if (existingLevel) existingLevel.remove();
+
+    const levelBadge = document.createElement('span');
+    levelBadge.className = `q-level-badge level-${(q.level || 'medium').toLowerCase()}`;
+    levelBadge.textContent = q.level || 'MEDIUM';
+    meta.appendChild(levelBadge);
+
     const list = document.getElementById('answersList');
     list.innerHTML = '';
 
-    q.answers.forEach((ans, i) => {
-        const div = document.createElement('div');
-        div.className = `answer-opt ${isAnswerSelected(q.id, ans.id) ? 'selected' : ''}`;
-        div.innerHTML = `
-            <div class="opt-prefix">${String.fromCharCode(65 + i)}</div>
-            <div class="opt-text">${ans.text}</div>
-        `;
-        div.onclick = () => toggleAnswer(q.id, ans.id, q.type);
-        list.appendChild(div);
-    });
+    if (q.type === 'FILL_IN_BLANK') {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'fill-input';
+        input.placeholder = 'Nhập câu trả lời của bạn tại đây...';
+        input.value = userAnswers[q.id] || '';
+        input.oninput = (e) => handleFillInput(q.id, e.target.value);
+        list.appendChild(input);
+    } else {
+        q.answers.forEach((ans, i) => {
+            const div = document.createElement('div');
+            div.className = `answer-opt ${isAnswerSelected(q.id, ans.id) ? 'selected' : ''}`;
+            div.innerHTML = `
+                <div class="opt-prefix">${String.fromCharCode(65 + i)}</div>
+                <div class="opt-text">${ans.text}</div>
+            `;
+            div.onclick = () => toggleAnswer(q.id, ans.id, q.type);
+            list.appendChild(div);
+        });
+    }
 
     // Update Nav Buttons
     document.getElementById('btnPrev').disabled = currentIndex === 0;
@@ -178,22 +201,30 @@ function renderFullQuiz() {
         qDiv.id = `q-full-${idx}`;
         
         let answersHtml = '';
-        q.answers.forEach((ans, i) => {
-            answersHtml += `
-                <div class="answer-opt ${isAnswerSelected(q.id, ans.id) ? 'selected' : ''}" 
-                     onclick="toggleAnswer(${q.id}, ${ans.id}, '${q.type}')">
-                    <div class="opt-prefix">${String.fromCharCode(65 + i)}</div>
-                    <div class="opt-text">${ans.text}</div>
-                </div>
-            `;
-        });
+        if (q.type === 'FILL_IN_BLANK') {
+            answersHtml = `<input type="text" class="fill-input" placeholder="Nhập câu trả lời..." value="${userAnswers[q.id] || ''}" oninput="handleFillInput(${q.id}, this.value, true)">`;
+        } else {
+            q.answers.forEach((ans, i) => {
+                answersHtml += `
+                    <div class="answer-opt ${isAnswerSelected(q.id, ans.id) ? 'selected' : ''}" 
+                         onclick="toggleAnswer(${q.id}, ${ans.id}, '${q.type}')">
+                        <div class="opt-prefix">${String.fromCharCode(65 + i)}</div>
+                        <div class="opt-text">${ans.text}</div>
+                    </div>
+                `;
+            });
+        }
 
         const isFlagged = flaggedQuestions.has(q.id);
+        const levelClass = `level-${(q.level || 'medium').toLowerCase()}`;
+        const levelText = q.level || 'MEDIUM';
+        
         qDiv.innerHTML = `
             <div class="d-flex justify-content-between align-items-start mb-3">
-                <div>
+                <div class="d-flex align-items-center gap-2">
                     <span class="q-type-badge">Câu ${idx + 1}</span>
-                    <span class="q-type-badge text-muted">${q.type === 'SINGLE_CHOICE' ? 'CHỌN MỘT ĐÁP ÁN' : 'CHỌN NHIỀU ĐÁP ÁN'}</span>
+                    <span class="q-type-badge text-muted">${q.type === 'SINGLE_CHOICE' ? 'CHỌN MỘT ĐÁP ÁN' : (q.type === 'FILL_IN_BLANK' ? 'ĐIỀN KHUYẾT' : 'CHỌN NHIỀU ĐÁP ÁN')}</span>
+                    <span class="q-level-badge ${levelClass}">${levelText}</span>
                 </div>
                 <button class="btn-flag ${isFlagged ? 'active' : ''}" onclick="toggleFlagFor(${q.id})">
                     <i class="bi bi-flag${isFlagged ? '-fill' : ''}"></i> <span>${isFlagged ? 'Đã đặt cờ' : 'Đặt cờ'}</span>
@@ -226,21 +257,34 @@ function toggleAnswer(qId, ansId, type) {
     if (type === 'SINGLE_CHOICE') {
         userAnswers[qId] = [ansId];
     } else {
-        if (!userAnswers[qId]) userAnswers[qId] = [];
+        if (!userAnswers[qId] || !Array.isArray(userAnswers[qId])) userAnswers[qId] = [];
         const idx = userAnswers[qId].indexOf(ansId);
         if (idx > -1) userAnswers[qId].splice(idx, 1);
         else userAnswers[qId].push(ansId);
     }
     
     saveToLocal();
-    saveToServer(qId, userAnswers[qId]);
+    saveToServer(qId, userAnswers[qId], null);
     renderView(); 
     renderGrid();
     updateStats();
 }
 
+let fillInputTimeout = null;
+function handleFillInput(qId, value, fromFullMode = false) {
+    userAnswers[qId] = value;
+    saveToLocal();
+    renderGrid();
+    updateStats();
+
+    clearTimeout(fillInputTimeout);
+    fillInputTimeout = setTimeout(() => {
+        saveToServer(qId, [], value);
+    }, 500);
+}
+
 function isAnswerSelected(qId, ansId) {
-    return userAnswers[qId] && userAnswers[qId].includes(ansId);
+    return userAnswers[qId] && Array.isArray(userAnswers[qId]) && userAnswers[qId].includes(ansId);
 }
 
 function toggleFlag() {
@@ -267,16 +311,17 @@ function saveToLocal() {
     localStorage.setItem(`quiz_answers_${quizData.attemptId}`, JSON.stringify(userAnswers));
 }
 
-async function saveToServer(qId, answerIds) {
+async function saveToServer(qId, answerIds, selectedText = null) {
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');
     try {
+        const payload = selectedText !== null ? { selectedText: selectedText } : { answerIds: answerIds };
         await fetch(`/api/student/quiz/save-answer?attemptId=${quizData.attemptId}&questionId=${qId}`, {
             method: 'POST',
             headers: { 
                 'Authorization': 'Bearer ' + token,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ answerIds: answerIds })
+            body: JSON.stringify(payload)
         });
     } catch (e) {
         console.error("Lỗi khi lưu đáp án lên server:", e);
@@ -289,7 +334,8 @@ function renderGrid() {
     grid.innerHTML = '';
     quizData.questions.forEach((q, i) => {
         const dot = document.createElement('div');
-        const isAnswered = userAnswers[q.id] && userAnswers[q.id].length > 0;
+        const ans = userAnswers[q.id];
+        const isAnswered = ans && ((Array.isArray(ans) && ans.length > 0) || (typeof ans === 'string' && ans.trim() !== ''));
         const isFlagged = flaggedQuestions.has(q.id);
         
         dot.className = `q-dot ${i === currentIndex ? 'active' : ''} ${isAnswered ? 'answered' : ''} ${isFlagged ? 'flagged' : ''}`;
@@ -310,7 +356,7 @@ function renderGrid() {
 
 function updateStats() {
     const total = quizData.questions.length;
-    const answered = Object.values(userAnswers).filter(a => a.length > 0).length;
+    const answered = Object.values(userAnswers).filter(a => (Array.isArray(a) && a.length > 0) || (typeof a === 'string' && a.trim() !== '')).length;
     const progText = document.getElementById('progressText');
     if (progText) progText.textContent = `${currentIndex + 1}/${total}`;
     const ansCount = document.getElementById('answeredCount');
@@ -355,10 +401,14 @@ async function executeSubmit() {
 
     try {
         // Prepare request body
-        const questions = quizData.questions.map(q => ({
-            questionId: q.id,
-            answerIds: userAnswers[q.id] || []
-        }));
+        const questions = quizData.questions.map(q => {
+            const ans = userAnswers[q.id];
+            if (q.type === 'FILL_IN_BLANK') {
+                return { questionId: q.id, answerIds: [], selectedText: ans || '' };
+            } else {
+                return { questionId: q.id, answerIds: Array.isArray(ans) ? ans : [] };
+            }
+        });
 
         const response = await fetch('/api/student/quiz/submit', {
             method: 'POST',

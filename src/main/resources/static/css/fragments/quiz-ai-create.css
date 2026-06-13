@@ -334,3 +334,10 @@ html, body {
         box-shadow: 0 0 0 0 rgba(124, 58, 237, 0);
     }
 }
+
+/* ── Zoom-85% compensation for Bootstrap fixed/backdrop elements ── */
+/* html { zoom: 85% } makes 100vw/100vh = 85% of actual viewport.   */
+.modal-backdrop, .modal {
+    width: 117.65vw !important;
+    height: 117.65vh !important;
+}

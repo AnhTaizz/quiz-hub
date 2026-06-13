@@ -784,6 +784,14 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                         uaa -> uaa.getQuestion().getId(),
                         Collectors.mapping(uaa -> uaa.getAnswer().getId(), Collectors.toList())));
 
+        Map<Long, String> selectedTexts = userAttemptAnswerRepository.findByAttemptId(attempt.getId())
+                .stream()
+                .filter(uaa -> uaa.getSelectedText() != null && !uaa.getSelectedText().trim().isEmpty())
+                .collect(Collectors.toMap(
+                        uaa -> uaa.getQuestion().getId(),
+                        UserAttemptAnswer::getSelectedText,
+                        (existing, replacement) -> existing));
+
         return QuizTakingResponseDTO.builder()
                 .attemptId(attempt.getId())
                 .quizTitle(quiz.getTitle())
@@ -791,6 +799,7 @@ public class QuizTakingServiceImpl implements QuizTakingService {
                 .startedAt(attempt.getStartedAt())
                 .questions(questionDTOs)
                 .selectedAnswers(selectedAnswers)
+                .selectedTexts(selectedTexts)
                 .build();
     }
 

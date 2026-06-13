@@ -7,6 +7,10 @@
     --timer-text: #ef4444;
 }
 
+html {
+    zoom: 85%;
+}
+
 body {
     background-color: var(--exam-bg);
     font-family: 'Inter', sans-serif;
@@ -623,3 +627,16 @@ body {
 
 .toast-msg.ok i { color: #4ade80; }
 .toast-msg.err i { color: #fb7185; }
+
+/* ── Zoom-85% compensation for fixed full-screen overlays ── */
+.modal-backdrop, .modal {
+    width: 117.65vw !important;
+    height: 117.65vh !important;
+}
+
+#pageLoading,
+.error-overlay,
+#fullscreenOverlay {
+    width: 117.65vw !important;
+    height: 117.65vh !important;
+}

@@ -1,3 +1,4 @@
+html { zoom: 85%; }
 body { background-color: #f8fafc; font-family: 'Inter', sans-serif; color: #1e293b; padding-top: 90px; }
 .history-card { border-radius: 20px; border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
 .attempt-item { transition: all 0.2s; border-radius: 16px; border: 1px solid #f1f5f9; background: white; margin-bottom: 12px; }

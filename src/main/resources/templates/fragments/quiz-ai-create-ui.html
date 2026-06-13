@@ -127,10 +127,34 @@
     </div> <!-- End designer-body -->
 </main>
 
-
 <!-- ─── SHARED SCRIPTS FRAGMENT ─── -->
 <th:block th:fragment="quiz-ai-create-scripts(userType, closeUrl)">
-    <div id="toastWrap" class="toast-wrap"></div>
+    <!-- ── Delete Question Confirm Modal ── -->
+    <div class="modal fade" id="deleteQModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+            <div class="modal-content" style="border-radius: 20px; border: none; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.15);">
+                <div class="modal-header" style="background: linear-gradient(135deg, #ef4444, #dc2626); border: none; padding: 20px 24px;">
+                    <h5 class="modal-title fw-bold text-white d-flex align-items-center gap-2">
+                        <i class="bi bi-trash3-fill"></i> Xóa câu hỏi
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" style="padding: 24px 28px;">
+                    <p class="text-dark fw-semibold mb-1" id="deleteQModalLabel">Bạn có chắc muốn xóa câu hỏi này?</p>
+                    <p class="text-muted small mb-0">Thao tác này không thể hoàn tác.</p>
+                </div>
+                <div class="modal-footer" style="border: none; padding: 0 28px 20px; gap: 10px;">
+                    <button class="btn btn-light fw-semibold rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button class="btn btn-danger fw-bold rounded-pill px-4" id="deleteQConfirmBtn">
+                        <i class="bi bi-trash3 me-1"></i> Xóa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" th:href="@{/css/toast.css}">
+    <div id="toast-container"></div>
 
     <script th:inline="javascript">
         const userType = /*[[${userType}]]*/ 'student';
@@ -174,14 +198,11 @@
             return true;
         }
 
+        // Dùng hệ thống toast chung (toast.js)
         function showToast(msg, type = 'ok') {
-            const container = document.getElementById('toastWrap');
-            if (!container) return;
-            const t = document.createElement('div');
-            t.className = `alert alert-${type === 'ok' ? 'success' : 'danger'} shadow border-0 py-2 px-3 rounded-3 fw-bold small mb-2`;
-            t.innerHTML = `<i class="bi bi-${type === 'ok' ? 'check-circle' : 'exclamation-circle'} me-2"></i>${msg}`;
-            container.appendChild(t);
-            setTimeout(() => t.remove(), 3000);
+            if (type === 'ok') toast.success(msg);
+            else if (type === 'warn') toast.warning(msg);
+            else toast.error(msg);
         }
 
         // --- AI API Call ---
@@ -353,11 +374,23 @@
             }
         }
 
+        let _pendingDeleteIdx = null;
+
         function deleteQuestion(qIdx) {
-            if (confirm(`Bạn có chắc chắn muốn xóa Câu số ${qIdx + 1}?`)) {
-                currentQuestions.splice(qIdx, 1);
-                renderVisualPreview();
-            }
+            _pendingDeleteIdx = qIdx;
+            document.getElementById('deleteQModalLabel').textContent =
+                `Bạn có chắc muốn xóa Câu số ${qIdx + 1}?`;
+            const modal = new bootstrap.Modal(document.getElementById('deleteQModal'));
+            modal.show();
+            document.getElementById('deleteQConfirmBtn').onclick = function () {
+                modal.hide();
+                if (_pendingDeleteIdx !== null) {
+                    currentQuestions.splice(_pendingDeleteIdx, 1);
+                    _pendingDeleteIdx = null;
+                    renderVisualPreview();
+                    toast.success(`Đã xóa câu hỏi thành công.`);
+                }
+            };
         }
 
         function toggleCorrectAnswer(qIdx, aIdx) {
@@ -508,6 +541,7 @@
             });
         });
     </script>
+    <script th:src="@{/js/toast.js}"></script>
 
     <!-- Category Explorer Picker Modals -->
     <div th:replace="~{fragments/category-explorer-private :: category-explorer-private-modal}"></div>

@@ -122,7 +122,11 @@
             /*]]>*/
 
             function _safeToast(msg, type = 'ok') {
-                if (typeof showToast === 'function') {
+                if (typeof toast !== 'undefined') {
+                    if (type === 'ok' || type === 'success') toast.success(msg);
+                    else if (type === 'warning' || type === 'warn') toast.warning(msg);
+                    else toast.error(msg);
+                } else if (typeof showToast === 'function') {
                     showToast(msg, type);
                 } else {
                     console.error('Toast Error:', msg);
@@ -170,13 +174,7 @@
                 const wrapper = document.getElementById('editor-answers-wrapper');
                 const btnAdd = document.getElementById('btn-add-editor-ans');
 
-                // If Fill in Blank, we usually only need one row
-                if (type === 'FILL_IN_BLANK') {
-                    btnAdd.style.display = 'none';
-                    // If multiple rows exist, we might want to keep them or just use the first
-                } else {
-                    btnAdd.style.display = 'block';
-                }
+                btnAdd.style.display = 'block';
 
                 document.querySelectorAll('.editor-ans-row').forEach(row => {
                     const toggle = row.querySelector('.editor-ans-toggle');
@@ -193,20 +191,20 @@
                 const wrapper = document.getElementById('editor-answers-wrapper');
                 const type = document.getElementById('editor-q-type').value;
                 const row = document.createElement('div');
-                row.className = `d-flex align-items-center gap-3 p-2 px-3 rounded-4 border editor-ans-row transition-all ${isCorrect ? 'correct' : ''}`;
-                row.style.background = isCorrect ? '#f0fdf4' : '#f8fafc';
-                row.style.borderColor = isCorrect ? '#10b981' : '#e2e8f0';
-                row.style.minHeight = '52px';
-
                 const toggleType = (type === 'MULTIPLE_CHOICE') ? 'checkbox' : 'radio';
                 const toggleDisplay = (type === 'FILL_IN_BLANK') ? 'none' : 'block';
                 const finalCorrect = (type === 'FILL_IN_BLANK') ? true : isCorrect;
+
+                row.className = `d-flex align-items-center gap-3 p-2 px-3 rounded-4 border editor-ans-row transition-all ${finalCorrect ? 'correct' : ''}`;
+                row.style.background = finalCorrect ? '#f0fdf4' : '#f8fafc';
+                row.style.borderColor = finalCorrect ? '#10b981' : '#e2e8f0';
+                row.style.minHeight = '52px';
 
                 row.innerHTML = `
                     <div class="d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
                         <input class="editor-ans-toggle" type="${toggleType}" name="editorCorrectAns" 
                             ${finalCorrect ? 'checked' : ''} onchange="syncEditorAnsStyles()"
-                            style="width: 20px; height: 20px; cursor: pointer; accent-color: #4f46e5; ${toggleDisplay}">
+                            style="width: 20px; height: 20px; cursor: pointer; accent-color: #4f46e5; display: ${toggleDisplay}">
                     </div>
                     <input type="text" class="form-control border-0 bg-transparent fw-semibold editor-ans-text" 
                         value="${text}" placeholder="${type === 'FILL_IN_BLANK' ? 'Nhập đáp án đúng...' : 'Nhập nội dung đáp án...'}" required
