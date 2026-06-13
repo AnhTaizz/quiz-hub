@@ -7,6 +7,10 @@
     --timer-text: #ef4444;
 }
 
+html {
+    zoom: 85%;
+}
+
 body {
     background-color: var(--exam-bg);
     font-family: 'Inter', sans-serif;
@@ -652,4 +656,17 @@ body {
 
 .q-dot.flagged {
     border-color: #f59e0b;
+}
+
+/* ── Zoom-85% compensation for fixed full-screen overlays ── */
+.modal-backdrop, .modal {
+    width: 117.65vw !important;
+    height: 117.65vh !important;
+}
+
+#pageLoading,
+.error-overlay,
+#fullscreenOverlay {
+    width: 117.65vw !important;
+    height: 117.65vh !important;
 }

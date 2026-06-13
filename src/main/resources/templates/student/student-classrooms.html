@@ -20,17 +20,21 @@
     <header th:replace="~{layout/header :: student-header(activePage='classrooms')}"></header>
 
     <main class="container">
-        <!-- Success/Error Alerts -->
-        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show mb-4 border-0 shadow-sm"
-            role="alert" style="border-radius: 12px;">
-            <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${successMessage}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show mb-4 border-0 shadow-sm"
-            role="alert" style="border-radius: 12px;">
-            <i class="bi bi-exclamation-octagon-fill me-2"></i> <span th:text="${errorMessage}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function() {
+                /*[[${successMessage}]]*/
+                let successMessage = /*[[${successMessage}]]*/ null;
+                if (successMessage) {
+                    toast.success(successMessage);
+                }
+
+                /*[[${errorMessage}]]*/
+                let errorMessage = /*[[${errorMessage}]]*/ null;
+                if (errorMessage) {
+                    toast.error(errorMessage);
+                }
+            });
+        </script>
 
         <section class="page-hero">
             <div class="hero-shape shape-1"></div>

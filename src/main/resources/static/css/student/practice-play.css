@@ -9,6 +9,10 @@
     --border-color: #e2e8f0;
 }
 
+html {
+    zoom: 85%;
+}
+
 body {
     background-color: var(--bg-body);
     font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
@@ -722,4 +726,15 @@ body {
 
 .nav-dot.flagged {
     border-color: #f59e0b;
+}
+
+/* ── Zoom-85% compensation for fixed full-screen overlays ── */
+.modal-backdrop, .modal {
+    width: 117.65vw !important;
+    height: 117.65vh !important;
+}
+
+#pageLoading {
+    width: 117.65vw !important;
+    height: 117.65vh !important;
 }

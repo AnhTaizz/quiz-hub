@@ -87,6 +87,10 @@ public class QuizServiceImpl implements QuizService {
         return quizAssigningRepository.countAnyByQuizIdIncludingDeleted(quiz.getId()) > 0;
     }
 
+    private boolean hasEverBeenTaken(Quiz quiz) {
+        return !quizTakingRepository.findByQuizId(quiz.getId()).isEmpty();
+    }
+
     private boolean hasSameQuestionMembership(Quiz quiz, List<Long> requestedQuestionIds) {
         if (quiz.getQuestions() == null || requestedQuestionIds == null) {
             return quiz.getQuestions() == null && requestedQuestionIds == null;
@@ -181,8 +185,9 @@ public class QuizServiceImpl implements QuizService {
         }
 
         boolean assignedBefore = hasEverBeenAssigned(quiz);
+        boolean takenBefore = hasEverBeenTaken(quiz);
         
-        if (assignedBefore) {
+        if (assignedBefore || takenBefore) {
             // Soft delete old quiz
             quiz.setIsEnable(false);
             quizRepository.save(quiz);
