@@ -62,13 +62,11 @@ async function updateProfile(e) {
         const phone = document.getElementById('phone').value.trim();
         const avatarUrl = document.getElementById('avatarUrl').value.trim();
 
+        let finalAvatarUrl = avatarUrl;
         const urlTabActive = document.getElementById('avatarPanelUrl').style.display !== 'none';
         const urlInputValue = document.getElementById('avatarUrlInput').value.trim();
-        if (urlTabActive && urlInputValue && !avatarUrl) {
-            showToast('URL ảnh không hợp lệ hoặc chưa tải xong!', 'error');
-            btn.innerHTML = '<i class="bi bi-check2-circle"></i> Lưu thay đổi';
-            btn.disabled  = false;
-            return;
+        if (urlTabActive && urlInputValue) {
+            finalAvatarUrl = urlInputValue; // Lấy luôn URL do người dùng nhập bất kể preview lỗi hay không
         }
 
         const res = await fetch('/api/users/my-profile', {
@@ -80,7 +78,7 @@ async function updateProfile(e) {
             body: JSON.stringify({
                 fullName:  fullName,
                 phone:     phone,
-                avatarUrl: avatarUrl
+                avatarUrl: finalAvatarUrl
             })
         });
 

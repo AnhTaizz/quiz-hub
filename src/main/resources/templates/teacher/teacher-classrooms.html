@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
@@ -183,13 +183,9 @@
             const urlTabActive = document.getElementById('panelUrl').style.display !== 'none';
             if (urlTabActive) {
                 const urlInput = document.getElementById('classroomImageUrlInput');
-                const hiddenUrl = document.getElementById('classroomImageUrl').value.trim();
-                if (urlInput.value.trim() && !hiddenUrl) {
-                    // User entered URL but it didn't load
-                    e.preventDefault();
-                    urlInput.classList.add('is-invalid');
-                    toast.error('URL ảnh không hợp lệ, vui lòng nhập URL khác hoặc xóa trắng!');
-                    return false;
+                const hiddenUrl = document.getElementById('classroomImageUrl');
+                if (urlInput.value.trim()) {
+                    hiddenUrl.value = urlInput.value.trim(); // Bỏ qua validate, lấy luôn link user nhập
                 }
             }
             return true;
