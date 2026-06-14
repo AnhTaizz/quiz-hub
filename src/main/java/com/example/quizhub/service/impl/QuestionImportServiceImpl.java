@@ -147,7 +147,6 @@ public class QuestionImportServiceImpl implements QuestionImportService {
     }
 
     @Override
-    @Transactional
     public Map<String, Object> importQuestionsFromExcel(MultipartFile file, Long categoryId, Long teacherId) {
         int successCount = 0;
         int errorCount = 0;

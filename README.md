@@ -1,6 +1,6 @@
 # 🚀 QuizHub - Nền tảng Ôn luyện & Tạo đề trắc nghiệm thông minh với AI
 
-QuizHub là ứng dụng web toàn diện dành cho việc quản lý, tạo lập và ôn luyện các bộ câu hỏi trắc nghiệm trực tuyến. Điểm nổi bật của QuizHub là tích hợp **Google Gemini AI API** để hỗ trợ giáo viên tự động sinh câu hỏi thông minh dựa trên tài liệu bài học có sẵn. 
+QuizHub là ứng dụng web toàn diện dành cho việc quản lý, tạo lập và ôn luyện các bộ câu hỏi trắc nghiệm trực tuyến. Điểm nổi bật của QuizHub là tích hợp **Google Gemini AI API** để hỗ trợ giáo viên tự động sinh câu hỏi thông minh dựa trên tài liệu bài học có sẵn.
 
 Hệ thống được thiết kế với giao diện cao cấp, hiện đại, mang tính nhất quán cao về nhận diện thương hiệu (Gradient Xanh lá lam cho Học sinh & Giáo viên, Gradient Tím cho Admin).
 
@@ -95,7 +95,7 @@ docker-compose down
 
 ### Cách 2: Chạy trực tiếp trên máy local (Development Mode 💻)
 
-1. **Cài đặt PostgreSQL**: 
+1. **Cài đặt PostgreSQL**:
    - Khởi tạo một database có tên là `quiz_hub`.
    - Cập nhật thông tin kết nối (`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`) trong file `.env` của bạn khớp với thông số local của bạn.
 2. **Build dự án bằng Maven**:
@@ -112,7 +112,7 @@ docker-compose down
 
 ## 📌 Một số lưu ý quan trọng
 
-- **Khởi tạo dữ liệu (Database Initialization)**: 
+- **Khởi tạo dữ liệu (Database Initialization)**:
   - Trong lần chạy đầu tiên (khi database chưa có bảng biểu hoặc dữ liệu), hãy đặt `SQL_INIT_MODE=always` trong file `.env` để ứng dụng tự động chạy tập lệnh `data.sql` tạo cấu trúc và nạp dữ liệu mẫu.
   - Từ lần chạy thứ 2 trở đi, hãy đặt `SQL_INIT_MODE=never` để tránh việc ứng dụng chạy lại tập lệnh `data.sql` gây lỗi trùng khóa (Duplicate Key) hoặc làm ghi đè dữ liệu cũ của bạn.
 - **Login OAuth2 Google**: Để chức năng đăng nhập Google hoạt động chính xác, bạn cần cấu hình Authorized Redirect URIs trong Google Cloud Console là: `http://localhost:8080/login/oauth2/code/google`.
