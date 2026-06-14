@@ -50,8 +50,8 @@ document.addEventListener('DOMContentLoaded', async () => {
                     <td>${q.creatorName}</td>
                     <td><strong>${q.categoryName}</strong></td>
                     <td class="text-right">
-                        <button class="btn-action-sm btn-approve me-1"><i class="bi bi-check-lg"></i> Duyệt</button>
-                        <button class="btn-action-sm btn-reject"><i class="bi bi-x-lg"></i></button>
+                        <button class="btn-action-sm btn-approve me-1" onclick="window.location.href='/admin/moderation'"><i class="bi bi-check-lg"></i> Duyệt</button>
+                        <button class="btn-action-sm btn-reject" onclick="window.location.href='/admin/moderation'"><i class="bi bi-x-lg"></i></button>
                     </td>
                 </tr>
             `).join('');
