@@ -620,10 +620,12 @@
             window.saveQuiz = async function () {
                 const urlTabActive = document.getElementById('quizPanelUrl').style.display !== 'none';
                 const urlInputValue = document.getElementById('quizImageUrlInput').value.trim();
-                if (urlTabActive && urlInputValue && !document.getElementById('quiz-image').value.trim()) {
-                    showToast('URL \u1ea3nh kh\u00f4ng h\u1ee3p l\u1ec7 ho\u1eb7c ch\u01b0a t\u1ea3i xong!', 'err');
-                    return;
+                
+                let finalImageUrl = document.getElementById('quiz-image').value.trim();
+                if (urlTabActive && urlInputValue) {
+                    finalImageUrl = urlInputValue; // Lấy luôn URL do người dùng nhập bất kể preview lỗi hay không
                 }
+                
                 const title = document.getElementById('quiz-title').value.trim();
                 const categoryId = document.getElementById('quiz-category').value;
                 if (!title || !categoryId) { showToast('Nhập tiêu đề và chọn danh mục!', 'err'); return; }
@@ -632,7 +634,7 @@
                 const payload = {
                     title,
                     description: document.getElementById('quiz-desc').value.trim(),
-                    imageUrl: document.getElementById('quiz-image').value.trim(),
+                    imageUrl: finalImageUrl,
                     categoryId: parseInt(categoryId),
                     isExam: document.getElementById('quiz-isExam').value === 'true',
                     isDraft: document.getElementById('quiz-isDraft').value === 'true',
