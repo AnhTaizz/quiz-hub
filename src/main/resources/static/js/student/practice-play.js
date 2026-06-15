@@ -1,6 +1,6 @@
 // ── Data & State ──
 let questions = [];
-let settings = { showAnswer: true, shuffle: false, displayMode: 'sequential' };
+let settings = { showAnswer: true, shuffle: false, shuffleAnswers: false, displayMode: 'sequential' };
 let categoryId = null;
 let categoryName = "";
 
@@ -337,7 +337,13 @@ function showQuestion(index) {
             `;
         list.innerHTML = inputHtml;
     } else {
-        q.answers.forEach((a, idx) => {
+        // Shuffle answers if enabled (seeded by question id for consistency on reload)
+        let displayAnswers = [...q.answers];
+        if (settings.shuffleAnswers) {
+            shuffleArray(displayAnswers, q.id);
+        }
+
+        displayAnswers.forEach((a, idx) => {
             const prefix = String.fromCharCode(65 + idx);
             const item = document.createElement('div');
             item.className = 'answer-item';
@@ -448,7 +454,13 @@ function renderAllQuestions() {
             `;
         } else {
             let answersHtml = '';
-            q.answers.forEach((a, idx) => {
+            // Shuffle answers if enabled (seeded by question id for consistency on reload)
+            let displayAnswers = [...q.answers];
+            if (settings.shuffleAnswers) {
+                shuffleArray(displayAnswers, q.id);
+            }
+
+            displayAnswers.forEach((a, idx) => {
                 const prefix = String.fromCharCode(65 + idx);
                 let isSelected = false;
                 if (q.type === 'MULTIPLE_CHOICE') {

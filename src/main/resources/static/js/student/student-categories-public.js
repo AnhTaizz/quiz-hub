@@ -1,4 +1,4 @@
-﻿const CAT_API = '/api/student/categories/public';
+const CAT_API = '/api/student/categories/public';
 const QUIZ_API = '/api/student/categories/{id}/quizzes/public';
 
 let TREE_DATA = [];
@@ -331,10 +331,19 @@ async function loadCategory(id) {
                 </div>
 
                 <!-- Row: Xáo trộn câu hỏi -->
-                <div class="practice-setting-row py-3" style="border-bottom: none;">
+                <div class="practice-setting-row py-3">
                     <div class="practice-setting-label">Xáo trộn câu hỏi</div>
                     <label class="prac-toggle">
                         <input type="checkbox" id="toggleShuffle">
+                        <span class="prac-slider"></span>
+                    </label>
+                </div>
+
+                <!-- Row: Xáo trộn đáp án -->
+                <div class="practice-setting-row py-3" style="border-bottom: none;">
+                    <div class="practice-setting-label">Xáo trộn đáp án</div>
+                    <label class="prac-toggle">
+                        <input type="checkbox" id="toggleAnswerShuffle">
                         <span class="prac-slider"></span>
                     </label>
                 </div>
@@ -380,6 +389,7 @@ async function loadCategory(id) {
     if (id && currentPracticeTotalQuestions > 0) {
         document.getElementById('toggleShowAnswer').checked = true;
         document.getElementById('toggleShuffle').checked = false;
+        document.getElementById('toggleAnswerShuffle').checked = false;
         document.getElementById('selectDisplayMode').value = 'sequential';
 
         // Reset range mode and chunk size to default
@@ -611,6 +621,7 @@ window.openPracticeModal = async function(categoryId, categoryName) {
     // Reset toggles & selects to default
     document.getElementById('toggleShowAnswer').checked = true;
     document.getElementById('toggleShuffle').checked = false;
+    document.getElementById('toggleAnswerShuffle').checked = false;
     document.getElementById('selectDisplayMode').value = 'sequential';
 
     // Reset range mode and chunk size to default
@@ -717,6 +728,7 @@ window.submitStartPractice = async function() {
 
     const showAnswer = document.getElementById('toggleShowAnswer').checked;
     const shuffle = document.getElementById('toggleShuffle').checked;
+    const shuffleAnswers = document.getElementById('toggleAnswerShuffle').checked;
     const displayMode = document.getElementById('selectDisplayMode').value;
 
     // Detect if Random Mode is active
@@ -779,9 +791,9 @@ window.submitStartPractice = async function() {
         sessionStorage.setItem('practice_offset', offset);
         sessionStorage.setItem('practice_category_id', currentPracticeCategoryId);
         sessionStorage.setItem('practice_category_name', document.getElementById('practiceCatName').textContent);
-        sessionStorage.setItem(`practice_settings_${data.practiceId}`, JSON.stringify({ showAnswer, shuffle, displayMode, isRandom }));
+        sessionStorage.setItem(`practice_settings_${data.practiceId}`, JSON.stringify({ showAnswer, shuffle, shuffleAnswers, displayMode, isRandom }));
         // Also set a generic one for compatibility if needed, but per-ID is priority
-        sessionStorage.setItem('practice_settings', JSON.stringify({ showAnswer, shuffle, displayMode, isRandom }));
+        sessionStorage.setItem('practice_settings', JSON.stringify({ showAnswer, shuffle, shuffleAnswers, displayMode, isRandom }));
         
         // Hide modal if exists
         const modalEl = document.getElementById('practiceModal');

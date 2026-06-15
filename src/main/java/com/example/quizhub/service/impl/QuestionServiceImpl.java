@@ -501,7 +501,6 @@ public class QuestionServiceImpl implements QuestionService {
                     .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
         }
 
-        // Tạo câu hỏi mới (clone) cho mục PUBLIC
         Question clone = new Question();
         clone.setText(originalQuestion.getText());
         clone.setType(originalQuestion.getType());
@@ -510,10 +509,8 @@ public class QuestionServiceImpl implements QuestionService {
         clone.setCategory(category);
         clone.setQuestionStatus(QuestionStatus.PUBLIC);
 
-        // Lưu clone
         Question savedClone = questionRepository.save(clone);
 
-        // Sao chép các đáp án
         if (originalQuestion.getAnswers() != null) {
             List<Answer> clonedAnswers = new ArrayList<>();
             for (Answer ans : originalQuestion.getAnswers()) {
@@ -527,11 +524,10 @@ public class QuestionServiceImpl implements QuestionService {
             savedClone.setAnswers(clonedAnswers);
         }
 
-        // Chuyển trạng thái của câu hỏi gốc về PRIVATE
+
         originalQuestion.setQuestionStatus(QuestionStatus.PRIVATE);
         questionRepository.save(originalQuestion);
 
-        // Tạo thông báo cho giáo viên
         notificationService.createNotification(
                 originalQuestion.getCreator().getId(),
                 "Câu hỏi được phê duyệt",
