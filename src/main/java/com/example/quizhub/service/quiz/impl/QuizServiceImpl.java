@@ -1,11 +1,17 @@
 package com.example.quizhub.service.quiz.impl;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.*;
 
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -325,4 +331,187 @@ public class QuizServiceImpl implements QuizService {
 
         return quizMapper.toResponseDTO(quizRepository.save(quiz));
     }
+
+    // ─── EXPORT EXCEL ────────────────────────────────────────────────────────────
+
+    @Override
+    public byte[] exportQuizToExcel(String quizId) {
+        Quiz quiz = findQuiz(quizId);
+
+        try (XSSFWorkbook workbook = new XSSFWorkbook();
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+
+            XSSFSheet sheet = workbook.createSheet("Câu hỏi");
+
+            // ── Styling ──────────────────────────────────────────────────────────
+            // Header style
+            XSSFCellStyle headerStyle = workbook.createCellStyle();
+            XSSFFont headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerFont.setColor(IndexedColors.WHITE.getIndex());
+            headerFont.setFontHeightInPoints((short) 11);
+            headerStyle.setFont(headerFont);
+            headerStyle.setFillForegroundColor(new XSSFColor(new byte[]{(byte)59, (byte)130, (byte)246}, null)); // Blue-500
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            headerStyle.setAlignment(HorizontalAlignment.CENTER);
+            headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            headerStyle.setBorderBottom(BorderStyle.THIN);
+            headerStyle.setBorderTop(BorderStyle.THIN);
+            headerStyle.setBorderLeft(BorderStyle.THIN);
+            headerStyle.setBorderRight(BorderStyle.THIN);
+            headerStyle.setWrapText(true);
+
+            // Data style
+            XSSFCellStyle dataStyle = workbook.createCellStyle();
+            dataStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            dataStyle.setBorderBottom(BorderStyle.THIN);
+            dataStyle.setBorderTop(BorderStyle.THIN);
+            dataStyle.setBorderLeft(BorderStyle.THIN);
+            dataStyle.setBorderRight(BorderStyle.THIN);
+            dataStyle.setWrapText(true);
+
+            // Correct answer cell style (light green)
+            XSSFCellStyle correctStyle = workbook.createCellStyle();
+            correctStyle.cloneStyleFrom(dataStyle);
+            correctStyle.setFillForegroundColor(new XSSFColor(new byte[]{(byte)220, (byte)252, (byte)231}, null)); // green-100
+            correctStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            XSSFFont boldFont = workbook.createFont();
+            boldFont.setBold(true);
+            correctStyle.setFont(boldFont);
+            correctStyle.setAlignment(HorizontalAlignment.CENTER);
+
+            // ── Row 0: Tiêu đề đề thi (merge toàn bộ 12 cột) ────────────────────
+            Row titleRow = sheet.createRow(0);
+            titleRow.setHeightInPoints(24);
+            Cell titleCell = titleRow.createCell(0);
+            titleCell.setCellValue("📋 " + (quiz.getTitle() != null ? quiz.getTitle() : "Đề thi"));
+            XSSFCellStyle titleStyle = workbook.createCellStyle();
+            XSSFFont titleFont = workbook.createFont();
+            titleFont.setBold(true);
+            titleFont.setFontHeightInPoints((short) 13);
+            titleStyle.setFont(titleFont);
+            titleStyle.setFillForegroundColor(new XSSFColor(new byte[]{(byte)238, (byte)242, (byte)255}, null)); // indigo-50
+            titleStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            titleStyle.setAlignment(HorizontalAlignment.CENTER);
+            titleStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+            titleCell.setCellStyle(titleStyle);
+            sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, 11));
+
+            // ── Row 1: Header cột ─────────────────────────────────────────────────
+            String[] headers = {
+                "Nội dung câu hỏi",  // A
+                "Loại câu hỏi",      // B
+                "Mức độ",            // C
+                "Đáp án A",          // D
+                "Đáp án B",          // E
+                "Đáp án C",          // F
+                "Đáp án D",          // G
+                "Đáp án E",          // H
+                "Đáp án F",          // I
+                "Đáp án G",          // J
+                "Đáp án H",          // K
+                "Đáp án đúng"        // L
+            };
+            Row headerRow = sheet.createRow(1);
+            headerRow.setHeightInPoints(22);
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
+
+            // ── Row 2+: Dữ liệu từng câu hỏi ─────────────────────────────────────
+            List<com.example.quizhub.entity.Question> questions = quiz.getQuestions();
+            if (questions != null) {
+                for (int rowIdx = 0; rowIdx < questions.size(); rowIdx++) {
+                    com.example.quizhub.entity.Question q = questions.get(rowIdx);
+                    Row row = sheet.createRow(rowIdx + 2);
+                    row.setHeightInPoints(18);
+
+                    // Col A: Nội dung câu hỏi
+                    Cell cellText = row.createCell(0);
+                    cellText.setCellValue(q.getText() != null ? q.getText() : "");
+                    cellText.setCellStyle(dataStyle);
+
+                    // Col B: Loại câu hỏi
+                    Cell cellType = row.createCell(1);
+                    String typeStr;
+                    if (q.getType() == null) {
+                        typeStr = "trắc nghiệm";
+                    } else {
+                        typeStr = switch (q.getType()) {
+                            case MULTIPLE_CHOICE -> "chọn nhiều";
+                            case FILL_IN_BLANK   -> "điền khuyết";
+                            default              -> "trắc nghiệm";
+                        };
+                    }
+                    cellType.setCellValue(typeStr);
+                    cellType.setCellStyle(dataStyle);
+
+                    // Col C: Mức độ
+                    Cell cellLevel = row.createCell(2);
+                    String levelStr;
+                    if (q.getLevel() == null) {
+                        levelStr = "trung bình";
+                    } else {
+                        levelStr = switch (q.getLevel()) {
+                            case EASY -> "dễ";
+                            case HARD -> "khó";
+                            default   -> "trung bình";
+                        };
+                    }
+                    cellLevel.setCellValue(levelStr);
+                    cellLevel.setCellStyle(dataStyle);
+
+                    // Col D→K: Các phương án đáp án
+                    List<com.example.quizhub.entity.Answer> answers = q.getAnswers();
+                    StringBuilder correctLetters = new StringBuilder();
+
+                    if (answers != null) {
+                        for (int aIdx = 0; aIdx < Math.min(answers.size(), 8); aIdx++) {
+                            com.example.quizhub.entity.Answer ans = answers.get(aIdx);
+                            Cell ansCell = row.createCell(3 + aIdx); // D=3, E=4, ...
+                            ansCell.setCellValue(ans.getText() != null ? ans.getText() : "");
+                            ansCell.setCellStyle(dataStyle);
+
+                            // Ghi nhận đáp án đúng
+                            if (Boolean.TRUE.equals(ans.getIsCorrect())) {
+                                if (!correctLetters.isEmpty()) correctLetters.append(",");
+                                correctLetters.append((char) ('A' + aIdx));
+                            }
+                        }
+                    }
+
+                    // Col L: Đáp án đúng (để trống nếu điền khuyết)
+                    Cell cellCorrect = row.createCell(11);
+                    boolean isFillInBlank = q.getType() != null &&
+                        q.getType() == com.example.quizhub.entity.enums.QuestionType.FILL_IN_BLANK;
+                    if (!isFillInBlank) {
+                        cellCorrect.setCellValue(correctLetters.toString());
+                    }
+                    cellCorrect.setCellStyle(correctStyle);
+                }
+            }
+
+            // ── Column widths ──────────────────────────────────────────────────────
+            sheet.setColumnWidth(0, 14000);  // A: Nội dung câu hỏi
+            sheet.setColumnWidth(1, 4000);   // B: Loại
+            sheet.setColumnWidth(2, 3500);   // C: Mức độ
+            for (int i = 3; i <= 10; i++) {
+                sheet.setColumnWidth(i, 5500); // D–K: Đáp án
+            }
+            sheet.setColumnWidth(11, 3500);  // L: Đáp án đúng
+
+            // Freeze header rows
+            sheet.createFreezePane(0, 2);
+
+            workbook.write(out);
+            return out.toByteArray();
+
+        } catch (IOException e) {
+            throw new com.example.quizhub.exception.AppException(
+                com.example.quizhub.exception.ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
+    }
 }
+

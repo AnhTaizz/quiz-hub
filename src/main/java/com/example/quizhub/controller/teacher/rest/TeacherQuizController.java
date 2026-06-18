@@ -1,6 +1,8 @@
 package com.example.quizhub.controller.teacher.rest;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -70,5 +72,26 @@ public class TeacherQuizController {
     public ResponseEntity<QuizResponseDTO> generateQuizFromCategory(
             @RequestBody @Valid QuizGenerateRequestDTO request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(quizService.generateQuizFromCategory(request));
+    }
+
+    @GetMapping("/{id}/export-excel")
+    public ResponseEntity<byte[]> exportQuizToExcel(@PathVariable String id) {
+        byte[] fileBytes = quizService.exportQuizToExcel(id);
+
+        // Lấy tên đề thi để đặt tên file — dùng id làm fallback
+        QuizResponseDTO quiz = quizService.getQuizById(id);
+        String filename = (quiz.getTitle() != null && !quiz.getTitle().isBlank())
+                ? quiz.getTitle().replaceAll("[^a-zA-Z0-9àáạảãăắặẳẵâấậẩẫèéẹẻẽêếệểễìíịỉĩòóọỏõôốộổỗơớợởỡùúụủũưứựửữỳýỵỷỹđÀÁẠẢÃĂẮẶẲẴÂẤẬẨẪÈÉẸẺẼÊẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỐỘỔỖƠỚỢỞỠÙÚỤỦŨƯỨỰỬỮỲÝỴỶỸĐ\\s_-]", "").strip() + ".xlsx"
+                : "de_thi_" + id + ".xlsx";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentDispositionFormData("attachment", filename);
+        headers.add(HttpHeaders.ACCESS_CONTROL_EXPOSE_HEADERS, HttpHeaders.CONTENT_DISPOSITION);
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(fileBytes);
     }
 }

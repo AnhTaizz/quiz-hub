@@ -32,4 +32,7 @@ public interface QuizService {
 
     /** Generate quiz from a category's public questions */
     QuizResponseDTO generateQuizFromCategory(QuizGenerateRequestDTO request);
+
+    /** Xuất toàn bộ câu hỏi của 1 đề thi ra file Excel (.xlsx) */
+    byte[] exportQuizToExcel(String quizId);
 }

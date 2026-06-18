@@ -195,6 +195,7 @@ function renderQuizzes(list) {
                     <button class="qact qact-view" onclick="openPreviewModal('${q.id}', '${esc(q.title)}')" title="Xem chi tiết"><i class="bi bi-eye"></i> Xem</button>
                     <button class="qact qact-del" onclick="openDeleteModal('${q.id}')" title="Xóa đề thi"><i class="bi bi-trash3"></i> Xóa</button>
                     <button class="qact qact-assign" onclick="openAssignModal('${q.id}', '${esc(q.title)}')" title="Giao bài"><i class="bi bi-send-fill"></i> Giao</button>
+                    <button class="qact qact-export" onclick="exportQuizToExcel('${q.id}', '${esc(q.title)}')" title="Xuất ra Excel"><i class="bi bi-file-earmark-excel"></i> Xuất</button>
                 </div>
             </div>`;
         }).join('');
@@ -257,6 +258,7 @@ function renderQuizzes(list) {
                         <button class="qact-btn qact-btn-view" onclick="openPreviewModal('${q.id}', '${esc(q.title)}')" title="Xem chi tiết"><i class="bi bi-eye"></i> Xem</button>
                         <button class="qact-btn qact-btn-del" onclick="openDeleteModal('${q.id}')" title="Xóa đề thi"><i class="bi bi-trash3"></i> Xóa</button>
                         <button class="qact-btn qact-btn-assign" onclick="openAssignModal('${q.id}', '${esc(q.title)}')" title="Giao bài"><i class="bi bi-send-fill"></i> Giao bài</button>
+                        <button class="qact-btn qact-btn-export" onclick="exportQuizToExcel('${q.id}', '${esc(q.title)}')" title="Xuất ra Excel"><i class="bi bi-file-earmark-excel"></i> Xuất Excel</button>
                     </div>
                 </div>
             </div>
@@ -754,3 +756,48 @@ window.handleCategorySelection = function(id, name, currentTarget) {
         filterQuizzes();
     }
 };
+
+// ─── Export Quiz to Excel ───────────────────────────────────────────────────
+async function exportQuizToExcel(quizId, quizTitle) {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+
+    try {
+        showToast('Đang xuất file Excel...', 'ok');
+
+        const response = await fetch(`/api/teacher/quizzes/${quizId}/export-excel`, {
+            method: 'GET',
+            headers: {
+                'Authorization': 'Bearer ' + token
+            }
+        });
+
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.message || 'Không thể xuất file Excel');
+        }
+
+        // Lấy tên file từ header Content-Disposition, fallback về tên quiz
+        let filename = (quizTitle ? quizTitle.trim() : 'de_thi') + '.xlsx';
+        const disposition = response.headers.get('Content-Disposition');
+        if (disposition && disposition.includes('filename=')) {
+            const parts = disposition.split('filename=');
+            if (parts[1]) {
+                filename = parts[1].replace(/['"]/g, '').trim();
+            }
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        showToast(`✅ Đã xuất file "${filename}" thành công!`, 'ok');
+    } catch (e) {
+        showToast(e.message || 'Lỗi khi xuất file Excel', 'err');
+    }
+}

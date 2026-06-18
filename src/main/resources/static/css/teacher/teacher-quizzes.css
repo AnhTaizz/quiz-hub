@@ -74,7 +74,7 @@
 /* Quiz cards grid */
 .quiz-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
     gap: 20px;
     margin-bottom: 28px;
 }
@@ -202,10 +202,11 @@
 .quiz-actions {
     margin-top: auto;
     display: flex;
-    gap: 6px;
+    gap: 5px;
     padding-top: 10px;
     border-top: 1px dashed #f1f5f9;
-    justify-content: space-between;
+    flex-wrap: wrap;
+    justify-content: flex-start;
 }
 
 .qact {
@@ -276,6 +277,18 @@
 .qact-assign:hover {
     background: #16a34a;
     color: #fff;
+}
+
+.qact-export {
+    background: rgba(16, 185, 129, 0.08);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.qact-export:hover {
+    background: #059669;
+    color: #fff;
+    border-color: #059669;
 }
 
 /* Toasts and Modals */
@@ -425,8 +438,8 @@
 }
 
 .col-actions {
-    flex: 1.5;
-    min-width: 280px;
+    flex: 1.8;
+    min-width: 320px;
     display: flex;
     justify-content: flex-end;
 }
@@ -532,6 +545,18 @@
 .qact-btn-assign:hover {
     background-color: #16a34a;
     color: #ffffff;
+}
+
+.qact-btn-export {
+    background-color: rgba(16, 185, 129, 0.08);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.qact-btn-export:hover {
+    background-color: #059669;
+    color: #ffffff;
+    border-color: #059669;
 }
 
 /* Responsive constraints */
