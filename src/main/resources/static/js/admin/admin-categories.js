@@ -456,6 +456,9 @@ function renderFolderContent(container, subs, quizzes, questionsData, parentId) 
                     <div class="q-text" style="font-size:1rem; font-weight:600; color:#1e293b; margin:10px 0;">${esc(q.text)}</div>
                     ${answersPreviewHtml}
                     <div class="d-flex justify-content-end gap-2 mt-3 pt-2" style="border-top:1px dashed #e2e8f0;">
+                        <button class="btn btn-sm btn-outline-warning fw-semibold" style="border-radius:10px; padding:6px 14px; font-size:0.85rem;" onclick="openEditQuestionModal(${q.id})">
+                            <i class="bi bi-pencil-fill"></i> Sửa câu hỏi
+                        </button>
                         <button class="btn btn-sm btn-outline-primary fw-semibold" style="border-radius:10px; padding:6px 14px; font-size:0.85rem;" onclick="openMoveQuestionModal(${q.id})">
                             <i class="bi bi-folder-symlink-fill"></i> Chuyển danh mục
                         </button>
@@ -871,6 +874,191 @@ async function doDeleteQuiz() {
         showToast('Đã xóa đề thi!', 'ok');
         if (navStack.length > 0) loadFolderContent(navStack[navStack.length-1].id);
     } catch (e) { showToast(e.message, 'err'); }
+}
+
+/* ══════════════════════════════════════════════
+   EDIT QUESTION PUBLIC
+ ══════════════════════════════════════════════ */
+async function openEditQuestionModal(id) {
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    try {
+        const res = await fetch(`/api/admin/questions/${id}`, { headers: { Authorization: 'Bearer ' + token } });
+        if (!res.ok) throw new Error('Không thể tải thông tin câu hỏi');
+        const q = await res.json();
+        
+        document.getElementById('editQuestionId').value = q.id;
+        document.getElementById('editQuestionCategoryId').value = q.categoryId || '';
+        document.getElementById('editQuestionText').value = q.text || '';
+        document.getElementById('editQuestionType').value = q.type || 'SINGLE_CHOICE';
+        document.getElementById('editQuestionLevel').value = q.level || 'MEDIUM';
+        
+        renderEditAnswers(q.answers || [], q.type);
+        
+        const modal = new bootstrap.Modal(document.getElementById('editQuestionModal'));
+        modal.show();
+    } catch (err) {
+        showToast(err.message, 'err');
+    }
+}
+
+function renderEditAnswers(answers, type) {
+    const list = document.getElementById('editAnswerList');
+    list.innerHTML = '';
+    if (answers.length === 0) {
+        if (type !== 'FILL_IN_BLANK') {
+            for(let i=0; i<4; i++) list.appendChild(createEditAnswerNode('', i===0));
+        } else {
+            list.appendChild(createEditAnswerNode('', true));
+        }
+    } else {
+        answers.forEach(a => {
+            list.appendChild(createEditAnswerNode(a.text, a.isCorrect));
+        });
+    }
+    onEditTypeChange();
+}
+
+function createEditAnswerNode(text, isCorrect) {
+    const div = document.createElement('div');
+    div.className = 'edit-ans-item d-flex gap-2 align-items-center';
+    div.innerHTML = `
+        <div class="form-check" style="margin-bottom:0;">
+            <input class="form-check-input edit-ans-correct" type="checkbox" ${isCorrect ? 'checked' : ''} style="transform: scale(1.3); margin-top:0.6rem; cursor:pointer;">
+        </div>
+        <textarea class="form-control edit-ans-text" rows="1" placeholder="Nhập đáp án..." style="border-radius:10px;"></textarea>
+        <button class="btn btn-light text-danger" onclick="removeEditAnswer(this)" style="border-radius:10px;"><i class="bi bi-trash"></i></button>
+    `;
+    div.querySelector('textarea').value = text;
+    return div;
+}
+
+function addEditAnswer() {
+    const list = document.getElementById('editAnswerList');
+    list.appendChild(createEditAnswerNode('', false));
+    onEditTypeChange();
+}
+
+function removeEditAnswer(btn) {
+    btn.parentElement.remove();
+    onEditTypeChange();
+}
+
+function onEditTypeChange() {
+    const type = document.getElementById('editQuestionType').value;
+    const cbs = document.querySelectorAll('.edit-ans-correct');
+    const hint = document.getElementById('editAnswerHint');
+    
+    if (type === 'SINGLE_CHOICE') {
+        cbs.forEach(cb => {
+            cb.type = 'radio';
+            cb.name = 'edit-ans-radio';
+            cb.disabled = false;
+        });
+        hint.innerHTML = '<i>* Trắc nghiệm 1 đáp án: Chỉ được chọn 1 đáp án đúng.</i>';
+        hint.style.display = 'block';
+    } else if (type === 'MULTIPLE_CHOICE') {
+        cbs.forEach(cb => {
+            cb.type = 'checkbox';
+            cb.removeAttribute('name');
+            cb.disabled = false;
+        });
+        hint.innerHTML = '<i>* Trắc nghiệm nhiều đáp án: Có thể chọn nhiều đáp án đúng.</i>';
+        hint.style.display = 'block';
+    } else if (type === 'FILL_IN_BLANK') {
+        cbs.forEach(cb => {
+            cb.type = 'checkbox';
+            cb.removeAttribute('name');
+            cb.checked = true;
+            cb.disabled = true;
+        });
+        hint.innerHTML = '<i>* Điền khuyết: Mọi đáp án thêm vào đều được coi là phương án đúng để so khớp.</i>';
+        hint.style.display = 'block';
+    }
+}
+
+async function submitEditQuestion() {
+    const id = document.getElementById('editQuestionId').value;
+    const categoryId = document.getElementById('editQuestionCategoryId').value;
+    const text = document.getElementById('editQuestionText').value.trim();
+    const type = document.getElementById('editQuestionType').value;
+    const level = document.getElementById('editQuestionLevel').value;
+    
+    if (!text) {
+        showToast('Nội dung câu hỏi không được để trống!', 'err');
+        return;
+    }
+    
+    const answerItems = document.querySelectorAll('.edit-ans-item');
+    const answers = [];
+    let correctCount = 0;
+    
+    for (let item of answerItems) {
+        const aText = item.querySelector('.edit-ans-text').value.trim();
+        const aCorrect = item.querySelector('.edit-ans-correct').checked;
+        if (!aText) {
+            showToast('Nội dung đáp án không được để trống!', 'err');
+            return;
+        }
+        if (aCorrect) correctCount++;
+        answers.push({ text: aText, correct: aCorrect });
+    }
+    
+    if (answers.length < 1) {
+        showToast('Phải có ít nhất 1 đáp án!', 'err');
+        return;
+    }
+    
+    if (type === 'SINGLE_CHOICE' && correctCount !== 1) {
+        showToast('Trắc nghiệm 1 đáp án phải có ĐÚNG 1 đáp án đúng!', 'err');
+        return;
+    }
+    if (type === 'MULTIPLE_CHOICE' && correctCount < 2) {
+        showToast('Trắc nghiệm nhiều đáp án phải có ÍT NHẤT 2 đáp án đúng!', 'err');
+        return;
+    }
+    if (type === 'FILL_IN_BLANK' && correctCount < 1) {
+        showToast('Điền khuyết phải có ít nhất 1 đáp án đúng!', 'err');
+        return;
+    }
+    
+    const payload = {
+        categoryId: categoryId ? parseInt(categoryId) : null,
+        text: text,
+        type: type,
+        level: level,
+        answers: answers
+    };
+    
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const btn = document.getElementById('btnSaveEditQuestion');
+    const oldHtml = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang lưu...';
+    btn.disabled = true;
+    
+    try {
+        const res = await fetch(`/api/admin/questions/${id}/edit`, {
+            method: 'PUT',
+            headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        
+        if (!res.ok) {
+            const err = await res.json().catch(()=>({}));
+            throw new Error(err.message || 'Lỗi khi lưu câu hỏi');
+        }
+        
+        showToast('Sửa câu hỏi thành công!', 'ok');
+        const modalEl = document.getElementById('editQuestionModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) modal.hide();
+        
+        loadFolderContent(activeFolderId, currentQuestionPage);
+    } catch (e) {
+        showToast(e.message, 'err');
+    } finally {
+        btn.innerHTML = oldHtml;
+        btn.disabled = false;
+    }
 }
 
 /* ══════════════════════════════════════════════

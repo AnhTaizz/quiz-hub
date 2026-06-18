@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +18,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
+
+import com.example.quizhub.dto.question.QuestionRequestDTO;
 import com.example.quizhub.dto.question.QuestionResponseDTO;
 import com.example.quizhub.entity.Question;
 import com.example.quizhub.entity.enums.QuestionLevel;
@@ -117,5 +121,17 @@ public class AdminQuestionRestController {
             @RequestParam Long categoryId) {
         questionService.moveQuestionByAdmin(id, categoryId);
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<QuestionResponseDTO> getQuestionById(@PathVariable Long id) {
+        return ResponseEntity.ok(questionService.getQuestionById(id));
+    }
+
+    @PutMapping("/{id}/edit")
+    public ResponseEntity<QuestionResponseDTO> editPublicQuestion(
+            @PathVariable Long id,
+            @Valid @RequestBody QuestionRequestDTO request) {
+        return ResponseEntity.ok(questionService.updateQuestionByAdmin(id, request));
     }
 }

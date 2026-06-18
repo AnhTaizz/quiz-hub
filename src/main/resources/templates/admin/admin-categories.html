@@ -206,6 +206,71 @@
         </div>
     </div>
 
+    <!-- Edit Question Modal -->
+    <div class="modal fade" id="editQuestionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content" style="border-radius:20px; border:none; box-shadow:0 10px 40px rgba(0,0,0,0.15);">
+                <div class="modal-header border-0 pt-4 pb-0 px-4" style="background: linear-gradient(135deg, #4f46e5, #7c3aed); border-radius:20px 20px 0 0;">
+                    <h5 class="modal-title fw-bold text-white">
+                        <i class="bi bi-pencil-square me-2"></i>Sửa câu hỏi công khai
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 py-4">
+                    <input type="hidden" id="editQuestionId">
+                    <input type="hidden" id="editQuestionCategoryId">
+
+                    <!-- Question text -->
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="color:#475569;">Nội dung câu hỏi <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="editQuestionText" rows="3"
+                            placeholder="Nhập nội dung câu hỏi..."
+                            style="border-radius:12px; border:1.5px solid #e2e8f0; font-size:0.95rem; resize:vertical;"></textarea>
+                    </div>
+
+                    <!-- Type & Level -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="color:#475569;">Loại câu hỏi <span class="text-danger">*</span></label>
+                            <select class="form-select" id="editQuestionType" onchange="onEditTypeChange()"
+                                style="border-radius:12px; border:1.5px solid #e2e8f0;">
+                                <option value="SINGLE_CHOICE">Một đáp án (A/B/C/D)</option>
+                                <option value="MULTIPLE_CHOICE">Nhiều đáp án</option>
+                                <option value="FILL_IN_BLANK">Điền khuyết</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="color:#475569;">Mức độ</label>
+                            <select class="form-select" id="editQuestionLevel"
+                                style="border-radius:12px; border:1.5px solid #e2e8f0;">
+                                <option value="EASY">Dễ</option>
+                                <option value="MEDIUM">Trung bình</option>
+                                <option value="HARD">Khó</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Answers -->
+                    <div class="mb-2 d-flex justify-content-between align-items-center">
+                        <label class="form-label fw-semibold mb-0" style="color:#475569;">Danh sách đáp án <span class="text-danger">*</span></label>
+                        <button type="button" class="btn btn-sm btn-outline-primary fw-semibold" style="border-radius:10px;" onclick="addEditAnswer()">
+                            <i class="bi bi-plus-circle me-1"></i>Thêm đáp án
+                        </button>
+                    </div>
+                    <div id="editAnswerList" style="display:flex; flex-direction:column; gap:10px;"></div>
+                    <div id="editAnswerHint" class="text-muted small mt-2" style="display:none;"></div>
+                </div>
+                <div class="modal-footer border-0 pb-4 px-4 pt-0">
+                    <button class="btn btn-light fw-semibold" data-bs-dismiss="modal" style="border-radius:12px; padding:10px 24px;">Hủy</button>
+                    <button class="btn fw-bold text-white" id="btnSaveEditQuestion" onclick="submitEditQuestion()"
+                        style="border-radius:12px; padding:10px 28px; background:linear-gradient(135deg,#4f46e5,#7c3aed); border:none;">
+                        <i class="bi bi-floppy-fill me-1"></i>Lưu thay đổi
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="toastWrap"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

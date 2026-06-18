@@ -76,6 +76,8 @@ public interface QuestionService {
 
     void moveQuestionByAdmin(Long questionId, Long categoryId);
 
+    QuestionResponseDTO updateQuestionByAdmin(Long id, QuestionRequestDTO request);
+
     /** Lấy danh sách ID câu hỏi hợp lệ theo danh mục để sinh đề ngẫu nhiên */
     List<Long> getValidQuestionIdsForGeneration(List<Long> categoryIds, Long userId);
 }

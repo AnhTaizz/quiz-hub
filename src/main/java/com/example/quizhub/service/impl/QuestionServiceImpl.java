@@ -724,6 +724,77 @@ public class QuestionServiceImpl implements QuestionService {
         questionRepository.save(question);
     }
 
+    // Admin sửa câu hỏi công khai
+    @Override
+    @Transactional
+    public QuestionResponseDTO updateQuestionByAdmin(Long id, QuestionRequestDTO request) {
+        validateQuestionLogic(request.getType(), request.getAnswers());
+
+        Question oldQuestion = questionRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
+
+        // Admin có thể gán vào bất kỳ danh mục công khai nào (hoặc null)
+        Category category = null;
+        if (request.getCategoryId() != null && request.getCategoryId() != -1L) {
+            category = categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+        }
+
+        boolean isUsedInQuiz = questionRepository.isQuestionUsedInQuiz(id);
+        boolean isUsedInPractice = questionRepository.isQuestionUsedInPractice(id);
+
+        if (isUsedInQuiz || isUsedInPractice) {
+            // Câu hỏi đã dùng trong quiz/luyện tập → đánh dấu DELETED, tạo bản mới
+            oldQuestion.setQuestionStatus(QuestionStatus.DELETED);
+            questionRepository.save(oldQuestion);
+
+            Question cloneQuestion = Question.builder()
+                    .type(request.getType())
+                    .text(request.getText())
+                    .creator(oldQuestion.getCreator())
+                    .category(category)
+                    .questionStatus(QuestionStatus.PUBLIC) // Giữ nguyên PUBLIC
+                    .level(request.getLevel() != null ? request.getLevel() : QuestionLevel.MEDIUM)
+                    .build();
+
+            List<Answer> cloneAnswers = request.getAnswers().stream()
+                    .map(ansDto -> Answer.builder()
+                            .text(ansDto.getText())
+                            .isCorrect(Boolean.TRUE.equals(ansDto.getCorrect()))
+                            .question(cloneQuestion)
+                            .build())
+                    .collect(Collectors.toList());
+
+            cloneQuestion.setAnswers(cloneAnswers);
+            Question saved = questionRepository.save(cloneQuestion);
+            return questionMapper.toResponseDTO(saved);
+
+        } else {
+            // Câu hỏi chưa dùng trong quiz/practice → cập nhật trực tiếp
+            oldQuestion.setText(request.getText());
+            oldQuestion.setType(request.getType());
+            oldQuestion.setCategory(category);
+            oldQuestion.setQuestionStatus(QuestionStatus.PUBLIC); // Giữ nguyên PUBLIC
+            if (request.getLevel() != null) {
+                oldQuestion.setLevel(request.getLevel());
+            }
+
+            List<Answer> newAnswers = request.getAnswers().stream()
+                    .map(ansDto -> Answer.builder()
+                            .text(ansDto.getText())
+                            .isCorrect(Boolean.TRUE.equals(ansDto.getCorrect()))
+                            .question(oldQuestion)
+                            .build())
+                    .collect(Collectors.toList());
+
+            oldQuestion.getAnswers().clear();
+            oldQuestion.getAnswers().addAll(newAnswers);
+
+            Question saved = questionRepository.save(oldQuestion);
+            return questionMapper.toResponseDTO(saved);
+        }
+    }
+
     @Override
     @Transactional(readOnly = true)
     public List<Long> getValidQuestionIdsForGeneration(List<Long> categoryIds, Long userId) {
