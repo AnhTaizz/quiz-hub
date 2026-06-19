@@ -241,8 +241,8 @@
     
     window.openCategoryTreePicker = function(target) {
         let source = 'private';
-        // Only allow public tree browsing when the purpose is filtering content, otherwise stick to private folders
-        if (target === 'filter') {
+        // Allow public tree browsing for filter and randomGen when q-source is public
+        if (target === 'filter' || target === 'randomGen') {
             const sourceEl = document.getElementById('q-source');
             source = (sourceEl && sourceEl.value === 'public') ? 'public' : 'private';
         }
