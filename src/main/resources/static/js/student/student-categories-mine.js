@@ -598,10 +598,209 @@ function getCategoryPath(nodes, id, path = []) {
     return path;
 }
 
+let currentPracticeQuizId = null;
+let currentPracticeQuizTitle = '';
+let currentPracticeTotalQuestions = 0;
+let currentRangeMode = 'quick';
+
+window.switchCustomRangeMode = function(mode) {
+    currentRangeMode = mode;
+    if (mode === 'quick') {
+        document.getElementById('customQuickRangeArea').classList.remove('d-none');
+        document.getElementById('customCustomRangeArea').classList.add('d-none');
+    } else {
+        document.getElementById('customQuickRangeArea').classList.add('d-none');
+        document.getElementById('customCustomRangeArea').classList.remove('d-none');
+        const chunkSize = parseInt(document.getElementById('customSelectChunkSize').value) || 50;
+        document.getElementById('customStartQuestion').value = 1;
+        document.getElementById('customEndQuestion').value = Math.min(currentPracticeTotalQuestions, chunkSize);
+        validateCustomSetupRange();
+    }
+}
+
+window.validateCustomRandomLimit = function() {
+    const input = document.getElementById('customPracticeLimit');
+    let val = parseInt(input.value) || 0;
+    if (val > currentPracticeTotalQuestions) input.value = currentPracticeTotalQuestions;
+    if (val < 1) input.value = 1;
+}
+
+window.validateCustomSetupRange = function() {
+    let start = parseInt(document.getElementById('customStartQuestion').value) || 1;
+    let end = parseInt(document.getElementById('customEndQuestion').value) || start;
+    if (start < 1) start = 1;
+    if (end > currentPracticeTotalQuestions) end = currentPracticeTotalQuestions;
+    if (start > end) start = end;
+    document.getElementById('customStartQuestion').value = start;
+    document.getElementById('customEndQuestion').value = end;
+    const count = end - start + 1;
+    document.getElementById('customPracticeLimit').value = count;
+}
+
+window.onCustomChunkSizeChange = function() {
+    buildCustomRangeButtons(currentPracticeTotalQuestions);
+}
+
+function buildCustomRangeButtons(total) {
+    const container = document.getElementById('customRangeGroup');
+    if (!container) return;
+    container.innerHTML = '';
+    const chunkSize = parseInt(document.getElementById('customSelectChunkSize').value) || 50;
+    const count = Math.ceil(total / chunkSize);
+
+    if (total === 0) {
+        container.innerHTML = `<span class="text-muted" style="font-size:0.85rem; font-style:italic;">Đề thi chưa có câu hỏi nào.</span>`;
+        return;
+    }
+
+    for (let i = 0; i < count; i++) {
+        const start = i * chunkSize + 1;
+        const end = Math.min((i + 1) * chunkSize, total);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-outline-primary btn-sm rounded-pill fw-bold' + (i === 0 ? ' active' : '');
+        btn.textContent = `Câu ${start} - ${end}`;
+        btn.dataset.start = start;
+        btn.dataset.end = end;
+        btn.onclick = function () {
+            document.querySelectorAll('#customRangeGroup button').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById('customPracticeLimit').value = end - start + 1;
+        };
+        container.appendChild(btn);
+    }
+    if (count > 0) {
+        const firstEnd = Math.min(chunkSize, total);
+        document.getElementById('customPracticeLimit').value = firstEnd;
+    }
+}
+
 window.startQuiz = function(id) {
-    fetch(`/api/student/quiz/start-personal?quizId=${id}`, { headers: { Authorization: 'Bearer ' + token } })
-        .then(res => res.json())
-        .then(data => window.location.href = `/student/quiz/play?attemptId=${data.attemptId}`);
+    const quiz = ALL_QUIZZES.find(q => q.id === id);
+    if (!quiz) return;
+    
+    if (quiz.questionCount === 0) {
+        if (typeof showToast === 'function') showToast('Đề thi chưa có câu hỏi nào!', 'err');
+        return;
+    }
+
+    currentPracticeQuizId = id;
+    currentPracticeQuizTitle = quiz.title || 'Đề tự tạo';
+    currentPracticeTotalQuestions = quiz.questionCount || 0;
+
+    document.getElementById('customQuizTitle').textContent = currentPracticeQuizTitle;
+    document.getElementById('customQuizTotal').textContent = currentPracticeTotalQuestions;
+    
+    // Reset settings
+    document.getElementById('customToggleShowAnswer').checked = true;
+    document.getElementById('customToggleShuffle').checked = false;
+    document.getElementById('customToggleAnswerShuffle').checked = false;
+    document.getElementById('customSelectDisplayMode').value = 'sequential';
+    
+    // Reset range mode
+    currentRangeMode = 'quick';
+    document.getElementById('customRangeModeQuick').checked = true;
+    document.getElementById('customSelectChunkSize').value = "50";
+    document.getElementById('customQuickRangeArea').classList.remove('d-none');
+    document.getElementById('customCustomRangeArea').classList.add('d-none');
+    
+    buildCustomRangeButtons(currentPracticeTotalQuestions);
+    document.getElementById('customPracticeLimit').max = currentPracticeTotalQuestions;
+    
+    const modal = new bootstrap.Modal(document.getElementById('practiceSetupModal'));
+    modal.show();
+}
+
+// Function to shuffle array using Fisher-Yates algorithm
+function shuffleArray(array) {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+}
+
+window.submitCustomStartPractice = async function() {
+    // Clear state for keys with empty practiceId (trailing underscore)
+    sessionStorage.removeItem('practice_user_answers_');
+    sessionStorage.removeItem('practice_answered_correctly_');
+    sessionStorage.removeItem('practice_confirmed_answers_');
+    sessionStorage.removeItem('practice_current_index_');
+    sessionStorage.removeItem('practice_is_shuffled_');
+    sessionStorage.removeItem('practice_flagged_questions_');
+    
+    // Also clear standard keys just in case
+    sessionStorage.removeItem('practice_user_answers');
+    sessionStorage.removeItem('practice_answered_correctly');
+    sessionStorage.removeItem('practice_confirmed_answers');
+    sessionStorage.removeItem('practice_current_index');
+    sessionStorage.removeItem('practice_is_shuffled');
+    sessionStorage.removeItem('practice_questions');
+    
+    const showAnswer = document.getElementById('customToggleShowAnswer').checked;
+    const shuffleQuestions = document.getElementById('customToggleShuffle').checked;
+    const shuffleAnswers = document.getElementById('customToggleAnswerShuffle').checked;
+    const displayMode = document.getElementById('customSelectDisplayMode').value;
+    const isRandom = document.getElementById('customTabRandom').classList.contains('active');
+    
+    let limit, offset = 0;
+    
+    if (!isRandom) {
+        let startQ = 1;
+        let endQ = currentPracticeTotalQuestions;
+        if (currentRangeMode === 'quick') {
+            const activeBtn = document.querySelector('#customRangeGroup button.active');
+            if (activeBtn) {
+                startQ = parseInt(activeBtn.dataset.start) || 1;
+                endQ = parseInt(activeBtn.dataset.end) || startQ;
+            }
+        } else {
+            startQ = parseInt(document.getElementById('customStartQuestion').value) || 1;
+            endQ = parseInt(document.getElementById('customEndQuestion').value) || startQ;
+        }
+        limit = endQ - startQ + 1;
+        offset = startQ - 1;
+    } else {
+        limit = parseInt(document.getElementById('customPracticeLimit').value);
+    }
+    
+    const btn = document.getElementById('btnCustomStartPractice');
+    const origHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang tạo...';
+    
+    try {
+        const res = await fetch(`/api/student/practice/start-quiz?quizId=${currentPracticeQuizId}`, {
+            headers: { Authorization: 'Bearer ' + token }
+        });
+        
+        if (!res.ok) throw new Error('Không thể tải câu hỏi');
+        const data = await res.json();
+        
+        let questions = data.questions || [];
+        
+        if (isRandom) {
+            questions = shuffleArray(questions).slice(0, limit);
+        } else {
+            questions = questions.slice(offset, offset + limit);
+            if (shuffleQuestions) {
+                questions = shuffleArray(questions);
+            }
+        }
+        
+        sessionStorage.setItem('practice_questions', JSON.stringify(questions));
+        sessionStorage.setItem('practice_id', ''); // Empty indicates local mode
+        sessionStorage.setItem('practice_category_id', data.categoryId || -1);
+        sessionStorage.setItem('practice_category_name', data.quizTitle || 'Đề tự tạo');
+        sessionStorage.setItem('practice_settings', JSON.stringify({ showAnswer, shuffle: shuffleQuestions, shuffleAnswers, displayMode, isRandom }));
+        
+        window.location.href = '/student/practice/play';
+    } catch (e) {
+        btn.disabled = false;
+        btn.innerHTML = origHtml;
+        if (typeof showToast === 'function') showToast(e.message, 'err');
+    }
 }
 
 window.deleteQuiz = function(id) {

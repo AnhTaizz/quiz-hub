@@ -774,6 +774,73 @@ async function submitPractice() {
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Đang nộp...';
 
+    if (!practiceId) {
+        // Local Grading (for custom quizzes)
+        try {
+            let correctCount = 0;
+            const details = questions.map(q => {
+                const val = userAnswers[q.id];
+                let isCorrect = false;
+                
+                const correctIds = q.answers.filter(a => a.isCorrect).map(a => a.id).sort();
+                const correctTexts = q.answers.filter(a => a.isCorrect).map(a => a.text.trim());
+                
+                let selectedAnswers = [];
+                
+                if (q.type === 'FILL_IN_BLANK') {
+                    if (val && val.trim() !== '') {
+                        isCorrect = correctTexts.some(t => t.toLowerCase() === val.trim().toLowerCase());
+                    }
+                } else if (q.type === 'MULTIPLE_CHOICE') {
+                    const selectedIds = Array.isArray(val) ? [...val].sort() : [];
+                    selectedAnswers = selectedIds;
+                    isCorrect = JSON.stringify(correctIds) === JSON.stringify(selectedIds);
+                } else {
+                    const selId = val;
+                    if (selId) {
+                        selectedAnswers = [selId];
+                        isCorrect = correctIds.includes(parseInt(selId));
+                    }
+                }
+                
+                if (isCorrect) correctCount++;
+                
+                return {
+                    questionId: q.id,
+                    questionText: q.text,
+                    selectedAnswerIds: q.type === 'FILL_IN_BLANK' ? null : selectedAnswers,
+                    selectedText: q.type === 'FILL_IN_BLANK' ? val : null,
+                    correctAnswerIds: correctIds,
+                    correctTexts: correctTexts,
+                    isCorrect: isCorrect,
+                    questionType: q.type,
+                    questionLevel: q.level,
+                    answers: q.answers
+                };
+            });
+            
+            const totalQuestions = questions.length;
+            const result = {
+                practiceId: null,
+                categoryName: categoryName,
+                totalQuestions: totalQuestions,
+                correctAnswers: correctCount,
+                score: parseFloat(((correctCount * 10.0) / totalQuestions).toFixed(1)),
+                createdAt: new Date().toISOString(),
+                details: details
+            };
+            
+            practiceResult = result;
+            showResult(result);
+            return;
+        } catch (e) {
+            if (typeof showToast === 'function') showToast(e.message, 'err');
+            btn.disabled = false;
+            btn.innerHTML = orig;
+            return;
+        }
+    }
+
     try {
         const res = await fetch('/api/student/practice/submit', {
             method: 'POST',
@@ -787,7 +854,7 @@ async function submitPractice() {
         practiceResult = result; // Store for review
         showResult(result);
     } catch (e) {
-        showToast(e.message, 'err');
+        if (typeof showToast === 'function') showToast(e.message, 'err');
         btn.disabled = false;
         btn.innerHTML = orig;
     }
