@@ -271,6 +271,65 @@ function showQuestion(index) {
         return;
     }
 
+    if (settings.displayMode === 'flashcard') {
+        document.getElementById('questionArea').style.display = 'none';
+        const fa = document.getElementById('flashcardArea');
+        if (fa) fa.style.display = 'block';
+
+        currentIndex = index;
+        sessionStorage.setItem(`practice_current_index_${practiceId}`, index);
+        const q = questions[index];
+        if (!q) return;
+
+        // Update Nav dots
+        document.querySelectorAll('.nav-dot').forEach(d => d.classList.remove('active'));
+        const dot = document.getElementById(`nav-${index}`);
+        if (dot) dot.classList.add('active');
+
+        // Populate flashcard
+        const fcCard = document.getElementById('fcCard');
+        if (fcCard) fcCard.classList.remove('is-flipped'); // reset to front
+
+        document.getElementById('fcNumber').textContent = `Câu ${index + 1}/${questions.length}`;
+        const typeText = q.type === 'MULTIPLE_CHOICE' ? 'CHỌN NHIỀU' : (q.type === 'FILL_IN_BLANK' ? 'ĐIỀN KHUYẾT' : 'CHỌN MỘT');
+        document.getElementById('fcType').textContent = typeText;
+        
+        // Handle line breaks in question text safely
+        document.getElementById('fcFrontText').innerHTML = q.text ? esc(q.text).replace(/\n/g, '<br>') : '';
+
+        // Build back content
+        let backContent = '';
+        if (q.type === 'FILL_IN_BLANK') {
+            const correctTexts = (q.answers || []).filter(a => a.isCorrect).map(a => esc(a.text.trim()));
+            backContent = correctTexts.join(' <span class="text-muted mx-2">hoặc</span> ');
+        } else {
+            const correctAnswers = (q.answers || []).filter(a => a.isCorrect);
+            backContent = correctAnswers.map((a, i) => `<div class="mb-3"><i class="bi bi-check-circle-fill me-2" style="color:var(--secondary);"></i>${esc(a.text)}</div>`).join('');
+        }
+        document.getElementById('fcBackText').innerHTML = backContent || '<div class="text-muted">Không có đáp án cụ thể</div>';
+
+        // Update Buttons
+        document.getElementById('fcBtnPrev').disabled = (index === 0);
+        if (index === questions.length - 1) {
+            document.getElementById('fcBtnNext').classList.add('d-none');
+            document.getElementById('fcBtnFinish').classList.remove('d-none');
+        } else {
+            document.getElementById('fcBtnNext').classList.remove('d-none');
+            document.getElementById('fcBtnFinish').classList.add('d-none');
+        }
+        
+        // Hide legend since flashcard mode doesn't use answered/correct coloring exactly
+        const legend = document.getElementById('navLegend');
+        if (legend) legend.style.display = 'none';
+        
+        return;
+    }
+
+    // Hide flashcard area if returning to sequential mode
+    const fa = document.getElementById('flashcardArea');
+    if (fa) fa.style.display = 'none';
+    document.getElementById('questionArea').style.display = 'block';
+
     currentIndex = index;
     sessionStorage.setItem(`practice_current_index_${practiceId}`, index);
     const q = questions[index];
@@ -751,6 +810,19 @@ function nextQuestion() {
 
 function prevQuestion() {
     if (currentIndex > 0) showQuestion(currentIndex - 1);
+}
+
+window.flipFlashcard = function() {
+    const fcCard = document.getElementById('fcCard');
+    if (fcCard) {
+        fcCard.classList.toggle('is-flipped');
+        
+        // Mark dot as "answered" to show they have viewed the back
+        const dot = document.getElementById(`nav-${currentIndex}`);
+        if (dot && fcCard.classList.contains('is-flipped')) {
+            dot.classList.add('answered');
+        }
+    }
 }
 
 // ── Submission ──

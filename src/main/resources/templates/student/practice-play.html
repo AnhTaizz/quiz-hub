@@ -112,6 +112,43 @@
                     </div>
                 </div>
 
+                <!-- Flashcard Area (Hidden by default) -->
+                <div class="question-card" id="flashcardArea" style="display: none;">
+                    <div class="question-header align-items-center justify-content-between mb-2">
+                        <div class="d-flex gap-2 align-items-center">
+                            <span class="q-number-badge" id="fcNumber">Câu 0/0</span>
+                            <span class="q-type-badge" id="fcType">FLASHCARD</span>
+                        </div>
+                    </div>
+
+                    <div class="flashcard-container">
+                        <div class="flashcard" id="fcCard" onclick="flipFlashcard()">
+                            <div class="flashcard-face flashcard-front">
+                                <div class="flashcard-text" id="fcFrontText">Nội dung câu hỏi...</div>
+                                <div class="flashcard-hint"><i class="bi bi-hand-index-thumb"></i> Nhấn để xem đáp án</div>
+                            </div>
+                            <div class="flashcard-face flashcard-back">
+                                <div class="flashcard-back-content" id="fcBackText">Nội dung đáp án...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="practice-footer">
+                        <button class="btn-nav btn-prev" id="fcBtnPrev" onclick="prevQuestion()" disabled>
+                            <i class="bi bi-arrow-left"></i> Câu trước
+                        </button>
+
+                        <div class="d-flex gap-3">
+                            <button class="btn-nav btn-next" id="fcBtnNext" onclick="nextQuestion()">
+                                Tiếp theo <i class="bi bi-arrow-right"></i>
+                            </button>
+                            <button class="btn-finish-review d-none" id="fcBtnFinish" onclick="confirmExit()">
+                                <i class="bi bi-door-open"></i> Kết thúc ôn tập
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Result Card (Hidden by default) -->
                 <div class="result-card" id="resultCard">
                     <div class="score-circle">
