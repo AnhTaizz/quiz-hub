@@ -505,7 +505,18 @@
                 try {
                     const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
                     const data = await res.json();
-                    questionsList = data.content || [];
+                    let fetchedList = data.content || [];
+                    
+                    // Add any selected questions that are not in the fetched list so they are always visible
+                    const fetchedIds = new Set(fetchedList.map(q => Number(q.id)));
+                    fullSelectedQuestionsMap.forEach((q, id) => {
+                        if (!fetchedIds.has(id)) {
+                            fetchedList.unshift(q);
+                        }
+                    });
+                    
+                    questionsList = fetchedList;
+                    
                     questionsList.forEach(q => {
                         if (selectedQuestionIds.has(Number(q.id))) {
                             fullSelectedQuestionsMap.set(Number(q.id), q);
@@ -569,7 +580,7 @@
                     }
                 }
                 updateSelectedCount();
-                renderQuestions(questionsList);
+                filterLocalQuestions();
             }
 
             function updateSelectedCount() {
@@ -669,7 +680,7 @@
                 selectedQuestionIds.delete(numId);
                 fullSelectedQuestionsMap.delete(numId);
                 updateSelectedCount();
-                renderQuestions(questionsList);
+                filterLocalQuestions();
                 previewQuiz(); // Re-render preview modal immediately
             };
 
@@ -775,23 +786,30 @@
             }
 
             // Handle question saved from the shared editor
-            window.onQuestionSaved = function(newQ, isEdit) {
+            window.onQuestionSaved = function(newQ, isEdit, oldIdStr) {
                 const numId = Number(newQ.id);
+                const oldNumId = oldIdStr ? Number(oldIdStr) : numId;
+                
                 if (isEdit) {
-                    // Update in lists if present
-                    const idx = questionsList.findIndex(q => Number(q.id) === numId);
+                    // Update in lists if present using the old ID
+                    const idx = questionsList.findIndex(q => Number(q.id) === oldNumId);
                     if (idx !== -1) questionsList[idx] = newQ;
-                    if (selectedQuestionIds.has(numId)) {
+                    
+                    if (selectedQuestionIds.has(oldNumId)) {
+                        selectedQuestionIds.delete(oldNumId);
+                        fullSelectedQuestionsMap.delete(oldNumId);
+                        
+                        selectedQuestionIds.add(numId);
                         fullSelectedQuestionsMap.set(numId, newQ);
                     }
-                    renderQuestions(questionsList);
+                    filterLocalQuestions();
                 } else {
                     // Prepend new question and auto-select it
                     questionsList.unshift(newQ);
                     selectedQuestionIds.add(numId);
                     fullSelectedQuestionsMap.set(numId, newQ);
                     updateSelectedCount();
-                    renderQuestions(questionsList);
+                    filterLocalQuestions();
                 }
             };
 

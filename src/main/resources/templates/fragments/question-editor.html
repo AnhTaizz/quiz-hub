@@ -266,7 +266,7 @@
                         
                         // Callback to parent if exists
                         if (typeof fetchQuestions === 'function') fetchQuestions(); // Shared with question-bank-ui
-                        if (typeof onQuestionSaved === 'function') onQuestionSaved(saved, !!id);
+                        if (typeof onQuestionSaved === 'function') onQuestionSaved(saved, !!id, id);
                         _safeToast(id ? 'Cập nhật thành công!' : 'Đã tạo câu hỏi mới!', 'ok');
                     } else {
                         const err = await res.json();

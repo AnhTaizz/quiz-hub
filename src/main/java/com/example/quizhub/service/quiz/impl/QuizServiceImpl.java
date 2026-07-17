@@ -170,6 +170,7 @@ public class QuizServiceImpl implements QuizService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public QuizResponseDTO getQuizById(String id) {
         return quizMapper.toResponseDTO(findQuiz(id));
     }

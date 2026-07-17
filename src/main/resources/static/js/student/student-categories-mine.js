@@ -823,6 +823,11 @@ window.editQuestion = async function(id) {
     }
 }
 
+// Map fetchQuestions for the question-editor modal callback to refresh the list
+window.fetchQuestions = function() {
+    fetchQBank();
+}
+
 window.deleteQuestion = function(id) {
     showConfirmModal('Xóa câu hỏi?', 'Xác nhận xóa câu hỏi này?', async () => {
         try {
