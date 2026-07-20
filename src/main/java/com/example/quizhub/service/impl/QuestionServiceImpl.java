@@ -699,6 +699,40 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     @Transactional
+    public void bulkDeleteQuestionsByAdmin(List<Long> questionIds) {
+        if (questionIds == null || questionIds.isEmpty()) return;
+        List<Question> questions = questionRepository.findAllById(questionIds);
+        for (Question q : questions) {
+            if (q.getQuestionStatus() == QuestionStatus.PUBLIC) {
+                q.setQuestionStatus(QuestionStatus.DELETED);
+            }
+        }
+        questionRepository.saveAll(questions);
+    }
+
+    @Override
+    @Transactional
+    public void bulkDeleteAllQuestionsByAdmin(Long categoryId, QuestionType type, QuestionLevel level, String keyword, String creatorName) {
+        boolean useCategoryFilter = false;
+        List<Long> categoryIds = new java.util.ArrayList<>();
+        if (categoryId != null) {
+            if (categoryId == -1L) {
+                categoryIds.add(-1L);
+            } else {
+                categoryIds = categoryService.getAllDescendantIds(categoryId);
+            }
+            useCategoryFilter = true;
+        }
+
+        String searchKeyword = (keyword != null && !keyword.isEmpty()) ? "%" + keyword.toLowerCase() + "%" : null;
+        String searchCreator = (creatorName != null && !creatorName.isEmpty()) ? "%" + creatorName.toLowerCase() + "%" : null;
+        
+        List<Long> ids = questionRepository.findPendingIdsByFilters(QuestionStatus.PUBLIC, useCategoryFilter, categoryIds, type, level, searchKeyword, searchCreator);
+        bulkDeleteQuestionsByAdmin(ids);
+    }
+
+    @Override
+    @Transactional
     public void moveQuestionByAdmin(Long questionId, Long categoryId) {
         Question question = questionRepository.findById(questionId)
                 .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));

@@ -115,6 +115,23 @@ public class AdminQuestionRestController {
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/bulk-delete")
+    public ResponseEntity<Void> bulkDelete(@RequestBody List<Long> ids) {
+        questionService.bulkDeleteQuestionsByAdmin(ids);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/bulk-delete-all")
+    public ResponseEntity<Void> bulkDeleteAll(
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) QuestionType type,
+            @RequestParam(required = false) QuestionLevel level,
+            @RequestParam(required = false) String creatorName) {
+        questionService.bulkDeleteAllQuestionsByAdmin(categoryId, type, level, keyword, creatorName);
+        return ResponseEntity.ok().build();
+    }
+
     @PutMapping("/{id}/move")
     public ResponseEntity<Void> moveQuestion(
             @PathVariable Long id,

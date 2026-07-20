@@ -9,7 +9,12 @@
         const type = (source === 'public') ? 'public' : 'mine';
         const url = `/api/${role}/categories/${type}`;
         
-        const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+        let headers = {};
+        if (token && token !== 'null') {
+            headers['Authorization'] = 'Bearer ' + token;
+        }
+        
+        const res = await fetch(url, { headers });
         if (!res.ok) throw new Error('API Error: ' + res.status);
         return await res.json();
     };

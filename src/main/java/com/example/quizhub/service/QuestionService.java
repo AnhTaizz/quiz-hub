@@ -73,6 +73,10 @@ public interface QuestionService {
     void bulkRejectAllQuestions(Long filterCategoryId, QuestionType type, QuestionLevel level, String keyword, String creatorName);
 
     void deleteQuestionByAdmin(Long questionId);
+    
+    void bulkDeleteQuestionsByAdmin(List<Long> questionIds);
+
+    void bulkDeleteAllQuestionsByAdmin(Long categoryId, QuestionType type, QuestionLevel level, String keyword, String creatorName);
 
     void moveQuestionByAdmin(Long questionId, Long categoryId);
 

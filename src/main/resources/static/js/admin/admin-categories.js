@@ -414,6 +414,9 @@ function resetQFilters() {
 
 function renderFolderContent(container, subs, quizzes, questionsData, parentId) {
     let html = '';
+    
+    // Update lastTotalElements for bulk selection
+    lastTotalElements = (questionsData && questionsData.totalElements) ? questionsData.totalElements : 0;
 
     // Quizzes
     if (quizzes.length > 0) {
@@ -426,6 +429,29 @@ function renderFolderContent(container, subs, quizzes, questionsData, parentId) 
     // Questions (if present)
     if (questionsData && questionsData.totalElements > 0) {
         html += `<p class="section-title fw-bold" style="font-size:1.1rem;margin-top:20px;border-top:1px solid #e2e8f0;padding-top:20px;"><i class="bi bi-patch-check me-1"></i> Danh sách câu hỏi (${questionsData.totalElements})</p>`;
+        
+        // Bulk Selection Bar
+        html += `
+        <div id="bulk-selection-bar" class="bulk-actions-bar" style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:12px 16px; border-radius:12px; border:1px solid #e2e8f0; margin-bottom:16px;">
+            <div class="d-flex flex-column">
+                <div class="d-flex align-items-center">
+                    <div class="form-check me-3">
+                        <input class="form-check-input" type="checkbox" id="selectAllQuestions" onchange="toggleSelectAll(this)">
+                        <label class="form-check-label fw-bold ms-2" for="selectAllQuestions">Chọn tất cả trang này</label>
+                    </div>
+                    <span id="selected-count-badge" class="badge bg-primary rounded-pill">0 đã chọn</span>
+                </div>
+                <div id="select-all-all-area" class="mt-1 small" style="display: none; padding-left: 32px; color: #1e40af;">
+                    <a href="javascript:void(0)" onclick="selectAllResults()">Chọn tất cả ${questionsData.totalElements} câu hỏi</a>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-danger fw-bold px-3 py-2" style="border-radius: 10px;" onclick="confirmBulkDelete()">
+                    <i class="bi bi-trash3-fill me-1"></i> Xóa nhanh
+                </button>
+            </div>
+        </div>`;
+
         html += `<div class="question-list" style="display:flex; flex-direction:column; gap:16px; margin-bottom:24px;">`;
         questionsData.content.forEach(q => {
             let typeLabel = q.type === 'SINGLE_CHOICE' ? 'Một đáp án' : (q.type === 'MULTIPLE_CHOICE' ? 'Nhiều đáp án' : 'Điền khuyết');
@@ -447,7 +473,10 @@ function renderFolderContent(container, subs, quizzes, questionsData, parentId) 
             html += `
                 <div class="question-card" style="background:#fff; border:1px solid #e2e8f0; border-radius:16px; padding:20px; box-shadow:0 4px 12px rgba(0,0,0,0.03); transition:all 0.2s;">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div class="badge-row" style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <div class="badge-row" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+                            <div class="form-check me-2">
+                                <input class="form-check-input q-checkbox" type="checkbox" value="${q.id}" onchange="toggleQuestionSelection()">
+                            </div>
                             <span class="q-badge" style="background:#f1f5f9; color:#475569; border-radius:8px; padding:4px 10px; font-size:0.78rem; font-weight:600;"><i class="bi bi-patch-check"></i> ${typeLabel}</span>
                             <span class="q-badge" style="background:#f1f5f9; color:#475569; border-radius:8px; padding:4px 10px; font-size:0.78rem; font-weight:600;"><i class="bi bi-graph-up"></i> ${levelLabel}</span>
                         </div>
@@ -1095,4 +1124,165 @@ function showToast(msg, type = 'ok') {
     if (type === 'err' || type === 'error') toast.error(msg);
     else if (type === 'warn' || type === 'warning') toast.warning(msg);
     else toast.success(msg);
+}
+
+// ==========================================
+// BULK DELETE LOGIC
+// ==========================================
+
+let selectedIds = [];
+let isSelectAllResults = false;
+let lastTotalElements = 0;
+
+function toggleQuestionSelection() {
+    isSelectAllResults = false;
+    document.getElementById('select-all-all-area').style.display = 'none';
+
+    const checkboxes = document.querySelectorAll('.q-checkbox');
+    const selectAllCheckbox = document.getElementById('selectAllQuestions');
+    let allChecked = true;
+    let anyChecked = false;
+
+    checkboxes.forEach(cb => {
+        const id = parseInt(cb.value);
+        if (cb.checked) {
+            if (!selectedIds.includes(id)) selectedIds.push(id);
+            anyChecked = true;
+        } else {
+            selectedIds = selectedIds.filter(v => v !== id);
+            allChecked = false;
+        }
+    });
+
+    if (checkboxes.length > 0) {
+        selectAllCheckbox.checked = allChecked;
+    }
+
+    updateSelectedCount();
+    updateBulkActionBar();
+}
+
+function toggleSelectAll(source) {
+    const checkboxes = document.querySelectorAll('.q-checkbox');
+    isSelectAllResults = false;
+
+    checkboxes.forEach(cb => {
+        cb.checked = source.checked;
+        const id = parseInt(cb.value);
+        if (source.checked) {
+            if (!selectedIds.includes(id)) selectedIds.push(id);
+        } else {
+            selectedIds = selectedIds.filter(v => v !== id);
+        }
+    });
+
+    const selectAllArea = document.getElementById('select-all-all-area');
+    if (source.checked && checkboxes.length > 0) {
+        if (lastTotalElements > checkboxes.length) {
+            selectAllArea.style.display = 'block';
+        }
+    } else {
+        selectAllArea.style.display = 'none';
+    }
+
+    updateSelectedCount();
+    updateBulkActionBar();
+}
+
+window.selectAllResults = function() {
+    isSelectAllResults = true;
+    const selectAllArea = document.getElementById('select-all-all-area');
+    selectAllArea.innerHTML = `<span class="fw-bold"><i class="bi bi-check-all"></i> Đã chọn tất cả ${lastTotalElements} câu hỏi.</span> <a href="javascript:void(0)" onclick="clearSelection()" class="text-danger ms-2">Bỏ chọn</a>`;
+    updateSelectedCount();
+};
+
+window.clearSelection = function() {
+    selectedIds = [];
+    isSelectAllResults = false;
+    
+    document.querySelectorAll('.q-checkbox').forEach(cb => cb.checked = false);
+    const selectAllCheckbox = document.getElementById('selectAllQuestions');
+    if (selectAllCheckbox) selectAllCheckbox.checked = false;
+    
+    const selectAllArea = document.getElementById('select-all-all-area');
+    if (selectAllArea) {
+        selectAllArea.style.display = 'none';
+        selectAllArea.innerHTML = `<a href="javascript:void(0)" onclick="selectAllResults()">Chọn tất cả ${lastTotalElements} câu hỏi</a>`;
+    }
+    
+    updateSelectedCount();
+    updateBulkActionBar();
+};
+
+function updateSelectedCount() {
+    const badge = document.getElementById('selected-count-badge');
+    if (!badge) return;
+    if (isSelectAllResults) {
+        badge.innerText = `${lastTotalElements} đã chọn`;
+    } else {
+        badge.innerText = `${selectedIds.length} đã chọn`;
+    }
+}
+
+function updateBulkActionBar() {
+    // Luôn hiện thanh
+}
+
+function confirmBulkDelete() {
+    if (!isSelectAllResults && selectedIds.length === 0) {
+        Swal.fire('Lỗi', 'Vui lòng chọn ít nhất một câu hỏi để xóa.', 'warning');
+        return;
+    }
+
+    const count = isSelectAllResults ? lastTotalElements : selectedIds.length;
+    
+    Swal.fire({
+        title: 'Xác nhận xóa hàng loạt',
+        text: `Bạn có chắc chắn muốn xóa ${count} câu hỏi đã chọn? Thao tác này không thể hoàn tác.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Đồng ý xóa',
+        cancelButtonText: 'Hủy bỏ'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                let url;
+                let options = {
+                    headers: { 'Content-Type': 'application/json' }
+                };
+
+                const keyword = document.getElementById('q-filter-keyword').value;
+                const type = document.getElementById('q-filter-type').value;
+                const level = document.getElementById('q-filter-level').value;
+
+                if (isSelectAllResults) {
+                    url = `/api/admin/questions/bulk-delete-all?categoryId=${activeFolderId}`;
+                    if (keyword) url += `&keyword=${encodeURIComponent(keyword)}`;
+                    if (type) url += `&type=${type}`;
+                    if (level) url += `&level=${level}`;
+                    options.method = 'PUT';
+                } else {
+                    url = '/api/admin/questions/bulk-delete';
+                    options.method = 'PUT';
+                    options.body = JSON.stringify(selectedIds);
+                }
+
+                const res = await fetch(url, options);
+
+                if (res.ok) {
+                    Swal.fire('Thành công!', `Đã xóa ${count} câu hỏi.`, 'success');
+                    clearSelection();
+                    loadFolderContent(activeFolderId, 0); // Reload data
+                } else {
+                    const err = await res.json();
+                    Swal.fire('Lỗi', err.message || 'Không thể xóa câu hỏi', 'error');
+                }
+            } catch (error) {
+                console.error(error);
+                Swal.fire('Lỗi', 'Đã xảy ra lỗi khi thực hiện thao tác', 'error');
+            }
+        }
+    });
 }
