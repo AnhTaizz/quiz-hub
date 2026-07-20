@@ -1,4 +1,4 @@
-﻿(function() {
+(function() {
     // Configuration Binding via Global Config
     const USER_TYPE = (window.QUESTION_BANK_CONFIG && window.QUESTION_BANK_CONFIG.userType) 
         ? window.QUESTION_BANK_CONFIG.userType 
@@ -12,7 +12,7 @@
 
     // Local State Variables
     let currentTab = 'mine';
-    let page = 0, size = 10, sortBy = 'id', sortDir = 'desc';
+    let page = 0, size = 50, sortBy = 'id', sortDir = 'desc';
     let lastTotalElements = 0;
     let selectedIds = [], isSelectAllResults = false;
     const token = localStorage.getItem('token') || sessionStorage.getItem('token');

@@ -6,7 +6,7 @@ let currentFolderId = null;
 let currentContext = 'quiz';
 let expandedFolders = new Set();
 // Question bank state
-let qbPage = 0, qbSize = 10, qbTotal = 0;
+let qbPage = 0, qbSize = 50, qbTotal = 0;
 let qbKeyword = '', qbType = '', qbLevel = '';
 
 const COVERS = [

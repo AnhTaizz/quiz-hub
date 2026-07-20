@@ -71,7 +71,7 @@ public class StudentQuestionRestController {
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "false") Boolean isPublicTab,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "50") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
 
