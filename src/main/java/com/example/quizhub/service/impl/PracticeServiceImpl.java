@@ -40,6 +40,7 @@ import com.example.quizhub.repository.PracticeRepository;
 import com.example.quizhub.repository.QuestionRepository;
 import com.example.quizhub.repository.QuizRepository;
 import com.example.quizhub.repository.UserRepository;
+import com.example.quizhub.service.CategoryService;
 import com.example.quizhub.service.PracticeService;
 
 import lombok.RequiredArgsConstructor;

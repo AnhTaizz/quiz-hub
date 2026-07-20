@@ -30,6 +30,7 @@ import com.example.quizhub.repository.CategoryRepository;
 import com.example.quizhub.repository.QuestionRepository;
 import com.example.quizhub.repository.UserRepository;
 import com.example.quizhub.service.NotificationService;
+import com.example.quizhub.service.CategoryService;
 import com.example.quizhub.service.QuestionService;
 
 import lombok.RequiredArgsConstructor;
@@ -266,7 +267,7 @@ public class QuestionServiceImpl implements QuestionService {
             if (categoryId == -1L) {
                 categoryIds.add(-1L);
             } else {
-                collectCategoryIds(categoryId, categoryIds);
+                categoryIds = categoryService.getAllDescendantIds(categoryId);
             }
             useCategoryFilter = true;
         }
@@ -296,7 +297,7 @@ public class QuestionServiceImpl implements QuestionService {
             if (categoryId == -1L) {
                 categoryIds.add(-1L);
             } else {
-                collectCategoryIds(categoryId, categoryIds);
+                categoryIds = categoryService.getAllDescendantIds(categoryId);
             }
             useCategoryFilter = true;
         }
@@ -424,7 +425,7 @@ public class QuestionServiceImpl implements QuestionService {
             if (categoryId == -1L) {
                 categoryIds.add(-1L);
             } else {
-                collectCategoryIds(categoryId, categoryIds);
+                categoryIds = categoryService.getAllDescendantIds(categoryId);
             }
             useCategoryFilter = true;
         }
@@ -462,7 +463,7 @@ public class QuestionServiceImpl implements QuestionService {
             if (categoryId == -1L) {
                 categoryIds.add(-1L);
             } else {
-                collectCategoryIds(categoryId, categoryIds);
+                categoryIds = categoryService.getAllDescendantIds(categoryId);
             }
             useCategoryFilter = true;
         }
@@ -598,7 +599,7 @@ public class QuestionServiceImpl implements QuestionService {
             if (filterCategoryId == -1L) {
                 categoryIds.add(-1L);
             } else {
-                collectCategoryIds(filterCategoryId, categoryIds);
+                categoryIds = categoryService.getAllDescendantIds(filterCategoryId);
             }
             useCategoryFilter = true;
         }
@@ -672,7 +673,7 @@ public class QuestionServiceImpl implements QuestionService {
             if (filterCategoryId == -1L) {
                 categoryIds.add(-1L);
             } else {
-                collectCategoryIds(filterCategoryId, categoryIds);
+                categoryIds = categoryService.getAllDescendantIds(filterCategoryId);
             }
             useCategoryFilter = true;
         }
