@@ -43,6 +43,7 @@ public class QuestionServiceImpl implements QuestionService {
     private final UserRepository userRepository;
     private final QuestionRepository questionRepository;
     private final CategoryRepository categoryRepository;
+    private final CategoryService categoryService;
     private final AnswerRepository answerRepository;
     private final QuestionMapper questionMapper;
     private final NotificationService notificationService;
@@ -214,21 +215,6 @@ public class QuestionServiceImpl implements QuestionService {
         }
     }
 
-    private void collectCategoryIds(Long categoryId, List<Long> ids) {
-        if (categoryId == null) return;
-        List<Category> allCategories = categoryRepository.findAll();
-        ids.add(categoryId);
-        collectRecursive(categoryId, allCategories, ids);
-    }
-
-    private void collectRecursive(Long parentId, List<Category> allCategories, List<Long> ids) {
-        for (Category cat : allCategories) {
-            if (cat.getParent() != null && cat.getParent().getId().equals(parentId)) {
-                ids.add(cat.getId());
-                collectRecursive(cat.getId(), allCategories, ids);
-            }
-        }
-    }
 
     @Override
     @Transactional(readOnly = true)
@@ -249,7 +235,7 @@ public class QuestionServiceImpl implements QuestionService {
             if (categoryId == -1L) {
                 categoryIds.add(-1L);
             } else {
-                collectCategoryIds(categoryId, categoryIds);
+                categoryIds = categoryService.getAllDescendantIds(categoryId);
             }
             useCategoryFilter = true;
         }

@@ -55,6 +55,7 @@ public class PracticeServiceImpl implements PracticeService {
         private final CategoryRepository categoryRepository;
         private final UserRepository userRepository;
         private final QuizRepository quizRepository;
+        private final CategoryService categoryService;
 
         private User getCurrentUser() {
                 String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -73,15 +74,6 @@ public class PracticeServiceImpl implements PracticeService {
                 return String.join(" > ", names);
         }
 
-        private void collectCategoryIds(Category category, List<Long> ids) {
-                ids.add(category.getId());
-                if (category.getChildren() != null) {
-                        for (Category child : category.getChildren()) {
-                                collectCategoryIds(child, ids);
-                        }
-                }
-        }
-
         @Override
         @Transactional
         public PracticeStartResponseDTO startPractice(PracticeStartRequestDTO request) {
@@ -89,8 +81,7 @@ public class PracticeServiceImpl implements PracticeService {
                 Category category = categoryRepository.findById(request.getCategoryId())
                                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
 
-                List<Long> categoryIds = new ArrayList<>();
-                collectCategoryIds(category, categoryIds);
+                List<Long> categoryIds = categoryService.getAllDescendantIds(request.getCategoryId());
 
                 Integer limit = request.getLimit() != null ? request.getLimit() : 10;
                 Integer offset = request.getOffset() != null ? request.getOffset() : 0;
@@ -300,8 +291,7 @@ public class PracticeServiceImpl implements PracticeService {
                 Category category = categoryRepository.findById(request.getCategoryId())
                                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
 
-                List<Long> categoryIds = new ArrayList<>();
-                collectCategoryIds(category, categoryIds);
+                List<Long> categoryIds = categoryService.getAllDescendantIds(request.getCategoryId());
 
                 Integer limit = request.getLimit() != null ? request.getLimit() : 10;
                 Integer offset = request.getOffset() != null ? request.getOffset() : 0;
@@ -484,11 +474,10 @@ public class PracticeServiceImpl implements PracticeService {
         @Override
         @Transactional(readOnly = true)
         public long countQuestions(Long categoryId) {
-                Category category = categoryRepository.findById(categoryId)
+                categoryRepository.findById(categoryId)
                                 .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
 
-                List<Long> categoryIds = new ArrayList<>();
-                collectCategoryIds(category, categoryIds);
+                List<Long> categoryIds = categoryService.getAllDescendantIds(categoryId);
 
                 return questionRepository.countPublicQuestionsByCategories(categoryIds, QuestionStatus.PUBLIC);
         }

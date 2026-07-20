@@ -131,6 +131,10 @@
         if (!targetEl || targetEl.classList.contains('show')) return;
 
         if (targetEl.parentElement !== document.body) {
+            const existing = bootstrap.Modal.getInstance(targetEl);
+            if (existing) {
+                existing.dispose();
+            }
             document.body.appendChild(targetEl);
         }
 
@@ -144,7 +148,7 @@
 
         setTimeout(() => {
             bootstrap.Modal.getOrCreateInstance(targetEl).show();
-        }, 50); // Reduced delay for faster feel
+        }, 150); // Increased delay to ensure DOM repaints before showing
 
         const hideHandler = function() {
             // Delay check for stack to let any other modals hide first
@@ -156,7 +160,7 @@
                         bootstrap.Modal.getOrCreateInstance(prevEl).show();
                     }
                 }
-            }, 100); // Reduced delay
+            }, 150); // Increased delay
             targetEl.removeEventListener('hidden.bs.modal', hideHandler);
         };
         targetEl.addEventListener('hidden.bs.modal', hideHandler);
