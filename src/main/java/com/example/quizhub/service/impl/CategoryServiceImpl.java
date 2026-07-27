@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.quizhub.dto.category.CategoryRequestDTO;
 import com.example.quizhub.dto.category.CategoryResponseDTO;
 import com.example.quizhub.entity.Category;
+import com.example.quizhub.entity.Practice;
 import com.example.quizhub.entity.Question;
 import com.example.quizhub.entity.Quiz;
 import com.example.quizhub.entity.User;
@@ -24,6 +25,7 @@ import com.example.quizhub.exception.AppException;
 import com.example.quizhub.exception.ErrorCode;
 import com.example.quizhub.mapper.CategoryMapper;
 import com.example.quizhub.repository.CategoryRepository;
+import com.example.quizhub.repository.PracticeRepository;
 import com.example.quizhub.repository.QuestionRepository;
 import com.example.quizhub.repository.QuizRepository;
 import com.example.quizhub.repository.UserRepository;
@@ -40,6 +42,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
     private final QuizRepository quizRepository;
+    private final PracticeRepository practiceRepository;
 
     private User getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -226,12 +229,13 @@ public class CategoryServiceImpl implements CategoryService {
             }
         }
 
+        // 1. Move all questions in this category to "Unassigned" (null)
         List<Question> questions = questionRepository.findByCategoryId(id);
         if (!questions.isEmpty()) {
             for (Question q : questions) {
                 q.setCategory(null);
-                questionRepository.save(q);
             }
+            questionRepository.saveAll(questions);
         }
 
         // 2. Move all quizzes in this category to "Unassigned" (null)
@@ -239,18 +243,34 @@ public class CategoryServiceImpl implements CategoryService {
         if (!quizzes.isEmpty()) {
             for (Quiz q : quizzes) {
                 q.setCategory(null);
-                quizRepository.save(q);
             }
+            quizRepository.saveAll(quizzes);
         }
 
-        List<Category> children = category.getChildren();
-        if(children != null && !children.isEmpty()){
-            for(Category child : children){
-                child.setParent(null);
-                categoryRepository.save(child);
+        // 3. Move all practice sessions in this category to "Unassigned" (null)
+        List<Practice> practices = practiceRepository.findByCategoryId(id);
+        if (!practices.isEmpty()) {
+            for (Practice p : practices) {
+                p.setCategory(null);
             }
+            practiceRepository.saveAll(practices);
         }
+
+        // 4. Detach child categories
+        List<Category> children = categoryRepository.findByParentId(id);
+        if (children != null && !children.isEmpty()) {
+            for (Category child : children) {
+                child.setParent(null);
+            }
+            categoryRepository.saveAll(children);
+        }
+
+        if (category.getChildren() != null) {
+            category.getChildren().clear();
+        }
+
         categoryRepository.delete(category);
+        categoryRepository.flush();
     }
 
     @Override

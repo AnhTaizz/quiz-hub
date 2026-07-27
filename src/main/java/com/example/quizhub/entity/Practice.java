@@ -43,7 +43,7 @@ public class Practice {
     User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id", nullable = false)
+    @JoinColumn(name = "category_id", nullable = true)
     Category category;
 
     @Column(name = "total_questions", nullable = false)

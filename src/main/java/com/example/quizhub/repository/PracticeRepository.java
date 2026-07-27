@@ -10,6 +10,8 @@ import com.example.quizhub.entity.Practice;
 
 @Repository
 public interface PracticeRepository extends JpaRepository<Practice, Long> {
+    List<Practice> findByCategoryId(Long categoryId);
+
     List<Practice> findByUserIdAndCategoryIdOrderByCreatedAtDesc(Long userId, Long categoryId);
 
     List<Practice> findTop10ByOrderByCreatedAtDesc();

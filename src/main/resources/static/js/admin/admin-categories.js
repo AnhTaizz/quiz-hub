@@ -739,7 +739,9 @@ async function submitCategory() {
         });
         if (!res.ok) { const e = await res.json(); throw new Error(e.message || 'Lỗi'); }
 
-        bootstrap.Modal.getInstance(document.getElementById('catModal')).hide();
+        const modalEl = document.getElementById('catModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
+        if (modalInstance) modalInstance.hide();
         showToast(isEdit ? 'Đã cập nhật danh mục!' : 'Tạo danh mục thành công!', 'ok');
 
         // 🌟 Tự động ghi nhớ phải xổ thư mục cha ra
@@ -776,7 +778,9 @@ async function confirmDelCat() {
             method: 'DELETE', headers: { Authorization: 'Bearer ' + token }
         });
         if (!res.ok) { const e = await res.json(); throw new Error(e.message || 'Lỗi'); }
-        bootstrap.Modal.getInstance(document.getElementById('delCatModal')).hide();
+        const modalEl = document.getElementById('delCatModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalEl) || bootstrap.Modal.getOrCreateInstance(modalEl);
+        if (modalInstance) modalInstance.hide();
         showToast('Đã xóa danh mục!', 'ok');
         const curId = navStack.length > 0 ? navStack[navStack.length-1].id : null;
         if (String(curId) === String(id)) navigateFromBreadcrumb(navStack.length - 2);
@@ -1248,14 +1252,18 @@ function confirmBulkDelete() {
     }).then(async (result) => {
         if (result.isConfirmed) {
             try {
+                const token = localStorage.getItem('token') || sessionStorage.getItem('token');
                 let url;
                 let options = {
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    }
                 };
 
-                const keyword = document.getElementById('q-filter-keyword').value;
-                const type = document.getElementById('q-filter-type').value;
-                const level = document.getElementById('q-filter-level').value;
+                const keyword = document.getElementById('q-filter-keyword')?.value || '';
+                const type = document.getElementById('q-filter-type')?.value || '';
+                const level = document.getElementById('q-filter-level')?.value || '';
 
                 if (isSelectAllResults) {
                     url = `/api/admin/questions/bulk-delete-all?categoryId=${activeFolderId}`;
@@ -1275,8 +1283,10 @@ function confirmBulkDelete() {
                     Swal.fire('Thành công!', `Đã xóa ${count} câu hỏi.`, 'success');
                     clearSelection();
                     loadFolderContent(activeFolderId, 0); // Reload data
+                    await loadTree();
+                    restoreTreeState();
                 } else {
-                    const err = await res.json();
+                    const err = await res.json().catch(() => ({}));
                     Swal.fire('Lỗi', err.message || 'Không thể xóa câu hỏi', 'error');
                 }
             } catch (error) {
