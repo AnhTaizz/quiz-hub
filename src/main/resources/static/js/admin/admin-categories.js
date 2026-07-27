@@ -318,8 +318,14 @@ async function loadFolderContent(catId, page = 0) {
     if (activeFolderId !== catId) {
         currentQuestionPage = 0;
         activeFolderId = catId;
+        // Reset selection khi chuyển folder
+        selectedIds = [];
+        isSelectAllResults = false;
     } else {
         currentQuestionPage = page;
+        // Reset selection khi chuyển trang
+        selectedIds = [];
+        isSelectAllResults = false;
     }
 
     const dc = document.getElementById('dynamicContent');

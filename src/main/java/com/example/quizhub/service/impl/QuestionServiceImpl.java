@@ -703,7 +703,8 @@ public class QuestionServiceImpl implements QuestionService {
         if (questionIds == null || questionIds.isEmpty()) return;
         List<Question> questions = questionRepository.findAllById(questionIds);
         for (Question q : questions) {
-            if (q.getQuestionStatus() == QuestionStatus.PUBLIC) {
+            // Admin có quyền xóa câu hỏi ở bất kỳ trạng thái nào (trừ đã xóa rồi)
+            if (q.getQuestionStatus() != QuestionStatus.DELETED) {
                 q.setQuestionStatus(QuestionStatus.DELETED);
             }
         }
