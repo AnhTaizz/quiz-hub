@@ -101,8 +101,8 @@ async function submitAiGenerate() {
         showToast('Vui lòng nhập nội dung bài giảng hoặc chủ đề.', 'warning');
         return;
     }
-    if (!numberOfQuestions || numberOfQuestions < 1 || numberOfQuestions > 30) {
-        showToast('Số câu hỏi phải từ 1 đến 30.', 'warning');
+    if (!numberOfQuestions || numberOfQuestions < 1 || numberOfQuestions > 50) {
+        showToast('Số câu hỏi phải từ 1 đến 50.', 'warning');
         return;
     }
 

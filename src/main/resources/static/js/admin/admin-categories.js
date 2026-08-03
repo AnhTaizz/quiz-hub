@@ -1536,8 +1536,8 @@ async function submitAdminAiGenerate() {
     const categoryId        = document.getElementById('adminAiCategoryId').value || null;
 
     if (!text) { showToast('Vui lòng nhập nội dung bài giảng hoặc chủ đề.', 'warn'); return; }
-    if (!numberOfQuestions || numberOfQuestions < 1 || numberOfQuestions > 30) {
-        showToast('Số câu hỏi phải từ 1 đến 30.', 'warn'); return;
+    if (!numberOfQuestions || numberOfQuestions < 1 || numberOfQuestions > 50) {
+        showToast('Số câu hỏi phải từ 1 đến 50.', 'warn'); return;
     }
 
     _showAdminAiStep('loading');
