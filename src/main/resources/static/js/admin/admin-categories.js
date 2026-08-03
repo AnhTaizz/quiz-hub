@@ -1571,27 +1571,68 @@ function _renderAdminAiPreview(questions) {
     questions.forEach((q, qIdx) => {
         const lvl = q.level || 'MEDIUM';
         const card = document.createElement('div');
-        card.style.cssText = 'background:#fff;border-radius:14px;padding:16px 20px;margin-bottom:12px;border:1.5px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,0.04);';
+        card.style.cssText = 'background:#fff;border-radius:14px;padding:16px 20px;margin-bottom:12px;border:1.5px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,0.04);position:relative;';
         card.innerHTML = `
-            <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
+            <button onclick="adminDeleteAiQ(${qIdx})" style="position:absolute;top:12px;right:12px;background:none;border:none;color:#ef4444;cursor:pointer;padding:4px;" title="Xóa câu hỏi này">
+                <i class="bi bi-trash3-fill"></i>
+            </button>
+            <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;padding-right:24px;">
                 <span style="min-width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-size:0.78rem;font-weight:700;display:flex;align-items:center;justify-content:center;">${qIdx+1}</span>
                 <div style="flex:1;">
-                    <div style="font-weight:600;color:#1e293b;font-size:0.93rem;">${escAi(q.text)}</div>
+                    <div style="font-weight:600;color:#1e293b;font-size:0.93rem;outline:none;" contenteditable="true" onblur="adminSyncQText(${qIdx}, this)">${escAi(q.text)}</div>
                     <span style="font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;color:#fff;background-color:${levelColor[lvl]};display:inline-block;margin-top:4px;">${levelLabel[lvl]}</span>
                 </div>
             </div>
             <div style="display:flex;flex-direction:column;gap:6px;padding-left:36px;">
                 ${(q.answers || []).map((a, aIdx) => {
                     const correct = a.correct === true || a.isCorrect === true;
-                    return `<div style="padding:7px 12px;border-radius:9px;border:1.5px solid ${correct?'#bbf7d0':'#f1f5f9'};background:${correct?'#f0fdf4':'#fff'};font-size:0.87rem;color:${correct?'#15803d':'#334155'};display:flex;gap:8px;align-items:center;">
+                    return `<div onclick="adminToggleCorrect(${qIdx}, ${aIdx})" style="cursor:pointer;padding:7px 12px;border-radius:9px;border:1.5px solid ${correct?'#bbf7d0':'#f1f5f9'};background:${correct?'#f0fdf4':'#fff'};font-size:0.87rem;color:${correct?'#15803d':'#334155'};display:flex;gap:8px;align-items:center;transition:all 0.2s;">
                         <i class="bi bi-${correct?'check-circle-fill text-success':'circle text-muted'}"></i>
-                        <span>${String.fromCharCode(65+aIdx)}. ${escAi(a.text)}</span>
+                        <span style="font-weight:600;">${String.fromCharCode(65+aIdx)}.</span>
+                        <span style="flex:1;outline:none;" contenteditable="true" onclick="event.stopPropagation()" onblur="adminSyncAText(${qIdx}, ${aIdx}, this)">${escAi(a.text)}</span>
                     </div>`;
                 }).join('')}
             </div>`;
         container.appendChild(card);
     });
 }
+
+function adminSyncQText(qIdx, el) {
+    if (adminAiGeneratedQuestions[qIdx]) {
+        adminAiGeneratedQuestions[qIdx].text = el.innerText.trim();
+    }
+}
+
+function adminSyncAText(qIdx, aIdx, el) {
+    if (adminAiGeneratedQuestions[qIdx] && adminAiGeneratedQuestions[qIdx].answers[aIdx]) {
+        adminAiGeneratedQuestions[qIdx].answers[aIdx].text = el.innerText.trim();
+    }
+}
+
+function adminToggleCorrect(qIdx, aIdx) {
+    const q = adminAiGeneratedQuestions[qIdx];
+    if (!q) return;
+    if (q.type === 'SINGLE_CHOICE' || q.type === 'FILL_IN_BLANK') {
+        q.answers.forEach((ans, idx) => {
+            ans.isCorrect = (idx === aIdx);
+            ans.correct = (idx === aIdx);
+        });
+    } else if (q.type === 'MULTIPLE_CHOICE') {
+        const isC = (q.answers[aIdx].isCorrect === true || q.answers[aIdx].correct === true);
+        q.answers[aIdx].isCorrect = !isC;
+        q.answers[aIdx].correct = !isC;
+    }
+    _renderAdminAiPreview(adminAiGeneratedQuestions);
+}
+
+function adminDeleteAiQ(qIdx) {
+    if (confirm(`Bạn có chắc muốn xóa câu số ${qIdx + 1}?`)) {
+        adminAiGeneratedQuestions.splice(qIdx, 1);
+        _renderAdminAiPreview(adminAiGeneratedQuestions);
+        document.getElementById('admin-ai-preview-count').textContent = adminAiGeneratedQuestions.length;
+    }
+}
+
 
 async function saveAdminAiQuestions() {
     if (!adminAiGeneratedQuestions || adminAiGeneratedQuestions.length === 0) return;

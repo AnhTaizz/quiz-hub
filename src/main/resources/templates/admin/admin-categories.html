@@ -438,23 +438,31 @@
                     <!-- Step 1: Input -->
                     <div id="admin-ai-step-input">
                         <div class="mb-3">
-                            <label class="form-label fw-semibold" style="color:#475569;">Nội dung bài giảng / chủ đề <span class="text-danger">*</span></label>
+                            <label class="form-label fw-bold text-secondary small">Nội dung bài giảng / Tài liệu tham khảo <span class="text-danger">*</span></label>
                             <textarea class="form-control" id="admin-ai-input-text" rows="7"
-                                placeholder="Dán nội dung bài giảng, đoạn văn hoặc mô tả chủ đề bạn muốn AI tạo câu hỏi..."
+                                placeholder="Hãy dán nội dung bài học, chương sách hoặc chủ đề chi tiết vào đây để AI đọc và tạo câu hỏi bám sát nội dung..."
                                 style="border-radius:12px; border:1.5px solid #e2e8f0; font-size:0.9rem; resize:vertical;"></textarea>
                         </div>
-                        <div class="row g-3">
+                        <div class="row g-3 mb-2">
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold" style="color:#475569;">Số lượng câu hỏi</label>
-                                <input type="number" class="form-control" id="admin-ai-num-questions" value="5" min="1" max="30"
-                                    style="border-radius:12px; border:1.5px solid #e2e8f0;">
+                                <label class="form-label fw-bold text-secondary small">Số lượng câu hỏi</label>
+                                <select id="admin-ai-num-questions" class="form-select" style="border-radius:12px; border:1.5px solid #e2e8f0; font-size:0.95rem;">
+                                    <option value="5">5 câu hỏi</option>
+                                    <option value="10" selected>10 câu hỏi</option>
+                                    <option value="15">15 câu hỏi</option>
+                                    <option value="20">20 câu hỏi</option>
+                                    <option value="25">25 câu hỏi</option>
+                                    <option value="30">30 câu hỏi</option>
+                                    <option value="40">40 câu hỏi</option>
+                                    <option value="50">50 câu hỏi</option>
+                                </select>
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label fw-semibold" style="color:#475569;">Mức độ</label>
-                                <select class="form-select" id="admin-ai-level" style="border-radius:12px; border:1.5px solid #e2e8f0;">
-                                    <option value="EASY">Dễ</option>
-                                    <option value="MEDIUM" selected>Trung bình</option>
-                                    <option value="HARD">Khó</option>
+                                <label class="form-label fw-bold text-secondary small">Mức độ khó</label>
+                                <select id="admin-ai-level" class="form-select" style="border-radius:12px; border:1.5px solid #e2e8f0; font-size:0.95rem;">
+                                    <option value="EASY">🟢 Dễ</option>
+                                    <option value="MEDIUM" selected>🟡 Trung bình</option>
+                                    <option value="HARD">🔴 Khó</option>
                                 </select>
                             </div>
                         </div>
