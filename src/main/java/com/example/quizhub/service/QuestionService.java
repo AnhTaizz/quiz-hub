@@ -13,6 +13,9 @@ import com.example.quizhub.entity.enums.QuestionType;
 public interface QuestionService {
     QuestionResponseDTO createNewQuestion(Long userId, QuestionRequestDTO request);
 
+    /** Admin tạo câu hỏi trực tiếp vào kho công khai (status = PUBLIC ngay) */
+    QuestionResponseDTO createPublicQuestionByAdmin(Long adminId, QuestionRequestDTO request);
+
     QuestionResponseDTO updateQuestion(Long userId, Long id, QuestionRequestDTO request);
 
     QuestionResponseDTO getQuestionById(Long id);

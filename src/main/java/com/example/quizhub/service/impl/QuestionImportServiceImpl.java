@@ -190,6 +190,51 @@ public class QuestionImportServiceImpl implements QuestionImportService {
         return response;
     }
 
+    @Override
+    public Map<String, Object> importPublicQuestionsFromExcel(MultipartFile file, Long categoryId, Long adminId) {
+        int successCount = 0;
+        int errorCount = 0;
+        List<String> errors = new ArrayList<>();
+        List<QuestionResponseDTO> importedList = new ArrayList<>();
+
+        try (InputStream is = file.getInputStream();
+             Workbook workbook = new XSSFWorkbook(is)) {
+
+            Sheet sheet = workbook.getSheetAt(0);
+            DataFormatter formatter = new DataFormatter();
+
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null || isRowEmpty(row)) continue;
+
+                try {
+                    QuestionRequestDTO dto = mapRowToDTO(row, formatter);
+                    dto.setCategoryId(categoryId);
+
+                    // Admin: câu hỏi PUBLIC ngay, không cần duyệt
+                    QuestionResponseDTO saved = questionService.createPublicQuestionByAdmin(adminId, dto);
+                    successCount++;
+                    importedList.add(saved);
+
+                } catch (Exception ex) {
+                    errorCount++;
+                    log.error("Admin import lỗi dòng {}: {}", i + 1, ex.getMessage());
+                    errors.add("Dòng " + (i + 1) + ": " + ex.getMessage());
+                }
+            }
+
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("successCount", successCount);
+        response.put("errorCount", errorCount);
+        response.put("errors", errors);
+        response.put("importedQuestions", importedList);
+        return response;
+    }
+
     private boolean isRowEmpty(Row row) {
         for (int c = row.getFirstCellNum(); c < row.getLastCellNum(); c++) {
             Cell cell = row.getCell(c);

@@ -234,6 +234,9 @@ function navigateToRoot() {
 
     // Reset toolbar buttons
     document.getElementById('btnNewFolder').onclick = () => openCatModal(null);
+    // Ẩn dropdown tạo câu hỏi khi ở root
+    const dd = document.getElementById('dropdownCreateQuestion');
+    if (dd) dd.style.display = 'none';
 }
 
 function navigateTo(id, name) {
@@ -255,6 +258,9 @@ function navigateTo(id, name) {
 
     // Cập nhật toolbars tạo mới
     document.getElementById('btnNewFolder').onclick = () => openCatModal(id);
+    // Hiện dropdown tạo câu hỏi khi đứng trong folder
+    const dd = document.getElementById('dropdownCreateQuestion');
+    if (dd) dd.style.display = 'block';
 
     loadFolderContent(id);
 }
@@ -1301,4 +1307,344 @@ function confirmBulkDelete() {
             }
         }
     });
+}
+
+/* ══════════════════════════════════════════════
+   ADMIN: TẠO CÂU HỎI THỦ CÔNG
+ ══════════════════════════════════════════════ */
+function openCreateQuestionModal() {
+    const catId = (navStack.length > 0) ? navStack[navStack.length - 1].id : null;
+    document.getElementById('createQuestionCategoryId').value = catId || '';
+    document.getElementById('createQuestionText').value = '';
+    document.getElementById('createQuestionType').value = 'SINGLE_CHOICE';
+    document.getElementById('createQuestionLevel').value = 'MEDIUM';
+
+    const list = document.getElementById('createAnswerList');
+    list.innerHTML = '';
+    for (let i = 0; i < 4; i++) list.appendChild(createCreateAnswerNode('', i === 0));
+    onCreateTypeChange();
+
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('createQuestionModal')).show();
+}
+
+function createCreateAnswerNode(text, isCorrect) {
+    const div = document.createElement('div');
+    div.className = 'edit-ans-item d-flex gap-2 align-items-center';
+    div.innerHTML = `
+        <div class="form-check" style="margin-bottom:0;">
+            <input class="form-check-input create-ans-correct" type="checkbox" ${isCorrect ? 'checked' : ''}
+                   style="transform:scale(1.3);margin-top:0.6rem;cursor:pointer;">
+        </div>
+        <textarea class="form-control create-ans-text" rows="1" placeholder="Nhập đáp án..."
+                  style="border-radius:10px;"></textarea>
+        <button class="btn btn-light text-danger" onclick="removeCreateAnswer(this)" style="border-radius:10px;">
+            <i class="bi bi-trash"></i>
+        </button>`;
+    div.querySelector('textarea').value = text;
+    return div;
+}
+
+function addCreateAnswer() {
+    document.getElementById('createAnswerList').appendChild(createCreateAnswerNode('', false));
+    onCreateTypeChange();
+}
+
+function removeCreateAnswer(btn) {
+    btn.parentElement.remove();
+    onCreateTypeChange();
+}
+
+function onCreateTypeChange() {
+    const type = document.getElementById('createQuestionType').value;
+    const cbs  = document.querySelectorAll('.create-ans-correct');
+    const hint = document.getElementById('createAnswerHint');
+    if (type === 'SINGLE_CHOICE') {
+        cbs.forEach(cb => { cb.type = 'radio'; cb.name = 'create-ans-radio'; cb.disabled = false; });
+        hint.innerHTML = '<i>* Trắc nghiệm 1 đáp án: Chỉ được chọn 1 đáp án đúng.</i>';
+        hint.style.display = 'block';
+    } else if (type === 'MULTIPLE_CHOICE') {
+        cbs.forEach(cb => { cb.type = 'checkbox'; cb.removeAttribute('name'); cb.disabled = false; });
+        hint.innerHTML = '<i>* Trắc nghiệm nhiều đáp án: Có thể chọn nhiều đáp án đúng.</i>';
+        hint.style.display = 'block';
+    } else {
+        cbs.forEach(cb => { cb.type = 'checkbox'; cb.removeAttribute('name'); cb.checked = true; cb.disabled = true; });
+        hint.innerHTML = '<i>* Điền khuyết: Mọi đáp án thêm vào đều là phương án đúng để so khớp.</i>';
+        hint.style.display = 'block';
+    }
+}
+
+async function submitCreateQuestion() {
+    const categoryId = document.getElementById('createQuestionCategoryId').value;
+    const text       = document.getElementById('createQuestionText').value.trim();
+    const type       = document.getElementById('createQuestionType').value;
+    const level      = document.getElementById('createQuestionLevel').value;
+
+    if (!text) { showToast('Nội dung câu hỏi không được để trống!', 'err'); return; }
+
+    const answerItems = document.querySelectorAll('#createAnswerList .edit-ans-item');
+    const answers = [];
+    let correctCount = 0;
+    for (let item of answerItems) {
+        const aText    = item.querySelector('.create-ans-text').value.trim();
+        const aCorrect = item.querySelector('.create-ans-correct').checked;
+        if (!aText) { showToast('Nội dung đáp án không được để trống!', 'err'); return; }
+        if (aCorrect) correctCount++;
+        answers.push({ text: aText, correct: aCorrect });
+    }
+    if (answers.length < 1) { showToast('Phải có ít nhất 1 đáp án!', 'err'); return; }
+    if (type === 'SINGLE_CHOICE'  && correctCount !== 1) { showToast('Trắc nghiệm 1 đáp án phải có ĐÚNG 1 đáp án đúng!',     'err'); return; }
+    if (type === 'MULTIPLE_CHOICE'&& correctCount < 2)   { showToast('Trắc nghiệm nhiều đáp án phải có ÍT NHẤT 2 đáp án đúng!','err'); return; }
+    if (type === 'FILL_IN_BLANK'  && correctCount < 1)   { showToast('Điền khuyết phải có ít nhất 1 đáp án!',                  'err'); return; }
+
+    const payload = { categoryId: categoryId ? parseInt(categoryId) : null, text, type, level, answers };
+
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const btn   = document.getElementById('btnSaveCreateQuestion');
+    const old   = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status"></span> Đang lưu...';
+    btn.disabled  = true;
+
+    try {
+        const res = await fetch('/api/admin/questions', {
+            method: 'POST',
+            headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.message || 'Lỗi khi lưu'); }
+
+        showToast('✅ Tạo câu hỏi công khai thành công!', 'ok');
+        bootstrap.Modal.getInstance(document.getElementById('createQuestionModal'))?.hide();
+        if (navStack.length > 0) loadFolderContent(navStack[navStack.length - 1].id);
+    } catch (e) {
+        showToast(e.message, 'err');
+    } finally {
+        btn.innerHTML = old;
+        btn.disabled  = false;
+    }
+}
+
+/* ══════════════════════════════════════════════
+   ADMIN: IMPORT EXCEL
+ ══════════════════════════════════════════════ */
+function openImportExcelModal() {
+    const catId = (navStack.length > 0) ? navStack[navStack.length - 1].id : null;
+    document.getElementById('importExcelCategoryId').value = catId || '';
+    document.getElementById('importExcelFile').value = '';
+    document.getElementById('importExcelResult').style.display = 'none';
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('importExcelModal')).show();
+}
+
+async function doImportExcel() {
+    const fileInput = document.getElementById('importExcelFile');
+    const catId     = document.getElementById('importExcelCategoryId').value;
+    if (!fileInput.files || fileInput.files.length === 0) {
+        showToast('Vui lòng chọn file Excel!', 'err'); return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    if (catId) formData.append('categoryId', catId);
+
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const btn   = document.getElementById('btnDoImportExcel');
+    const old   = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Đang import...';
+    btn.disabled  = true;
+
+    try {
+        const res = await fetch('/api/admin/questions/import', {
+            method: 'POST',
+            headers: { Authorization: 'Bearer ' + token },
+            body: formData
+        });
+        const data = await res.json().catch(() => ({}));
+        const resultBox = document.getElementById('importExcelResult');
+        resultBox.style.display = 'block';
+
+        if (res.ok) {
+            const sc = data.successCount || 0;
+            const ec = data.errorCount   || 0;
+            const errs = (data.errors || []).map(e => `<li>${esc(e)}</li>`).join('');
+            resultBox.innerHTML = `
+                <div class="alert ${ec === 0 ? 'alert-success' : 'alert-warning'}" style="border-radius:12px;font-size:0.85rem;">
+                    <strong><i class="bi bi-${ec===0?'check-circle-fill text-success':'exclamation-triangle-fill text-warning'} me-1"></i>
+                    Kết quả:</strong> Thành công <strong>${sc}</strong> câu, lỗi <strong>${ec}</strong> câu.
+                    ${errs ? `<ul class="mb-0 mt-2 ps-3" style="font-size:0.8rem;">${errs}</ul>` : ''}
+                </div>`;
+            if (sc > 0) {
+                showToast(`✅ Import thành công ${sc} câu hỏi PUBLIC!`, 'ok');
+                if (navStack.length > 0) loadFolderContent(navStack[navStack.length - 1].id);
+                await loadTree(); restoreTreeState();
+            }
+        } else {
+            resultBox.innerHTML = `<div class="alert alert-danger" style="border-radius:12px;font-size:0.85rem;">❌ ${esc(data.message || 'Import thất bại')}</div>`;
+        }
+    } catch (e) {
+        showToast('Lỗi kết nối khi import!', 'err');
+    } finally {
+        btn.innerHTML = old;
+        btn.disabled  = false;
+    }
+}
+
+/* ══════════════════════════════════════════════
+   ADMIN: TẠO BẰNG AI
+ ══════════════════════════════════════════════ */
+let adminAiGeneratedQuestions = [];
+let adminAiIsPreviewMode = false;
+let _adminAiModalInstance = null;
+
+function openAdminAiModal() {
+    const catId = (navStack.length > 0) ? navStack[navStack.length - 1].id : null;
+    document.getElementById('adminAiCategoryId').value = catId || '';
+    adminAiGeneratedQuestions = [];
+    adminAiIsPreviewMode = false;
+    _showAdminAiStep('input');
+    document.getElementById('admin-ai-input-text').value = '';
+    document.getElementById('admin-ai-num-questions').value = '5';
+    document.getElementById('admin-ai-level').value = 'MEDIUM';
+    _adminAiModalInstance = bootstrap.Modal.getOrCreateInstance(document.getElementById('adminAiModal'));
+    _adminAiModalInstance.show();
+}
+
+function closeAdminAiModal() {
+    if (adminAiIsPreviewMode && adminAiGeneratedQuestions.length > 0) {
+        if (!confirm('⚠️ Bạn chưa lưu câu hỏi. Đóng sẽ mất kết quả. Tiếp tục?')) return;
+    }
+    _adminAiModalInstance?.hide();
+}
+
+function _showAdminAiStep(step) {
+    document.getElementById('admin-ai-step-input').style.display   = step === 'input'   ? 'block' : 'none';
+    document.getElementById('admin-ai-step-preview').style.display = step === 'preview' ? 'block' : 'none';
+    document.getElementById('admin-ai-loading').style.display      = step === 'loading' ? 'block' : 'none';
+    document.getElementById('admin-ai-footer-input').style.display   = step === 'input'   ? 'flex' : 'none';
+    document.getElementById('admin-ai-footer-preview').style.display = step === 'preview' ? 'flex' : 'none';
+    adminAiIsPreviewMode = (step === 'preview');
+}
+
+function backToAdminAiInput() {
+    if (!confirm('Bạn muốn tạo lại? Kết quả hiện tại sẽ bị xóa.')) return;
+    adminAiGeneratedQuestions = [];
+    _showAdminAiStep('input');
+}
+
+async function submitAdminAiGenerate() {
+    const text              = document.getElementById('admin-ai-input-text').value.trim();
+    const numberOfQuestions = parseInt(document.getElementById('admin-ai-num-questions').value);
+    const level             = document.getElementById('admin-ai-level').value;
+    const categoryId        = document.getElementById('adminAiCategoryId').value || null;
+
+    if (!text) { showToast('Vui lòng nhập nội dung bài giảng hoặc chủ đề.', 'warn'); return; }
+    if (!numberOfQuestions || numberOfQuestions < 1 || numberOfQuestions > 30) {
+        showToast('Số câu hỏi phải từ 1 đến 30.', 'warn'); return;
+    }
+
+    _showAdminAiStep('loading');
+    try {
+        const res = await fetch('/api/v1/ai/generate-questions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, numberOfQuestions, level, categoryId: categoryId ? parseInt(categoryId) : null })
+        });
+        if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.message || `Lỗi HTTP ${res.status}`); }
+        const data = await res.json();
+        adminAiGeneratedQuestions = data.result || [];
+        if (adminAiGeneratedQuestions.length === 0) throw new Error('AI không trả về câu hỏi nào. Vui lòng thử lại.');
+
+        _renderAdminAiPreview(adminAiGeneratedQuestions);
+        _showAdminAiStep('preview');
+        document.getElementById('admin-ai-preview-count').textContent = adminAiGeneratedQuestions.length;
+        showToast(`✅ AI đã tạo ${adminAiGeneratedQuestions.length} câu hỏi!`, 'ok');
+    } catch (err) {
+        _showAdminAiStep('input');
+        showToast('❌ ' + err.message, 'err');
+    }
+}
+
+function _renderAdminAiPreview(questions) {
+    const container = document.getElementById('admin-ai-preview-container');
+    container.innerHTML = '';
+    const levelColor = { EASY: '#22c55e', MEDIUM: '#f59e0b', HARD: '#ef4444' };
+    const levelLabel = { EASY: 'Dễ', MEDIUM: 'Trung bình', HARD: 'Khó' };
+
+    questions.forEach((q, qIdx) => {
+        const lvl = q.level || 'MEDIUM';
+        const card = document.createElement('div');
+        card.style.cssText = 'background:#fff;border-radius:14px;padding:16px 20px;margin-bottom:12px;border:1.5px solid #e2e8f0;box-shadow:0 2px 8px rgba(0,0,0,0.04);';
+        card.innerHTML = `
+            <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;">
+                <span style="min-width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-size:0.78rem;font-weight:700;display:flex;align-items:center;justify-content:center;">${qIdx+1}</span>
+                <div style="flex:1;">
+                    <div style="font-weight:600;color:#1e293b;font-size:0.93rem;">${escAi(q.text)}</div>
+                    <span style="font-size:0.72rem;font-weight:700;padding:2px 8px;border-radius:20px;color:#fff;background-color:${levelColor[lvl]};display:inline-block;margin-top:4px;">${levelLabel[lvl]}</span>
+                </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;padding-left:36px;">
+                ${(q.answers || []).map((a, aIdx) => {
+                    const correct = a.correct === true || a.isCorrect === true;
+                    return `<div style="padding:7px 12px;border-radius:9px;border:1.5px solid ${correct?'#bbf7d0':'#f1f5f9'};background:${correct?'#f0fdf4':'#fff'};font-size:0.87rem;color:${correct?'#15803d':'#334155'};display:flex;gap:8px;align-items:center;">
+                        <i class="bi bi-${correct?'check-circle-fill text-success':'circle text-muted'}"></i>
+                        <span>${String.fromCharCode(65+aIdx)}. ${escAi(a.text)}</span>
+                    </div>`;
+                }).join('')}
+            </div>`;
+        container.appendChild(card);
+    });
+}
+
+async function saveAdminAiQuestions() {
+    if (!adminAiGeneratedQuestions || adminAiGeneratedQuestions.length === 0) return;
+    const catId = document.getElementById('adminAiCategoryId').value;
+
+    const payload = adminAiGeneratedQuestions.map(q => ({
+        text:       q.text,
+        type:       q.type  || 'SINGLE_CHOICE',
+        level:      q.level || 'MEDIUM',
+        categoryId: catId ? parseInt(catId) : null,
+        answers: (q.answers || []).map(a => ({
+            text:    a.text,
+            correct: a.correct === true || a.isCorrect === true
+        }))
+    }));
+
+    const btn = document.getElementById('btn-admin-ai-save');
+    const old = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Đang lưu...';
+    btn.disabled  = true;
+
+    const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+    try {
+        const res = await fetch('/api/admin/questions/ai-save', {
+            method: 'POST',
+            headers: { Authorization: 'Bearer ' + token, 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json().catch(() => ({}));
+        if (res.ok) {
+            const sc = data.success || 0;
+            const fc = data.fail   || 0;
+            if (fc === 0) {
+                showToast(`✅ Đã lưu ${sc} câu hỏi vào kho công khai!`, 'ok');
+                adminAiIsPreviewMode = false;
+                _adminAiModalInstance?.hide();
+                if (navStack.length > 0) loadFolderContent(navStack[navStack.length - 1].id);
+                await loadTree(); restoreTreeState();
+            } else {
+                showToast(`⚠️ Lưu được ${sc} câu, thất bại ${fc} câu.`, 'warn');
+            }
+        } else {
+            throw new Error(data.message || 'Lưu thất bại');
+        }
+    } catch (e) {
+        showToast('❌ ' + e.message, 'err');
+    } finally {
+        btn.innerHTML = old;
+        btn.disabled  = false;
+    }
+}
+
+function escAi(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }

@@ -133,6 +133,43 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     @Transactional
+    public QuestionResponseDTO createPublicQuestionByAdmin(Long adminId, QuestionRequestDTO request) {
+        validateQuestionLogic(request.getType(), request.getAnswers());
+
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        Category category = null;
+        if (request.getCategoryId() != null && request.getCategoryId() != -1L) {
+            category = categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND));
+        }
+
+        // Admin tạo thẳng câu hỏi PUBLIC, không cần qua PENDING
+        Question question = Question.builder()
+                .type(request.getType())
+                .text(request.getText())
+                .questionStatus(QuestionStatus.PUBLIC)
+                .creator(admin)
+                .category(category)
+                .level(request.getLevel() != null ? request.getLevel() : QuestionLevel.MEDIUM)
+                .build();
+
+        List<Answer> answers = request.getAnswers().stream()
+                .map(ansDto -> Answer.builder()
+                        .text(ansDto.getText())
+                        .isCorrect(Boolean.TRUE.equals(ansDto.getCorrect()))
+                        .question(question)
+                        .build())
+                .collect(Collectors.toList());
+
+        question.setAnswers(answers);
+        Question saved = questionRepository.save(question);
+        return questionMapper.toResponseDTO(saved);
+    }
+
+    @Override
+    @Transactional
     public QuestionResponseDTO updateQuestion(Long userId, Long id, QuestionRequestDTO request) {
         validateQuestionLogic(request.getType(), request.getAnswers()); // ktra logic
 
