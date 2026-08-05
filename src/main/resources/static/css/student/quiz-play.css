@@ -670,3 +670,36 @@ body {
     width: 117.65vw !important;
     height: 117.65vh !important;
 }
+
+/* ─── Mobile Responsive ─── */
+@media (max-width: 768px) {
+    .exam-header {
+        padding: 0 15px;
+        gap: 10px;
+    }
+
+    #examTitle {
+        display: none;
+    }
+
+    .exam-timer-box {
+        padding: 6px 16px;
+    }
+
+    .timer-text {
+        font-size: 1.1rem;
+    }
+
+    .btn-exit-exam {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+
+    .question-card {
+        padding: 20px 15px;
+    }
+
+    .exam-sidebar {
+        padding: 20px 15px;
+    }
+}

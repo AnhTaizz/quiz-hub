@@ -692,3 +692,18 @@ html {
     width: 117.65vw !important;
     height: 117.65vh !important;
 }
+
+/* ─── Mobile Responsive ─── */
+@media (max-width: 768px) {
+    .explore-shell {
+        padding: 20px 15px;
+    }
+    
+    .explore-title {
+        font-size: 1.8rem;
+    }
+    
+    .explore-breadcrumb {
+        padding: 12px 15px;
+    }
+}

@@ -388,3 +388,27 @@ body {
     width: 117.65vw !important;
     height: 117.65vh !important;
 }
+
+/* ─── Mobile Responsive ─── */
+@media (max-width: 991px) {
+    .explorer-container {
+        flex-direction: column;
+        height: auto !important;
+    }
+    
+    .explorer-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        max-height: 250px;
+    }
+    
+    .explorer-content {
+        padding: 24px 20px;
+        height: auto;
+    }
+    
+    .folder-title {
+        font-size: 2rem;
+    }
+}

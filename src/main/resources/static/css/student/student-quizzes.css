@@ -319,3 +319,19 @@ body {
 }
 
 .class-tag i { color: #94a3b8; }
+
+/* ─── Mobile Responsive ─── */
+@media (max-width: 768px) {
+    .quizzes-hero {
+        padding: 32px 20px;
+        border-radius: 20px;
+    }
+    
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .quiz-item-card {
+        padding: 20px;
+    }
+}
