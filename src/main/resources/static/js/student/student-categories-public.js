@@ -318,6 +318,7 @@ async function loadCategory(id) {
                     <select id="selectDisplayMode" class="prac-select">
                         <option value="sequential">Trả lời tuần tự từng câu</option>
                         <option value="all">Hiển thị tất cả câu hỏi</option>
+                        <option value="flashcard">Thẻ ghi nhớ (Flashcard)</option>
                     </select>
                 </div>
 
