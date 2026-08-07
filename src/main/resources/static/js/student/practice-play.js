@@ -1115,3 +1115,18 @@ function showToast(msg, type = 'ok') {
     else if (type === 'warn' || type === 'warning') toast.warning(msg);
     else toast.success(msg);
 }
+
+// ── Keyboard Navigation ──
+document.addEventListener('keydown', function(e) {
+    // If typing in input or textarea, don't interfere
+    if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+    if (e.key === 'ArrowLeft') {
+        prevQuestion();
+    } else if (e.key === 'ArrowRight') {
+        nextQuestion();
+    } else if ((e.key === ' ' || e.key === 'Enter') && settings.displayMode === 'flashcard') {
+        e.preventDefault(); // Prevent page scroll on Space
+        window.flipFlashcard();
+    }
+});
